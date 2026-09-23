@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+#[Fillable(['clinica_id', 'nome', 'cpf', 'rg', 'nascimento', 'sexo', 'email', 'phone', 'celular', 'cep', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'responsavel', 'observacoes', 'status'])]
+class Paciente extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'nascimento' => 'date',
+        ];
+    }
+
+    public function clinica(): BelongsTo
+    {
+        return $this->belongsTo(Clinica::class);
+    }
+
+    public function anamneses(): HasMany
+    {
+        return $this->hasMany(Anamnese::class);
+    }
+
+    public function alertas(): HasMany
+    {
+        return $this->hasMany(MedicalAlert::class);
+    }
+
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(PatientDocument::class);
+    }
+
+    public function odontogramas(): HasMany
+    {
+        return $this->hasMany(Odontogram::class);
+    }
+
+    public function consultas(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function evolucoes(): HasMany
+    {
+        return $this->hasMany(ClinicalNote::class);
+    }
+
+    public function planosTratamento(): HasMany
+    {
+        return $this->hasMany(TreatmentPlan::class);
+    }
+
+    public function orcamentos(): HasMany
+    {
+        return $this->hasMany(Budget::class);
+    }
+
+    public function contasReceber(): HasMany
+    {
+        return $this->hasMany(AccountsReceivable::class);
+    }
+
+    public function prescricoes(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
+
+    public function convenios(): HasMany
+    {
+        return $this->hasMany(PatientInsurance::class);
+    }
+}

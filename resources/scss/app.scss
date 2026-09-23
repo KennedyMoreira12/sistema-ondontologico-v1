@@ -1,0 +1,207 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+$sidebar-width: 260px;
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f4f6f9;
+}
+
+.sco-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sco-sidebar {
+    width: $sidebar-width;
+    background-color: #1f2d3d;
+    color: #c2c7d0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    transition: margin-left 0.3s ease;
+    overflow-y: auto;
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 1rem 1.25rem;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.15rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-section-title {
+        padding: 0.9rem 1.25rem 0.3rem;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8a93a2;
+    }
+
+    .nav-link {
+        color: #c2c7d0;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+
+        i {
+            font-size: 1rem;
+            width: 1.25rem;
+            text-align: center;
+        }
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        &.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-left: 3px solid #0d6efd;
+        }
+    }
+}
+
+.sco-main {
+    flex: 1;
+    margin-left: $sidebar-width;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.sco-topbar {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+
+    .sco-topbar-title {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+}
+
+.sco-content {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .sco-sidebar {
+        margin-left: -$sidebar-width;
+    }
+
+    .sco-main {
+        margin-left: 0;
+    }
+
+    .sco-sidebar.show {
+        margin-left: 0;
+    }
+}
+
+.sco-stat-card {
+    .card {
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.6rem 0.75rem;
+}
+
+.card {
+    border-radius: 0.75rem;
+}
+
+.schedule-table {
+    min-width: 900px;
+
+    &.table-striped > tbody > tr:nth-of-type(odd) > * {
+        --bs-table-color-type: #212529;
+    }
+}
+
+.appointment-card {
+    border: 0;
+    border-radius: 0.35rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.15s ease;
+
+    &:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    }
+}
+
+.arcada {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.tooth {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid #ced4da;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #fff;
+    padding: 0;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+    &:hover {
+        transform: scale(1.08);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    &.tooth-ausente {
+        opacity: 0.55;
+    }
+
+    &.tooth-readonly {
+        cursor: default;
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+        }
+    }
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}

@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable(['odontogram_id', 'tooth_condition_id', 'dente', 'condicao', 'observacao', 'profissional_id'])]
+class OdontogramTooth extends \Illuminate\Database\Eloquent\Model
+{
+    public function odontogram(): BelongsTo
+    {
+        return $this->belongsTo(Odontogram::class);
+    }
+
+    public function toothCondition(): BelongsTo
+    {
+        return $this->belongsTo(ToothCondition::class);
+    }
+
+    public function profissional(): BelongsTo
+    {
+        return $this->belongsTo(Professional::class);
+    }
+}
