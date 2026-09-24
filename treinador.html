@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treinador Interativo — SCO</title>
+<style>
+  :root {
+    --azul:#0b7285; --azul-escuro:#083c4a; --teal:#0ca678; --verde:#2b8a3e;
+    --amarelo:#f59f00; --roxo:#7048e8; --vermelho:#e03131; --cinza-bg:#eef3f6;
+    --texto:#1d2b33; --mouse:#5a6a72; --borda:#dbe6ec; --branco:#fff;
+    --sombra:0 6px 18px rgba(20,60,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--texto);background:var(--cinza-bg);line-height:1.55}
+  .layout{display:flex;min-height:100vh}
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{width:236px;background:linear-gradient(180deg,#0b3a48,#0a4d5e);color:#fff;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sidebar .brand{display:flex;align-items:center;gap:10px;padding:16px 14px;font-weight:800;font-size:1.02rem;border-bottom:1px solid rgba(255,255,255,.12)}
+  .sidebar .brand .dente{font-size:1.4rem}
+  .sidebar nav{padding:10px 0}
+  .nav-titulo{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);padding:12px 16px 4px}
+  .nav-item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:rgba(255,255,255,.85);padding:8px 16px;font-size:.92rem;cursor:pointer;text-align:left}
+  .nav-item:hover{background:rgba(255,255,255,.10)}
+  .nav-item.ativo{background:rgba(255,255,255,.16);border-left:3px solid var(--teal);font-weight:600}
+  .nav-item .ico{width:20px;text-align:center}
+
+  /* ===== MAIN ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--branco);border-bottom:1px solid var(--borda);padding:10px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+  .topbar h1{font-size:1.1rem;font-weight:700}
+  .topbar .acao{display:flex;gap:8px;align-items:center}
+  .area-treino{border:2px solid var(--teal);color:#11684f;background:#e6faf2;font-weight:700;padding:6px 12px;border-radius:999px;font-size:.8rem}
+  .usuario{background:var(--cinza-bg);border:1px solid var(--borda);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600}
+  .page{padding:22px;max-width:1100px;width:100%;margin:0 auto}
+
+  /* ===== MODO TREINAMENTO ===== */
+  .painel-treino{background:#fff7e6;border:1px solid #f0d48a;border-left:5px solid var(--amarelo);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:.9rem}
+  .painel-treino b{color:#8a6100}
+  .painel-treino ol{margin:8px 0 0 18px}
+  .painel-treino .passos span{display:inline-block;background:#0b7285;color:#fff;border-radius:5px;padding:1px 7px;margin:3px 3px 0 0;font-size:.8rem}
+
+  /* ===== COMPONENTES ===== */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .campo{padding:8px 12px;border:1px solid var(--borda);border-radius:8px;font-size:.9rem;background:var(--branco);color:var(--texto)}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--azul);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.teal{background:var(--teal)} .btn.verde{background:var(--verde)} .btn.vermelho{background:var(--vermelho)}
+  .btn.gray{background:#6c757d} .btn.fino{padding:4px 10px;font-size:.8rem}
+  .btn-link{background:none;border:none;color:var(--azul);cursor:pointer;font-size:.88rem;text-decoration:underline;padding:0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+  .card-kpi{background:var(--branco);border:1px solid var(--borda);border-radius:12px;padding:16px;box-shadow:var(--sombra)}
+  .card-kpi .v{font-size:1.6rem;font-weight:800;color:var(--azul-escuro)}
+  .card-kpi .r{font-size:.8rem;color:var(--mouse)}
+  .tabela-wrap{background:var(--branco);border:1px solid var(--borda);border-radius:12px;overflow:hidden;box-shadow:var(--sombra)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{background:#f7fafb;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mouse);border-bottom:1px solid var(--borda)}
+  td{padding:9px 12px;border-bottom:1px solid var(--borda)}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;color:#fff}
+  .aviso{background:var(--branco);border:1px dashed var(--borda);border-radius:10px;padding:22px;text-align:center;color:var(--mouse);font-size:.9rem}
+  .modal-bg{position:fixed;inset:0;background:rgba(8,30,40,.5);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal-bg.aberto{display:flex}
+  .modal{background:var(--branco);border-radius:14px;padding:22px;width:min(480px,92vw);max-height:90vh;overflow:auto;box-shadow:var(--sombra)}
+  .modal h3{margin-bottom:14px;font-size:1.05rem}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .form-grid .full{grid-column:1/-1}
+  .form-grid label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px;color:var(--mouse)}
+  .form-grid input,.form-grid select,.form-grid textarea{width:100%;padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:.88rem;font-family:inherit}
+  .modal .acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .erro{background:#ffe9e9;border:1px solid #f0b9b9;color:#9b1c1c;padding:8px 12px;border-radius:8px;font-size:.82rem;margin-top:10px}
+  .ok{background:#e6f7ec;border:1px solid #b8e6c8;color:#15572b;padding:8px 12px;border-radius:8px;font-size:.82rem;margin-top:10px}
+  .dica-treino{background:#eef6ff;border:1px solid #c5dcf7;color:#1d4e8b;padding:8px 12px;border-radius:8px;font-size:.8rem;margin-bottom:14px}
+  .dica-treino b{font-weight:700}
+  .real{margin:14px 0;font-size:.82rem}
+  .real a{color:var(--azul);font-weight:600}
+  .timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;background:var(--branco);border:1px solid var(--borda);border-radius:10px;padding:14px;margin-bottom:16px}
+  .tl-etapa{font-size:.75rem;color:var(--mouse);text-align:center;border-right:1px dashed var(--borda);padding-right:8px}
+  .tl-etapa:last-child{border:none}
+  .tl-etapa b{display:block;color:var(--texto);font-size:.82rem}
+  .odonto{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;max-width:640px}
+  .dente{aspect-ratio:1;background:var(--branco);border:2px solid var(--borda);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--mouse);cursor:pointer;font-size:.8rem;transition:.12s}
+  .dente:hover{transform:scale(1.08);border-color:var(--teal)}
+  .dente.cariado{background:var(--vermelho);border-color:#a03030;color:#fff}
+  .dente.restaurado{background:var(--azul);border-color:#0a4f63;color:#fff}
+  .dente.coroa{background:#f76707;border-color:#b34e05;color:#fff}
+  .dente.ausente{background:#adb5bd;border-color:#8b949d;color:#fff;text-decoration:line-through}
+  .dente.canal{background:var(--amarelo);border-color:#b37b00;color:#5f4300}
+  .corte{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
+  @media(max-width:900px){.corte{grid-template-columns:1fr}.sidebar{width:200px}}
+  @media(max-width:720px){.sidebar{display:none}}
+
+  /* ===== EXPLICAÇÕES INTERATIVAS ===== */
+  #dicaExpli{position:fixed;z-index:98;max-width:330px;background:#083c4a;color:#fff;padding:10px 12px;border-radius:9px;font-size:.82rem;line-height:1.45;box-shadow:0 8px 20px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .12s}
+  #tourCaixa{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff8e8;border:2px solid #f0c24b;border-radius:14px;padding:16px 18px;box-shadow:0 14px 34px rgba(0,0,0,.28);z-index:120;font-size:.9rem}
+  #tourCaixa .cont{display:flex;gap:10px;align-items:flex-start}
+  #tourCaixa .num{background:var(--amarelo);color:#5f4300;border-radius:999px;padding:3px 10px;font-weight:800;font-size:.75rem;white-space:nowrap;cursor:pointer}
+  .btn-ghost{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer}
+  .btn-ghost:hover{background:rgba(255,255,255,.14)}
+  .expli-rodape{font-size:.8rem;color:var(--mouse);border-top:1px dashed var(--borda);margin-top:12px;padding-top:8px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand"><span class="dente">🦷</span> <span>Clínica Sorriso</span></div>
+    <nav>
+      <div class="nav-titulo">Principal</div>
+      <button class="nav-item" data-mod="dashboard"><span class="ico">📊</span>Dashboard</button>
+      <button class="nav-item" data-mod="pacientes"><span class="ico">👥</span>Pacientes</button>
+      <button class="nav-item" data-mod="agenda"><span class="ico">🗓️</span>Agenda</button>
+      <button class="nav-item" data-mod="prontuario"><span class="ico">📋</span>Prontuário</button>
+      <button class="nav-item" data-mod="odontograma"><span class="ico">🦷</span>Odontograma</button>
+      <button class="nav-item" data-mod="planos"><span class="ico">💊</span>Tratamentos</button>
+      <div class="nav-titulo">Gestão</div>
+      <button class="nav-item" data-mod="orcamentos"><span class="ico">💰</span>Orçamentos</button>
+      <button class="nav-item" data-mod="financeiro"><span class="ico">🏦</span>Financeiro</button>
+      <button class="nav-item" data-mod="convenios"><span class="ico">🛡️</span>Convênios</button>
+      <button class="nav-item" data-mod="profissionais"><span class="ico">🧑‍⚕️</span>Profissionais</button>
+      <button class="nav-item" data-mod="procedimentos"><span class="ico">🩺</span>Procedimentos</button>
+      <button class="nav-item" data-mod="estoque"><span class="ico">📦</span>Estoque</button>
+      <button class="nav-item" data-mod="contratos"><span class="ico">📜</span>Contratos</button>
+      <button class="nav-item" data-mod="relatorios"><span class="ico">📊</span>Relatórios</button>
+      <div class="nav-titulo">Administração</div>
+      <button class="nav-item" data-mod="admin"><span class="ico">⚙️</span>Usuários &amp; Perfis</button>
+      <button class="nav-item" data-mod="auditoria"><span class="ico">🔍</span>Auditoria</button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="tituloPagina">Dashboard</h1>
+      <div class="acao">
+        <span class="area-treino">🎓 Modo treinamento</span>
+        <span class="usuario">👤 Administrador</span>
+      </div>
+    </div>
+    <div class="page" id="page"></div>
+  </div>
+</div>
+
+<!-- MODAL GENÉRICO -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script>
+/* =========================================================
+   TREINADOR INTERATIVO — dados de demonstração
+   ========================================================= */
+const estado = {
+  consultas: [
+    {h:'08:00',pac:'Maria Souza',pro:'Dr. João',sala:'Sala 1',st:'Em atendimento',dur:60,ret:false},
+    {h:'09:00',pac:'Carlos Lima',pro:'Dr. João',sala:'Sala 2',st:'Agendado',dur:30,ret:true},
+    {h:'10:30',pac:'Ana Costa',pro:'Dr. João',sala:'Sala 1',st:'Confirmado',dur:30,ret:false},
+    {h:'13:30',pac:'Pedro Alves',pro:'Dr. João',sala:'Sala 3',st:'Agendado',dur:90,ret:false},
+  ],
+  espera: [{pac:'Joana Faria',pri:'Alta',status:'Aguardando',motivo:'Vaga urgente'},{pac:'Bruno Réden',pri:'Normal',status:'Aguardando',motivo:'Limpeza'}],
+  pacientes: [
+    {id:1,n:'Maria Souza',cpf:'123.456.789-00',cel:'(11) 98765-4321',st:'ativo',cons:5,orc:2},
+    {id:2,n:'Carlos Lima',cpf:'987.654.321-00',cel:'(11) 97654-3210',st:'ativo',cons:2,orc:1},
+    {id:3,n:'Ana Costa',cpf:'456.123.789-00',cel:'(11) 96543-2109',st:'ativo',cons:9,orc:4},
+    {id:4,n:'Pedro Alves',cpf:'321.654.987-00',cel:'(11) 95432-1098',st:'inativo',cons:1,orc:0},
+  ],
+  procedimentos: [
+    {cod:'LIMPO',nome:'Limpeza',cat:'Prevenção',dur:60,val:150},
+    {cod:'CLIN_GER',nome:'Consulta clínica geral',cat:'Consulta',dur:30,val:100},
+    {cod:'END_FR_A',nome:'Tratamento de canal (1 raiz)',cat:'Endodontia',dur:90,val:600},
+    {cod:'RES_RES',nome:'Restauração em resina',cat:'Restauradora',dur:45,val:220},
+    {cod:'PROT_COR',nome:'Coroa de porcelana',cat:'Prótese',dur:120,val:1200},
+    {cod:'PT_BT_M',nome:'Clareamento dental',cat:'Estética',dur:60,val:400},
+  ],
+  plano: {titulo:'Reabilitação oral',status:'Em andamento',desconto:50,itens:[{proc:3,n:2,dente:26,uni:220,qtd:2,desc:0}]},
+  orcamento: {titulo:'Tratamento estético',status:'Aprovado',validade:'15/10/2026',itens:[{proc:6,n:1,dente:null,uni:400,qtd:1,desc:0},{proc:4,n:1,dente:16,uni:1200,qtd:1,desc:100}]},
+  contas: [
+    {id:1,pac:'Ana Costa',venc:'25/09/2026',valor:300,pago:0,st:'aberta'},
+    {id:2,pac:'Maria Souza',venc:'30/09/2026',valor:150,pago:150,st:'paga'},
+    {id:3,pac:'Carlos Lima',venc:'05/10/2026',valor:600,pago:200,st:'parcial'},
+  ],
+  produtos: [
+    {id:1,n:'Luvas de látex',cat:'Descartáveis',est:40,min:50,custo:25,st_baixo:true},
+    {id:2,n:'Resina composta',cat:'Materiais restauradores',est:12,min:5,custo:180,st_baixo:false},
+    {id:3,n:'Anestésico',cat:'Anestésicos',est:30,min:10,custo:15,st_baixo:false},
+    {id:4,n:'Algodão',cat:'Descartáveis',est:8,min:20,custo:10,st_baixo:true},
+  ],
+  estoqueHistorico:[{dt:'22/09',p:'Resina composta',t:'entrada',q:6},{dt:'23/09',p:'Luvas',t:'saida',q:20}],
+  profissionais:[{n:'Dr. João Silva',cro:'SP-12345',t:'Dentista',esp:'Clínica geral, Endodontia',com:10},
+    {n:'Dra. Paula Mendes',cro:'SP-54321',t:'Dentista',esp:'Ortodontia',com:10},
+    {n:'Ana Recepção',t:'Recepcionista',esp:'—',com:0}],
+  convenios:[{n:'OdontoSaúde',cnpj:'11.111.111/0001-11',planos:2,st:'ativo'},{n:'SorrisoPlano',cnpj:'22.222.222/0001-22',planos:1,st:'ativo'}],
+  contratos:[{pac:'Maria Souza',tipo:'Termo de consentimento',st:'Assinado',data:'10/09/2026'},{pac:'Ana Costa',tipo:'Contrato de tratamento',st:'Pendente',data:'—'}],
+  usuarios:[{n:'Administrador',email:'admin@sco.com',perfil:'Administrador',st:'Ativo'},{n:'Dra. Paula Mendes',email:'paula@sco.com',perfil:'Dentista',st:'Ativo'}],
+  auditoria:[{quem:'Administrador',acao:'criar',tabela:'pacientes',id:'#1',quando:'24/09 10:02',ip:'127.0.0.1'},
+    {quem:'Administrador',acao:'registrar_pagamento',tabela:'payments',id:'#12',quando:'24/09 09:41',ip:'127.0.0.1'},
+    {quem:'Administrador',acao:'marcar_dente',tabela:'odontogram_teeth',id:'#7',quando:'23/09 16:20',ip:'127.0.0.1'}],
+  rel: {recebido:1250,emAberto:700,atendidas:31,canceladas:4,faltas:2,entradas:96,saidas:84,baixo:2},
+  resumo: 'Maria Souza | Evolução registrada — tratamento endodôntico iniciado. 🦷',
+};
+const $ = s => document.querySelector(s);
+const pasta = s => `${s.n.charAt(0).toUpperCase()}${s.n.slice(1)}`;
+
+/* ===== CORES DOS STATUS ===== */
+const stCor = {Agendado:'#0d6efd',Confirmado:'#198754','Em atendimento':'#ffc107',Atendido:'#6f42c1',Faltou:'#dc3545',Cancelado:'#6c757d'};
+const stBadge = s => `<span class="badge" style="background:${stCor[s]||'#6c757d'}">${s}</span>`;
+
+/* ===== NAVEGAÇÃO ===== */
+const modulos = {dashboard:0,pacientes:0,prontuario:1,pacientes_ficha:1,agenda:0,odontograma:2,planos:3,orcamentos:4,financeiro:5,convenios:6,profissionais:7,procedimentos:8,estoque:9,contratos:10,relatorios:11,admin:12,auditoria:13};
+const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário clínico',pacientes_ficha:'Ficha do Paciente',agenda:'Agenda',odontograma:'Odontograma',planos:'Planos de Tratamento',orcamentos:'Orçamentos',financeiro:'Financeiro',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',contratos:'Contratos',relatorios:'Relatórios',admin:'Administração',auditoria:'Auditoria'};
+const treinoInfo = {
+  dashboard:`<ol><li>Observe os 4 indicadores: consultas de hoje, pacientes, tratamentos em andamento e estoque baixo.</li><li>Na tabela <b>Agenda de hoje</b>, confira horário, paciente e status de cada consulta.</li><li>Veja a lista de <b>contas a receber</b> — saldos que precisam de cobrança.</li></ol>`,
+  pacientes:`<ol><li>Digite um nome no campo de busca e veja o filtro funcionar em tempo real.</li><li>Clique em um paciente para abrir a <b>ficha</b> (aba lateral).</li><li>No sistema real use <b>Novo paciente</b> para cadastrar (teste CPF duplicado = bloqueio).</li></ol>`,
+  prontuario:`<ol><li>Registre uma <b>evolução clínica</b> com tipo e conteúdo.</li><li>Adicione um <b>alerta</b> (ex.: alergia a penicilina).</li><li>Veja a <b>anamnese</b> no formato "pergunta: resposta" e a prescrição.</li></ol>`,
+  odontograma:`<ol><li>Clique nos dentes para alternar as <b>condições</b> (cariado → restaurado → coroa → ausente → hígido).</li><li>Use a <b>legenda</b> para entender as cores.</li><li>No sistema real cada marca é gravada com o profissional logado.</li></ol>`,
+  planos:`<ol><li>Adicione um <b>procedimento</b> (quantidade, valor, dente e desconto) ao plano.</li><li>Acompanhe o <b>total recalculado autonomaticamente</b>.</li><li>Teste o fluxo de status: Rascunho → Aprovado → Em andamento → Concluído.</li></ol>`,
+  orcamentos:`<ol><li>Monte os itens do orçamento e veja <b>subtotal/total</b> recalcular.</li><li>Emita o orçamento e depois <b>aprove</b> (base para o financeiro).</li><li>Repare na <b>validade</b> da proposta.</li></ol>`,
+  financeiro:`<ol><li>Clique em <b>Receber</b> em uma conta em aberto.</li><li>Tente receber valor acima do saldo → o sistema <b>bloqueia</b>.</li><li>Receba parcial → conta vira <b>Parcial</b>; receba o resto → <b>Paga</b>.</li></ol>`,
+  convenios:`<ol><li>Cadastre uma operadora com nome/CNPJ/contato.</li><li>Veja que o sistema conta os <b>planos</b> de cada operadora.</li></ol>`,
+  profissionais:`<ol><li>Cadastre um profissional com CRO, tipo e especialidades.</li><li>Veja como a <b>comissão %</b> e o tipo alimentam agenda/auditoria.</li></ol>`,
+  procedimentos:`<ol><li>Observe que <b>código</b> é único — duplicar é bloqueado.</li><li>Categoria, duração e <b>valor padrão</b> alimentam planos/orçamentos.</li></ol>`,
+  estoque:`<ol><li>Use <b>Entrada</b> (compra) e <b>Saída</b> (uso clínico) em um produto.</li><li>Tente saída maior que o saldo → <b>bloqueado</b>.</li><li>Produtos com saldo ≤ mínimo ficam destacados como <b>estoque baixo</b>.</li></ol>`,
+  contratos:`<ol><li>Cadastre um contrato vinculado ao paciente, com tipo e conteúdo.</li><li>Mude o status para <b>Assinado</b> e informe a data.</li></ol>`,
+  relatorios:`<ol><li>Altere o período de <b>De/Até</b> para ver os indicadores do relatório.</li><li>Compare os blocos: financeiro, agenda e estoque.</li></ol>`,
+  admin:`<ol><li>Veja a lista de usuários com perfil (RBAC).</li><li>Nos <b>Perfis</b>, entenda que cada perfil tem permissões por módulo+ação.</li><li>Confira os dados da <b>Clínica</b> (usados também pela API WhatsApp).</li></ol>`,
+  auditoria:`<ol><li>Cada ação do sistema fica gravada com <b>quem, quando e IP</b>.</li><li>Use os filtros (ação/tabela) para encontrar registros.</li></ol>`,
+};
+const realLink = m => ({dashboard:'http://127.0.0.1:8000/',pacientes:'http://127.0.0.1:8000/pacientes',prontuario:'http://127.0.0.1:8000/pacientes',odontograma:'http://127.0.0.1:8000/pacientes',planos:'http://127.0.0.1:8000/pacientes',orcamentos:'http://127.0.0.1:8000/pacientes',agenda:'http://127.0.0.1:8000/agenda',financeiro:'http://127.0.0.1:8000/financeiro',convenios:'http://127.0.0.1:8000/convenios',profissionais:'http://127.0.0.1:8000/profissionais',procedimentos:'http://127.0.0.1:8000/procedimentos',estoque:'http://127.0.0.1:8000/estoque',contratos:'http://127.0.0.1:8000/contratos',relatorios:'http://127.0.0.1:8000/relatorios',admin:'http://127.0.0.1:8000/admin/usuarios',auditoria:'http://127.0.0.1:8000/admin/auditoria'}[m]);
+
+function cabecalho(mod, titulo, extra=''){
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0b7285;border-radius:10px;padding:8px 12px;margin-bottom:12px">
+    <button class="btn-como-funciona btn-ghost" data-mod="${mod}">❓ Como funciona este módulo</button>
+    <button class="btn-tour btn-ghost" data-mod="${mod}">▶ Visita guiada</button>
+    <span style="color:#eafff7;font-size:.8rem">🖱️ Passe o mouse sobre os elementos para ler explicações — clique para ampliar.</span>
+  </div>
+  <div class="painel-treino">🎓 <b>Treine nesta tela:</b><div class="passos">${treinoInfo[mod]||''}</div></div>
+  <div class="dica-treino">💡 <b>Abrir no sistema real:</b> <a target="_blank" href="${realLink(mod)}">${titulo}</a> (faça login como admin@sco.com / admin123).</div>${extra}`;
+}
+
+/* ===== MODAL ===== */
+function abrirModal(html){ $('#modalBox').innerHTML = html; $('#modalBg').classList.add('aberto'); }
+function fecharModal(){ $('#modalBg').classList.remove('aberto'); }
+$('#modalBg').addEventListener('click', e => { if(e.target.id==='modalBg') fecharModal(); });
+
+/* ===== PÁGINAS ===== */
+function pagDashboard(){
+  return cabecalho('dashboard','Dashboard') + `
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.consultas.length}</div><div class="r">🗓️ Consultas hoje</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacientes.length}</div><div class="r">👥 Pacientes cadastrados</div></div>
+    <div class="card-kpi"><div class="v">1</div><div class="r">💊 Tratamento em andamento</div></div>
+    <div class="card-kpi"><div class="v">${estado.produtos.filter(p=>p.st_baixo).length}</div><div class="r">📦 Produtos com estoque baixo</div></div>
+  </div>
+  <div class="corte">
+    <div class="tabela-wrap"><table>
+      <tr><th>Horário</th><th>Paciente</th><th>Profissional</th><th>Status</th></tr>
+      ${estado.consultas.map(c=>`<tr><td>${c.h}</td><td>${c.pac}</td><td>${c.pro}</td><td>${stBadge(c.st)}</td></tr>`).join('')}
+    </table></div>
+    <div class="tabela-wrap"><table>
+      <tr><th>Contas a receber</th><th>Saldo</th></tr>
+      ${estado.contas.filter(c=>c.st!=='paga').map(c=>`<tr><td>${c.pac}</td><td style="color:#d33;font-weight:700">R$ ${(c.valor-c.pago).toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="2">Nenhuma conta em aberto.</td></tr>'}
+    </table></div>
+  </div>`;
+}
+
+function pagPacientes(){
+  return cabecalho('pacientes','Pacientes') + `
+  <div class="dica-treino">🔎 <b>Experimente:</b> digite "ana" no campo de busca — o filtro usa nome, CPF, e-mail, telefone e celular.</div>
+  <div class="toolbar"><input class="campo" id="buscaPac" placeholder="Buscar por nome, CPF ou telefone..." style="min-width:280px">
+    <button class="btn teal" onclick="abrirModal(novoPacienteForm())">+ Novo paciente</button>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Nome</th><th>CPF</th><th>Celular</th><th>Consultas</th><th>Orçamentos</th><th>Status</th><th></th></tr>
+    <tbody id="corpoPac">${pacientesRows(estado.pacientes,'')}</tbody>
+  </table></div>`;
+}
+function pacientesRows(lista,filtro){
+  const f = filtro.toLowerCase();
+  const listaF = lista.filter(p => !f || p.n.toLowerCase().includes(f) || (p.cpf||'').includes(f));
+  if(!listaF.length) return `<tr><td colspan="7"><div class="aviso">Nenhum paciente encontrado para "${filtro}".</div></td></tr>`;
+  return listaF.map(p=>`<tr>
+    <td><button class="btn-link" onclick="mostrar('pacientes_ficha')">${p.n}</button></td>
+    <td>${p.cpf}</td><td>${p.cel}</td><td>${p.cons}</td><td>${p.orc}</td>
+    <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#dc3545">Inativo</span>'}</td>
+    <td><button class="btn gray fino" onclick="mostrar('pacientes_ficha')">Abrir ficha</button></td></tr>`).join('');
+}
+function novoPacienteForm(){
+  return `<h3>📝 Novo paciente</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome *</label><input id="np_nome" placeholder="Nome completo"></div>
+    <div><label>CPF</label><input id="np_cpf" placeholder="000.000.000-00"></div>
+    <div><label>Celular</label><input id="np_cel" placeholder="(11) 90000-0000"></div>
+    <div><label>E-mail</label><input id="np_email" placeholder="email@paciente.com"></div>
+    <div><label>Status</label><select id="np_st"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+    <div class="full"><label>Observações</label><textarea id="np_obs" rows="2"></textarea></div>
+  </div>
+  <div class="erro" style="display:none" id="np_erro">O CPF informado já está cadastrado (o CPF é único).</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarNovoPaciente()">Salvar</button></div>`;
+}
+function salvarNovoPaciente(){
+  const nome=$('#np_nome').value.trim(), cpf=$('#np_cpf').value.trim(), cel=$('#np_cel').value.trim();
+  if(!nome){ alert('Informe o nome do paciente.'); return; }
+  if(cpf && estado.pacientes.some(p=>p.cpf===cpf)){ $('#np_erro').style.display='block'; return; }
+  estado.pacientes.push({id:estado.pacientes.length+1,n:nome,cpf:cpf||'—',cel:cel||'—',st:$('#np_st').value,cons:0,orc:0});
+  fecharModal(); mostrar('pacientes'); flash(`Paciente "${nome}" cadastrado com sucesso ✓`);
+}
+let pastaPac = 0;
+function pagFicha(){
+  const p = estado.pacientes[pastaPac];
+  return cabecalho('prontuario','Ficha do Paciente') + `
+  <div class="dica-treino">🧭 <b>Navegue entre pacientes:</b>
+    <button class="btn-link" onclick="pastaPac=(pastaPac-1+estado.pacientes.length)%estado.pacientes.length;mostrar('pacientes_ficha')">◀ anterior</button>
+    <b>${p.n}</b>
+    <button class="btn-link" onclick="pastaPac=(pastaPac+1)%estado.pacientes.length;mostrar('pacientes_ficha')">próximo ▶</button></div>`+
+  `<div class="cards">
+    <div class="card-kpi"><div class="v">${p.cons}</div><div class="r">Consultas</div></div>
+    <div class="card-kpi"><div class="v">${p.orc}</div><div class="r">Orçamentos</div></div>
+    <div class="card-kpi"><div class="v">1</div><div class="r">⚠️ Alerta ativo</div></div>
+    <div class="card-kpi"><div class="v">2</div><div class="r">Documentos</div></div>
+  </div>
+  <div class="corte">
+    <div class="tabela-wrap" style="margin-bottom:14px"><table>
+      <tr><th>CPF</th><th>Celular</th><th>E-mail</th><th>Status</th></tr>
+      <tr><td>${p.cpf}</td><td>${p.cel}</td><td>${(p.n.split(' ')[0].toLowerCase())}@email.com</td>
+        <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#dc3545">Inativo</span>'}</td></tr>
+    </table></div>
+    <div class="tabela-wrap"><table>
+      <tr><th>Alertas clínicos</th><th>Detalhe</th></tr>
+      <tr><td>⚠️ Alergia</td><td>Penicilina</td></tr>
+      <tr><td>💊 Medicação</td><td>Anticoagulante</td></tr>
+    </table></div>
+  </div>
+  <div class="tabela-wrap" style="margin-top:14px"><table>
+    <tr><th>Tela</th><th>O que você treina aqui</th></tr>
+    <tr><td><b>Prontuário / Evoluções</b></td><td>Registrar evolução com tipo + conteúdo — o profissional logado fica como autor.</td></tr>
+    <tr><td><b>Anamneses</b></td><td>Sistema pergunta:resposta — cole linhas "Alergia: Penicilina".</td></tr>
+    <tr><td><b>Alertas</b></td><td>Cadastra alerta que fica visível na ficha; desativar não apaga.</td></tr>
+    <tr><td><b>Prescrições</b></td><td>Vários medicamentos por prescrição (dose, frequência, duração).</td></tr>
+    <tr><td><b>Documentos</b></td><td>Anexar arquivos com tipo e título (o download exige permissão).</td></tr>
+  </table></div>
+  <div class="toolbar" style="margin-top:14px">
+    <button class="btn teal" onclick="abrirModal(evolucaoForm())">✍️ Registrar evolução</button>
+    <button class="btn" onclick="abrirModal(alertaForm())">⚠️ Novo alerta</button>
+    <button class="btn gray" onclick="mostrar('pacientes')">← Voltar aos pacientes</button>
+  </div>`;
+}
+let evolucoes = [];
+function evolucaoForm(){
+  return `<h3>✍️ Nova evolução clínica</h3>
+  <div class="form-grid">
+    <div><label>Tipo</label><select id="ev_tipo"><option value="evolucao">Evolução</option><option value="consulta">Consulta</option><option value="procedimento">Procedimento</option></select></div>
+    <div><label>Profissional</label><input value="Dr. João Silva" readonly></div>
+    <div class="full"><label>Conteúdo *</label><textarea id="ev_conteudo" rows="4" placeholder="Relato do atendimento..."></textarea></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarEvolucao()">Salvar</button></div>`;
+}
+function salvarEvolucao(){
+  const t=$('#ev_conteudo').value.trim(); if(!t){ alert('Preencha o conteúdo.'); return; }
+  evolucoes.unshift({tipo:$('#ev_tipo').value,d:t}); fecharModal(); flash('Evolução registrada no prontuário ✓');
+}
+function alertaForm(){
+  return `<h3>⚠️ Novo alerta clínico</h3>
+  <div class="form-grid">
+    <div class="full"><label>Título *</label><input id="al_title" placeholder="Ex.: Alergia a penicilina"></div>
+    <div class="full"><label>Descrição</label><textarea id="al_desc" rows="3"></textarea></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarAlerta()">Salvar</button></div>`;
+}
+function salvarAlerta(){
+  const t=$('#al_title').value.trim(); if(!t){alert('Informe o título do alerta.');return;}
+  fecharModal(); flash(`Alerta "${t}" registrado ✓`);
+}
+
+function pagAgenda(){
+  const dias=['Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const horarios=['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+  return cabecalho('agenda','Agenda') + `
+  <div class="dica-treino">🗓️ <b>Experimente:</b> clique em qualquer espaço livre da grade para agendar uma consulta.</div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(agendarForm())">+ Novo agendamento</button>
+    <select class="campo"><option>Dr. João</option><option>Dra. Paula</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Horário</th>${dias.map(d=>`<th>${d} 21/09</th>`).join('')}</tr>
+    ${horarios.map(h=>`<tr><td><b>${h}</b></td>${
+      dias.map((d,i)=>{
+        const c = estado.consultas.find(c=>c.h===h && c.sala==='Sala 1');
+        return `<td style="cursor:pointer;min-width:110px" onclick="abrirModal(agendarForm('${h}'))">${c?`<span class="badge" style="background:${stCor[c.st]}">${c.pac.split(' ')[0]}</span>`:'<span style="color:#c0ccd3">livre</span>'}</td>`;
+      }).join('')
+    }</tr>`).join('')}
+  </table></div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card-kpi"><div class="v">${estado.espera.length}</div><div class="r">Aguardando vaga</div></div>
+    <div class="tabela-wrap"><table>
+      <tr><th>Lista de espera</th><th>Prioridade</th><th>Status</th></tr>
+      ${estado.espera.map(e=>`<tr><td>${e.pac} — ${e.motivo}</td><td>${e.pri}</td><td>${stBadge(e.status==='Aguardando'?'Agendado':'Cancelado')}</td></tr>`).join('')||'<tr><td colspan="3">Vazia.</td></tr>'}
+    </table></div>
+  </div>`;
+}
+function agendarForm(h='09:00'){
+  return `<h3>🗓️ Novo agendamento</h3>
+  <div class="form-grid">
+    <div class="full"><label>Paciente *</label><select id="ag_pac">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div class="full"><label>Profissional</label><select><option>Dr. João Silva</option><option>Dra. Paula Mendes</option></select></div>
+    <div><label>Data</label><input type="date" value="2026-09-25"></div>
+    <div><label>Hora início</label><input type="time" value="${h}" id="ag_hora"></div>
+    <div><label>Duração (min)</label><select><option>30</option><option>45</option><option>60</option><option>90</option></select></div>
+    <div><label>Status</label><select><option>Agendado</option><option>Confirmado</option></select></div>
+    <div class="full"><label>Retorno</label><input type="checkbox" id="ag_ret"> marcar como retorno</div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarAgendamento()">Salvar</button></div>`;
+}
+function salvarAgendamento(){
+  estado.consultas.push({h:$('#ag_hora').value||'09:00',pac:$('#ag_pac').value,pro:'Dr. João',sala:'Sala 1',st:'Agendado',dur:30,ret:false});
+  fecharModal(); mostrar('agenda'); flash('Consulta agendada com sucesso ✓');
+}
+
+const condOrder=['cariado','restaurado','coroa','canal','ausente'];
+const condLabel={cariado:'Cariado',restaurado:'Restaurado',coroa:'Coroa',canal:'Trat. canal',ausente:'Ausente'};
+const stCor2 = c => ({cariado:'#e03131',restaurado:'#0b7285',coroa:'#f76707',canal:'#f59f00',ausente:'#adb5bd',higido:'#28a745'}[c]);
+let ultimoDente=null;
+const denteBtn = n => `<div class="dente" onclick="clicarDente(${n})" id="dente${n}">${n}</div>`;
+function pagOdontograma(){
+  let sup='' , inf='';
+  for(let i=18;i>=11;i--) sup+=denteBtn(i);
+  for(let i=21;i<=28;i++) sup+=denteBtn(i);
+  for(let i=48;i>=41;i--) inf+=denteBtn(i);
+  for(let i=31;i<=38;i++) inf+=denteBtn(i);
+  return cabecalho('odontograma','Odontograma') + `
+  <div class="dica-treino">🦷 <b>Experimente:</b> clique nos dentes do diagrama — cada clique alterna a condição (cariado → restaurado → coroa → canal → ausente → volta ao início).</div>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+    <div>
+      <div class="odonto">${sup}</div>
+      <div class="odonto" style="margin-top:10px">${inf}</div>
+    </div>
+    <div class="tabela-wrap" style="min-width:230px"><table>
+      <tr><th colspan="2">Legenda / condições</th></tr>
+      ${condOrder.map(c=>`<tr><td><span class="badge" style="background:${stCor2(c)}">${condLabel[c]}</span></td><td style="font-size:.78rem;cursor:pointer" onclick="aplicarCond('${c}')">clicar para aplicar no dente atual</td></tr>`).join('')}
+      <tr><td><span class="badge" style="background:#28a745">Hígido</span></td><td style="font-size:.78rem;cursor:pointer" onclick="aplicarCond('higido')">clique para limpar a marca</td></tr>
+      <tr><td colspan="2" id="condAtual" style="font-weight:700">—</td></tr>
+    </table></div>
+  </div>`;
+}
+function clicarDente(n){
+  const el=$(`#dente${n}`);
+  const atuais=condOrder.filter(c=>el.classList.contains(c));
+  const idx = atuais.length ? condOrder.indexOf(atuais[0]) : -1;
+  aplicarIng(n, condOrder[(idx+1)%condOrder.length]);
+}
+function aplicarIng(n,c){
+  const el=$(`#dente${n}`);
+  condOrder.forEach(x=>el.classList.remove(x));
+  if(c!=='higido') el.classList.add(c);
+  el.style.borderColor = c==='higido' ? '#b8c4cc' : 'rgba(0,0,0,.35)';
+  ultimoDente=n;
+  $('#condAtual').textContent = `Dente ${n} → ${c==='higido'?'Hígido (sadio)':condLabel[c]}`;
+}
+function aplicarCond(c){ if(ultimoDente!==null) aplicarIng(ultimoDente,c); }
+
+function totalPlano(){ const v=estado.plano.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0); return Math.max(v-estado.plano.desconto,0); }
+function pagPlanos(){
+  const p=estado.plano;
+  const total=totalPlano();
+  return cabecalho('planos','Planos de Tratamento — '+p.titulo) + `
+  <div class="dica-treino">💊 <b>Experimente:</b> adicione um procedimento (com quantidade/desconto) e veja o total recalcular. Itens executados somam para "Concluído".</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${stBadge(p.status)}</div><div class="r">Status do plano</div></div>
+    <div class="card-kpi"><div class="v">${p.itens.length}</div><div class="r">Procedimentos</div></div>
+    <div class="card-kpi"><div class="v">R$ ${total.toFixed(2)}</div><div class="r">Total (soma − desconto R$ ${p.desconto})</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(planoItemForm())">+ Adicionar procedimento</button>
+    <button class="btn" onclick="flash('Status do plano atualizado para Concluído — todos os itens marcados como executados ✓')">✔ Concluir plano</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desc.</th><th>Total</th><th>Status</th></tr>
+    ${p.itens.map((i,idx)=>`<tr><td>${estado.procedimentos[i.proc-1].nome}</td><td>${i.dente??'—'}</td><td>${i.qtd}</td><td>R$ ${i.uni.toFixed(2)}</td><td>-R$ ${i.desc.toFixed(2)}</td><td><b>R$ ${(i.uni*i.qtd-i.desc).toFixed(2)}</b></td><td>${stBadge('Atendido')}</td></tr>`).join('')||'<tr><td colspan="7">Nenhum item — adicione procedimentos.</td></tr>'}
+  </table></div>`;
+}
+function planoItemForm(){
+  return `<h3>💊 Adicionar procedimento ao plano</h3>
+  <div class="form-grid">
+    <div class="full"><label>Procedimento</label><select id="pi_proc">${estado.procedimentos.map((p,i)=>`<option value="${i+1}">${p.cod} — ${p.nome}</option>`).join('')}</select></div>
+    <div><label>Dente</label><input id="pi_dente" placeholder="Ex.: 16" type="number"></div>
+    <div><label>Quantidade</label><input id="pi_qtd" type="number" value="1" min="1"></div>
+    <div><label>Valor unitário</label><input id="pi_uni" type="number" step="0.01"></div>
+    <div><label>Desconto (R$)</label><input id="pi_desc" type="number" value="0" min="0"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarPlanoItem()">Adicionar</button></div>`;
+}
+function salvarPlanoItem(){
+  const idx=parseInt($('#pi_proc').value), qtd=parseInt($('#pi_qtd').value)||1;
+  const uni=parseFloat($('#pi_uni').value)||estado.procedimentos[idx-1].val;
+  estado.plano.itens.push({proc:idx,n:1,dente:parseInt($('#pi_dente').value)||null,uni,qtd,desc:parseFloat($('#pi_desc').value)||0});
+  fecharModal(); mostrar('planos'); flash(`Procedimento adicionado — total R$ ${totalPlano().toFixed(2)} ✓`);
+}
+
+function totalOrc(){ return Math.max(estado.orcamento.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0); }
+function pagOrcamentos(){
+  const o=estado.orcamento, tot=totalOrc();
+  return cabecalho('orcamentos','Orçamentos — '+o.titulo) + `
+  <div class="dica-treino">💰 <b>Experimente:</b> monte itens e acompanhe subtotal/total. Fluxo real: Rascunho → Emitido → Aprovado → base para o financeiro.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${stBadge(o.status)}</div><div class="r">Status · Validade ${o.validade}</div></div>
+    <div class="card-kpi"><div class="v">R$ ${o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0).toFixed(2)}</div><div class="r">Subtotal dos itens</div></div>
+    <div class="card-kpi"><div class="v">R$ ${tot.toFixed(2)}</div><div class="r">Total final</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(orcItemForm())">+ Adicionar item</button>
+    <button class="btn" onclick="flash('Orçamento emitido para o paciente ✓')">📤 Emitir</button>
+    <button class="btn verde" onclick="flash('Orçamento aprovado ✓ — agora gere a conta a receber no Financeiro.')">✔ Aprovar</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desconto</th><th>Total</th></tr>
+    ${o.itens.map(i=>`<tr><td>${estado.procedimentos[i.proc-1].nome}</td><td>${i.dente??'—'}</td><td>${i.qtd}</td><td>R$ ${i.uni.toFixed(2)}</td><td>-R$ ${i.desc.toFixed(2)}</td><td><b>R$ ${(i.uni*i.qtd-i.desc).toFixed(2)}</b></td></tr>`).join('')}
+  </table></div>`;
+}
+function orcItemForm(){
+  return `<h3>💰 Adicionar item ao orçamento</h3>
+  <div class="form-grid">
+    <div class="full"><label>Procedimento</label><select id="oi_proc">${estado.procedimentos.map((p,i)=>`<option value="${i+1}">${p.cod} — ${p.nome}</option>`).join('')}</select></div>
+    <div><label>Dente</label><input id="oi_dente" type="number" placeholder="16"></div>
+    <div><label>Quantidade</label><input id="oi_qtd" type="number" value="1" min="1"></div>
+    <div><label>Valor unitário</label><input id="oi_uni" type="number" step="0.01"></div>
+    <div><label>Desconto</label><input id="oi_desc" type="number" value="0"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarOrcItem()">Adicionar</button></div>`;
+}
+function salvarOrcItem(){
+  const idx=parseInt($('#oi_proc').value);
+  estado.orcamento.itens.push({proc:idx,n:1,dente:parseInt($('#oi_dente').value)||null,uni:parseFloat($('#oi_uni').value)||estado.procedimentos[idx-1].val,qtd:parseInt($('#oi_qtd').value)||1,desc:parseFloat($('#oi_desc').value)||0});
+  fecharModal(); mostrar('orcamentos'); flash(`Item adicionado — total R$ ${totalOrc().toFixed(2)} ✓`);
+}
+
+function pagFinanceiro(){
+  return cabecalho('financeiro','Financeiro — Contas a Receber') + `
+  <div class="dica-treino">🏦 <b>Experimente:</b> clique em <b>Receber</b> numa conta em aberto. Tente receber mais do que o saldo (bloqueio) e depois receba parcial → a conta vira "Parcial".</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">R$ ${estado.contas.filter(c=>c.st!=='paga').reduce((s,c)=>s+c.valor,0).toFixed(2)}</div><div class="r">Total em aberto</div></div>
+    <div class="card-kpi"><div class="v">${estado.contas.filter(c=>c.st==='aberta').length}</div><div class="r">Abertas</div></div>
+    <div class="card-kpi"><div class="v">${estado.contas.filter(c=>c.st==='parcial').length}</div><div class="r">Parciais</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Vencimento</th><th>Valor</th><th>Pago</th><th>Saldo</th><th>Status</th><th></th></tr>
+    ${estado.contas.map((c,i)=>`<tr>
+      <td>${c.pac}</td><td>${c.venc}</td><td>R$ ${c.valor.toFixed(2)}</td><td>R$ ${c.pago.toFixed(2)}</td>
+      <td style="font-weight:700;${c.st!=='paga'?'color:#d33':''}">R$ ${(c.valor-c.pago).toFixed(2)}</td>
+      <td>${c.st==='aberta'?'<span class="badge" style="background:#e03131">Aberta</span>':c.st==='parcial'?'<span class="badge" style="background:#f59f00">Parcial</span>':'<span class="badge" style="background:#198754">Paga</span>'}</td>
+      <td>${c.st==='paga'?'—':`<button class="btn verde fino" onclick="abrirModal(pagamentoForm(${i}))">Receber</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function pagamentoForm(i){
+  const c=estado.contas[i], saldo=c.valor-c.pago;
+  return `<h3>💵 Receber pagamento — ${c.pac}</h3>
+  <div class="form-grid">
+    <div><label>Valor (saldo R$ ${saldo.toFixed(2)})</label><input id="pg_val" type="number" step="0.01" value="${saldo}"></div>
+    <div><label>Forma de pagamento</label><select id="pg_forma"><option>PIX</option><option>Dinheiro</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Boleto</option><option>Convênio</option></select></div>
+    <div class="full"><label>Data</label><input type="date" value="2026-09-24"></div>
+  </div>
+  <div id="pg_msg"></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn verde" onclick="salvarPagamento(${i})">Confirmar pagamento</button></div>`;
+}
+function salvarPagamento(i){
+  const c=estado.contas[i], saldo=c.valor-c.pago;
+  const v=parseFloat($('#pg_val').value);
+  if(v>saldo){ $('#pg_msg').innerHTML=`<div class="erro">⛔ Valor informado maior que o saldo devedor (R$ ${saldo.toFixed(2)}). O sistema real bloqueia esta operação.</div>`; return; }
+  c.pago=Math.min(c.pago+v,c.valor);
+  c.st = c.pago>=c.valor ? 'paga' : 'parcial'; c.forma=$('#pg_forma').value;
+  fecharModal(); mostrar('financeiro');
+  flash(c.st==='paga'?`Pagamento de R$ ${v.toFixed(2)} (${c.forma}) — conta PAGA ✓`:`Pagamento parcial de R$ ${v.toFixed(2)} — saldo restante R$ ${(saldo-v).toFixed(2)} ✓`);
+}
+
+function pagConvenios(){
+  return cabecalho('convenios','Convênios') + `
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(convenioForm())">+ Nova operadora</button>
+    <input class="campo" placeholder="Buscar por nome ou CNPJ..."></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Operadora</th><th>CNPJ</th><th>Planos</th><th>Status</th></tr>
+    ${estado.convenios.map(c=>`<tr><td><b>${c.n}</b></td><td>${c.cnpj}</td><td>${c.planos}&nbsp;planos</td><td><span class="badge" style="background:#198754">Ativo</span></td></tr>`).join('')}
+  </table></div>`;
+}
+function convenioForm(){
+  return `<h3>🛡️ Nova operadora</h3>
+  <div class="form-grid"><div class="full"><label>Nome *</label><input id="cv_nome" placeholder="Nome do convênio"></div>
+    <div><label>CNPJ</label><input placeholder="00.000.000/0000-00"></div><div><label>Telefone</label><input placeholder="(00) 0000-0000"></div>
+    <div><label>E-mail</label><input placeholder="contato@operadora.com"></div><div><label>Responsável</label><input placeholder="Nome"></div></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Operadora cadastrada com sucesso ✓')">Salvar</button></div>`;
+}
+
+function pagProfissionais(){
+  return cabecalho('profissionais','Profissionais') + `
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(profissionalForm())">+ Novo profissional</button>
+    <input class="campo" placeholder="Buscar por nome ou CRO..."></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Nome</th><th>CRO</th><th>Tipo</th><th>Especialidades</th><th>Comissão</th><th>Status</th></tr>
+    ${estado.profissionais.map(p=>`<tr><td><b>${p.n}</b></td><td>${p.cro||'—'}</td><td>${p.t}</td><td>${p.esp||'—'}</td><td>${p.com?p.com+'%':'—'}</td><td><span class="badge" style="background:#198754">Ativo</span></td></tr>`).join('')}
+  </table></div>`;
+}
+function profissionalForm(){
+  return `<h3>🧑‍⚕️ Novo profissional</h3>
+  <div class="form-grid"><div class="full"><label>Nome *</label><input id="pf_nome"></div>
+    <div><label>CPF</label><input placeholder="000.000.000-00"></div><div><label>CRO</label><input placeholder="SP-00000"></div>
+    <div><label>Tipo</label><select><option>Dentista</option><option>Auxiliar</option><option>Recepcionista</option><option>Outro</option></select></div>
+    <div><label>Comissão (%)</label><input type="number" min="0" max="100" value="0"></div>
+    <div class="full"><label>Especialidades</label><select><option>Clínica geral</option><option>Endodontia</option><option>Cirurgia</option><option>Ortodontia</option><option>Implantes</option><option>Odontopediatria</option></select></div></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Profissional cadastrado com sucesso ✓')">Salvar</button></div>`;
+}
+
+function pagProcedimentos(){
+  return cabecalho('procedimentos','Procedimentos') + `
+  <div class="dica-treino">🩺 O <b>código é único</b> e o <b>valor padrão</b> é sugerido automaticamente em planos e orçamentos. Duração define o fim da consulta na agenda.</div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(procedimentoForm())">+ Novo procedimento</button>
+    <select class="campo"><option>Todas as categorias</option><option>Prevenção</option><option>Consulta</option><option>Endodontia</option><option>Restauradora</option><option>Cirurgia</option><option>Prótese</option><option>Estética</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Duração</th><th>Valor padrão</th><th>Status</th></tr>
+    ${estado.procedimentos.map(p=>`<tr><td><b>${p.cod}</b></td><td>${p.nome}</td><td>${p.cat}</td><td>${p.dur} min</td><td>R$ ${p.val.toFixed(2)}</td><td><span class="badge" style="background:#198754">Ativo</span></td></tr>`).join('')}
+  </table></div>`;
+}
+function procedimentoForm(){
+  return `<h3>🩺 Novo procedimento</h3>
+  <div class="form-grid"><div><label>Código *</label><input id="pr_cod" placeholder="EX: RES_AME"></div><div><label>Nome *</label><input></div>
+    <div><label>Categoria</label><select><option>Prevenção</option><option>Consulta</option><option>Exame</option><option>Endodontia</option><option>Restauradora</option><option>Cirurgia</option><option>Prótese</option><option>Estética</option></select></div>
+    <div><label>Duração (min)</label><input type="number" value="30" min="1"></div>
+    <div><label>Valor padrão (R$)</label><input type="number" step="0.01"></div>
+    <div class="full"><label>Descrição</label><textarea rows="2"></textarea></div></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Procedimento cadastrado com sucesso ✓')">Salvar</button></div>`;
+}
+
+function pagEstoque(){
+  return cabecalho('estoque','Estoque') + `
+  <div class="dica-treino">📦 <b>Experimente:</b> dê <b>Entrada</b> ou <b>Saída</b> em um produto. Saída maior que o saldo é bloqueada; saldo ≤ mínimo vira <b>estoque baixo</b>.</div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div class="tabela-wrap" style="flex:1"><table>
+      <tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mínimo</th><th>Ações</th></tr>
+      ${estado.produtos.map((p,i)=>`<tr>
+        <td><b>${p.n}</b>${p.st_baixo?' &nbsp;<span class="badge" style="background:#e03131">Estoque baixo</span>':''}</td>
+        <td>${p.cat}</td>
+        <td><b id="estQtd${i}">${p.est}</b></td><td>${p.min}</td>
+        <td><button class="btn verde fino" onclick="abrirModal(movForm(${i},'entrada'))">+Entrada</button>
+            <button class="btn vermelho fino" onclick="abrirModal(movForm(${i},'saida'))">−Saída</button></td></tr>`).join('')}
+    </table></div>
+  </div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Histórico de movimentações</th><th>Tipo</th><th>Qtd</th></tr>
+    ${estado.estoqueHistorico.map(m=>`<tr><td>${m.dt} — ${m.p}</td><td>${m.t==='entrada'?'<span class="badge" style="background:#198754">Entrada</span>':'<span class="badge" style="background:#e03131">Saída</span>'}</td><td>${m.q}</td></tr>`).join('')}
+  </table></div>`;
+}
+function movForm(i,tipo){
+  const p=estado.produtos[i];
+  const tit=tipo==='entrada'?'📦 Entrada no estoque':'📦 Saída do estoque';
+  return `<h3>${tit} — ${p.n}</h3>
+  <div class="form-grid">
+    <div><label>Quantidade *</label><input id="mov_qtd" type="number" min="1" value="1"></div>
+    <div><label>Motivo</label><input id="mov_motivo" placeholder="${tipo==='entrada'?'Ex.: Compra ao fornecedor':'Ex.: Uso em consulta'}"></div>
+  </div>
+  <div id="mov_msg"></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn ${tipo==='entrada'?'verde':'vermelho'}" onclick="salvarMov(${i},'${tipo}')">Confirmar ${tipo==='entrada'?'entrada':'saída'}</button></div>`;
+}
+function salvarMov(i,tipo){
+  const p=estado.produtos[i], q=parseInt($('#mov_qtd').value)||0;
+  if(tipo==='saida' && q>p.est){ $('#mov_msg').innerHTML=`<div class="erro">⛔ Quantidade maior que o estoque atual (${p.est}). O sistema real bloqueia esta saída.</div>`; return; }
+  const antes=p.est;
+  p.est = tipo==='entrada' ? p.est+q : p.est-q;
+  estado.estoqueHistorico.unshift({dt:'24/09',p:p.n,t:tipo,q});
+  const ficouBaixo = p.est<=p.min;
+  p.st_baixo = ficouBaixo;
+  fecharModal(); mostrar('estoque');
+  flash(`Movimentação registrada: ${antes} → ${p.est}${ficouBaixo?' — ⚠️ agora está abaixo do mínimo!':''} ✓`);
+}
+
+function pagContratos(){
+  return cabecalho('contratos','Contratos') + `
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(contratoForm())">+ Novo contrato</button>
+    <input class="campo" placeholder="Buscar por paciente..."></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Tipo</th><th>Status</th><th>Assinado em</th></tr>
+    ${estado.contratos.map(c=>`<tr><td><b>${c.pac}</b></td><td>${c.tipo}</td><td>${c.st==='Assinado'?'<span class="badge" style="background:#198754">Assinado</span>':'<span class="badge" style="background:#f59f00">Pendente</span>'}</td><td>${c.data}</td></tr>`).join('')}
+  </table></div>`;
+}
+function contratoForm(){
+  return `<h3>📜 Novo contrato</h3>
+  <div class="form-grid"><div class="full"><label>Paciente *</label><select>${estado.pacientes.map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Tipo *</label><input placeholder="Ex.: Termo de consentimento"></div>
+    <div><label>Status</label><select><option>Pendente</option><option>Assinado</option><option>Cancelado</option></select></div>
+    <div><label>Assinado em</label><input type="date"></div>
+    <div class="full"><label>Conteúdo</label><textarea rows="5">Eu, paciente, declaro que fui informado(a) sobre o tratamento proposto...</textarea></div></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Contrato cadastrado com sucesso ✓')">Salvar</button></div>`;
+}
+
+function mReais(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
+function pagRelatorios(){
+  const r=estado.rel;
+  return cabecalho('relatorios','Relatórios') + `
+  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01">
+    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-24">
+    <button class="btn" onclick="flash('Relatório recalculado para o período selecionado ✓')">Filtrar</button></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${mReais(r.recebido)}</div><div class="r">📈 Recebido no período</div></div>
+    <div class="card-kpi"><div class="v">${mReais(r.emAberto)}</div><div class="r">Em aberto</div></div>
+    <div class="card-kpi"><div class="v">${r.atendidas} / ${r.atendidas+r.canceladas+r.faltas}</div><div class="r">🗓️ Atendidas (${r.canceladas} cancel. · ${r.faltas} faltas)</div></div>
+    <div class="card-kpi"><div class="v">${r.entradas}/${r.saidas}</div><div class="r">📦 Entradas/Saídas de estoque</div></div>
+    <div class="card-kpi"><div class="v">${r.baixo}</div><div class="r">⛔ Produtos com estoque baixo</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Bloco do relatório</th><th>Resumo</th></tr>
+    <tr><td><b>Resumo financeiro</b></td><td class="dica-treino" style="margin:0">a_receber, em_aberto, pago e recebido_no_periodo.</td></tr>
+    <tr><td><b>Resumo da agenda</b></td><td class="dica-treino" style="margin:0">total, atendidas, canceladas e faltas no período.</td></tr>
+    <tr><td><b>Estoque</b></td><td class="dica-treino" style="margin:0">produtos total/baixo e soma de entradas e saídas.</td></tr>
+  </table></div>`;
+}
+
+function pagAdmin(){
+  return cabecalho('admin','Administração') + `
+  <div class="dica-treino">⚙️ <b>RBAC:</b> usuários têm um perfil; cada perfil tem permissões por módulo+ação (ex.: estoque.update, orcamentos.create).</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.usuarios.length}</div><div class="r">Usuários</div></div>
+    <div class="card-kpi"><div class="v">6</div><div class="r">Perfis</div></div>
+    <div class="card-kpi"><div class="v">66</div><div class="r">Permissões</div></div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div class="tabela-wrap" style="flex:1"><table>
+      <tr><th colspan="3">Usuários</th></tr>
+      ${estado.usuarios.map(u=>`<tr><td><b>${u.n}</b><br><small>${u.email}</small></td><td><span class="badge" style="background:#0b7285">${u.perfil}</span></td><td><span class="badge" style="background:#198754">${u.st}</span></td></tr>`).join('')}
+    </table></div>
+    <div class="tabela-wrap"><table>
+      <tr><th>Perfil</th><th>Permissões</th></tr>
+      <tr><td><b>Administrador</b></td><td>Todas</td></tr>
+      <tr><td><b>Dentista</b></td><td>prontuario.*, anamnese.*, odontograma.*, tratamentos.*, orcamentos.view...</td></tr>
+      <tr><td><b>Recepção</b></td><td>pacientes.*, agenda.*, orcamentos.view, financeiro.receive...</td></tr>
+      <tr><td><b>Financeiro</b></td><td>orcamentos.*, financeiro.*</td></tr>
+    </table></div>
+  </div>
+  <div class="dica-treino" style="margin-top:16px">⚠️ <b>Segurança:</b> o sistema impede excluir o <b>próprio</b> usuário, e cada operação gera registro em auditoria.</div>
+  <div class="tabela-wrap" style="margin-top:14px"><table>
+    <tr><th>Dados da Clínica</th><th>Valor</th></tr>
+    <tr><td><b>Razão social</b></td><td>Clínica Sorriso Odontologia LTDA</td></tr>
+    <tr><td><b>CNPJ / WhatsApp</b></td><td>00.000.000/0001-00 · (11) 99999-0000</td></tr>
+    <tr><td><b>Endereço</b></td><td>Rua Exemplo, 123 — Centro · São Paulo/SP</td></tr>
+  </table></div>`;
+}
+
+function pagAuditoria(){
+  return cabecalho('auditoria','Auditoria') + `
+  <div class="dica-treino">🔍 Cada operação (criar, atualizar, excluir, marcar_dente, registrar_pagamento...) fica no log com <b>usuário</b>, <b>tabela</b>, <b>registro</b>, <b>IP</b> e valores <b>antes/depois</b>.</div>
+  <div class="toolbar"><select class="campo"><option>Todas as ações</option><option>criar</option><option>atualizar</option><option>excluir</option><option>marcar_dente</option><option>registrar_pagamento</option></select>
+    <select class="campo"><option>Todas as tabelas</option><option>pacientes</option><option>appointments</option><option>payments</option><option>odontogram_teeth</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Usuário</th><th>Ação</th><th>Tabela</th><th>Registro</th><th>Quando</th><th>IP</th></tr>
+    ${estado.auditoria.map(a=>`<tr><td>${a.quem}</td><td><b>${a.acao}</b></td><td>${a.tabela}</td><td>${a.id}</td><td>${a.quando}</td><td>${a.ip}</td></tr>`).join('')}
+  </table></div>`;
+}
+
+/* ===== FLASH ===== */
+const flashBox=document.createElement('div');
+flashBox.style.cssText='position:fixed;top:70px;right:22px;background:#0b7285;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:99;font-size:.9rem;font-weight:600;max-width:360px;transition:.25s;opacity:0;pointer-events:none;';
+document.body.appendChild(flashBox);
+function flash(msg){ flashBox.textContent='✓ '+msg; flashBox.style.opacity=1; setTimeout(()=>flashBox.style.opacity=0,3200); }
+
+/* ===== EXPLICAÇÕES INTERATIVAS ===== */
+const EXP_MSG = {
+  dashboard:'O <b>Dashboard</b> é a porta de entrada do sistema. Ele consulta dados REAIS da clínica e mostra: (1) consultas de hoje em tabela, (2) total de pacientes, (3) tratamentos em andamento e (4) produtos com estoque baixo — além das contas a receber em aberto. <br><br>Destaque: cada indicador só aparece se o seu usuário tiver permissão do módulo (Gate). Se o Auxiliar não vê financeiro, por exemplo, o cartão nem é desenhado.',
+  pacientes:'O módulo <b>Pacientes</b> centraliza o cadastro e a busca. A busca filtra por nome, CPF, e-mail, telefone fixo e celular — o MESMO critério usado pela API do WhatsApp. <br><br>Regras reais: somente o <b>nome</b> é obrigatório; o CPF é <b>único</b> (duplicidade bloqueada); ao excluir, o sistema <b>não apaga</b> — faz soft delete e marca como inativo, preservando o histórico clínico. Todo cadastro/alteração gera registro de <b>auditoria</b> com antes/depois.',
+  prontuario:'A <b>ficha do paciente</b> reúne os dados e o histórico. O prontuário clínico (evoluções) registra o relato de cada atendimento: o <b>profissional logado vira o autor automaticamente</b>. A anamnese trabalha no formato <b>"pergunta: resposta"</b> (você pode colar várias linhas de uma vez). Os <b>alertas</b> ficam visíveis na ficha para situações críticas (alergias, medicações) — desativar não apaga, só esconde. Prescrições aceitam vários medicamentos com dose, frequência e duração.',
+  odontograma:'O <b>odontograma</b> é o diagrama digital das duas arcadas (dentes 18–11, 21–28, 48–41 e 31–38). Cada marca registra a condição do dente (cariado, restaurado, coroa, canal, ausente) no <b>"odontograma principal"</b> do paciente. <br><br>No sistema real, cada marca guarda o <b>profissional responsável</b> e gera auditoria (ação "marcar_dente"). Remover a marca devolve o dente a <b>Hígido</b>.',
+  planos:'O <b>Plano de tratamento</b> organiza os procedimentos do paciente. Regras reais do sistema: o <b>total é recalculado automaticamente</b> a cada mudança (soma dos itens − desconto, nunca negativo); o <b>valor unitário</b> vem sugerido do valor padrão do procedimento; ao marcar o plano como <b>Concluído</b>, o sistema executa todos os itens pendentes. Itens podem ser marcados executado/planejado individualmente.',
+  orcamentos:'O <b>Orçamento</b> é a proposta financeira apresentada ao paciente e o passo anterior ao financeiro. A montagem é idêntica ao plano: procedimentos + quantidade + valor + desconto. O sistema apresenta <b>subtotal</b> (soma dos itens) e <b>total</b> (subtotal − desconto). Fluxo real de status: <b>Rascunho → Emitido → Aprovado</b> (a base para gerar contas a receber) → Recusado/Cancelado.',
+  financeiro:'O <b>Financeiro</b> controla as contas a receber. A listagem ordena por prioridade: abertas primeiro, depois parciais e por fim pagas (todas por vencimento); há filtros por paciente e status. <br><br>Ao receber: o valor <b>não pode ultrapassar o saldo devedor</b> (bloqueio com mensagem); pagamento parcial muda a conta para <b>Parcial</b>; pagamento total muda para <b>Paga</b>. Cada recebimento grava a <b>forma de pagamento</b> (Dinheiro, PIX, cartão, boleto, convênio), o usuário responsável e gera <b>auditoria</b>.',
+  convenios:'O módulo <b>Convênios</b> cadastra as <b>operadoras</b> que a clínica atende (ex.: OdontoSaúde). Cada operadora pode ter planos vinculados e é filtrada por nome/CNPJ e status ativo/inativo. No recebimento financeiro, a forma "Convênio" é usada para pagamentos via operadora.',
+  profissionais:'O módulo <b>Profissionais</b> cadastra a equipe: tipo (dentista, auxiliar, recepção), CRO, especialidades e <b>comissão %</b>. O profissional é usado na <b>agenda</b> (escala), como <b>autor das evoluções</b> do prontuário e responsável técnico de planos/orçamentos. Profissionais ativos também são expostos para a <b>API do WhatsApp</b> escolher horários.',
+  procedimentos:'O <b>Procedimentos</b> é o catálogo de serviços (tabela). O <b>código é único</b> (duplicidade bloqueada); a <b>duração</b> define o fim da consulta na agenda; e o <b>valor padrão</b> é sugerido automaticamente em planos e orçamentos. Ou seja, cadastrou o procedimento uma vez, ele alimenta tudo o resto.',
+  estoque:'O <b>Estoque</b> gerencia materiais/insumos. Cada produto pode ter <b>estoque mínimo</b> e <b>controle ativo</b> — quando saldo ≤ mínimo, o produto fica destacado como <b>estoque baixo</b> (visível no Dashboard e Relatórios). As <b>movimentações</b> registram saldo anterior/posterior, usuário e custo; <b>saída maior que o saldo é bloqueada</b>.',
+  contratos:'O módulo <b>Contratos</b> registra termos e consentimentos por paciente (tipo livre + conteúdo). O status controla o ciclo: <b>Pendente → Assinado</b> (com data) ou <b>Cancelado</b>. É a camada documental do atendimento.',
+  relatorios:'O <b>Relatórios</b> é a central de indicadores por período (padrão: mês vigente). Reúne (1) resumo financeiro — a receber, em aberto, pago e <b>recebido no período</b>; (2) resumo da agenda — atendidas, canceladas e <b>faltas</b>; e (3) resumo do estoque — produtos, baixos e entradas/saídas. Ideal para acompanhar caixa e reposição.',
+  admin:'A <b>Administração</b> é o RBAC (controle de acesso). Usuários têm um <b>perfil</b>; cada perfil recebe permissões por <b>módulo + ação</b> (ex.: estoque.update, orcamentos.create). Mudou uma permissão, vale para todos os usuários do perfil. <b>Segurança:</b> não dá para excluir a si mesmo, e toda operação gera auditoria. O cadastro da <b>Clínica</b> alimenta telas e a API WhatsApp.',
+  auditoria:'A <b>Auditoria</b> é a trilha completa do sistema: cada ação importante registra <b>usuário, ação (criar, atualizar, excluir, marcar_dente, registrar_pagamento...), tabela, registro, quando e IP</b>, além dos valores <b>antes/depois</b>. Serve para rastrear quem fez o quê e auditar o uso do sistema. Filtros por ação e tabela.',
+};
+const ANOTACOES = {
+  dashboard:[
+    ['.card-kpi','Indicador calculado sobre dados REAIS — e respeita a permissão: você só vê o que o seu perfil permite.'],
+    ['.corte > div:nth-child(1)','Agenda de hoje: horário, paciente, profissional e status colorido de cada consulta.'],
+    ['.corte > div:nth-child(2)','Contas a receber em aberto — saldos que precisam de cobrança.'],
+  ],
+  pacientes:[
+    ['#buscaPac','Busca instantânea por nome, CPF, e-mail, telefone fixo ou celular — o MESMO critério da API WhatsApp.'],
+    ['.toolbar .btn.teal','Novo paciente. Só o NOME é obrigatório; o CPF é único (duplicidade bloqueada); a exclusão é soft delete — inativa, não apaga o histórico.'],
+    ['tbody tr','Linha do paciente com totais de consultas e orçamentos. Clique no nome para abrir a ficha.'],
+  ],
+  prontuario:[
+    ['.cards .card-kpi','Resumo da ficha: consultas, orçamentos, alertas ativos e documentos.'],
+    ['.corte > div:nth-child(1)','Dados do paciente (CPF, contatos) — a base para buscas e para a API WhatsApp.'],
+    ['.corte > div:nth-child(2)','Alertas clínicos ativos — aparecem na ficha para situações que não podem passar despercebidas.'],
+    ['.toolbar .btn.teal','Registra evolução clínica: o profissional logado vira o autor automaticamente e entra na auditoria.'],
+    ['.toolbar .btn:not(.teal):not(.gray)','Novo alerta clínico para o paciente (ex.: alergia, medicação).'],
+  ],
+  agenda:[
+    ['.toolbar .btn.teal','Novo agendamento: paciente, profissional, sala, dia/hora e duração (o FIM é calculado). Status padrão: Agendado.'],
+    ['.toolbar select','Filtro da grade por profissional.'],
+    ['table','Grade semanal de 7h às 21h em blocos de 30 min. Clique num espaço vazio para agendar naquele horário!'],
+    ['.cards .card-kpi','Lista de espera — pacientes aguardando vaga, ordenados por prioridade. No real, o status é atualizado conforme chamado.'],
+  ],
+  odontograma:[
+    ['.odonto','Diagrama de duas arcadas (dentes 18–11 · 21–28 · 48–41 · 31–38). Cada clique alterna a condição do dente.'],
+    ['.tabela-wrap','Legenda das condições com cores padronizadas. No real, cada marca grava o profissional responsável + auditoria.'],
+  ],
+  planos:[
+    ['.cards .card-kpi:nth-child(1)','Status do plano. Ao marcar CONCLUÍDO, o sistema executa todos os itens automaticamente.'],
+    ['.cards .card-kpi:nth-child(2)','Quantidade de procedimentos no plano.'],
+    ['.cards .card-kpi:nth-child(3)','Total RECALCULADO a cada mudança: soma dos itens − desconto (nunca negativo).'],
+    ['.toolbar .btn.teal','Adiciona procedimento ao plano: quantidade, valor sugerido do catálogo, desconto e dente.'],
+    ['.toolbar .btn','Concluir plano — útil após executar todos os itens.'],
+  ],
+  orcamentos:[
+    ['.cards .card-kpi:nth-child(2)','Subtotal = soma dos itens do orçamento.'],
+    ['.cards .card-kpi:nth-child(3)','Total = subtotal − desconto. Fluxo: Rascunho → Emitido → Aprovado (base do financeiro).'],
+    ['.toolbar .btn.teal','Adiciona item ao orçamento, igual ao plano de tratamento.'],
+    ['.toolbar .btn','Emitir: apresenta a proposta ao paciente (status → Emitido).'],
+    ['.toolbar .btn.verde','Aprovar: paciente aceitou — pré-requisito para gerar a conta a receber.'],
+  ],
+  financeiro:[
+    ['.cards .card-kpi','Totais: em aberto = soma das contas não pagas; contagens por status.'],
+    ['table','Contas ordenadas por prioridade (abertas → parciais → pagas) e vencimento. Filtros por paciente e status.'],
+    ['.btn.verde.fino','Receber: valor + forma (Dinheiro, PIX, cartão, boleto, convênio) + data. Bloqueia valor > saldo; parcial vira Parcial; total vira Pago. Gera histórico e auditoria.'],
+  ],
+  convenios:[
+    ['.toolbar .btn.teal','Nova operadora: nome (obrigatório), CNPJ, contatos, responsável e status.'],
+    ['table','Operadoras com contagem de PLANOS vinculados e status ativo/inativo.'],
+  ],
+  profissionais:[
+    ['.toolbar .btn.teal','Novo profissional: tipo (dentista/auxiliar/recepção/outro), CRO, especialidades e comissão %.'],
+    ['table','Equipe. Profissionais ativos alimentam a agenda e são expostos na API WhatsApp.'],
+  ],
+  procedimentos:[
+    ['.toolbar .btn.teal','Novo procedimento: código ÚNICO (duplicidade bloqueada), categoria, duração (define o fim da consulta) e valor padrão (sugerido em planos/orçamentos).'],
+    ['table','Catálogo de serviços com busca e filtro por categoria.'],
+  ],
+  estoque:[
+    ['table','Produtos com estoque atual, mínimo, custo e alerta Estoque baixo (saldo ≤ mínimo).'],
+    ['.btn.verde.fino','Entrada de material (ex.: compra ao fornecedor) — atualiza saldo e grava movimentação com saldo anterior/posterior.'],
+    ['.btn.vermelho.fino','Saída (ex.: uso em consulta) — bloqueada se a quantidade for maior que o saldo atual.'],
+  ],
+  contratos:[
+    ['.toolbar .btn.teal','Novo contrato: paciente, tipo, conteúdo livre e status (Pendente/Assinado/Cancelado).'],
+    ['table','Contratos e termos por paciente, com data de assinatura quando Assinado.'],
+  ],
+  relatorios:[
+    ['.toolbar','Período De/Até — o padrão é o mês vigente. Filtra TODOS os blocos do relatório.'],
+    ['.cards .card-kpi','Indicadores do período: recebido, em aberto, atendidas/canceladas/faltas, entradas/saídas de estoque e estoque baixo.'],
+  ],
+  admin:[
+    ['.cards .card-kpi','Usuários do sistema, perfis (RBAC) e total de permissões.'],
+    ['.cards + div > div:nth-child(1)','Lista de usuários com perfil de acesso.'],
+    ['.cards + div > div:nth-child(2)','Perfis e as permissões de cada um — mudou o perfil, vale para todos os usuários dele.'],
+    ['.cards ~ .tabela-wrap','Dados da Clínica — usados nas telas e na API WhatsApp (/info).'],
+  ],
+  auditoria:[
+    ['.toolbar','Filtros de pesquisa por ação e por tabela.'],
+    ['table','Trilha completa: usuário, ação, tabela, registro, quando e IP — com valores antes/depois.'],
+  ],
+};
+const expNav = {dashboard:'Visão geral: consultas de hoje, indicadores e contas em aberto.',pacientes:'Cadastro, busca e ficha dos pacientes.',prontuario:'Evoluções, anamneses, alertas e prescrições do paciente.',agenda:'Grade semanal de consultas + lista de espera.',odontograma:'Diagrama dental com as condições de cada dente.',planos:'Planos de tratamento com procedimentos e totais automaticos.',orcamentos:'Propostas financeiras apresentadas ao paciente.',financeiro:'Contas a receber e recebimentos.',convenios:'Operadoras e planos de convênio.',profissionais:'Equipe da clínica com CRO, especialidades e comissão.',procedimentos:'Catálogo de serviços da clínica.',estoque:'Produtos, estoque mínimo e movimentações.',contratos:'Termos e consentimentos por paciente.',relatorios:'Indicadores por período: financeiro, agenda e estoque.',admin:'Usuários, perfis, permissões e dados da clínica.',auditoria:'Trilha de quem fez o quê, quando e como.'};
+
+const divDica = document.createElement('div');
+divDica.id='dicaExpli';
+document.body.appendChild(divDica);
+let alvoDica=null;
+
+function anotar(mod){
+  (ANOTACOES[mod]||[]).forEach(([sel,texto])=>{
+    document.querySelectorAll('#page '+sel).forEach(el=>{ if(!el.dataset.explicacao) el.dataset.explicacao=texto; });
+  });
+}
+function mostrarDica(el, x, y){
+  if(!el){ divDica.style.opacity=0; alvoDica=null; return; }
+  alvoDica=el;
+  divDica.textContent=el.dataset.explicacao;
+  divDica.style.opacity=1;
+  const r=el.getBoundingClientRect();
+  const lx = Math.min(r.right+12, innerWidth-340);
+  divDica.style.left = Math.max(6, lx)+'px';
+  divDica.style.top  = Math.max(6, (y||r.top))+10+'px';
+}
+document.addEventListener('mouseover', e=>{
+  const el=e.target.closest && e.target.closest('[data-explicacao]');
+  if(el===alvoDica) return;
+  if(el) mostrarDica(el, e.clientX, e.clientY);
+  else mostrarDica(null);
+});
+document.addEventListener('mouseout', e=>{
+  const el=e.target.closest && e.target.closest('[data-explicacao]');
+  if(el && e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-explicacao]')===el) return;
+  if(!el || !e.relatedTarget) mostrarDica(null);
+});
+document.addEventListener('click', e=>{
+  const expli=e.target.closest && e.target.closest('[data-explicacao]');
+  if(expli && !expli.closest('[onclick]') && !['INPUT','SELECT','TEXTAREA','BUTTON'].includes(expli.tagName)){
+    abrirModal(`<h3>💡 ${expli.dataset.explicacao.split(/[.:]/)[0]} — como funciona</h3><p style="font-size:.92rem">${expli.dataset.explicacao}</p>
+      <div class="expli-rodape">🖱️ Passe o mouse em outros elementos da tela para ler mais explicações, ou use a <b>Visita guiada</b> (botão azul acima) para ver tudo passo a passo.</div>
+      <div class="acoes"><button class="btn teal" onclick="fecharModal()">Entendi</button></div>`);
+  }
+});
+
+/* ===== COMO FUNCIONA / VISITA GUIADA ===== */
+document.addEventListener('click', e=>{
+  const cf=e.target.closest && e.target.closest('.btn-como-funciona');
+  if(cf){
+    const m=cf.dataset.mod;
+    abrirModal(`<h3>❓ Como funciona: ${titulos[m]||m}</h3><p style="font-size:.94rem">${EXP_MSG[m]||'...'}</p>
+      <div class="expli-rodape">Depois de ler, clique em <b>Visita guiada</b> para percorrer os elementos da tela na prática.</div>
+      <div class="acoes"><button class="btn teal" onclick="fecharModal()">Entendi</button></div>`);
+    return;
+  }
+  const tg=e.target.closest && e.target.closest('.btn-tour');
+  if(tg) iniciarTour(tg.dataset.mod);
+});
+
+const tourCaixa=document.createElement('div');
+tourCaixa.id='tourCaixa';
+tourCaixa.style.display='none';
+document.body.appendChild(tourCaixa);
+let tourState=null;
+function iniciarTour(){
+  const alvos=Array.from(document.querySelectorAll('#page [data-explicacao]')).filter(el=>el.offsetParent!==null);
+  if(!alvos.length){ flash('Esta tela não tem passos guiados.'); return; }
+  tourState={lista:alvos,i:0};
+  pintarTour();
+}
+function turDim(){
+  const page=$('#page'), alvo=tourState.lista[tourState.i];
+  const caminho=[]; let x=alvo;
+  while(x && x!==page){ caminho.push(x); x=x.parentElement; }
+  Array.from(page.querySelectorAll('*')).forEach(n=>{
+    if(caminho.includes(n) || n===alvo) n.style.opacity='1';
+    else if(n.closest('script')) return;
+    else n.style.opacity='.18';
+  });
+}
+function pintarTour(){
+  const t=tourState, el=t.lista[t.i];
+  turDim();
+  el.style.outline='3px solid #f59f00'; el.style.outlineOffset='3px'; el.style.transform='scale(1.02)';
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  tourCaixa.style.display='block';
+  tourCaixa.innerHTML=`<div class="cont"><span class="num">PASSO ${t.i+1}/${t.lista.length}</span>
+    <div style="flex:1"><p style="font-size:.9rem">${el.dataset.explicacao}</p>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn gray fino" ${t.i===0?'disabled':''} onclick="tourAnt()">← Anterior</button>
+      <button class="btn fino" ${t.i===t.lista.length-1?'disabled':''} onclick="tourProx()">Próximo →</button>
+      <button class="btn teal fino" onclick="fecharTour()">Encerrar ${t.i===t.lista.length-1?'✓':''}</button>
+    </div></div></div>`;
+}
+function tourAnt(){ if(tourState && tourState.i>0){ tourState.i--; pintarTour(); } }
+function tourProx(){ if(tourState && tourState.i<tourState.lista.length-1){ tourState.i++; pintarTour(); } }
+function fecharTour(){
+  document.querySelectorAll('#page *').forEach(n=>{ n.style.opacity=''; n.style.outline=''; n.style.transform=''; });
+  tourCaixa.style.display='none'; tourState=null;
+}
+
+/* ===== ROTEAMENTO ===== */
+function mostrar(mod){
+  if(tourState) fecharTour();
+  $('#tituloPagina').textContent = titulos[mod]||mod;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('ativo', b.dataset.mod===mod));
+  const paginas={dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,agenda:pagAgenda,odontograma:pagOdontograma,planos:pagPlanos,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,admin:pagAdmin,auditoria:pagAuditoria};
+  $('#page').innerHTML = (paginas[mod]||pagDashboard).call();
+  anotar(mod);
+  if(mod==='pacientes'){
+    const input=$('#buscaPac'); if(input) input.oninput=()=>{ $('#corpoPac').innerHTML=pacientesRows(estado.pacientes,input.value); };
+  }
+  window.location.hash=mod;
+}
+function modReplace(m){ return m; }
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>mostrar(b.dataset.mod)));
+function inicio(){ const h=location.hash.replace('#',''); document.querySelectorAll('.nav-item').forEach(b=>{ const t=expNav[b.dataset.mod]; if(t) b.dataset.explicacao=t; }); mostrar(modulos[h]!==undefined?h:'dashboard'); }
+inicio();
+</script>
+</body>
+</html>

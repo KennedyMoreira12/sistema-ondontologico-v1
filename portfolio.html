@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCO — Sistema de Gestão Odontológica</title>
+<style>
+  :root {
+    --azul: #0b7285;
+    --azul-escuro: #0c5e6e;
+    --teal: #0ca678;
+    --verde: #2b8a3e;
+    --amarelo: #f59f00;
+    --roxo: #7048e8;
+    --cinza-bg: #f4f7f9;
+    --cinza-texto: #5a6a72;
+    --texto: #1d2b33;
+    --borda: #e3ebf0;
+    --sombra: 0 10px 30px rgba(20, 60, 80, .10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--texto);
+    background: var(--cinza-bg);
+    line-height: 1.6;
+  }
+
+  .container { width: min(1120px, 92%); margin: 0 auto; }
+
+  header.hero {
+    background: linear-gradient(135deg, var(--azul-escuro), var(--teal));
+    color: #fff;
+    padding: 72px 0 56px;
+    text-align: center;
+  }
+
+  .hero .badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: .82rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 { font-size: 2.6rem; margin-bottom: 12px; }
+
+  .hero p.subtitle { font-size: 1.15rem; opacity: .92; max-width: 680px; margin: 0 auto; }
+
+  .hero .tech {
+    margin-top: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .hero .tech span {
+    background: rgba(255, 255, 255, .14);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: .85rem;
+    font-weight: 600;
+  }
+
+  section { padding: 60px 0; }
+
+  section h2 {
+    font-size: 1.7rem;
+    margin-bottom: 8px;
+    position: relative;
+    padding-bottom: 12px;
+  }
+
+  section h2::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--teal);
+  }
+
+  section .lead { color: var(--cinza-texto); margin-bottom: 30px; }
+
+  /* Cards de módulos */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--sombra);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+
+  .card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(20, 60, 80, .16); }
+
+  .card .icone {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .card h3 { font-size: 1.08rem; margin-bottom: 6px; }
+
+  .card p { font-size: .9rem; color: var(--cinza-texto); }
+
+  .card .tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .card .tags span {
+    font-size: .72rem;
+    background: var(--cinza-bg);
+    border: 1px solid var(--borda);
+    color: var(--cinza-texto);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  /* Paleta dos ícones */
+  .c-azul { background: var(--azul); }
+  .c-verde { background: var(--verde); }
+  .c-teal { background: var(--teal); }
+  .c-amarelo { background: var(--amarelo); }
+  .c-roxo { background: var(--roxo); }
+  .c-vermelho { background: #e03131; }
+  .c-laranja { background: #f76707; }
+  .c-rosa { background: #d6336c; }
+
+  /* Seção como funciona */
+  .fluxo {
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    padding: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .fluxo .etapa {
+    flex: 1 1 150px;
+    text-align: center;
+    padding: 14px 10px;
+  }
+
+  .fluxo .etapa .num {
+    width: 38px;
+    height: 38px;
+    line-height: 38px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-weight: 700;
+    margin: 0 auto 10px;
+  }
+
+  .fluxo .etapa strong { display: block; font-size: .95rem; margin-bottom: 4px; }
+  .fluxo .etapa span { font-size: .8rem; color: var(--cinza-texto); }
+
+  .fluxo .seta { color: var(--teal); font-size: 1.6rem; font-weight: 700; }
+
+  /* Perfis */
+  .perfis { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; min-height: 0; }
+
+  .perfil { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 22px; box-shadow: var(--sombra); }
+
+  .perfil h4 { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+  .perfil ul { list-style: none; font-size: .88rem; color: var(--cinza-texto); }
+
+  .perfil li { padding: 4px 0; border-bottom: 1px dashed var(--borda); }
+  .perfil li:last-child { border-bottom: none; }
+  .perfil li::before { content: "✓ "; color: var(--teal); font-weight: 700; }
+
+  /* Números */
+  .numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
+
+  .numero {
+    background: #fff; border: 1px solid var(--borda); border-radius: 14px;
+    padding: 22px; text-align: center; box-shadow: var(--sombra);
+  }
+
+  .numero .valor { font-size: 2rem; font-weight: 800; color: var(--azul-escuro); }
+  .numero .rotulo { font-size: .85rem; color: var(--cinza-texto); }
+
+  /* Stack de tecnologia */
+  .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+  .stack .item { background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+
+  .stack .item .tag { font-weight: 800; color: var(--azul-escuro); min-width: 96px; }
+
+  .stack .item p { font-size: .88rem; color: var(--cinza-texto); }
+
+  footer {
+    background: var(--azul-escuro);
+    color: rgba(255, 255, 255, .85);
+    text-align: center;
+    padding: 34px 0;
+    font-size: .9rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.9rem; }
+    .fluxo .seta { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <span class="badge">Sistema de Gestão Odontológica</span>
+    <h1>SCO · Sorriso &amp; Cuidado Odontológico</h1>
+    <p class="subtitle">
+      Plataforma completa para clínicas odontológicas: do primeiro cadastro do paciente
+      ao controle financeiro, passando por prontuário, odontograma, tratamentos, agenda e estoque.
+    </p>
+    <div class="tech">
+      <span>Laravel 13</span>
+      <span>PHP 8.3</span>
+      <span>Blade</span>
+      <span>Bootstrap</span>
+      <span>SQLite</span>
+      <span>API WhatsApp</span>
+      <span>Auditoria</span>
+    </div>
+  </div>
+</header>
+
+<!-- NÚMEROS -->
+<section>
+  <div class="container">
+    <h2>O sistema em números</h2>
+    <p class="lead">Estrutura que sustenta toda a operação clínica e administrativa.</p>
+    <div class="numeros">
+      <div class="numero"><div class="valor">17</div><div class="rotulo">Módulos funcionais</div></div>
+      <div class="numero"><div class="valor">39</div><div class="rotulo">Modelos de dados</div></div>
+      <div class="numero"><div class="valor">6</div><div class="rotulo">Perfis de acesso</div></div>
+      <div class="numero"><div class="valor">62</div><div class="rotulo">Permissões granulares</div></div>
+      <div class="numero"><div class="valor">9</div><div class="rotulo">Endpoints de API</div></div>
+      <div class="numero"><div class="valor">70</div><div class="rotulo">Testes automatizados</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section>
+  <div class="container">
+    <h2>Como o sistema funciona</h2>
+    <p class="lead">O ciclo de atendimento guia toda a operação da clínica.</p>
+    <div class="fluxo">
+      <div class="etapa"><div class="num">1</div><strong>Cadastro</strong><span>Paciente + prontuário inicial</span></div>
+      <div class="seta">→</div>
+      <div class="etapa"><div class="num">2</div><strong>Diagnóstico</strong><span>Odontograma e anamneses</span></div>
+      <div class="seta">→</div>
+      <div class="etapa"><div class="num">3</div><strong>Plano</strong><span>Tratamento e procedimentos</span></div>
+      <div class="seta">→</div>
+      <div class="etapa"><div class="num">4</div><strong>Orçamento</strong><span>Proposta e aprovação</span></div>
+      <div class="seta">→</div>
+      <div class="etapa"><div class="num">5</div><strong>Financeiro</strong><span>Contas a receber e pagamentos</span></div>
+      <div class="seta">→</div>
+      <div class="etapa"><div class="num">6</div><strong>Estoque</strong><span>Materiais consumidos</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MÓDULOS -->
+<section>
+  <div class="container">
+    <h2>Módulos do sistema</h2>
+    <p class="lead">Cada área cobre uma etapa do atendimento e da gestão.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="icone c-verde">👥</div>
+        <h3>Pacientes</h3>
+        <p>Cadastro com busca por nome/CPF, ficha completa, alertas, documentos e endereço.</p>
+        <div class="tags"><span>CRUD</span><span>Busca</span><span>Soft delete</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-roxo">📋</div>
+        <h3>Prontuário</h3>
+        <p>Evoluções clínicas, anamneses estruturadas, prescrições com múltiplos medicamentos.</p>
+        <div class="tags"><span>Evolução clínica</span><span>Prescrição</span><span>Anamnese</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-azul">🗓️</div>
+        <h3>Agenda</h3>
+        <p>Grade semanal de 7h às 21h, filtro por profissional, status de consulta e lista de espera.</p>
+        <div class="tags"><span>Slots de 30 min</span><span>Status</span><span>Lista de espera</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-teal">🦷</div>
+        <h3>Odontograma</h3>
+        <p>Diagrama dental com 8 condições de dente (cariado, restaurado, coroa, implante...).</p>
+        <div class="tags"><span>Diagrama</span><span>8 condições</span><span>Observações</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-amarelo">💊</div>
+        <h3>Planos de tratamento</h3>
+        <p>Planos com procedimentos, dente/quantidade, desconto e total automático recalculado.</p>
+        <div class="tags"><span>5 status</span><span>Cálculo automático</span><span>Itens executados</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-laranja">💰</div>
+        <h3>Orçamentos</h3>
+        <p>Propostas com validade, itens do catálogo, descontos e fluxo de aprovação completo.</p>
+        <div class="tags"><span>Status</span><span>Subtotal/total</span><span>Validade</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-verde">🏦</div>
+        <h3>Financeiro</h3>
+        <p>Contas a receber, pagamentos parciais/totais por 6 formas de pagamento e saldo devedor.</p>
+        <div class="tags"><span>PIX · Cartão · Boleto</span><span>Parcial</span><span>Histórico</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-azul">🛡️</div>
+        <h3>Convênios</h3>
+        <p>Operadoras com planos vinculados, CNPJ e contatos para faturamento.</p>
+        <div class="tags"><span>Operadora</span><span>Planos</span><span>Ativo/Inativo</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-roxo">🧑‍⚕️</div>
+        <h3>Profissionais</h3>
+        <p>Equipe com CRO, especialidades, comissão % e tipo (dentista, auxiliar, recepção).</p>
+        <div class="tags"><span>CRO</span><span>7 especialidades</span><span>Comissão</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-teal">🩺</div>
+        <h3>Procedimentos</h3>
+        <p>Catálogo com código único, categoria, duração e valor padrão que alimenta planos e orçamentos.</p>
+        <div class="tags"><span>Catálogo</span><span>Valor padrão</span><span>Duração</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-vermelho">📦</div>
+        <h3>Estoque</h3>
+        <p>Produtos com estoque mínimo, fornecedores, categorias e movimentações de entrada/saída.</p>
+        <div class="tags"><span>Movimentação</span><span>Estoque baixo</span><span>Lote/validade</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-rosa">📜</div>
+        <h3>Contratos</h3>
+        <p>Termos e consentimentos por paciente com status de assinatura e conteúdo livre.</p>
+        <div class="tags"><span>Pendente</span><span>Assinado</span><span>Cancelado</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-amarelo">📊</div>
+        <h3>Relatórios</h3>
+        <p>Indicadores por período: financeiro, agenda, estoque baixo e movimentações.</p>
+        <div class="tags"><span>Por período</span><span>Resumo financeiro</span><span>Faltas</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-azul">🗂️</div>
+        <h3>Admin · Usuários &amp; Perfis</h3>
+        <p>Gestão de usuários, 6 perfis e permissões granulares por módulo e ação.</p>
+        <div class="tags"><span>Perfis</span><span>Permissões</span><span>RBAC</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-verde">🏢</div>
+        <h3>Admin · Clínica</h3>
+        <p>Dados institucionais (razão social, CNPJ, WhatsApp, endereço) usados nas telas e na API.</p>
+        <div class="tags"><span>Dados da clínica</span><span>WhatsApp</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-teal">🔍</div>
+        <h3>Admin · Auditoria</h3>
+        <p>Trilha completa de quem fez o quê: ação, tabela, registro, antes/depois e IP.</p>
+        <div class="tags"><span>Audit log</span><span>Antes/depois</span><span>Filtros</span></div>
+      </div>
+
+      <div class="card">
+        <div class="icone c-roxo">💬</div>
+        <h3>API WhatsApp</h3>
+        <p>Integração para bots: consulta disponibilidade, cria e confirma agendamentos por telefone.</p>
+        <div class="tags"><span>REST</span><span>Disponibilidade</span><span>Agendamento</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFIS -->
+<section>
+  <div class="container">
+    <h2>Perfis de acesso</h2>
+    <p class="lead">Cada papel enxerga apenas o que precisa — segurança por permissão granular.</p>
+    <div class="perfis">
+      <div class="perfil">
+        <h4>👑 Administrador</h4>
+        <ul>
+          <li>Acesso total ao sistema</li>
+          <li>Gestão de usuários e perfis</li>
+          <li>Dados da clínica</li>
+          <li>Trilha de auditoria</li>
+        </ul>
+      </div>
+      <div class="perfil">
+        <h4>🦷 Dentista</h4>
+        <ul>
+          <li>Prontuário e evoluções</li>
+          <li>Odontograma e anamneses</li>
+          <li>Planos de tratamento</li>
+          <li>Orçamentos e prescrições</li>
+        </ul>
+      </div>
+      <div class="perfil">
+        <h4>📞 Recepção</h4>
+        <ul>
+          <li>Cadastro de pacientes</li>
+          <li>Agenda completa</li>
+          <li>Contratos e recebimentos</li>
+          <li>Orçamentos (visualização)</li>
+        </ul>
+      </div>
+      <div class="perfil">
+        <h4>💵 Financeiro</h4>
+        <ul>
+          <li>Contas a receber</li>
+          <li>Registro de recebimentos</li>
+          <li>Orçamentos e relatórios</li>
+          <li>Convênios (visualização)</li>
+        </ul>
+      </div>
+      <div class="perfil">
+        <h4>📦 Estoque</h4>
+        <ul>
+          <li>Produtos e categorias</li>
+          <li>Movimentações entrada/saída</li>
+          <li>Relatórios de estoque</li>
+        </ul>
+      </div>
+      <div class="perfil">
+        <h4>🩹 Auxiliar</h4>
+        <ul>
+          <li>Visualização de pacientes</li>
+          <li>Visualização da agenda</li>
+          <li>Visualização do prontuário</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECNOLOGIAS -->
+<section>
+  <div class="container">
+    <h2>Tecnologias</h2>
+    <p class="lead">Base técnica moderna e organizada.</p>
+<div class="stack">
+      <div class="item"><span class="tag">Backend</span><p>Laravel 13 · PHP 8.3 · Eloquent ORM · Migrations · Policies e Gates</p></div>
+      <div class="item"><span class="tag">Frontend</span><p>Blade templates · Bootstrap 5 · SCSS · JavaScript</p></div>
+      <div class="item"><span class="tag">Banco</span><p>MySQL em desenvolvimento, pronto para Produção</p></div>
+      <div class="item"><span class="tag">Auth</span><p>Laravel Breeze · Login, verificação de e-mail e redefinição de senha</p></div>
+      <div class="item"><span class="tag">Integrações</span><p>API REST de WhatsApp com autenticação por chave própria</p></div>
+      <div class="item"><span class="tag">Qualidade</span><p>70 testes de feature · PHPUnit · Seeders de catálogo, permissões e demonstração</p></div>
+    </div>
+  </section>
+
+<!-- DEMO -->
+<style>
+  .demo-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--borda); border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); }
+  .demo-table th, .demo-table td { text-align: left; padding: 12px 18px; font-size: .9rem; }
+  .demo-table thead { background: var(--azul-escuro); color: #fff; }
+  .demo-table thead th { font-weight: 600; }
+  .demo-table tbody tr:nth-child(even) { background: var(--cinza-bg); }
+  .demo-table code { background: rgba(20,60,80,.08); padding: 2px 8px; border-radius: 6px; font-size: .85rem; }
+  .demo-note { margin-top: 16px; font-size: .88rem; color: var(--cinza-texto); }
+  .demo-note code { background: rgba(20,60,80,.08); padding: 2px 6px; border-radius: 6px; }
+</style>
+<section>
+  <div class="container">
+    <h2>Ambiente de demonstração</h2>
+    <p class="lead">Acessos de exemplo para navegar por cada perfil do sistema.</p>
+    <table class="demo-table">
+      <thead>
+        <tr><th>Perfil</th><th>E-mail</th><th>Senha</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Administrador</td><td><code>admin@sco.com</code></td><td><code>admin123</code></td></tr>
+        <tr><td>Dentista</td><td><code>dentista@sco.com</code></td><td><code>dentista123</code></td></tr>
+        <tr><td>Recepção</td><td><code>recepcao@sco.com</code></td><td><code>recepcao123</code></td></tr>
+        <tr><td>Financeiro</td><td><code>financeiro@sco.com</code></td><td><code>financeiro123</code></td></tr>
+      </tbody>
+    </table>
+    <p class="demo-note">
+      O ambiente demo já vem populado com pacientes, agenda, planos de tratamento, orçamentos,
+      contas a receber, contratos, odontograma e estoque. Para restaurar os dados de exemplo,
+      rode <code>php artisan db:seed</code>.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    SCO · Sistema de Gestão Odontológica — projeto de portfólio.
+    <br>Desenvolvido com Laravel, Blade e Bootstrap.
+  </div>
+</footer>
+
+</body>
+</html>

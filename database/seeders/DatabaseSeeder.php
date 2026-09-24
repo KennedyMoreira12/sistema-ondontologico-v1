@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             CatalogSeeder::class,
             ClinicaSeeder::class,
+            DemoSeeder::class,
         ]);
     }
 }
