@@ -51,8 +51,14 @@
                 <a href="{{ route('dashboard') }}?modulo=profissionais" class="nav-link">
                     <i class="bi bi-person-badge"></i> Profissionais
                 </a>
+                <a href="{{ route('dashboard') }}?modulo=procedimentos" class="nav-link">
+                    <i class="bi bi-journal-code"></i> Procedimentos
+                </a>
                 <a href="{{ route('dashboard') }}?modulo=estoque" class="nav-link">
                     <i class="bi bi-box-seam"></i> Estoque
+                </a>
+                <a href="{{ route('dashboard') }}?modulo=relatorios" class="nav-link">
+                    <i class="bi bi-graph-up-arrow"></i> Relatórios
                 </a>
                 <a href="{{ route('dashboard') }}?modulo=documentos" class="nav-link">
                     <i class="bi bi-folder2-open"></i> Documentos

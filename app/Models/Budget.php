@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['paciente_id', 'treatment_plan_id', 'profissional_id', 'validade', 'desconto', 'subtotal', 'total', 'status', 'observacoes'])]
-class Budget extends \Illuminate\Database\Eloquent\Model
+#[Fillable(['paciente_id', 'treatment_plan_id', 'profissional_id', 'titulo', 'validade', 'desconto', 'subtotal', 'total', 'status', 'observacoes'])]
+class Budget extends Model
 {
     /**
      * @return array<string, string>

@@ -1,0 +1,73 @@
+@extends('layouts.app')
+
+@section('title', 'Novo profissional')
+
+@section('content')
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h1 class="h4 mb-0">Novo profissional</h1>
+        <a href="{{ route('profissionais.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ route('profissionais.store') }}">
+                @csrf
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nome" class="form-label">Nome *</label>
+                        <input type="text" id="nome" name="nome" class="form-control @error('nome') is-invalid @enderror" value="{{ old('nome') }}" required>
+                        @error('nome')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label for="cpf" class="form-label">CPF</label>
+                        <input type="text" id="cpf" name="cpf" class="form-control cpf-mask @error('cpf') is-invalid @enderror" value="{{ old('cpf') }}" maxlength="14">
+                        @error('cpf')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label for="cro" class="form-label">CRO</label>
+                        <input type="text" id="cro" name="cro" class="form-control @error('cro') is-invalid @enderror" value="{{ old('cro') }}" maxlength="30">
+                        @error('cro')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipo" class="form-label">Tipo *</label>
+                        <select id="tipo" name="tipo" class="form-select @error('tipo') is-invalid @enderror" required>
+                            <option value="dentista" @selected(old('tipo', 'dentista') === 'dentista')>Dentista</option>
+                            <option value="auxiliar" @selected(old('tipo') === 'auxiliar')>Auxiliar</option>
+                            <option value="recepcionista" @selected(old('tipo') === 'recepcionista')>Recepcionista</option>
+                            <option value="outro" @selected(old('tipo') === 'outro')>Outro</option>
+                        </select>
+                        @error('tipo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="comissao" class="form-label">Comissão (%)</label>
+                        <input type="number" step="0.01" min="0" max="100" id="comissao" name="comissao" class="form-control @error('comissao') is-invalid @enderror" value="{{ old('comissao', 0) }}">
+                        @error('comissao')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="is_active" class="form-label">Status</label>
+                        <select id="is_active" name="is_active" class="form-select">
+                            <option value="1" @selected(old('is_active', '1') === '1')>Ativo</option>
+                            <option value="0" @selected(old('is_active') === '0')>Inativo</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="specialties" class="form-label">Especialidades</label>
+                        <select id="specialties" name="specialties[]" class="form-select" multiple>
+                            @foreach ($especialidades as $especialidade)
+                                <option value="{{ $especialidade->id }}" @selected(in_array($especialidade->id, old('specialties', []), true))>{{ $especialidade->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Segure Ctrl para selecionar mais de uma.</div>
+                        @error('specialties')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+                    <a href="{{ route('profissionais.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection

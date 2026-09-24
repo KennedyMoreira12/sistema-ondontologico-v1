@@ -35,6 +35,11 @@
                     <i class="bi bi-clipboard2-pulse me-1"></i>Planos
                 </a>
             @endcan
+            @can('orcamentos.view')
+                <a href="{{ route('pacientes.orcamentos.index', $paciente) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-text me-1"></i>Orçamentos
+                </a>
+            @endcan
             @can('prontuario.view')
                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-capsule me-1"></i>Prescrições
@@ -421,6 +426,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
+                                <th>Orçamento</th>
                                 <th>Criado em</th>
                                 <th>Validade</th>
                                 <th>Status</th>
@@ -431,6 +437,11 @@
                             @forelse ($orcamentos as $orcamento)
                                 <tr>
                                     <td>{{ $orcamento->id }}</td>
+                                    <td>
+                                        <a href="{{ route('pacientes.orcamentos.show', [$paciente, $orcamento]) }}" class="text-decoration-none">
+                                            {{ $orcamento->titulo ?? 'Orçamento #'.$orcamento->id }}
+                                        </a>
+                                    </td>
                                     <td>{{ $orcamento->created_at->translatedFormat('d/m/Y') }}</td>
                                     <td>{{ $orcamento->validade ? $orcamento->validade->translatedFormat('d/m/Y') : '—' }}</td>
                                     <td><span class="badge bg-secondary">{{ $orcamento->status ?? '—' }}</span></td>
@@ -438,7 +449,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Nenhum orçamento.</td>
+                                    <td colspan="6" class="text-center text-muted py-4">Nenhum orçamento.</td>
                                 </tr>
                             @endforelse
                         </tbody>
