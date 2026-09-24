@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
@@ -70,6 +71,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/{procedimento}/edit', [ProcedimentoController::class, 'edit'])->name('edit');
         Route::put('/{procedimento}', [ProcedimentoController::class, 'update'])->name('update');
         Route::delete('/{procedimento}', [ProcedimentoController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('contratos')->name('contratos.')->group(function () {
+        Route::get('/', [ContratoController::class, 'index'])->name('index');
+        Route::get('/create', [ContratoController::class, 'create'])->name('create');
+        Route::post('/', [ContratoController::class, 'store'])->name('store');
+        Route::get('/{contrato}/edit', [ContratoController::class, 'edit'])->name('edit');
+        Route::put('/{contrato}', [ContratoController::class, 'update'])->name('update');
+        Route::delete('/{contrato}', [ContratoController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('estoque')->name('estoque.')->group(function () {

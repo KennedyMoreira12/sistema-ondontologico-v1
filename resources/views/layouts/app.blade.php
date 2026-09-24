@@ -57,6 +57,9 @@
                 <a href="{{ route('dashboard') }}?modulo=estoque" class="nav-link">
                     <i class="bi bi-box-seam"></i> Estoque
                 </a>
+                <a href="{{ route('contratos.index') }}" class="nav-link {{ request()->routeIs('contratos.*') ? 'active' : '' }}">
+                    <i class="bi bi-file-earmark-check"></i> Contratos
+                </a>
                 <a href="{{ route('dashboard') }}?modulo=relatorios" class="nav-link">
                     <i class="bi bi-graph-up-arrow"></i> Relatórios
                 </a>

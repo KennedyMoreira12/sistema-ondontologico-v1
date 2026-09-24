@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Appointment;
+use App\Models\AppointmentStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -37,14 +38,16 @@ class AppointmentStoreRequest extends FormRequest
             $inicio = $this->date('dia')->setTimeFromTimeString($this->string('hora_inicio'));
             $fim = $inicio->copy()->addMinutes((int) $this->integer('duracao'));
 
+            $cancelado = AppointmentStatus::where('name', 'cancelado')->value('id');
+
             $conflito = Appointment::where('profissional_id', $this->integer('profissional_id'))
-                ->where('appointment_status_id', '!=', 5)
+                ->where('appointment_status_id', '!=', $cancelado)
                 ->where('fim', '>', $inicio)
                 ->where('inicio', '<', $fim)
                 ->exists();
 
             $pacienteOcupado = Appointment::where('paciente_id', $this->integer('paciente_id'))
-                ->where('appointment_status_id', '!=', 5)
+                ->where('appointment_status_id', '!=', $cancelado)
                 ->where('fim', '>', $inicio)
                 ->where('inicio', '<', $fim)
                 ->exists();
