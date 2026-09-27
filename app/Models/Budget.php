@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['paciente_id', 'treatment_plan_id', 'profissional_id', 'titulo', 'validade', 'desconto', 'subtotal', 'total', 'status', 'observacoes'])]
-class Budget extends Model
+class Budget extends TenantModel
 {
     /**
      * @return array<string, string>

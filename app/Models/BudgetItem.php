@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['budget_id', 'procedure_id', 'dente', 'descricao', 'quantidade', 'valor_unitario', 'desconto', 'valor_total'])]
-class BudgetItem extends \Illuminate\Database\Eloquent\Model
+class BudgetItem extends TenantModel
 {
     public function budget(): BelongsTo
     {

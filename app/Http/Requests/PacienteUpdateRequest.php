@@ -16,7 +16,7 @@ class PacienteUpdateRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string', 'max:255'],
-            'cpf' => ['nullable', 'string', 'max:14', Rule::unique('pacientes', 'cpf')->ignore($this->paciente), 'cpf'],
+            'cpf' => ['nullable', 'string', 'max:14', Rule::unique('tenant.pacientes', 'cpf')->ignore($this->paciente), 'cpf'],
             'rg' => ['nullable', 'string', 'max:30'],
             'nascimento' => ['nullable', 'date'],
             'sexo' => ['nullable', 'string', 'max:20'],

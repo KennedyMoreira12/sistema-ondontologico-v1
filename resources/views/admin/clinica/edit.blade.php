@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.clinica.update', $clinica) }}">
+    <form method="POST" action="{{ route('admin.clinica.update') }}">
         @csrf
         @method('PUT')
 
@@ -19,16 +19,12 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-8">
-                        <label for="nome" class="form-label">Nome fantasia *</label>
-                        <input type="text" id="nome" name="nome" value="{{ old('nome', $clinica->nome) }}" class="form-control" required>
+                        <label for="legal_name" class="form-label">Razão social</label>
+                        <input type="text" id="legal_name" name="legal_name" value="{{ old('legal_name', $perfil->legal_name) }}" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label for="documento" class="form-label">CNPJ</label>
-                        <input type="text" id="documento" name="documento" value="{{ old('documento', $clinica->documento) }}" class="form-control">
-                    </div>
-                    <div class="col-12">
-                        <label for="razao_social" class="form-label">Razão social</label>
-                        <input type="text" id="razao_social" name="razao_social" value="{{ old('razao_social', $clinica->razao_social) }}" class="form-control">
+                        <label for="document" class="form-label">CNPJ</label>
+                        <input type="text" id="document" name="document" value="{{ old('document', $perfil->document) }}" class="form-control">
                     </div>
                 </div>
             </div>
@@ -38,17 +34,13 @@
             <div class="card-header bg-white fw-semibold"><i class="bi bi-telephone me-2"></i>Contato</div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="email" class="form-label">E-mail</label>
-                        <input type="email" id="email" name="email" value="{{ old('email', $clinica->email) }}" class="form-control">
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="phone" class="form-label">Telefone</label>
-                        <input type="text" id="phone" name="phone" value="{{ old('phone', $clinica->phone) }}" class="form-control phone-mask">
+                        <input type="text" id="phone" name="phone" value="{{ old('phone', $perfil->phone) }}" class="form-control phone-mask">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="whatsapp" class="form-label">WhatsApp</label>
-                        <input type="text" id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $clinica->whatsapp) }}" class="form-control phone-mask">
+                        <input type="text" id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $perfil->whatsapp) }}" class="form-control phone-mask">
                     </div>
                 </div>
             </div>
@@ -59,35 +51,35 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label for="cep" class="form-label">CEP</label>
-                        <input type="text" id="cep" name="cep" value="{{ old('cep', $clinica->cep) }}" class="form-control cep-mask">
+                        <label for="postal_code" class="form-label">CEP</label>
+                        <input type="text" id="postal_code" name="postal_code" value="{{ old('postal_code', $perfil->postal_code) }}" class="form-control cep-mask">
                     </div>
                     <div class="col-md-6">
-                        <label for="endereco" class="form-label">Endereço</label>
-                        <input type="text" id="endereco" name="endereco" value="{{ old('endereco', $clinica->endereco) }}" class="form-control">
+                        <label for="address" class="form-label">Endereço</label>
+                        <input type="text" id="address" name="address" value="{{ old('address', $perfil->address) }}" class="form-control">
                     </div>
                     <div class="col-md-3">
-                        <label for="numero" class="form-label">Número</label>
-                        <input type="text" id="numero" name="numero" value="{{ old('numero', $clinica->numero) }}" class="form-control">
+                        <label for="number" class="form-label">Número</label>
+                        <input type="text" id="number" name="number" value="{{ old('number', $perfil->number) }}" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label for="complemento" class="form-label">Complemento</label>
-                        <input type="text" id="complemento" name="complemento" value="{{ old('complemento', $clinica->complemento) }}" class="form-control">
+                        <label for="complement" class="form-label">Complemento</label>
+                        <input type="text" id="complement" name="complement" value="{{ old('complement', $perfil->complement) }}" class="form-control">
                     </div>
                     <div class="col-md-4">
-                        <label for="bairro" class="form-label">Bairro</label>
-                        <input type="text" id="bairro" name="bairro" value="{{ old('bairro', $clinica->bairro) }}" class="form-control">
+                        <label for="district" class="form-label">Bairro</label>
+                        <input type="text" id="district" name="district" value="{{ old('district', $perfil->district) }}" class="form-control">
                     </div>
                     <div class="col-md-2">
-                        <label for="cidade" class="form-label">Cidade</label>
-                        <input type="text" id="cidade" name="cidade" value="{{ old('cidade', $clinica->cidade) }}" class="form-control">
+                        <label for="city" class="form-label">Cidade</label>
+                        <input type="text" id="city" name="city" value="{{ old('city', $perfil->city) }}" class="form-control">
                     </div>
                     <div class="col-md-2">
-                        <label for="estado" class="form-label">UF</label>
-                        <select id="estado" name="estado" class="form-select">
+                        <label for="state" class="form-label">UF</label>
+                        <select id="state" name="state" class="form-select">
                             <option value="">—</option>
                             @foreach (['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] as $uf)
-                                <option value="{{ $uf }}" @selected(old('estado', $clinica->estado) === $uf)>{{ $uf }}</option>
+                                <option value="{{ $uf }}" @selected(old('state', $perfil->state) === $uf)>{{ $uf }}</option>
                             @endforeach
                         </select>
                     </div>

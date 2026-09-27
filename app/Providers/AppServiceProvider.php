@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\Clinica;
-use App\Models\User;
+use App\Models\Central\User;
 use App\Rules\Cpf;
+use App\Services\Tenant\TenantManager;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
@@ -19,12 +19,23 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /**
+         * Papéis e permissões são POR CLÍNICA, então esta checagem só funciona
+         * depois que o ResolveTenant conectou no banco da clínica. É por isso
+         * que a ordem dos middlewares é auth -> tenant -> autorização: o Gate
+         * é avaliado dentro dos controllers, depois dos dois.
+         */
         Gate::before(function (User $user, string $ability) {
             return $user->hasPermission($ability) ? true : null;
         });
 
-        View::composer('layouts.app', function ($view) {
-            $view->with('clinica', Clinica::first());
+        /**
+         * A clínica do logo e do nome é a do tenant resolvido, nunca a
+         * primeira linha da tabela — o `Clinica::first()` original mostrava o
+         * nome de outra clínica para todo mundo.
+         */
+        View::composer('layouts.app', function ($view): void {
+            $view->with('clinica', app(TenantManager::class)->current());
         });
 
         Validator::extend('cpf', function (string $attribute, mixed $value, array $parameters, $validator) {

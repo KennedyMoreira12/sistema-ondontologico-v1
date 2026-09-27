@@ -20,13 +20,13 @@ class AppointmentUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'paciente_id' => ['required', 'exists:pacientes,id'],
-            'profissional_id' => ['required', 'exists:professionals,id'],
-            'room_id' => ['nullable', 'exists:rooms,id'],
+            'paciente_id' => ['required', 'exists:tenant.pacientes,id'],
+            'profissional_id' => ['required', 'exists:tenant.professionals,id'],
+            'room_id' => ['nullable', 'exists:tenant.rooms,id'],
             'dia' => ['required', 'date_format:Y-m-d'],
             'hora_inicio' => ['required', 'date_format:H:i'],
             'duracao' => ['required', 'integer', 'in:15,30,45,60,90,120'],
-            'appointment_status_id' => ['required', Rule::exists('appointment_statuses', 'id')],
+            'appointment_status_id' => ['required', Rule::exists('tenant.appointment_statuses', 'id')],
             'titulo' => ['nullable', 'string', 'max:255'],
             'observacao' => ['nullable', 'string', 'max:1000'],
             'retorno' => ['nullable', 'boolean'],

@@ -2,36 +2,19 @@
 
 namespace Tests\Feature;
 
-use App\Models\Permission;
 use App\Models\Professional;
-use App\Models\Role;
 use App\Models\Specialty;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class ProfissionalTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoProfissional(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'profissional_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $role->permissions()->attach(Permission::create([
-                'name' => $permissao,
-                'module' => 'profissionais',
-                'action' => $permissao,
-            ])->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     public function test_usuario_sem_role_nao_acessa_profissionais(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
 
         $this->actingAs($user)
             ->get(route('profissionais.index'))
@@ -40,7 +23,8 @@ class ProfissionalTest extends TestCase
 
     public function test_index_lista_profissionais_com_especialidades(): void
     {
-        $user = $this->userComPermissaoProfissional('profissionais.view');
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.view');
+
         $especialidade = Specialty::create(['name' => 'Implantodontia']);
         $profissional = Professional::create(['nome' => 'Dra. Ana']);
         $profissional->specialties()->attach($especialidade->id);
@@ -54,7 +38,8 @@ class ProfissionalTest extends TestCase
 
     public function test_cria_profissional_com_especialidades(): void
     {
-        $user = $this->userComPermissaoProfissional('profissionais.create');
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
+
         $especialidade = Specialty::create(['name' => 'Ortodontia']);
 
         $this->actingAs($user)
@@ -67,15 +52,16 @@ class ProfissionalTest extends TestCase
             ])
             ->assertRedirect(route('profissionais.index'));
 
-        $this->assertDatabaseHas('professionals', ['nome' => 'Dr. Carlos']);
-        $this->assertDatabaseHas('professional_specialty', [
+        $this->assertTenantDatabaseHas('professionals', ['nome' => 'Dr. Carlos']);
+        $this->assertTenantDatabaseHas('professional_specialty', [
             'specialty_id' => $especialidade->id,
         ]);
     }
 
     public function test_atualiza_profissional(): void
     {
-        $user = $this->userComPermissaoProfissional('profissionais.update');
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.update');
+
         $profissional = Professional::create(['nome' => 'Dr. Carlos']);
 
         $this->actingAs($user)
@@ -86,7 +72,7 @@ class ProfissionalTest extends TestCase
             ])
             ->assertRedirect(route('profissionais.index'));
 
-        $this->assertDatabaseHas('professionals', [
+        $this->assertTenantDatabaseHas('professionals', [
             'id' => $profissional->id,
             'nome' => 'Dr. Carlos Silva',
         ]);

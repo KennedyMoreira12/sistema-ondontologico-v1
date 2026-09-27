@@ -26,6 +26,15 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <!--
+            O banco do tenant precisa ser SEPARADO do central nos testes. Com
+            os dois em ":memory:", cada conexão vira um banco em memória
+            distinto, que é o que permite testar que uma clínica não enxerga a
+            outra. Se apontassem para o mesmo lugar, todo teste de isolamento
+            passaria sem provar nada.
+        -->
+        <env name="TENANT_DB_DRIVER" value="sqlite"/>
+        <env name="TENANT_DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

@@ -4,30 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Contract;
 use App\Models\Paciente;
-use App\Models\Permission;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class ContratoTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoContrato(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'contrato_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $role->permissions()->attach(Permission::create([
-                'name' => $permissao,
-                'module' => 'contratos',
-                'action' => $permissao,
-            ])->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     private function createPaciente(): Paciente
     {
@@ -36,7 +19,7 @@ class ContratoTest extends TestCase
 
     public function test_usuario_sem_role_nao_acessa_contratos(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
 
         $this->actingAs($user)
             ->get(route('contratos.index'))
@@ -45,7 +28,9 @@ class ContratoTest extends TestCase
 
     public function test_index_lista_contratos(): void
     {
+        [, $user] = $this->criarUsuarioComPermissao('contratos.view');
         $paciente = $this->createPaciente();
+
         Contract::create([
             'paciente_id' => $paciente->id,
             'tipo' => 'consentimento',
@@ -53,7 +38,7 @@ class ContratoTest extends TestCase
             'assinado_em' => now(),
         ]);
 
-        $this->actingAs($this->userComPermissaoContrato('contratos.view'))
+        $this->actingAs($user)
             ->get(route('contratos.index'))
             ->assertOk()
             ->assertSee('Maria Silva');
@@ -61,7 +46,7 @@ class ContratoTest extends TestCase
 
     public function test_cria_contrato(): void
     {
-        $user = $this->userComPermissaoContrato('contratos.create');
+        [, $user] = $this->criarUsuarioComPermissao('contratos.create');
         $paciente = $this->createPaciente();
 
         $this->actingAs($user)
@@ -73,7 +58,7 @@ class ContratoTest extends TestCase
             ])
             ->assertRedirect(route('contratos.index'));
 
-        $this->assertDatabaseHas('contracts', [
+        $this->assertTenantDatabaseHas('contracts', [
             'paciente_id' => $paciente->id,
             'tipo' => 'tratamento',
             'status' => 'pendente',
@@ -83,7 +68,7 @@ class ContratoTest extends TestCase
 
     public function test_atualiza_contrato(): void
     {
-        $user = $this->userComPermissaoContrato('contratos.update');
+        [, $user] = $this->criarUsuarioComPermissao('contratos.update');
         $paciente = $this->createPaciente();
         $contrato = Contract::create([
             'paciente_id' => $paciente->id,
@@ -100,7 +85,7 @@ class ContratoTest extends TestCase
             ])
             ->assertRedirect(route('contratos.index'));
 
-        $this->assertDatabaseHas('contracts', [
+        $this->assertTenantDatabaseHas('contracts', [
             'id' => $contrato->id,
             'status' => 'assinado',
         ]);
@@ -108,7 +93,7 @@ class ContratoTest extends TestCase
 
     public function test_exclui_contrato(): void
     {
-        $user = $this->userComPermissaoContrato('contratos.delete');
+        [, $user] = $this->criarUsuarioComPermissao('contratos.delete');
         $paciente = $this->createPaciente();
         $contrato = Contract::create([
             'paciente_id' => $paciente->id,
@@ -120,6 +105,6 @@ class ContratoTest extends TestCase
             ->delete(route('contratos.destroy', $contrato))
             ->assertRedirect(route('contratos.index'));
 
-        $this->assertDatabaseMissing('contracts', ['id' => $contrato->id]);
+        $this->assertTenantDatabaseMissing('contracts', ['id' => $contrato->id]);
     }
 }

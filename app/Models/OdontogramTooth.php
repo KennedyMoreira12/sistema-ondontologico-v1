@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['odontogram_id', 'tooth_condition_id', 'dente', 'condicao', 'observacao', 'profissional_id'])]
-class OdontogramTooth extends \Illuminate\Database\Eloquent\Model
+class OdontogramTooth extends TenantModel
 {
     public function odontogram(): BelongsTo
     {

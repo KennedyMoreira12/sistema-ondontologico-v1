@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Central\Clinic;
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['clinica_id', 'nome', 'cpf', 'rg', 'nascimento', 'sexo', 'email', 'phone', 'celular', 'cep', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'responsavel', 'observacoes', 'status'])]
-class Paciente extends Model
+class Paciente extends TenantModel
 {
     use SoftDeletes;
 
@@ -25,7 +26,7 @@ class Paciente extends Model
 
     public function clinica(): BelongsTo
     {
-        return $this->belongsTo(Clinica::class);
+        return $this->belongsTo(Clinic::class);
     }
 
     public function anamneses(): HasMany

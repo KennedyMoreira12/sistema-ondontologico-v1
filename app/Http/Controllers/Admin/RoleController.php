@@ -16,7 +16,11 @@ class RoleController extends Controller
     {
         $this->authorize('admin.view');
 
-        $roles = Role::withCount('permissions', 'users')->orderBy('name')->get();
+        // `userRoles`, e não `users`: a tabela `users` é da plataforma e `roles`
+        // é da clínica, então um `belongsTo(User::class)` aqui viraria um join
+        // entre dois bancos diferentes. O que existe no banco da clínica é o
+        // pivot `user_roles`, e é ele que diz quantos usuários têm o papel.
+        $roles = Role::withCount('permissions', 'userRoles')->orderBy('name')->get();
 
         return view('admin.perfis.index', compact('roles'));
     }
@@ -37,7 +41,7 @@ class RoleController extends Controller
         $validated = $request->validate([
             'label' => ['nullable', 'string', 'max:100'],
             'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['integer', 'exists:permissions,id'],
+            'permissions.*' => ['integer', 'exists:tenant.permissions,id'],
         ]);
 
         $role->update(['label' => $validated['label']]);

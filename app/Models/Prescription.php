@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['paciente_id', 'profissional_id', 'data', 'observacoes'])]
-class Prescription extends \Illuminate\Database\Eloquent\Model
+class Prescription extends TenantModel
 {
     /**
      * @return array<string, string>

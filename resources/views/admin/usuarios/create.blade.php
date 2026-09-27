@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Novo usuário')
 
@@ -7,7 +7,7 @@
         <a href="{{ route('admin.usuarios.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
         <div>
             <h1 class="h4 mb-0">Novo usuário</h1>
-            <p class="text-muted small mb-0">Criação de acesso ao sistema.</p>
+            <p class="text-muted small mb-0">Cria um acesso para esta clínica.</p>
         </div>
     </div>
 
@@ -25,34 +25,29 @@
                     <div class="col-12">
                         <label for="email" class="form-label">E-mail *</label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" required>
+                        <div class="form-text">O e-mail é único em todo o sistema: é com ele que o usuário entra e o sistema descobre a clínica.</div>
                         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="cpf" class="form-label">CPF</label>
                         <input type="text" id="cpf" name="cpf" value="{{ old('cpf') }}" class="form-control cpf-mask">
+                        @error('cpf')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="phone" class="form-label">Telefone</label>
                         <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control phone-mask">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="role_id" class="form-label">Perfil *</label>
-                        <select id="role_id" name="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
-                            <option value="">Selecione...</option>
-                            @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" @selected(old('role_id') == $role->id)>{{ $role->label ?? $role->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('role_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-12">
-                        <label for="clinica_id" class="form-label">Clínica</label>
-                        <select id="clinica_id" name="clinica_id" class="form-select">
-                            <option value="">Selecione...</option>
-                            @foreach ($clinicas as $clinica)
-                                <option value="{{ $clinica->id }}" @selected(old('clinica_id') == $clinica->id)>{{ $clinica->nome }}</option>
+                        <label for="role_ids" class="form-label">Perfis de acesso *</label>
+                        <select id="role_ids" name="role_ids[]" multiple size="5" class="form-select @error('role_ids') is-invalid @enderror" required>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}" @selected(in_array($role->id, old('role_ids', [])))>{{ $role->label ?? $role->name }}</option>
                             @endforeach
                         </select>
+                        <div class="form-text">Os perfis são desta clínica. Segure Ctrl (ou Cmd) para escolher mais de um.</div>
+                        @error('role_ids')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @error('role_ids.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label for="password" class="form-label">Senha *</label>
@@ -65,7 +60,7 @@
                     </div>
                     <div class="col-12">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active" checked>
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active" @checked(old('is_active', true))>
                             <label class="form-check-label" for="is_active">Usuário ativo</label>
                         </div>
                     </div>

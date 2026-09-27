@@ -15,7 +15,7 @@ class PacienteStoreRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string', 'max:255'],
-            'cpf' => ['nullable', 'string', 'max:14', 'unique:pacientes,cpf', 'cpf'],
+            'cpf' => ['nullable', 'string', 'max:14', 'unique:tenant.pacientes,cpf', 'cpf'],
             'rg' => ['nullable', 'string', 'max:30'],
             'nascimento' => ['nullable', 'date'],
             'sexo' => ['nullable', 'string', 'max:20'],

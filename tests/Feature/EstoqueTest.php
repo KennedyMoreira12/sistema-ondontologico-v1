@@ -2,35 +2,18 @@
 
 namespace Tests\Feature;
 
-use App\Models\Permission;
 use App\Models\Product;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class EstoqueTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoEstoque(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'estoque_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $role->permissions()->attach(Permission::create([
-                'name' => $permissao,
-                'module' => 'estoque',
-                'action' => $permissao,
-            ])->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     public function test_usuario_sem_role_nao_acessa_estoque(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
 
         $this->actingAs($user)
             ->get(route('estoque.index'))
@@ -39,9 +22,11 @@ class EstoqueTest extends TestCase
 
     public function test_index_lista_produtos(): void
     {
+        [, $user] = $this->criarUsuarioComPermissao('estoque.view');
+
         Product::create(['nome' => 'Luva Látex']);
 
-        $this->actingAs($this->userComPermissaoEstoque('estoque.view'))
+        $this->actingAs($user)
             ->get(route('estoque.index'))
             ->assertOk()
             ->assertSee('Luva Látex');
@@ -49,7 +34,7 @@ class EstoqueTest extends TestCase
 
     public function test_cria_produto(): void
     {
-        $user = $this->userComPermissaoEstoque('estoque.create');
+        [, $user] = $this->criarUsuarioComPermissao('estoque.create');
 
         $this->actingAs($user)
             ->post(route('estoque.store'), [
@@ -60,12 +45,13 @@ class EstoqueTest extends TestCase
             ])
             ->assertRedirect(route('estoque.index'));
 
-        $this->assertDatabaseHas('products', ['nome' => 'Seringa Descarpack']);
+        $this->assertTenantDatabaseHas('products', ['nome' => 'Seringa Descarpack']);
     }
 
     public function test_registra_entrada_e_saida_de_estoque(): void
     {
-        $user = $this->userComPermissaoEstoque('estoque.update');
+        [, $user] = $this->criarUsuarioComPermissao('estoque.update');
+
         $produto = Product::create(['nome' => 'Anestésico', 'estoque' => 10]);
 
         $this->actingAs($user)
@@ -75,8 +61,8 @@ class EstoqueTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('products', ['id' => $produto->id, 'estoque' => 15]);
-        $this->assertDatabaseHas('stock_movements', [
+        $this->assertTenantDatabaseHas('products', ['id' => $produto->id, 'estoque' => 15]);
+        $this->assertTenantDatabaseHas('stock_movements', [
             'product_id' => $produto->id,
             'tipo' => 'entrada',
             'quantidade' => 5,
@@ -91,12 +77,13 @@ class EstoqueTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('products', ['id' => $produto->id, 'estoque' => 12]);
+        $this->assertTenantDatabaseHas('products', ['id' => $produto->id, 'estoque' => 12]);
     }
 
     public function test_recusa_saida_maior_que_estoque_atual(): void
     {
-        $user = $this->userComPermissaoEstoque('estoque.update');
+        [, $user] = $this->criarUsuarioComPermissao('estoque.update');
+
         $produto = Product::create(['nome' => 'Brocas', 'estoque' => 2]);
 
         $this->actingAs($user)
@@ -107,7 +94,7 @@ class EstoqueTest extends TestCase
             ])
             ->assertSessionHasErrors('quantidade');
 
-        $this->assertDatabaseCount('stock_movements', 0);
-        $this->assertDatabaseHas('products', ['id' => $produto->id, 'estoque' => 2]);
+        $this->assertTenantDatabaseCount('stock_movements', 0);
+        $this->assertTenantDatabaseHas('products', ['id' => $produto->id, 'estoque' => 2]);
     }
 }

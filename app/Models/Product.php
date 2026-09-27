@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['product_category_id', 'supplier_id', 'nome', 'codigo', 'unidade', 'estoque', 'estoque_minimo', 'custo', 'preco', 'validade', 'lote', 'controlar_estoque', 'is_active'])]
-class Product extends \Illuminate\Database\Eloquent\Model
+class Product extends TenantModel
 {
     /**
      * @return array<string, string>

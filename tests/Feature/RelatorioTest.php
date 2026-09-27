@@ -4,35 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\AccountsReceivable;
 use App\Models\Paciente;
-use App\Models\Permission;
 use App\Models\Product;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class RelatorioTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoRelatorio(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'relatorio_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $role->permissions()->attach(Permission::create([
-                'name' => $permissao,
-                'module' => 'relatorios',
-                'action' => $permissao,
-            ])->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     public function test_usuario_sem_role_nao_acessa_relatorios(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
 
         $this->actingAs($user)
             ->get(route('relatorios.index'))
@@ -41,7 +24,8 @@ class RelatorioTest extends TestCase
 
     public function test_index_mostra_resumo_financeiro(): void
     {
-        $user = $this->userComPermissaoRelatorio('relatorios.view');
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
+
         $paciente = Paciente::create(['nome' => 'Paciente Relatório']);
 
         AccountsReceivable::create([
@@ -61,7 +45,7 @@ class RelatorioTest extends TestCase
 
     public function test_index_marca_produto_com_estoque_baixo(): void
     {
-        $user = $this->userComPermissaoRelatorio('relatorios.view');
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
 
         Product::create([
             'nome' => 'Luva Baixo',

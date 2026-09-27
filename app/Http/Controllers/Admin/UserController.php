@@ -5,20 +5,34 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserStoreRequest;
 use App\Http\Requests\Admin\UserUpdateRequest;
-use App\Models\Clinica;
+use App\Models\Central\Clinic;
+use App\Models\Central\User;
 use App\Models\Role;
-use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Tenant\TenantManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
+/**
+ * Usuários DA CLÍNICA em atendimento.
+ *
+ * A clínica nunca vem do formulário: é o tenant ativo, resolvido a partir de
+ * `users.clinic_id` no login. Isso garante que um admin da Clínica A não
+ * consiga, por adulterar a URL, criar ou editar um usuário da Clínica B.
+ */
 class UserController extends Controller
 {
+    public function __construct(protected TenantManager $tenants) {}
+
     public function index(): View
     {
         $this->authorize('admin.view');
 
-        $users = User::with('role')->orderBy('name')->paginate(15);
+        $users = $this->clinic()
+            ->users()
+            ->with('roles')
+            ->orderBy('name')
+            ->paginate(15);
 
         return view('admin.usuarios.index', compact('users'));
     }
@@ -27,49 +41,61 @@ class UserController extends Controller
     {
         $this->authorize('admin.create');
 
-        $roles = Role::orderBy('name')->get();
-        $clinicas = Clinica::orderBy('nome')->get();
-
-        return view('admin.usuarios.create', compact('roles', 'clinicas'));
+        return view('admin.usuarios.create', [
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 
     public function store(UserStoreRequest $request): RedirectResponse
     {
         $this->authorize('admin.create');
 
-        $user = User::create($request->validated());
+        $validated = $request->safe()->except('role_ids');
 
-        AuditLogger::log('criar', 'users', $user->id, depois: $user->only(['name', 'email', 'role_id']));
+        $user = $this->clinic()->users()->create($validated);
+        $user->syncRoles($request->validated('role_ids'));
+
+        AuditLogger::log('criar', 'users', $user->id, depois: $user->only(['name', 'email']));
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuário criado com sucesso.');
     }
 
-    public function edit(User $user): View
+    public function edit(string $usuario): View
     {
         $this->authorize('admin.update');
 
-        $roles = Role::orderBy('name')->get();
-        $clinicas = Clinica::orderBy('nome')->get();
-
-        return view('admin.usuarios.edit', compact('user', 'roles', 'clinicas'));
+        return view('admin.usuarios.edit', [
+            'user' => $this->findInClinic($usuario),
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 
-    public function update(UserUpdateRequest $request, User $user): RedirectResponse
+    public function update(UserUpdateRequest $request, string $usuario): RedirectResponse
     {
         $this->authorize('admin.update');
 
-        $before = $user->only(['name', 'email', 'role_id', 'is_active']);
+        $user = $this->findInClinic($usuario);
+        $antes = $user->only(['name', 'email', 'cpf', 'phone', 'is_active']);
 
-        $user->update($request->validated());
+        $user->update($request->safe()->except('role_ids'));
+        $user->syncRoles($request->validated('role_ids'));
 
-        AuditLogger::log('atualizar', 'users', $user->id, antes: $before, depois: $user->fresh()->only(['name', 'email', 'role_id', 'is_active']));
+        AuditLogger::log(
+            'atualizar',
+            'users',
+            $user->id,
+            antes: $antes,
+            depois: $user->fresh()->load('roles')->only(['name', 'email', 'cpf', 'phone', 'is_active']),
+        );
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuário atualizado com sucesso.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(string $usuario): RedirectResponse
     {
         $this->authorize('admin.delete');
+
+        $user = $this->findInClinic($usuario);
 
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Você não pode excluir o próprio usuário.');
@@ -77,8 +103,30 @@ class UserController extends Controller
 
         AuditLogger::log('excluir', 'users', $user->id, antes: $user->only(['name', 'email']));
 
+        // Os papéis vivem no banco da clínica; sem remover junto sobrariam
+        // linhas órfãs em user_roles apontando para um usuário inexistente.
+        $user->userRoles()->delete();
         $user->delete();
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuário excluído.');
+    }
+
+    protected function clinic(): Clinic
+    {
+        $clinic = $this->tenants->current();
+
+        abort_if($clinic === null, 403, 'Nenhuma clínica resolvida para esta requisição.');
+
+        return $clinic;
+    }
+
+    /**
+     * Busca o usuário sempre dentro da clínica em atendimento. Um id de outra
+     * clínica devolve 404, e não 403, para não confirmar que aquele usuário
+     * existe em outro lugar.
+     */
+    protected function findInClinic(string $id): User
+    {
+        return $this->clinic()->users()->whereKey($id)->firstOrFail();
     }
 }

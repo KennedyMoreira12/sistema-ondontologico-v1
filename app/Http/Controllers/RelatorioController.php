@@ -23,7 +23,7 @@ class RelatorioController extends Controller
             'a_receber' => (float) AccountsReceivable::where('status', '!=', 'pago')->sum('valor'),
             'em_aberto' => (float) AccountsReceivable::where('status', '!=', 'pago')->sum(DB::raw('valor - valor_pago')),
             'pago' => (float) AccountsReceivable::where('status', 'pago')->sum('valor'),
-            'recebido_no_periodo' => (float) DB::table('payments')
+            'recebido_no_periodo' => (float) DB::connection('tenant')->table('payments')
                 ->whereBetween('data', [$de->startOfDay(), $ate->endOfDay()])
                 ->sum('valor'),
         ];

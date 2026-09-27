@@ -4,36 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\InsuranceCompany;
 use App\Models\InsurancePlan;
-use App\Models\Permission;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class ConvenioTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoConvenio(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'convenio_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $permission = Permission::create([
-                'name' => $permissao,
-                'module' => 'convenios',
-                'action' => $permissao,
-            ]);
-
-            $role->permissions()->attach($permission->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     public function test_usuario_sem_role_nao_acessa_convenios(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
 
         $this->actingAs($user)
             ->get(route('convenios.index'))
@@ -42,7 +23,7 @@ class ConvenioTest extends TestCase
 
     public function test_index_lista_operadoras_com_total_de_planos(): void
     {
-        $user = $this->userComPermissaoConvenio('convenios.view');
+        [, $user] = $this->criarUsuarioComPermissao('convenios.view');
 
         $operadora = InsuranceCompany::create([
             'nome' => 'OdontoCred',
@@ -63,7 +44,7 @@ class ConvenioTest extends TestCase
 
     public function test_cria_operadora(): void
     {
-        $user = $this->userComPermissaoConvenio('convenios.create');
+        [, $user] = $this->criarUsuarioComPermissao('convenios.create');
 
         $this->actingAs($user)
             ->post(route('convenios.store'), [
@@ -72,14 +53,14 @@ class ConvenioTest extends TestCase
             ])
             ->assertRedirect(route('convenios.index'));
 
-        $this->assertDatabaseHas('insurance_companies', [
+        $this->assertTenantDatabaseHas('insurance_companies', [
             'nome' => 'Amil Dental',
         ]);
     }
 
     public function test_atualiza_operadora(): void
     {
-        $user = $this->userComPermissaoConvenio('convenios.update');
+        [, $user] = $this->criarUsuarioComPermissao('convenios.update');
 
         $operadora = InsuranceCompany::create([
             'nome' => 'OdontoCred',
@@ -92,7 +73,7 @@ class ConvenioTest extends TestCase
             ])
             ->assertRedirect(route('convenios.index'));
 
-        $this->assertDatabaseHas('insurance_companies', [
+        $this->assertTenantDatabaseHas('insurance_companies', [
             'id' => $operadora->id,
             'nome' => 'OdontoCred 2',
         ]);

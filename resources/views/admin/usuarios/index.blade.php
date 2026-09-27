@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h4 mb-0">Usuários</h1>
-            <p class="text-muted small mb-0">Gestão de acessos ao sistema.</p>
+            <p class="text-muted small mb-0">Gestão de acessos desta clínica.</p>
         </div>
         @can('admin.create')
             <a href="{{ route('admin.usuarios.create') }}" class="btn btn-primary">
@@ -23,8 +23,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>E-mail</th>
-                            <th>Perfil</th>
-                            <th>Clínica</th>
+                            <th>Perfis</th>
                             <th>Status</th>
                             <th class="text-end">Ações</th>
                         </tr>
@@ -34,8 +33,13 @@
                             <tr>
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->email }}</td>
-                                <td><span class="badge bg-primary">{{ $user->role?->label ?? $user->role?->name ?? '—' }}</span></td>
-                                <td>{{ $user->clinica?->nome ?? '—' }}</td>
+                                <td>
+                                    @forelse ($user->roles as $role)
+                                        <span class="badge bg-primary">{{ $role->label ?? $role->name }}</span>
+                                    @empty
+                                        <span class="text-muted small">—</span>
+                                    @endforelse
+                                </td>
                                 <td>
                                     @if ($user->is_active)
                                         <span class="badge bg-success">Ativo</span>
@@ -60,7 +64,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">Nenhum usuário cadastrado.</td>
+                                <td colspan="5" class="text-center text-muted py-4">Nenhum usuário cadastrado.</td>
                             </tr>
                         @endforelse
                     </tbody>

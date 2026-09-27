@@ -5,24 +5,37 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
-use App\Models\Clinica;
+use App\Models\ClinicProfile;
 use App\Models\Paciente;
 use App\Models\Professional;
 use App\Models\Room;
 use App\Services\AuditLogger;
+use App\Services\Tenant\TenantManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * API interna consumida pelo n8n de cada clínica.
+ *
+ * Não existe "a clínica" aqui: a clínica é a do token que o middleware
+ * autentica, e o banco conectado é o dela. Nenhum método aceita id de clínica
+ * por parâmetro, porque isso permitiria o n8n de uma clínica escrever no banco
+ * de outra.
+ */
 class WhatsAppController extends Controller
 {
+    public function __construct(protected TenantManager $tenants) {}
+
     public function info(): JsonResponse
     {
-        $clinica = Clinica::first();
-
         return response()->json([
-            'clinica' => $clinica,
+            'clinica' => [
+                'id' => $this->tenants->id(),
+                'nome' => $this->tenants->current()?->name,
+                'perfil' => ClinicProfile::current(),
+            ],
             'statuses' => AppointmentStatus::orderBy('id')->get(),
         ]);
     }
@@ -58,10 +71,8 @@ class WhatsAppController extends Controller
             : null;
 
         if ($paciente === null) {
-            $clinica = Clinica::first();
-
             $paciente = Paciente::create([
-                'clinica_id' => $clinica?->id,
+                'clinica_id' => $this->tenants->id(),
                 'nome' => $validated['nome'],
                 'celular' => $telefone,
                 'email' => $validated['email'] ?? null,
@@ -148,8 +159,11 @@ class WhatsAppController extends Controller
     public function agendamento(Request $request): JsonResponse
     {
         $validated = Validator::make($request->all(), [
-            'paciente_id' => ['required', 'exists:pacientes,id'],
-            'profissional_id' => ['required', 'exists:professionals,id'],
+            // Precisa do prefixo de conexão: pacientes e profissionais vivem no
+            // banco da clínica, e sem o prefixo a regra procuraria as tabelas
+            // no banco central, onde elas não existem.
+            'paciente_id' => ['required', 'exists:tenant.pacientes,id'],
+            'profissional_id' => ['required', 'exists:tenant.professionals,id'],
             'dia' => ['required', 'date_format:Y-m-d'],
             'hora_inicio' => ['required', 'date_format:H:i'],
             'duracao' => ['sometimes', 'integer', 'in:15,30,45,60,90,120'],
@@ -176,7 +190,7 @@ class WhatsAppController extends Controller
         $statusId = AppointmentStatus::where('name', $tipo)->value('id') ?? 1;
 
         $consulta = Appointment::create([
-            'clinica_id' => Professional::find($validated['profissional_id'])->clinica_id ?? Clinica::first()?->id,
+            'clinica_id' => $this->tenants->id(),
             'paciente_id' => $validated['paciente_id'],
             'profissional_id' => $validated['profissional_id'],
             'room_id' => Room::where('is_active', true)->value('id'),

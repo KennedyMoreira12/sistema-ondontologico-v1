@@ -49,7 +49,7 @@ class ProcedimentoController extends Controller
         $this->authorize('procedimentos.create');
 
         $validated = $request->validate([
-            'codigo' => ['nullable', 'string', 'max:30', 'unique:procedures,codigo'],
+            'codigo' => ['nullable', 'string', 'max:30', 'unique:tenant.procedures,codigo'],
             'nome' => ['required', 'string', 'max:255'],
             'categoria' => ['nullable', 'string', 'max:100'],
             'duracao_minutos' => ['nullable', 'integer', 'min:1'],
@@ -81,7 +81,7 @@ class ProcedimentoController extends Controller
         $this->authorize('procedimentos.update');
 
         $validated = $request->validate([
-            'codigo' => ['nullable', 'string', 'max:30', 'unique:procedures,codigo,'.$procedimento->id],
+            'codigo' => ['nullable', 'string', 'max:30', 'unique:tenant.procedures,codigo,'.$procedimento->id],
             'nome' => ['required', 'string', 'max:255'],
             'categoria' => ['nullable', 'string', 'max:100'],
             'duracao_minutos' => ['nullable', 'integer', 'min:1'],

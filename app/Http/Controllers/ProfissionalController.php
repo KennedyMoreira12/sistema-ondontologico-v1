@@ -52,7 +52,7 @@ class ProfissionalController extends Controller
             'tipo' => ['required', 'string', 'in:dentista,auxiliar,recepcionista,outro'],
             'comissao' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'specialties' => ['nullable', 'array'],
-            'specialties.*' => ['integer', 'exists:specialties,id'],
+            'specialties.*' => ['integer', 'exists:tenant.specialties,id'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
@@ -95,7 +95,7 @@ class ProfissionalController extends Controller
             'tipo' => ['required', 'string', 'in:dentista,auxiliar,recepcionista,outro'],
             'comissao' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'specialties' => ['nullable', 'array'],
-            'specialties.*' => ['integer', 'exists:specialties,id'],
+            'specialties.*' => ['integer', 'exists:tenant.specialties,id'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 

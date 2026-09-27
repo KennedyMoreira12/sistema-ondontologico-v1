@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\User;
+use App\Models\Central\AdminUser;
+use App\Models\Central\User;
 
 return [
 
@@ -42,6 +43,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        /**
+         * Painel da empresa (a sua equipe). Guard separado para o super admin
+         * nunca passar pelo mesmo fluxo de um usuário de clínica.
+         */
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
     ],
 
     /*
@@ -67,10 +77,10 @@ return [
             'model' => env('AUTH_MODEL', User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => AdminUser::class,
+        ],
     ],
 
     /*

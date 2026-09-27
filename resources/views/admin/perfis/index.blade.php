@@ -17,7 +17,7 @@
                     <div class="card-body">
                         <h2 class="h6 mb-1">{{ $role->label ?? $role->name }}</h2>
                         <div class="text-muted small mb-3">
-                            {{ $role->permissions_count }} permissões • {{ $role->users_count }} usuário(s)
+                            {{ $role->permissions_count }} permissões • {{ $role->user_roles_count }} usuário(s)
                         </div>
                         @if ($role->name === 'admin')
                             <span class="badge bg-warning text-dark">Acesso total</span>

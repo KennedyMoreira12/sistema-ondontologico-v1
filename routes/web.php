@@ -23,10 +23,10 @@ use App\Http\Controllers\TratamentoPlanoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardController::class)
-    ->middleware(['auth'])
+    ->middleware(['auth', 'tenant'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -148,7 +148,7 @@ Route::middleware('auth')->group(function () {
         Route::put('perfis/{role}', [RoleController::class, 'update'])->name('perfis.update');
         Route::get('permissoes', [PermissionController::class, 'index'])->name('permissoes.index');
         Route::get('clinica', [ClinicaController::class, 'edit'])->name('clinica.edit');
-        Route::put('clinica/{clinica}', [ClinicaController::class, 'update'])->name('clinica.update');
+        Route::put('clinica', [ClinicaController::class, 'update'])->name('clinica.update');
         Route::get('auditoria', [AuditLogController::class, 'index'])->name('auditoria.index');
     });
 });

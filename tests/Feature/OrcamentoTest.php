@@ -4,31 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Budget;
 use App\Models\Paciente;
-use App\Models\Permission;
 use App\Models\Procedure;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
 class OrcamentoTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private function userComPermissaoOrcamentos(string ...$permissoes): User
-    {
-        $role = Role::create(['name' => 'orcamento_teste']);
-
-        foreach ($permissoes as $permissao) {
-            $role->permissions()->attach(Permission::create([
-                'name' => $permissao,
-                'module' => 'orcamentos',
-                'action' => $permissao,
-            ])->id);
-        }
-
-        return User::factory()->create(['role_id' => $role->id]);
-    }
+    use RefreshDatabase, UsesTestTenant;
 
     private function criaPaciente(): Paciente
     {
@@ -37,7 +20,8 @@ class OrcamentoTest extends TestCase
 
     public function test_usuario_sem_permissao_nao_acessa_orcamentos(): void
     {
-        $user = User::factory()->create();
+        [, $user] = $this->criarUsuarioSemPapel();
+
         $paciente = $this->criaPaciente();
 
         $this->actingAs($user)
@@ -47,7 +31,8 @@ class OrcamentoTest extends TestCase
 
     public function test_index_lista_orcamentos_do_paciente(): void
     {
-        $user = $this->userComPermissaoOrcamentos('orcamentos.view');
+        [, $user] = $this->criarUsuarioComPermissao('orcamentos.view');
+
         $paciente = $this->criaPaciente();
         $orcamento = Budget::create(['paciente_id' => $paciente->id, 'titulo' => 'Orçamento reabilitação']);
 
@@ -60,7 +45,8 @@ class OrcamentoTest extends TestCase
 
     public function test_cria_orcamento_com_item(): void
     {
-        $user = $this->userComPermissaoOrcamentos('orcamentos.view', 'orcamentos.create');
+        [, $user] = $this->criarUsuarioComPermissao('orcamentos.view', 'orcamentos.create');
+
         $paciente = $this->criaPaciente();
         $procedure = Procedure::create(['nome' => 'Clareamento', 'valor_padrao' => 250.00]);
 
@@ -88,7 +74,8 @@ class OrcamentoTest extends TestCase
 
     public function test_atualiza_status_do_orcamento(): void
     {
-        $user = $this->userComPermissaoOrcamentos('orcamentos.view', 'orcamentos.update');
+        [, $user] = $this->criarUsuarioComPermissao('orcamentos.view', 'orcamentos.update');
+
         $paciente = $this->criaPaciente();
         $orcamento = Budget::create(['paciente_id' => $paciente->id, 'titulo' => 'Orçamento inicial', 'status' => 'emitido']);
 
@@ -107,7 +94,8 @@ class OrcamentoTest extends TestCase
 
     public function test_destroy_remove_orcamento(): void
     {
-        $user = $this->userComPermissaoOrcamentos('orcamentos.view', 'orcamentos.delete');
+        [, $user] = $this->criarUsuarioComPermissao('orcamentos.view', 'orcamentos.delete');
+
         $paciente = $this->criaPaciente();
         $orcamento = Budget::create(['paciente_id' => $paciente->id, 'titulo' => 'Excluir orçamento']);
 
@@ -115,12 +103,13 @@ class OrcamentoTest extends TestCase
             ->delete(route('pacientes.orcamentos.destroy', [$paciente, $orcamento]))
             ->assertRedirect();
 
-        $this->assertDatabaseMissing('budgets', ['id' => $orcamento->id]);
+        $this->assertTenantDatabaseMissing('budgets', ['id' => $orcamento->id]);
     }
 
     public function test_show_exibe_itens_do_orcamento(): void
     {
-        $user = $this->userComPermissaoOrcamentos('orcamentos.view');
+        [, $user] = $this->criarUsuarioComPermissao('orcamentos.view');
+
         $paciente = $this->criaPaciente();
         $procedure = Procedure::create(['nome' => 'Restauração', 'valor_padrao' => 150.00]);
         $orcamento = Budget::create(['paciente_id' => $paciente->id, 'titulo' => 'Orçamento itens']);

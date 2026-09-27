@@ -3,46 +3,54 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Clinica;
+use App\Models\ClinicProfile;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Configurações da clínica em atendimento.
+ *
+ * Não há route model binding aqui de propósito: a clínica é a do tenant
+ * ativo, resolvida pelo ResolveTenant a partir de `users.clinic_id`. Aceitar
+ * um id pela URL deixaria qualquer usuáriologado editar os dados de outra
+ * clínica.
+ */
 class ClinicaController extends Controller
 {
     public function edit(): View
     {
         $this->authorize('admin.update');
 
-        $clinica = Clinica::firstOrCreate(['nome' => 'Clínica']);
-
-        return view('admin.clinica.edit', compact('clinica'));
+        return view('admin.clinica.edit', [
+            'perfil' => ClinicProfile::current(),
+        ]);
     }
 
-    public function update(Request $request, Clinica $clinica): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
         $this->authorize('admin.update');
 
         $validated = $request->validate([
-            'nome' => ['required', 'string', 'max:255'],
-            'razao_social' => ['nullable', 'string', 'max:255'],
-            'documento' => ['nullable', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:191'],
+            'legal_name' => ['nullable', 'string', 'max:255'],
+            'document' => ['nullable', 'string', 'max:30'],
             'phone' => ['nullable', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
-            'cep' => ['nullable', 'string', 'max:10'],
-            'endereco' => ['nullable', 'string', 'max:255'],
-            'numero' => ['nullable', 'string', 'max:20'],
-            'complemento' => ['nullable', 'string', 'max:255'],
-            'bairro' => ['nullable', 'string', 'max:255'],
-            'cidade' => ['nullable', 'string', 'max:255'],
-            'estado' => ['nullable', 'string', 'max:2'],
+            'postal_code' => ['nullable', 'string', 'max:10'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'number' => ['nullable', 'string', 'max:20'],
+            'complement' => ['nullable', 'string', 'max:255'],
+            'district' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:2'],
         ]);
 
-        $clinica->update($validated);
+        $perfil = ClinicProfile::current();
+        $antes = $perfil->only(array_keys($validated));
+        $perfil->update($validated);
 
-        AuditLogger::log('atualizar', 'clinicas', $clinica->id, depois: $validated);
+        AuditLogger::log('atualizar', 'clinic_profile', $perfil->id, antes: $antes, depois: $validated);
 
         return back()->with('success', 'Dados da clínica atualizados.');
     }

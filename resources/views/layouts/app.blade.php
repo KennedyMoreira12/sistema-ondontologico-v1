@@ -14,7 +14,7 @@
         <aside class="sco-sidebar" id="scoSidebar">
             <div class="sidebar-brand">
                 <i class="bi bi-hospital"></i>
-                <span>{{ $clinica?->nome ?? config('app.name', 'SCO') }}</span>
+                <span>{{ $clinica?->name ?? config('app.name', 'SCO') }}</span>
             </div>
 
             <nav class="flex-grow-1">

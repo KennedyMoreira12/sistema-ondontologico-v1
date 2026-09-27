@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\WhatsAppController;
-use App\Http\Middleware\WhatsAppApiAuth;
+use App\Http\Middleware\AuthenticateIntegration;
+use App\Http\Middleware\EnsureIntegrationAbility;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('whatsapp')
     ->name('api.whatsapp.')
-    ->middleware(WhatsAppApiAuth::class)
+    ->middleware([AuthenticateIntegration::class, EnsureIntegrationAbility::class])
     ->group(function () {
         Route::get('info', [WhatsAppController::class, 'info'])->name('info');
         Route::get('profissionais', [WhatsAppController::class, 'profissionais'])->name('profissionais');

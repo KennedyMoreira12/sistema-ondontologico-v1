@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['accounts_receivable_id', 'numero', 'vencimento', 'valor', 'valor_pago', 'status'])]
-class Installment extends \Illuminate\Database\Eloquent\Model
+class Installment extends TenantModel
 {
     /**
      * @return array<string, string>

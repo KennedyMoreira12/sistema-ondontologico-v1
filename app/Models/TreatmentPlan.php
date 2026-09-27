@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['paciente_id', 'profissional_id', 'titulo', 'descricao', 'status', 'total', 'desconto'])]
-class TreatmentPlan extends \Illuminate\Database\Eloquent\Model
+class TreatmentPlan extends TenantModel
 {
     public function paciente(): BelongsTo
     {

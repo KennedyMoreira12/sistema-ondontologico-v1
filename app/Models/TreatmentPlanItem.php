@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['treatment_plan_id', 'procedure_id', 'dente', 'quantidade', 'valor_unitario', 'desconto', 'valor_total', 'observacao', 'status'])]
-class TreatmentPlanItem extends \Illuminate\Database\Eloquent\Model
+class TreatmentPlanItem extends TenantModel
 {
     public function treatmentPlan(): BelongsTo
     {

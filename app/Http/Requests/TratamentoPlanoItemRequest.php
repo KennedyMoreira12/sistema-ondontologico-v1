@@ -29,7 +29,7 @@ class TratamentoPlanoItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'procedure_id' => ['required', 'integer', 'exists:procedures,id'],
+            'procedure_id' => ['required', 'integer', 'exists:tenant.procedures,id'],
             'dente' => ['nullable', 'integer', Rule::in($this->dentesFdi())],
             'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
             'valor_unitario' => ['required', 'numeric', 'min:0', 'max:999999.99'],

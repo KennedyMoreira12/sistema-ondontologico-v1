@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Support;
+
+use RuntimeException;
+
+/**
+ * Quais operações da API cada token de integração pode executar.
+ *
+ * A coluna `integration_tokens.abilities` existe desde o começo e nunca foi
+ * aplicada: qualquer token válido chegava a todos os endpoints, inclusive aos
+ * que criam e cancelam consulta. Um token do n8n criado só para ler a agenda
+ * podia, portanto, escrever nela.
+ *
+ * O mapa é declarado por NOME DA ROTA, e não dentro do controller, porque o
+ * controller é o que se quer proteger. Toda rota de integração precisa de uma
+ * entrada aqui: `requiredFor()` estoura em rota sem mapa, então uma rota nova
+ * não entra em produção destravada por esquecimento.
+ *
+ * Os nomes seguem o vocabulário de `permissions` (`modulo.acao`) para que o
+ * operador leia a mesma coisa na tela de permissões e na de tokens.
+ */
+final class IntegrationAbilities
+{
+    /**
+     * Rota => ability exigida. `null` significa "sem requirement": liberada
+     * para qualquer token autenticado.
+     *
+     * @var array<string, string|null>
+     */
+    public const MAP = [
+        // Diagnóstico da integração: sem dado de paciente, serve para o n8n
+        // confirmar que está com token válido. Liberado para todo token.
+        'api.whatsapp.info' => null,
+
+        'api.whatsapp.profissionais' => 'professionals.view',
+        'api.whatsapp.paciente' => 'patients.view',
+        'api.whatsapp.criar-paciente' => 'patients.create',
+
+        'api.whatsapp.disponibilidade' => 'appointments.view',
+        'api.whatsapp.agendamentos' => 'appointments.view',
+        'api.whatsapp.agendamento' => 'appointments.create',
+
+        // Confirmar e cancelar mudam o estado da consulta: quem pode mudar não é
+        // automaticamente quem pode ler, e vice-versa.
+        'api.whatsapp.confirmar' => 'appointments.update',
+        'api.whatsapp.cancelar' => 'appointments.update',
+    ];
+
+    /**
+     * @return array<string, string|null>
+     */
+    public static function all(): array
+    {
+        return self::MAP;
+    }
+
+    /**
+     * Ability exigida pela rota, ou `null` se ela não exigir nenhuma.
+     *
+     * @throws RuntimeException quando a rota não está no mapa
+     */
+    public static function requiredFor(?string $routeName): ?string
+    {
+        if ($routeName === null || ! array_key_exists($routeName, self::MAP)) {
+            throw new RuntimeException(
+                "A rota de integração [{$routeName}] não tem ability definida em "
+                .self::class.'.MAP. Sem isso a rota ficaria liberada para qualquer token.'
+            );
+        }
+
+        return self::MAP[$routeName];
+    }
+}

@@ -17,7 +17,7 @@ class WaitingListStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'paciente_id' => ['required', 'exists:pacientes,id'],
+            'paciente_id' => ['required', 'exists:tenant.pacientes,id'],
             'prioridade' => ['required', 'integer', 'between:1,5'],
             'periodo_inicio' => ['required', 'date'],
             'periodo_fim' => ['nullable', 'date', 'after_or_equal:periodo_inicio'],

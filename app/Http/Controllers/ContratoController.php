@@ -45,7 +45,7 @@ class ContratoController extends Controller
         $this->authorize('contratos.create');
 
         $validated = $request->validate([
-            'paciente_id' => ['required', 'exists:pacientes,id'],
+            'paciente_id' => ['required', 'exists:tenant.pacientes,id'],
             'tipo' => ['required', 'string', 'max:100'],
             'conteudo' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:pendente,assinado,cancelado'],
@@ -76,7 +76,7 @@ class ContratoController extends Controller
         $this->authorize('contratos.update');
 
         $validated = $request->validate([
-            'paciente_id' => ['required', 'exists:pacientes,id'],
+            'paciente_id' => ['required', 'exists:tenant.pacientes,id'],
             'tipo' => ['required', 'string', 'max:100'],
             'conteudo' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:pendente,assinado,cancelado'],

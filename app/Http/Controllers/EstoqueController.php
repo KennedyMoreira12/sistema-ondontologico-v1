@@ -56,10 +56,10 @@ class EstoqueController extends Controller
 
         $validated = $request->validate([
             'nome' => ['required', 'string', 'max:255'],
-            'codigo' => ['nullable', 'string', 'max:50', 'unique:products,codigo'],
+            'codigo' => ['nullable', 'string', 'max:50', 'unique:tenant.products,codigo'],
             'unidade' => ['nullable', 'string', 'max:20'],
-            'product_category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
-            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+            'product_category_id' => ['nullable', 'integer', 'exists:tenant.product_categories,id'],
+            'supplier_id' => ['nullable', 'integer', 'exists:tenant.suppliers,id'],
             'estoque' => ['nullable', 'numeric', 'min:0'],
             'estoque_minimo' => ['nullable', 'numeric', 'min:0'],
             'custo' => ['nullable', 'numeric', 'min:0'],
@@ -101,10 +101,10 @@ class EstoqueController extends Controller
 
         $validated = $request->validate([
             'nome' => ['required', 'string', 'max:255'],
-            'codigo' => ['nullable', 'string', 'max:50', 'unique:products,codigo,'.$produto->id],
+            'codigo' => ['nullable', 'string', 'max:50', 'unique:tenant.products,codigo,'.$produto->id],
             'unidade' => ['nullable', 'string', 'max:20'],
-            'product_category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
-            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+            'product_category_id' => ['nullable', 'integer', 'exists:tenant.product_categories,id'],
+            'supplier_id' => ['nullable', 'integer', 'exists:tenant.suppliers,id'],
             'estoque' => ['nullable', 'numeric', 'min:0'],
             'estoque_minimo' => ['nullable', 'numeric', 'min:0'],
             'custo' => ['nullable', 'numeric', 'min:0'],
