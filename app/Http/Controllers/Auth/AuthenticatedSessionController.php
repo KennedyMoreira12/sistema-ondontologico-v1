@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Central\AdminUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,10 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Handle an incoming authentication request.
+     *
+     * Um formulário só, dois guards: o destino depende de qual deles casou com
+     * a credencial. `last_login_at` é carimbado no painel porque é o painel que
+     * precisa saber quem da equipe está operando a plataforma agora.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -28,7 +33,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $admin = $request->authenticatedPlatformAdmin();
+
+        if ($admin instanceof AdminUser) {
+            $admin->forceFill(['last_login_at' => now()])->save();
+        }
+
+        return redirect()->to($request->destinationAfterAuthentication());
     }
 
     /**

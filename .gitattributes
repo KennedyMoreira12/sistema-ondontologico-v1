@@ -1,5 +1,12 @@
 * text=auto eol=lf
 
+# A VPS e' Linux e o projeto e' editado no Windows. Um CRLF em script de shell
+# vira `bad interpreter: /bin/bash^M` no primeiro deploy, e o script nem chega a
+# rodar. Fixar aqui evita depender de o `core.autocrlf` da maquina estar certo.
+*.sh text eol=lf
+*.conf text eol=lf
+*.sql text eol=lf
+
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html

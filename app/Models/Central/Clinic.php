@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * banco onde vivem os dados clínicos dela.
  */
 #[Fillable([
-    'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
+    'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp', 'evolution_instance',
     'logo_path', 'primary_color', 'secondary_color',
     'status', 'timezone', 'is_active', 'trial_ends_at',
     'suspended_at', 'suspension_reason',

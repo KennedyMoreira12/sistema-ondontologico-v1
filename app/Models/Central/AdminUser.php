@@ -2,8 +2,10 @@
 
 namespace App\Models\Central;
 
+use Database\Factories\Central\AdminUserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 
 /**
@@ -14,7 +16,8 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class AdminUser extends CentralAuthenticatable
 {
-    use Notifiable;
+    /** @use HasFactory<AdminUserFactory> */
+    use HasFactory, Notifiable;
 
     /**
      * @return array<string, string>

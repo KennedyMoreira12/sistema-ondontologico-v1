@@ -45,8 +45,8 @@ class TenantProvisioner
                     'email' => $attributes['email'],
                     'phone' => $attributes['phone'] ?? null,
                     'whatsapp' => $attributes['whatsapp'] ?? null,
-                    'primary_color' => $attributes['primary_color'] ?? '#2563eb',
-                    'secondary_color' => $attributes['secondary_color'] ?? '#1e40af',
+                    'primary_color' => $attributes['primary_color'] ?? '#0b7285',
+                    'secondary_color' => $attributes['secondary_color'] ?? '#0ca678',
                     'status' => $plan->trial_days > 0 ? 'trial' : 'active',
                     'trial_ends_at' => $plan->trial_days > 0 ? now()->addDays($plan->trial_days) : null,
                     'is_active' => true,
@@ -110,13 +110,22 @@ class TenantProvisioner
                 .DIRECTORY_SEPARATOR.$this->databases->generateDatabaseName($clinic->id).'.sqlite'
             : $this->databases->generateDatabaseName($clinic->id);
 
+        /**
+         * O `??` é obrigatório aqui, e o default do `config()` não serve: a chave
+         * existe sempre, porque `config/database.php` a monta com `env()`. Com
+         * `TENANT_DB_HOST` não definida o `env()` devolve `null`, o default do
+         * `config()` é ignorado (só vale para chave AUSENTE) e a clínica nascia
+         * com `database_host` nulo — o `toConnectionConfig()` jogava isso no
+         * connector como lista de hosts vazia e o `tenant:create` morria com
+         * "Database hosts array is empty". Com `??` o `null` cai no fallback.
+         */
         return $clinic->tenantConnection()->create([
             'driver' => $driver,
-            'database_host' => config('database.connections.tenant.host', '127.0.0.1'),
-            'database_port' => (int) config('database.connections.tenant.port', 3306),
+            'database_host' => config('database.connections.tenant.host') ?? '127.0.0.1',
+            'database_port' => (int) (config('database.connections.tenant.port') ?? 3306),
             'database_name' => $databaseName,
-            'database_username' => config('database.connections.tenant.username', 'root'),
-            'database_password' => (string) config('database.connections.tenant.password', ''),
+            'database_username' => config('database.connections.tenant.username') ?? 'root',
+            'database_password' => (string) (config('database.connections.tenant.password') ?? ''),
         ]);
     }
 
@@ -179,6 +188,10 @@ class TenantProvisioner
         }
 
         if ($dropDatabase) {
+            // O purge vem ANTES do drop: o PDO aberto trava o arquivo do sqlite
+            // no Windows, e a exceção disso é um `unlink` que não acontece.
+            DB::purge('tenant');
+
             $this->databases->dropDatabase($connection);
         }
 

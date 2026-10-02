@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'SCO')) — {{ config('app.name', 'SCO') }}</title>
+    <title>@hasSection('title')@yield('title') — @endif{{ config('app.name', 'LJ SmartClinic') }}</title>
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
-<body class="bg-light">
-    <div class="min-vh-100 d-flex align-items-center justify-content-center py-5">
-        <div class="w-100" style="max-width: 420px;">
-            <div class="text-center mb-4">
-                <div class="display-5 text-primary"><i class="bi bi-hospital"></i></div>
-                <h1 class="h4 mt-2">{{ config('app.name', 'SCO') }}</h1>
-                <p class="text-muted">Sistema de Consultório Odontológico</p>
-            </div>
-
-            @isset($slot)
-                {{ $slot }}
-            @else
-                @yield('content')
-            @endisset
+<body class="sco-auth">
+    <div class="sco-auth-card">
+        <div class="sco-auth-brand">
+            <img class="sco-auth-logo" src="{{ asset('img/lj_logo.png') }}" alt="{{ config('app.name', 'LJ SmartClinic') }}">
+            <p>{{ config('app.tagline', 'Plataforma de gestão para clínicas') }}</p>
         </div>
+
+        @isset($slot)
+            {{ $slot }}
+        @else
+            @yield('content')
+        @endisset
+
+        @if (Route::has('painel.dashboard'))
+            <a class="sco-auth-panel-link" href="{{ route('painel.dashboard') }}">Painel da Plataforma</a>
+        @endif
     </div>
 </body>
 </html>

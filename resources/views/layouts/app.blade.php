@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'SCO')) — {{ config('app.name', 'SCO') }}</title>
+    <title>@hasSection('title')@yield('title') — @endif{{ config('app.name', 'LJ SmartClinic') }}</title>
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
-    <div class="sco-layout">
+    {{-- A cor da clínica entra como acento: item ativo, títulos e marca. --}}
+    <div class="sco-layout" style="--sco-accent: {{ clinic_primary_color() }}; --sco-accent-2: {{ clinic_secondary_color() }};">
         <aside class="sco-sidebar" id="scoSidebar">
             <div class="sidebar-brand">
-                <i class="bi bi-hospital"></i>
-                <span>{{ $clinica?->name ?? config('app.name', 'SCO') }}</span>
+                <span class="sco-mark"><i class="bi bi-hospital"></i></span>
+                <span class="brand-name">
+                    {{ $clinica?->name ?? config('app.name', 'LJ SmartClinic') }}
+                    <span class="brand-tagline">LJ Automação</span>
+                </span>
             </div>
 
             <nav class="flex-grow-1">
@@ -88,20 +92,22 @@
                     @endcan
                 @endcan
             </nav>
+
+            <div class="sidebar-footer">{{ config('app.name', 'LJ SmartClinic') }}</div>
         </aside>
 
         <div class="sco-main">
             <header class="sco-topbar">
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-secondary d-lg-none" type="button" onclick="document.getElementById('scoSidebar').classList.toggle('show')">
+                    <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle onclick="document.getElementById('scoSidebar').classList.toggle('show')" aria-label="Abrir menu">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div class="sco-topbar-title">@yield('page-title', 'SCO')</div>
+                    <div class="sco-topbar-title">@yield('page-title', config('app.name', 'LJ SmartClinic'))</div>
                 </div>
 
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i>
+                        <span class="sco-mark" style="width: 1.6rem; height: 1.6rem; font-size: 0.8rem; border-radius: 0.4rem;"><i class="bi bi-person"></i></span>
                         <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">

@@ -200,6 +200,102 @@ class ProvisionamentoClinicaTest extends TestCase
         $this->assertSame('active', $resultado['subscription']->status);
     }
 
+    public function test_conexao_da_clinica_cai_no_servidor_padrao_sem_credencial_no_env(): void
+    {
+        // Um install novo não precisa declarar `TENANT_DB_*` no `.env`: o `env()`
+        // devolve `null` e a clínica precisa nascer apontando para o MySQL da
+        // própria máquina. O default do `config()` não cobre esse caso — ele só
+        // vale para chave AUSENTE, e a chave existe com valor nulo. Com o
+        // default perdido a conexão nascia com `host` nulo e o `tenant:create`
+        // morria com "Database hosts array is empty".
+        $this->configurarServidorTenant(driver: 'mysql', host: null, port: null, username: null, password: null);
+
+        $conexao = $this->registrarConexao($this->criarClinicaCentral());
+
+        $this->assertSame('127.0.0.1', $conexao->database_host);
+        $this->assertSame(3306, $conexao->database_port);
+        $this->assertSame('root', $conexao->database_username);
+        $this->assertSame('', $conexao->database_password);
+
+        // O que quebrava de fato não era o valor gravado, era o config que sai
+        // daqui: é o host vazio que o connector do MySQL recusa.
+        $config = $conexao->toConnectionConfig();
+
+        $this->assertNotEmpty(array_filter((array) ($config['host'] ?? null)));
+    }
+
+    public function test_conexao_da_clinica_usa_o_servidor_configurado(): void
+    {
+        $this->configurarServidorTenant(
+            driver: 'mysql',
+            host: 'db.interno',
+            port: 3307,
+            username: 'odontologia',
+            password: 'segredo',
+        );
+
+        $conexao = $this->registrarConexao($this->criarClinicaCentral());
+
+        $this->assertSame('db.interno', $conexao->database_host);
+        $this->assertSame(3307, $conexao->database_port);
+        $this->assertSame('odontologia', $conexao->database_username);
+        $this->assertSame('segredo', $conexao->database_password);
+    }
+
+    public function test_nome_do_banco_no_mysql_nao_usa_o_diretorio_de_arquivos(): void
+    {
+        // O caminho em `tenancy.tenants_directory` é exclusivo do sqlite: no
+        // MySQL o que identifica a clínica é o nome do schema.
+        $this->configurarServidorTenant(driver: 'mysql', host: '127.0.0.1', port: 3306, username: 'root', password: '');
+
+        $clinica = $this->criarClinicaCentral();
+        $conexao = $this->registrarConexao($clinica);
+
+        $this->assertSame(
+            config('tenancy.database_prefix').str_pad((string) $clinica->id, (int) config('tenancy.database_padding'), '0', STR_PAD_LEFT),
+            $conexao->database_name,
+        );
+    }
+
+    protected function configurarServidorTenant(
+        string $driver,
+        ?string $host,
+        ?int $port,
+        ?string $username,
+        ?string $password,
+    ): void {
+        Config::set('database.connections.tenant', [
+            'driver' => $driver,
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $password,
+        ]);
+    }
+
+    protected function criarClinicaCentral(): Clinic
+    {
+        return Clinic::query()->create([
+            'name' => 'Clínica Aurora',
+            'email' => 'aurora@teste.test',
+            'status' => 'trial',
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * `registerConnection` é protected porque só o provisionador o chama, mas é
+     * o único lugar que decide com que servidor a clínica nasce. Exercitá-lo
+     * pelo `provision()` exigiria um MySQL de verdade para o `createDatabase` e
+     * o `migrate`, que a suíte não pode exigir — e é justamente por não passar
+     * por ali que a suíte continuava verde enquanto o caminho real quebrava.
+     */
+    protected function registrarConexao(Clinic $clinica): TenantConnection
+    {
+        return (new \ReflectionMethod(TenantProvisioner::class, 'registerConnection'))
+            ->invoke(app(TenantProvisioner::class), $clinica);
+    }
+
     /**
      * @return array{clinic: Clinic, user: User, connection: TenantConnection, subscription: Subscription, password: string}
      */

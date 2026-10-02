@@ -42,6 +42,22 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    /**
+     * O formulário é único, mas o guard do painel não é o mesmo: uma conta de
+     * clínica nunca ganha sessão de plataforma por passar pela tela certa.
+     */
+    public function test_clinic_user_does_not_get_a_platform_session(): void
+    {
+        $user = User::factory()->create();
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest('admin');
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();

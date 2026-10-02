@@ -13,7 +13,9 @@ class AdminUserSeeder extends Seeder
         $email = (string) env('ADMIN_EMAIL', 'admin@suaempresa.com.br');
         $password = (string) env('ADMIN_PASSWORD', 'admin123');
 
-        $admin = AdminUser::withTrashed()->firstOrNew(['email' => $email]);
+        // Admin não é removido: quem sai do cargo é desativado (`is_active`), e
+        // é a desativação que invalida a sessão no middleware do painel.
+        $admin = AdminUser::firstOrNew(['email' => $email]);
 
         if (! $admin->exists) {
             $admin->fill([

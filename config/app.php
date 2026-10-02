@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'LJ SmartClinic'),
+
+    'tagline' => env('APP_TAGLINE', 'Plataforma de Gestão para Clínicas'),
 
     /*
     |--------------------------------------------------------------------------

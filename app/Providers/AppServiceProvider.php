@@ -38,6 +38,12 @@ class AppServiceProvider extends ServiceProvider
             $view->with('clinica', app(TenantManager::class)->current());
         });
 
+        /**
+         * As funções clinic_primary_color() / clinic_secondary_color() usadas
+         * nos layouts vivem em app/Support/helpers.php, carregadas pelo autoload
+         * "files" do composer.json — Blade não tem um helper() para registrar
+         * funções callable de dentro do {{ }}.
+         */
         Validator::extend('cpf', function (string $attribute, mixed $value, array $parameters, $validator) {
             $errors = [];
 

@@ -1,0 +1,88 @@
+@extends('layouts.platform')
+
+@section('title', 'Editar clínica')
+@section('page-title', 'Editar clínica')
+
+@section('content')
+    <div class="mb-4">
+        <h1 class="h4 mb-0">Editar clínica</h1>
+        <p class="text-muted small mb-0">{{ $clinica->name }}</p>
+    </div>
+
+    <form method="POST" action="{{ route('painel.clinicas.update', $clinica) }}">
+        @csrf
+        @method('PUT')
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Dados</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Nome</label>
+                        <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $clinica->name) }}" required>
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label for="legal_name" class="form-label">Razão social</label>
+                        <input id="legal_name" type="text" class="form-control" name="legal_name" value="{{ old('legal_name', $clinica->legal_name) }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="document" class="form-label">CNPJ</label>
+                        <input id="document" type="text" class="form-control" name="document" value="{{ old('document', $clinica->document) }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="email" class="form-label">E-mail de contato</label>
+                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $clinica->email) }}" required>
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Telefone</label>
+                        <input id="phone" type="text" class="form-control" name="phone" value="{{ old('phone', $clinica->phone) }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="whatsapp" class="form-label">WhatsApp</label>
+                        <input id="whatsapp" type="text" class="form-control" name="whatsapp" value="{{ old('whatsapp', $clinica->whatsapp) }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="timezone" class="form-label">Fuso horário</label>
+                        <input id="timezone" type="text" class="form-control @error('timezone') is-invalid @enderror" name="timezone" value="{{ old('timezone', $clinica->timezone) }}" required>
+                        @error('timezone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Acesso</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Estado</label>
+                        <select id="status" class="form-select" name="status">
+                            @foreach ($estados as $chave => $rotulo)
+                                <option value="{{ $chave }}" @selected(old('status', $clinica->status) === $chave)>{{ $rotulo }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active" @checked(old('is_active', $clinica->is_active))>
+                            <label class="form-check-label" for="is_active">Clínica habilitada</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="suspension_reason" class="form-label">Motivo (suspensão)</label>
+                        <input id="suspension_reason" type="text" class="form-control" name="suspension_reason" value="{{ old('suspension_reason', $clinica->suspension_reason) }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar</button>
+            <a href="{{ route('painel.clinicas.show', $clinica) }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+@endsection

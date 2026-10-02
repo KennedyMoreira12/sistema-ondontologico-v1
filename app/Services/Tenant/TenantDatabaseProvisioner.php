@@ -67,8 +67,16 @@ class TenantDatabaseProvisioner
     public function dropDatabase(TenantConnection $connection): void
     {
         if ($connection->driver === 'sqlite') {
-            if (file_exists($connection->database_name)) {
-                unlink($connection->database_name);
+            $path = $connection->database_name;
+
+            if (! file_exists($path)) {
+                return;
+            }
+
+            $this->releaseSqliteHandle($path);
+
+            if (! @unlink($path)) {
+                throw new RuntimeException("Não foi possível remover o banco da clínica em {$path}.");
             }
 
             return;
@@ -77,6 +85,23 @@ class TenantDatabaseProvisioner
         $name = $this->assertSafeIdentifier($connection->database_name);
 
         DB::connection('mysql')->statement("DROP DATABASE IF EXISTS `{$name}`");
+    }
+
+    /**
+     * O Windows não deixa apagar um arquivo sqlite enquanto o PDO que o abriu
+     * estiver vivo, e a conexão `tenant` em uso no request é justamente esse PDO.
+     * Fechar só a conexão que aponta para o MESMO arquivo: clínica diferente
+     * conectada continua funcionando.
+     */
+    protected function releaseSqliteHandle(string $path): void
+    {
+        $config = config('database.connections.tenant');
+
+        if (($config['database'] ?? null) !== $path) {
+            return;
+        }
+
+        DB::purge('tenant');
     }
 
     public function migrate(Clinic $clinic, bool $seed = false): void

@@ -6,16 +6,16 @@
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 sco-stat-card">
         @can('agenda.view')
             <div class="col-sm-6 col-lg-3">
                 <div class="card h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="fs-1 text-primary"><i class="bi bi-calendar2-check"></i></div>
+                            <span class="stat-icon"><i class="bi bi-calendar2-check"></i></span>
                             <div>
                                 <div class="stat-value">{{ $consultasHoje->count() }}</div>
-                                <div class="text-muted small">Consultas hoje</div>
+                                <div class="stat-label">Consultas hoje</div>
                             </div>
                         </div>
                     </div>
@@ -28,10 +28,10 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="fs-1 text-success"><i class="bi bi-people"></i></div>
+                            <span class="stat-icon"><i class="bi bi-people"></i></span>
                             <div>
                                 <div class="stat-value">{{ $pacientes }}</div>
-                                <div class="text-muted small">Pacientes cadastrados</div>
+                                <div class="stat-label">Pacientes cadastrados</div>
                             </div>
                         </div>
                     </div>
@@ -44,10 +44,10 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="fs-1 text-info"><i class="bi bi-clipboard2-pulse"></i></div>
+                            <span class="stat-icon"><i class="bi bi-clipboard2-pulse"></i></span>
                             <div>
                                 <div class="stat-value">{{ $tratamentosEmAndamento }}</div>
-                                <div class="text-muted small">Tratamentos em andamento</div>
+                                <div class="stat-label">Tratamentos em andamento</div>
                             </div>
                         </div>
                     </div>
@@ -60,10 +60,10 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="fs-1 text-warning"><i class="bi bi-box-seam"></i></div>
+                            <span class="stat-icon"><i class="bi bi-box-seam"></i></span>
                             <div>
                                 <div class="stat-value">{{ $estoqueBaixo }}</div>
-                                <div class="text-muted small">Produtos com estoque baixo</div>
+                                <div class="stat-label">Produtos com estoque baixo</div>
                             </div>
                         </div>
                     </div>

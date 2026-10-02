@@ -143,15 +143,15 @@ class DemoSeeder extends Seeder
         $roles = Role::whereIn('name', ['dentista', 'recepcao', 'financeiro'])->pluck('id', 'name');
 
         $this->userRecepcao = $this->criarUsuario(
-            'recepcao@sco.com', 'Carla Recepção', 'recepcao123', $roles['recepcao']
+            'recepcao@ljsmartclinic.com.br', 'Carla Recepção', 'recepcao123', $roles['recepcao']
         );
 
         $this->userFinanceiro = $this->criarUsuario(
-            'financeiro@sco.com', 'Marcos Financeiro', 'financeiro123', $roles['financeiro']
+            'financeiro@ljsmartclinic.com.br', 'Marcos Financeiro', 'financeiro123', $roles['financeiro']
         );
 
         $this->userDentista = $this->criarUsuario(
-            'dentista@sco.com', 'Dr. Paulo Andrade', 'dentista123', $roles['dentista']
+            'dentista@ljsmartclinic.com.br', 'Dr. Paulo Andrade', 'dentista123', $roles['dentista']
         );
 
         $clnicaGeral = Specialty::where('name', 'Clínica geral')->firstOrFail();

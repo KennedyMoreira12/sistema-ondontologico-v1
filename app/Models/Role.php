@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Papel dentro de UMA clínica. A tabela `roles` mora no banco dessa clínica, o
@@ -19,9 +20,9 @@ class Role extends TenantModel
         return $this->belongsToMany(Permission::class, 'role_permission');
     }
 
-    public function userRoles(): BelongsToMany
+    public function userRoles(): HasMany
     {
-        return $this->belongsToMany(UserRole::class, 'role_id', 'id', 'user_id');
+        return $this->hasMany(UserRole::class, 'role_id');
     }
 
     public function hasPermission(string $permission): bool

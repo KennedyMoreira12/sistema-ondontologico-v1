@@ -123,6 +123,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Limites aceitos por recurso
+    |--------------------------------------------------------------------------
+    |
+    | Cada chave é o nome do limite como ele é gravado em `plan_features.limits`
+    | e lido por `Plan::featureLimits()`. O painel usa esta lista para montar os
+    | campos de um recurso, de modo que o valor digitado no formulário chegue ao
+    | banco com o mesmo nome que o job de consumo procura.
+    |
+    | Recurso fora desta lista é um recurso sem contagem: entra no plano ligado
+    | e pronto.
+    |
+    */
+
+    'feature_limits' => [
+        'ai_agent' => ['ai_messages_per_month' => 'Mensagens de IA por mês'],
+        'scheduled_posts' => ['posts_per_month' => 'Publicações por mês'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Estados de uma conversa com o bot
     |--------------------------------------------------------------------------
     |

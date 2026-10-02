@@ -1,9 +1,14 @@
 *.log
 .DS_Store
 .env
-.env.backup
-.env.production
-.env.demo
+
+# Qualquer variante de .env é segredo por padrão: `.env.roteiro` continha
+# APP_KEY e ADMIN_PASSWORD em texto puro e estava prestes a ir para o GitHub
+# num `git add -A`. Listar arquivo por arquivo sempre deixa um de fora.
+.env.*
+!.env.example
+!.env.production.example
+
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -14,6 +19,7 @@
 /.vscode
 /.zed
 /auth.json
+/ngrok.yml
 /node_modules
 /public/build
 /public/fonts-manifest.dev.json
@@ -22,8 +28,29 @@
 /storage/*.key
 /storage/framework/services.php
 /storage/pail
+
+# Bancos SQLite de roteiro/demo. São arquivos de banco de verdade, com CPF e
+# registro de paciente dentro, e 550 KB cada. Versioná-los põe dado sensível
+# no histórico do git — que não se apaga com um commit novo — e ainda copia
+# clínica fictícia para dentro da produção.
+*.sqlite
+*.sqlite-journal
+/storage/framework/roteiro/
+
 /vendor
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Scripts de debug na raiz do projeto.
+#
+# Fora de `public/` eles não são alcançáveis pela web, mas viajam no deploy e
+# precisam ser executados à mão com credenciais hardcoded — foi assim que a
+# senha do super admin terminou escrita em texto puro no check_pwd.php. Se a
+# raiz do projeto for o docroot por engano na VPS, qualquer um desses vira URL
+# pública. Qualquer script solto na raiz é lixo de desenvolvimento.
+/*.php
+
+# Credenciais geradas por script (rotacionar_admin.php e afins).
+/senha_rotacionada.txt
