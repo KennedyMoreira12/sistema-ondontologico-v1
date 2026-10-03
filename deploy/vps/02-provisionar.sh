@@ -19,11 +19,20 @@ set -euo pipefail
 
 # --- Configuração -----------------------------------------------------------
 # Ajuste o domínio ANTES de rodar, ou o nginx vai subir com o host errado.
+#
+# Para domínio IDN (acentuado), use a forma punycode: o nginx e o certbot
+# operam sobre ASCII, e `ljaltomação.com.br` no server_name simplesmente não
+# casa. Convertida: python3 -c "print('ljaltomação.com.br'.encode('idna').decode())"
 DOMINIO="${DOMINIO:-seudominio.com.br}"
 USUARIO_WWW="${USUARIO_WWW:-www}"
 DIRETORIO_APP="${DIRETORIO_APP:-/var/www/ljsmartclinic}"
 BANCO_CENTRAL="${BANCO_CENTRAL:-saas_central}"
 USUARIO_BANCO="${USUARIO_BANCO:-saas}"
+
+# Versão do PHP = a que a distro já entrega. Forçar 8.3 via PPA do Ondrej
+# funciona no 22.04/24.04, mas no 26.04 a PPA atrasa e o apt falha. A
+# aplicação pede `^8.3`, então 8.5 do Ubuntu nativo serve e dispensa PPA.
+PHP_VERSAO="${PHP_VERSAO:-$(apt-cache policy php | awk '/Candidate:/{print $2}' | cut -d. -f1,2)}"
 PHP_VERSAO="${PHP_VERSAO:-8.3}"
 
 log()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -55,13 +64,16 @@ systemctl enable --now unattended-upgrades
 # nem conecta; gd porque o processing de imagem; bcmath e intl para o cálculo
 # financeiro e para as traduções.
 log "2/8 Instalando PHP $PHP_VERSAO e extensões"
-add-apt-repository -y ppa:ondrej/php
-apt-get update -qq
+# Pacotes nativos da distro, sem PPA: é o que reduz a chance de o provisiona-
+# mento quebrar numa versão nova do Ubuntu.
 apt-get install -y -qq \
     "php${PHP_VERSAO}-cli" "php${PHP_VERSAO}-fpm" "php${PHP_VERSAO}-mysql" \
     "php${PHP_VERSAO}-mbstring" "php${PHP_VERSAO}-xml" "php${PHP_VERSAO}-curl" \
     "php${PHP_VERSAO}-zip" "php${PHP_VERSAO}-gd" "php${PHP_VERSAO}-bcmath" \
     "php${PHP_VERSAO}-intl" "php${PHP_VERSAO}-redis"
+
+[[ -S "/run/php/php${PHP_VERSAO}-fpm.sock" || -d "/run/php/php${PHP_VERSAO}-fpm" ]] \
+    || erro "PHP-FPM $PHP_VERSAO não subiu. Confira: systemctl status php${PHP_VERSAO}-fpm"
 
 # --- 3. Composer e Node -----------------------------------------------------
 log "3/8 Instalando Composer e Node"
@@ -88,17 +100,35 @@ aviso "   mysql -u root -p < $DIRETORIO_APP/deploy/vps/01-mysql.sql"
 #
 # O PHP roda como `www-data`, nunca como root. Um app com privilégio de root
 # transforma qualquer RCE em acesso total à máquina.
+#
+# O código fica root:root e www-data só LÊ. Não é preciosismo: se um upload
+# malicioso ou uma RCE conseguirem gravar em app/, o backdoor sobrevive a um
+# `git checkout` e a um deploy novo. Root:root faz o backdoor morrer no
+# próximo pull.
 log "5/8 Configurando permissões de $DIRETORIO_APP"
 mkdir -p "$DIRETORIO_APP"
-chown -R www-data:www-data "$DIRETORIO_APP"
+chown -R root:root "$DIRETORIO_APP"
 find "$DIRETORIO_APP" -type f -exec chmod 644 {} \;
 find "$DIRETORIO_APP" -type d -exec chmod 755 {} \;
-chmod -R 775 "$DIRETORIO_APP/storage"
-chmod -R 775 "$DIRETORIO_APP/bootstrap/cache"
+
+# Únicos caminhos que o Laravel escreve em runtime.
+chown -R www-data:www-data "$DIRETORIO_APP/storage" "$DIRETORIO_APP/bootstrap/cache"
+chmod -R 775 "$DIRETORIO_APP/storage" "$DIRETORIO_APP/bootstrap/cache"
 
 # --- 6. Nginx ---------------------------------------------------------------
 log "6/8 Configurando Nginx para $DOMINIO"
-cp "$DIRETORIO_APP/deploy/vps/nginx.conf" /etc/nginx/sites-available/ljsmartclinic
+
+# envsubst é o que troca $DOMINIO, $DIRETORIO_APP e $PHP_VERSAO. Sem ele o
+# nginx sobe com o literal `$DOMINIO` no server_name, que nunca casa com
+# nenhum host, e o site simplesmente não responde.
+envsubst '${DOMINIO} ${DIRETORIO_APP} ${PHP_VERSAO}' \
+    < "$DIRETORIO_APP/deploy/vps/nginx.conf" \
+    > /etc/nginx/sites-available/ljsmartclinic
+
+if grep -q '\${' /etc/nginx/sites-available/ljsmartclinic; then
+    erro "Sobrou placeholder sem substituir em nginx.conf — o nginx não sobe assim."
+fi
+
 ln -sf /etc/nginx/sites-available/ljsmartclinic /etc/nginx/sites-enabled/ljsmartclinic
 rm -f /etc/nginx/sites-enabled/default
 
@@ -109,10 +139,16 @@ systemctl reload nginx
 #
 # schedule:run é o que dispara tarefas agendadas. Sem o cron, nada agendado
 # roda — e o silêncio é o pior sintoma, porque nada dá erro.
+#
+# O --stop-when-empty faz o worker de fila sair assim que não houver job. Com
+# --stop-when-empty e --max-time ele custa zero quando o app não despacha nada
+# (que é o caso hoje: não existe nenhuma classe ShouldQueue). Se um dia o
+# app passar a enfileirar trabalho pesado, troque por um serviço systemd
+# com Restart=always em vez de continuar pollando por cron.
 log "7/8 Configurando cron do Laravel"
 cat > /etc/cron.d/ljsmartclinic <<EOF
-# Scheduler do Laravel. O \`>>\` 2>&1 manda a saída para o mail do root, que é
-# onde o usuário descobre que a tarefa quebrou.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 * * * * * www-data cd $DIRETORIO_APP && php artisan schedule:run >> /dev/null 2>&1
 * * * * * www-data cd $DIRETORIO_APP && php artisan queue:work --stop-when-empty --max-time=60 >> /dev/null 2>&1
 EOF
@@ -157,22 +193,37 @@ $(aviso "") Provisionamento concluído. FALTAM ESTES PASSOS, TODOS OBRIGATÓRIOS
      O db:seed cria o super admin com ADMIN_PASSWORD do .env. Troque a senha
      logo depois — é a mesma credencial do primeiro acesso.
 
-  5. SSL (obrigatório antes de qualquer cliente real):
+5. SSL (obrigatório antes de qualquer cliente real):
 
-         apt-get install -y certbot python3-certbot-nginx
-         certbot --nginx -d $DOMINIO -d $USUARIO_WWW.$DOMINIO
+          apt-get install -y certbot python3-certbot-nginx
+          certbot --nginx -d $DOMINIO -d $USUARIO_WWW.$DOMINIO
 
-     Sem isso o SESSION_SECURE_COOKIE=true impede o login e o usuário não
-     entra. Com o site em HTTP e o cookie não-seguro acontece o contrário: a
-     sessão trafega em claro e qualquer um na rede copia a de uma clínica.
+      Sem isso o SESSION_SECURE_COOKIE=true impede o login e o usuário não
+      entra. Com o site em HTTP e o cookie não-seguro acontece o contrário: a
+      sessão trafega em claro e qualquer um na rede copia a de uma clínica.
 
-  6. Permissões finais (o --no-dev do composer pode ter criado cache novo):
+      O certificado exige registro DNS A apontando para esta VPS. Sem o A, o
+      certbot falha com "Timeout during connect" e o site fica preso em HTTP.
 
-         chown -R www-data:www-data $DIRETORIO_APP
-         php artisan config:cache && php artisan route:cache && php artisan view:cache
+   6. Cache de produção (NÃOFAÇA chown -R www-data depois disto):
 
-  7. Backup — instale e TESTE a restauração antes do primeiro cliente:
+          cd $DIRETORIO_APP
+          umask 022
+          php artisan config:cache && php artisan route:cache && php artisan view:cache
+          chown -R www-data:www-data $DIRETORIO_APP/bootstrap/cache
 
-         bash $DIRETORIO_APP/deploy/vps/03-backup.sh
+      Dois erros acontecem aqui se a ordem ou o umask estiverem errados:
+
+      - artisan roda como root e cria o cache com dono root. O www-data não
+        consegue ler e TODO o site devolve 500 com "Failed to open stream:
+        Permission denied" em bootstrap/cache/config.php.
+      - um `umask 077` deixado no shell faz o cache sair 600 em vez de 644,
+        com o mesmo sintoma de 500.
+
+      Confira depois: curl -I http://127.0.0.1 -H "Host: $DOMINIO"
+
+   7. Backup — instale e TESTE a restauração antes do primeiro cliente:
+
+          bash $DIRETORIO_APP/deploy/vps/03-backup.sh instalar
 
 EOF

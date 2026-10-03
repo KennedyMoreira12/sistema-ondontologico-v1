@@ -20,10 +20,32 @@ DIAS_RETENCAO="${DIAS_RETENCAO:-14}"
 BANCO_CENTRAL="${BANCO_CENTRAL:-saas_central}"
 USUARIO_BANCO="${USUARIO_BANCO:-saas}"
 ROTULO="$(date +%Y%m%d-%H%M%S)"
+ARQUIVO_CRON="${ARQUIVO_CRON:-/etc/cron.d/ljsmartclinic-backup}"
 
 log()   { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 aviso() { printf '\033[1;33maviso: %s\033[0m\n' "$*"; }
 erro()  { printf '\033[1;31merro: %s\033[0m\n' "$*" >&2; exit 1; }
+
+[[ $EUID -eq 0 ]] || erro "Rode como root: sudo bash deploy/vps/03-backup.sh"
+
+# --- instalar no cron -------------------------------------------------------
+#
+# Este passo existia só no cabeçalho do arquivo: `instalar` era documentado e
+# simplesmente ignorado, o script rodava o dump uma vez e saía, e o usuário
+# acreditava que tinha agendado. Backup que ninguém agendeu é backup de hoje.
+if [[ ${1:-} == "instalar" ]]; then
+    [[ -f "$HOME/.my.cnf" ]] || erro "Sem $HOME/.my.cnf. Rode este script uma vez sem argumentos para criar."
+
+    cat > "$ARQUIVO_CRON" <<EOF
+# Backup do LJ SmartClinic: banco central + um dump por clinica + uploads.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+17 3 * * * root bash $DIRETORIO_APP/deploy/vps/03-backup.sh > /var/log/lj-backup.log 2>&1
+EOF
+    chmod 644 "$ARQUIVO_CRON"
+    log "Instalado em $ARQUIVO_CRON (03:17 todo dia, para o log em /var/log/lj-backup.log)"
+    exit 0
+fi
 
 # --- Credencial -------------------------------------------------------------
 #
