@@ -60,7 +60,9 @@ git pull
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
 php artisan migrate --force
-php artisan config:cache && php artisan route:cache && php artisan view:cache
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
 ```
 
 `config:cache` e `route:cache` são o que fazem a diferença de performance. Se
@@ -117,6 +119,32 @@ Consequência prática: **`git pull` tem que rodar como root.** Se rodar como
 cd /var/www/ljsmartclinic && git reset --hard origin/main
 ```
 
+**Cacheado como root é o 500 clássico.** Se `php artisan config:cache` roda como
+root, os arquivos saem com dono root e o `www-data` não consegue lê-los. O
+sintoma é enganoso de propósito:
+
+- `/` responde **302** (só redireciona, não precisa de view)
+- `/painel` responde **302** (mesma razão)
+- `/login` responde **500** (é a única rota que precisa ler a view do disco)
+
+Um site com "login quebrado" mas "demais rotas normais" quase sempre é isso.
+Confira sempre `/login`, nunca `/`. E compilar como root faz a pasta ficar com
+dono www-data e os arquivos dentro dela com dono root — `chown` na pasta não
+corrige arquivo. A correção é na raiz:
+
+```bash
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
+```
+
+Se precisar consertar um cache já estragado:
+
+```bash
+chgrp -R www-data bootstrap/cache storage/framework/views
+chmod -R g+r bootstrap/cache storage/framework/views
+```
+
 **Cuidado com `umask 077`.** Ele é correto para criar `/root/.senha_admin` e
 `/root/.my.cnf`, e errado para qualquer outra coisa. Se um script de setup roda
 com ele e depois executa `php artisan config:cache` no mesmo shell, os caches
@@ -134,6 +162,12 @@ chmod 664 bootstrap/cache/*.php
 Diagnóstico rápido quando o site dá 500 e o nginx diz "permission denied":
 
 ```bash
-ls -la bootstrap/cache/
-php artisan config:clear
+curl -I -H "Host: SEUDOMINIO" http://127.0.0.1/login
+find bootstrap/cache storage/framework/views -type f ! -user www-data
+php artisan optimize:clear
+sudo -u www-data php artisan config:cache && sudo -u www-data php artisan view:cache
 ```
+
+O `find` acima é o que resolve o caso na maioria das vezes. Se não achar nada,
+o problema é outro — e aí sim vale ligar `APP_DEBUG=true` temporariamente para
+ver a exceção. Não esqueça de voltar para `false`.

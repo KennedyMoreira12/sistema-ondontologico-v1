@@ -205,22 +205,38 @@ $(aviso "") Provisionamento concluído. FALTAM ESTES PASSOS, TODOS OBRIGATÓRIOS
       O certificado exige registro DNS A apontando para esta VPS. Sem o A, o
       certbot falha com "Timeout during connect" e o site fica preso em HTTP.
 
-   6. Cache de produção (NÃOFAÇA chown -R www-data depois disto):
+   6. Cache de produção — compile como www-data, NÃO como root:
 
           cd $DIRETORIO_APP
           umask 022
-          php artisan config:cache && php artisan route:cache && php artisan view:cache
-          chown -R www-data:www-data $DIRETORIO_APP/bootstrap/cache
+          sudo -u www-data php artisan config:cache
+          sudo -u www-data php artisan route:cache
+          sudo -u www-data php artisan view:cache
+          sudo -u www-data php artisan event:cache
 
-      Dois erros acontecem aqui se a ordem ou o umask estiverem errados:
+      Confira logo em seguida: curl -I -H "Host: $DOMINIO" http://127.0.0.1/login
+      tem que devolver 200. Se devolver 500, é isto:
 
-      - artisan roda como root e cria o cache com dono root. O www-data não
-        consegue ler e TODO o site devolve 500 com "Failed to open stream:
-        Permission denied" em bootstrap/cache/config.php.
+      - Artisan roda como root e escreve os arquivos com dono root. O www-data
+        não consegue lê-los e TODO o site devolve 500. Compilar como www-data
+        resolve na raiz, em vez de chmod depois.
+
+      - `chown -R www-data` na PASTA não basta para os arquivos dentro dela.
+        O que decide é o dono do ARQUIVO. Foi assim que o bug passou: a pasta
+        estava www-data, os 105 arquivos compilados dentro dela eram root:root.
+
       - um `umask 077` deixado no shell faz o cache sair 600 em vez de 644,
         com o mesmo sintoma de 500.
 
-      Confira depois: curl -I http://127.0.0.1 -H "Host: $DOMINIO"
+      Se ainda assim precisar consertar um cache compilado como root:
+
+          chgrp -R www-data bootstrap/cache storage/framework/views
+          chmod -R g+r bootstrap/cache storage/framework/views
+
+      Note que o sintoma aparece SÓ na página de login, e não em / ou /painel:
+      a view do formulário é a única que precisa ser lida do disco. Rotas que
+      só redirecionam continuam respondendo 302 com o cache quebrado, o que
+      faz o problema parecer intermitente. Confira sempre /login, não /.
 
    7. Backup — instale e TESTE a restauração antes do primeiro cliente:
 
