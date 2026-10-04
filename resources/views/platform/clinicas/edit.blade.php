@@ -45,10 +45,29 @@
                         <input id="whatsapp" type="text" class="form-control" name="whatsapp" value="{{ old('whatsapp', $clinica->whatsapp) }}">
                     </div>
                     <div class="col-md-4">
+                        <label for="evolution_instance" class="form-label">Instância da Evolution</label>
+                        <input
+                            id="evolution_instance"
+                            type="text"
+                            class="form-control @error('evolution_instance') is-invalid @enderror"
+                            name="evolution_instance"
+                            value="{{ old('evolution_instance', $clinica->evolution_instance) }}"
+                            placeholder="clinica-malheiro"
+                            pattern="[a-z0-9][a-z0-9._\-]*"
+                        >
+                        @error('evolution_instance')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
                         <label for="timezone" class="form-label">Fuso horário</label>
                         <input id="timezone" type="text" class="form-control @error('timezone') is-invalid @enderror" name="timezone" value="{{ old('timezone', $clinica->timezone) }}" required>
                         @error('timezone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                </div>
+
+                <div class="form-text mt-2">
+                    A instância só aceita minúsculas, números, ponto, hífen ou underscore. É o nome
+                    com que o webhook descobre a dona da mensagem: divergência aqui é mensagem
+                    descartada sem erro.
                 </div>
             </div>
         </div>

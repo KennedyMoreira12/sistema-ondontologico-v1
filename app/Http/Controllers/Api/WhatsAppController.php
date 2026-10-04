@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\HorarioOcupadoException;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
@@ -11,9 +12,13 @@ use App\Models\Professional;
 use App\Models\Room;
 use App\Services\AuditLogger;
 use App\Services\Tenant\TenantManager;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -120,7 +125,7 @@ class WhatsAppController extends Controller
             foreach ($diasAbertos as $dia) {
                 $ocupados = $agendamentos
                     ->filter(fn (Appointment $a) => $a->profissional_id === $profissional->id
-                        && $a->status?->name !== 'cancelado'
+                        && $a->status?->name !== AppointmentStatus::CANCELADO
                         && $a->inicio->toDateString() === $dia->toDateString())
                     ->map(fn (Appointment $a) => [
                         'inicio' => $a->inicio->timestamp,
@@ -169,37 +174,99 @@ class WhatsAppController extends Controller
             'duracao' => ['sometimes', 'integer', 'in:15,30,45,60,90,120'],
             'tipo' => ['sometimes', 'string', 'in:confirmado,agendado'],
             'observacao' => ['nullable', 'string', 'max:1000'],
+            // Reenvio da mesma requisição devolve a consulta já criada, em vez de
+            // duplicar. Sem a chave, o bot fica sem idempotência.
+            'idempotency_key' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
+        $chave = $validated['idempotency_key'] ?? null;
+
+        if ($chave !== null) {
+            $existente = Appointment::query()
+                ->where('idempotency_key', $chave)
+                ->first();
+
+            if ($existente !== null) {
+                return response()->json(['agendamento' => $existente->load(['paciente', 'profissional', 'status'])]);
+            }
+        }
+
         $duracao = $validated['duracao'] ?? 30;
-        $tipo = $validated['tipo'] ?? 'agendado';
+        $tipo = $validated['tipo'] ?? AppointmentStatus::AGENDADO;
 
         $inicio = Carbon::parse($validated['dia'])->setTimeFromTimeString($validated['hora_inicio']);
         $fim = $inicio->copy()->addMinutes($duracao);
 
-        $conflito = Appointment::where('profissional_id', $validated['profissional_id'])
-            ->whereHas('status', fn ($q) => $q->where('name', '!=', 'cancelado'))
-            ->where('fim', '>', $inicio)
-            ->where('inicio', '<', $fim)
-            ->exists();
+        $statusId = $this->statusId($tipo);
 
-        if ($conflito) {
+        try {
+            /**
+             * O mutex vai por PROFISSIONAL E DIA, não pelo horário pedido: dois
+             * agendamentos que se sobrepõem sem coincidir de início (09:00 e
+             * 09:15) precisam cair no mesmo lock, e travar pelo horário exato
+             * deixaria os dois passarem.
+             *
+             * E é um lock, e não `lockForUpdate()` na consulta de conflito: um
+             * `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda
+             * não existe, então os dois "não há conflito" aconteciam mesmo assim.
+             * O lock é o que segura; a transção mantém checagem e gravação no
+             * mesmo passo, e o índice único da chave de idempotência é a rede
+             * final se tudo acima falhar.
+             */
+            $consulta = Cache::lock(
+                "agenda:{$validated['profissional_id']}:{$inicio->toDateString()}",
+                10,
+            )->block(5, fn (): Appointment => DB::transaction(function () use ($validated, $chave, $inicio, $fim, $statusId): Appointment {
+                $conflito = Appointment::query()
+                    ->where('profissional_id', $validated['profissional_id'])
+                    ->whereHas('status', fn ($query) => $query->where('name', '!=', AppointmentStatus::CANCELADO))
+                    ->where('fim', '>', $inicio)
+                    ->where('inicio', '<', $fim)
+                    ->exists();
+
+                if ($conflito) {
+                    throw new HorarioOcupadoException;
+                }
+
+                return Appointment::create([
+                    'clinica_id' => $this->tenants->id(),
+                    'paciente_id' => $validated['paciente_id'],
+                    'profissional_id' => $validated['profissional_id'],
+                    'room_id' => Room::where('is_active', true)->value('id'),
+                    'appointment_status_id' => $statusId,
+                    'inicio' => $inicio,
+                    'fim' => $fim,
+                    'titulo' => 'Agendamento via WhatsApp',
+                    'observacao' => $validated['observacao'] ?? null,
+                    'idempotency_key' => $chave,
+                ]);
+            }));
+        } catch (HorarioOcupadoException) {
             return response()->json(['message' => 'Horário já não está disponível para este profissional.'], 409);
+        } catch (LockTimeoutException) {
+            // Lock com TTL de 10s e espera de 5s: chegar aqui já é anomalia, e a
+            // resposta 503 manda o n8n reenviar do que tratar como erro definitivo.
+            return response()->json(['message' => 'Agenda ocupada no momento, tente novamente em instantes.'], 503);
+        } catch (UniqueConstraintViolationException $exception) {
+            /**
+             * Perdeu a corrida do índice único da chave de idempotência: outra
+             * requisição com a mesma chave gravou primeiro. A resposta certa é a
+             * consulta que ela criou — o cliente quer o agendamento, e ele existe.
+             */
+            if ($chave === null) {
+                throw $exception;
+            }
+
+            $consulta = Appointment::query()
+                ->where('idempotency_key', $chave)
+                ->first();
+
+            if ($consulta === null) {
+                throw $exception;
+            }
+
+            return response()->json(['agendamento' => $consulta->load(['paciente', 'profissional', 'status'])]);
         }
-
-        $statusId = AppointmentStatus::where('name', $tipo)->value('id') ?? 1;
-
-        $consulta = Appointment::create([
-            'clinica_id' => $this->tenants->id(),
-            'paciente_id' => $validated['paciente_id'],
-            'profissional_id' => $validated['profissional_id'],
-            'room_id' => Room::where('is_active', true)->value('id'),
-            'appointment_status_id' => $statusId,
-            'inicio' => $inicio,
-            'fim' => $fim,
-            'titulo' => 'Agendamento via WhatsApp',
-            'observacao' => $validated['observacao'] ?? null,
-        ]);
 
         AuditLogger::log('criar', 'appointments', $consulta->id, depois: $consulta->only(['paciente_id', 'profissional_id', 'inicio', 'fim', 'appointment_status_id']));
 
@@ -227,7 +294,7 @@ class WhatsAppController extends Controller
 
     public function confirmarAgendamento(Request $request, Appointment $consulta): JsonResponse
     {
-        $confirmado = AppointmentStatus::where('name', 'confirmado')->value('id');
+        $confirmado = AppointmentStatus::idFor(AppointmentStatus::CONFIRMADO);
 
         AuditLogger::log('confirmar', 'appointments', $consulta->id, antes: ['appointment_status_id' => $consulta->appointment_status_id], depois: ['appointment_status_id' => $confirmado]);
 
@@ -238,13 +305,22 @@ class WhatsAppController extends Controller
 
     public function cancelarAgendamento(Request $request, Appointment $consulta): JsonResponse
     {
-        $cancelado = AppointmentStatus::where('name', 'cancelado')->value('id');
+        $cancelado = AppointmentStatus::idFor(AppointmentStatus::CANCELADO);
 
         AuditLogger::log('cancelar', 'appointments', $consulta->id, antes: ['appointment_status_id' => $consulta->appointment_status_id], depois: ['appointment_status_id' => $cancelado]);
 
         $consulta->update(['appointment_status_id' => $cancelado]);
 
         return response()->json(['message' => 'Agendamento cancelado.']);
+    }
+
+    /**
+     * Id do status pedido pelo bot. O nome vem da própria validação (`in:`), então
+     * aqui nunca é valor fora da lista de canônicos.
+     */
+    private function statusId(string $name): int
+    {
+        return AppointmentStatus::idFor($name);
     }
 
     private function normalizarTelefone(?string $telefone): string

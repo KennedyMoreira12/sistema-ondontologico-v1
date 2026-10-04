@@ -19,6 +19,8 @@ use App\Services\Tenant\TenantManager;
  */
 trait UsesTestTenant
 {
+    use SubscribesPlan;
+
     protected ?Clinic $clinicaTest = null;
 
     /**

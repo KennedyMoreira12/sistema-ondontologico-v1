@@ -12,6 +12,7 @@ use App\Models\Central\PlatformAuditLog;
 use App\Services\Platform\PlatformLogger;
 use App\Services\Tenant\TenantDatabaseProvisioner;
 use App\Services\Tenant\TenantProvisioner;
+use App\Support\IntegrationAbilities;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -224,24 +225,40 @@ class ClinicController extends Controller
     /**
      * Gera um novo token de integração. O valor em claro aparece só aqui: o banco
      * guarda o SHA-256, então não há como recuperá-lo depois.
+     *
+     * As abilities são obrigatórias e explícitas. Deixá-las em branco seria
+     * passar a receber `null` no banco, e token sem abilities não faz nada —
+     * alguém que esperasse "um token novo já funciona" receberia um token morto
+     * sem aviso, e alguém que quisesse tudo teria que marcar o wildcard.
      */
     public function storeToken(Request $request, Clinic $clinic): RedirectResponse
     {
         $this->authorizePlatformAction();
 
+        $selectable = IntegrationAbilities::selectable();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'abilities' => ['required', 'array', 'min:1'],
+            'abilities.*' => ['required', 'string', 'in:'.implode(',', $selectable)],
+        ], [
+            'abilities.required' => 'Escolha ao menos uma permissão para o token.',
+            'abilities.*.in' => 'Permissão de integração desconhecida.',
         ]);
+
+        $abilities = array_values(array_unique($validated['abilities']));
 
         $token = IntegrationToken::generateToken();
 
         $clinic->integrationTokens()->create([
             'name' => $validated['name'],
             'token_hash' => IntegrationToken::hashToken($token),
+            'abilities' => $abilities,
         ]);
 
         PlatformLogger::log('clinica.token_gerado', 'clinic', $clinic->id, [
             'integracao' => $validated['name'],
+            'abilities' => $abilities,
         ], $clinic);
 
         return back()->with('token', $token);

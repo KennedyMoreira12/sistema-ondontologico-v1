@@ -8,6 +8,7 @@ use App\Models\Central\User;
 use App\Models\Role;
 use App\Services\Tenant\TenantDatabaseManager;
 use App\Services\Tenant\TenantManager;
+use App\Support\IntegrationAbilities;
 use Tests\Support\TenantSchema;
 
 /**
@@ -23,6 +24,8 @@ use Tests\Support\TenantSchema;
  */
 trait CreatesTenants
 {
+    use SubscribesPlan;
+
     /**
      * @var array<int, string>
      */
@@ -58,12 +61,19 @@ trait CreatesTenants
 
         $this->conectar($clinic);
 
+        // A API do WhatsApp só abre para clínica com o recurso no plano, e token
+        // sem abilities não faz nada. Um token de teste nasce com acesso
+        // completo; o que restringe token é o que interessa testar, e isso é
+        // feito no teste, não na infraestrutura.
+        $this->assinarPlanoComWhatsapp($clinic);
+
         $token = IntegrationToken::generateToken();
 
         IntegrationToken::create([
             'clinic_id' => $clinic->id,
             'name' => 'n8n',
             'token_hash' => IntegrationToken::hashToken($token),
+            'abilities' => [IntegrationAbilities::WILDCARD],
         ]);
 
         $user = null;

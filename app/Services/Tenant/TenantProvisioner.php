@@ -45,6 +45,14 @@ class TenantProvisioner
                     'email' => $attributes['email'],
                     'phone' => $attributes['phone'] ?? null,
                     'whatsapp' => $attributes['whatsapp'] ?? null,
+                    /**
+                     * A instância da Evolution entra junto com a clínica. Deixá-la
+                     * de fora fazia o campo parecer implementado — o formulário
+                     * validava, a migration existia — e nenhuma clínica nunca
+                     * tinha uma, que é justamente a chave com que o webhook
+                     * descobre de quem é a mensagem.
+                     */
+                    'evolution_instance' => $attributes['evolution_instance'] ?? null,
                     'primary_color' => $attributes['primary_color'] ?? '#0b7285',
                     'secondary_color' => $attributes['secondary_color'] ?? '#0ca678',
                     'status' => $plan->trial_days > 0 ? 'trial' : 'active',

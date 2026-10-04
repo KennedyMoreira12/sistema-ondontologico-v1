@@ -48,6 +48,33 @@
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
+                <h2 class="h6 mb-3">WhatsApp</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="evolution_instance" class="form-label">Instância da Evolution</label>
+                        <input
+                            id="evolution_instance"
+                            type="text"
+                            class="form-control @error('evolution_instance') is-invalid @enderror"
+                            name="evolution_instance"
+                            value="{{ old('evolution_instance') }}"
+                            placeholder="clinica-malheiro"
+                            pattern="[a-z0-9][a-z0-9._\-]*"
+                        >
+                        @error('evolution_instance')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            Só minúsculas, números, ponto, hífen ou underscore. É o nome com que o
+                            webhook identifica esta clínica — se ficar vazio, as mensagens chegam sem
+                            dona e são descartadas sem erro visível.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
                 <h2 class="h6 mb-3">Administrador da clínica</h2>
 
                 <div class="row g-3">

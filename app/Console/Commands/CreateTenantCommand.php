@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Central\Clinic;
 use App\Models\Central\Plan;
 use App\Services\Tenant\TenantProvisioner;
+use App\Support\EvolutionInstance;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -15,7 +16,8 @@ class CreateTenantCommand extends Command
         {--email= : E-mail do administrador da clínica}
         {--admin= : Nome do administrador}
         {--plan= : Slug do plano (padrão: o primeiro plano ativo)}
-        {--password= : Senha do administrador (padrão: gerada)}';
+        {--password= : Senha do administrador (padrão: gerada)}
+        {--instance= : Instância da Evolution API desta clínica}';
 
     protected $description = 'Cria uma clínica com banco de dados próprio, papéis, admin e assinatura';
 
@@ -44,6 +46,20 @@ class CreateTenantCommand extends Command
             return self::FAILURE;
         }
 
+        $instancia = EvolutionInstance::normalize($this->option('instance'));
+
+        if ($this->option('instance') !== null && $instancia === null) {
+            $this->components->error('A instância da Evolution ficou vazia depois de normalizada.');
+
+            return self::FAILURE;
+        }
+
+        if ($instancia !== null && Clinic::withoutGlobalScopes()->where('evolution_instance', $instancia)->exists()) {
+            $this->components->error("A instância [{$instancia}] já pertence a outra clínica.");
+
+            return self::FAILURE;
+        }
+
         $this->components->info("Criando a clínica [{$name}] no plano [{$plan->name}]...");
 
         try {
@@ -52,6 +68,7 @@ class CreateTenantCommand extends Command
                 'email' => $email,
                 'admin_name' => $this->option('admin') ?: $name,
                 'password' => $this->option('password'),
+                'evolution_instance' => $instancia,
                 'plan' => $plan,
             ]);
         } catch (Throwable $exception) {
@@ -64,6 +81,7 @@ class CreateTenantCommand extends Command
         $this->components->info('Clínica criada com sucesso.');
         $this->components->twoColumnDetail('Banco', $result['connection']->database_name);
         $this->components->twoColumnDetail('Plano', $plan->name.' ('.$plan->monthlyPrice().')');
+        $this->components->twoColumnDetail('Instância', $result['clinic']->evolution_instance ?? '(nenhuma)');
         $this->components->twoColumnDetail('Administrador', $result['user']->email);
         $this->components->twoColumnDetail('Senha', $result['password']);
         $this->newLine();

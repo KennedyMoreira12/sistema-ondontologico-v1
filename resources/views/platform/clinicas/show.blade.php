@@ -134,6 +134,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Integração</th>
+                                    <th>Permissões</th>
                                     <th>Hash</th>
                                     <th>Último uso</th>
                                     <th>Estado</th>
@@ -143,6 +144,16 @@
                                 @forelse ($clinica->integrationTokens as $token)
                                     <tr>
                                         <td>{{ $token->name }}</td>
+                                        <td class="small">
+                                            @forelse ($token->abilities ?? [] as $ability)
+                                                <span class="badge bg-light text-dark border me-1">
+                                                    {{ \App\Support\IntegrationAbilities::labels()[$ability] ?? $ability }}
+                                                </span>
+                                            @empty
+                                                {{-- Token anterior à exigência de abilities: nasce sem nenhuma. --}}
+                                                <span class="badge bg-warning text-dark">sem permissões</span>
+                                            @endforelse
+                                        </td>
                                         <td class="text-muted small font-monospace">{{ $token->maskedHint() }}</td>
                                         <td class="text-muted small">{{ $token->last_used_at?->format('d/m/Y H:i') ?? 'nunca' }}</td>
                                         <td>
@@ -153,7 +164,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-4">Nenhum token gerado.</td>
+                                        <td colspan="5" class="text-center text-muted py-4">Nenhum token gerado.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -161,15 +172,52 @@
                     </div>
 
                     @if (auth()->user()->isSuperAdmin())
-                        <form method="POST" action="{{ route('painel.clinicas.tokens.store', $clinica) }}" class="row g-2 align-items-end mt-3 pt-3 border-top">
+                        <form method="POST" action="{{ route('painel.clinicas.tokens.store', $clinica) }}" class="mt-3 pt-3 border-top">
                             @csrf
-                            <div class="col-md-8">
-                                <label for="name" class="form-label small text-muted">Nova integração</label>
-                                <input id="name" type="text" class="form-control form-control-sm" name="name" placeholder="n8n, webhook da Meta..." required>
+
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-8">
+                                    <label for="name" class="form-label small text-muted">Nova integração</label>
+                                    <input id="name" type="text" class="form-control form-control-sm" name="name" placeholder="n8n, webhook da Meta..." required>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">Gerar token</button>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-sm btn-outline-primary w-100">Gerar token</button>
-                            </div>
+
+                            {{--
+                                Sem nenhuma marcada o token nasce morto: `hasAbility()`
+                                recusa token sem abilities. O menor privilege útil é
+                                `appointments.view`, então é o que vem marcado.
+                            --}}
+                            <fieldset class="mt-3">
+                                <legend class="form-label small text-muted mb-1">Permissões deste token</legend>
+                                <div class="row g-1">
+                                    @foreach (\App\Support\IntegrationAbilities::labels() as $ability => $label)
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="abilities[]"
+                                                    value="{{ $ability }}"
+                                                    id="ability-{{ $loop->index }}"
+                                                    @checked($ability === 'appointments.view')
+                                                >
+                                                <label class="form-check-label small" for="ability-{{ $loop->index }}">
+                                                    {{ $label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('abilities')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                                @error('abilities.*')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </fieldset>
                         </form>
                     @endif
                 </div>

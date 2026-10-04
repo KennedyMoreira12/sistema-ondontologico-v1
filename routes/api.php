@@ -19,9 +19,24 @@ Route::prefix('meta/webhook')
         Route::post('whatsapp', 'receive')->name('receive');
     });
 
+/**
+ * API interna do WhatsApp, consumida pelo n8n.
+ *
+ * `plan:whatsapp` entra depois da autenticação porque é o token que resolve a
+ * clínica, e é a clínica que diz qual assinatura — e qual plano — vale. Sem ele,
+ * o recurso que só o Premium vende ficaria liberado para Starter e Pro.
+ *
+ * `throttle:integration` lê o header do token direto, então a ordem em relação
+ * aos dois middlewares de autenticação não muda o resultado do limite.
+ */
 Route::prefix('whatsapp')
     ->name('api.whatsapp.')
-    ->middleware([AuthenticateIntegration::class, EnsureIntegrationAbility::class])
+    ->middleware([
+        AuthenticateIntegration::class,
+        EnsureIntegrationAbility::class,
+        'plan:whatsapp',
+        'throttle:integration',
+    ])
     ->group(function () {
         Route::get('info', [WhatsAppController::class, 'info'])->name('info');
         Route::get('profissionais', [WhatsAppController::class, 'profissionais'])->name('profissionais');

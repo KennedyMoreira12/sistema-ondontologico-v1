@@ -25,10 +25,13 @@ class WhatsAppApiTest extends TestCase
     private string $token = 'token-teste';
 
     /**
-     * Clínica com o banco tenant pronto, como o middleware espera.
+     * Clínica com o banco tenant pronto, o plano que libera a API e o token, como
+     * o middleware espera.
      *
-     * @param  list<string>|null  $abilities  `null` deixa o token sem restrição,
-     *                                        que é o padrão de retrocompatibilidade
+     * @param  list<string>|null  $abilities  `null` dá acesso completo, que é o
+     *                                        que o painel nunca gera: ele exige
+     *                                        escolha explícita. Quem restringe
+     *                                        token é o teste.
      */
     private function criarContexto(?array $abilities = null): Clinic
     {
@@ -44,11 +47,13 @@ class WhatsAppApiTest extends TestCase
             AppointmentStatus::create(['name' => $name, 'label' => ucfirst($name)]);
         }
 
+        $this->assinarPlanoComWhatsapp($clinica);
+
         IntegrationToken::create([
             'clinic_id' => $clinica->id,
             'name' => 'n8n',
             'token_hash' => IntegrationToken::hashToken($this->token),
-            'abilities' => $abilities,
+            'abilities' => $abilities ?? [IntegrationAbilities::WILDCARD],
         ]);
 
         return $clinica;
@@ -191,6 +196,147 @@ class WhatsAppApiTest extends TestCase
             ->assertOk();
 
         $this->assertNotEmpty($response->json('dias'));
+    }
+
+    public function test_token_sem_abilities_nao_acessa_nada(): void
+    {
+        // Token antigo, criado antes de existir a lista de permissões, ou token
+        // gravado direto no banco. O comportamento precisa ser negar: o antigo
+        // `hasAbility()` devolvia verdadeiro para lista vazia, o que fazia token
+        // sem permissão nenhuma passar em tudo.
+        $this->criarContexto([]);
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->assertForbidden();
+    }
+
+    public function test_clinica_sem_assinatura_ativa_nao_acessa_a_api(): void
+    {
+        // Nem token perfeito entra sem assinatura em vigor. `feature` vem como
+        // "subscription", e não como null, para o n8n saber que a resposta é
+        // "venda", e não "falta o recurso X neste plano".
+        $clinica = $this->criarContexto();
+        $clinica->latestSubscription->delete();
+
+        $response = $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->assertForbidden()
+            ->assertJson(['feature' => 'subscription']);
+
+        $this->assertStringContainsString('assinatura não está ativa', $response->json('message'));
+    }
+
+    public function test_plano_sem_o_recurso_whatsapp_nao_acessa_a_api(): void
+    {
+        // Assinatura ativa, plano que não inclui o WhatsApp. Aqui a resposta tem
+        // que dizer QUAL recurso faltou, e não apenas "403".
+        $clinica = $this->criarContexto();
+
+        $clinica->latestSubscription->plan->features()->delete();
+
+        $clinica->load(['latestSubscription.plan.features']);
+
+        $response = $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->assertForbidden()
+            ->assertJson(['feature' => 'whatsapp']);
+
+        $this->assertStringContainsString('WhatsApp', $response->json('message'));
+    }
+
+    public function test_reenvio_com_a_mesma_chave_nao_duplica_consulta(): void
+    {
+        $this->criarContexto();
+
+        $paciente = Paciente::create(['nome' => 'Maria Souza', 'celular' => '5511988887777', 'status' => 'ativo']);
+        $profissional = Professional::first();
+
+        $payload = [
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $profissional->id,
+            'dia' => now()->addDay()->format('Y-m-d'),
+            'hora_inicio' => '09:00',
+            'duracao' => 30,
+            'idempotency_key' => 'n8n-msg-4711',
+        ];
+
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.agendamento'), $payload)
+            ->assertCreated();
+
+        // O n8n reenvia enquanto não recebe resposta; a segunda entrega tem que
+        // devolver a MESMA consulta, não criar outra nem dar 409 por horário.
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.agendamento'), $payload)
+            ->assertOk()
+            ->assertJsonPath('agendamento.id', 1);
+
+        $this->assertSame(1, Appointment::count());
+    }
+
+    public function test_chave_de_idempotencia_diferente_no_mesmo_horario_conflita(): void
+    {
+        // O lock é por profissional e dia, então duas requisições com chaves
+        // diferentes no mesmo horário não passam: a segunda é 409, e o
+        // profissional fica com uma consulta só.
+        $this->criarContexto();
+
+        $paciente = Paciente::create(['nome' => 'Maria Souza', 'celular' => '5511988887777', 'status' => 'ativo']);
+        $profissional = Professional::first();
+
+        $payload = [
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $profissional->id,
+            'dia' => now()->addDay()->format('Y-m-d'),
+            'hora_inicio' => '09:00',
+            'duracao' => 30,
+        ];
+
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.agendamento'), $payload + ['idempotency_key' => 'a'])
+            ->assertCreated();
+
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.agendamento'), $payload + ['idempotency_key' => 'b'])
+            ->assertStatus(409);
+
+        $this->assertSame(1, Appointment::count());
+    }
+
+    public function test_escrita_e_limitada_por_token(): void
+    {
+        // O balde de escrita existe para o caso em que o n8n entra em loop: 20
+        // escritas por minuto por token. O limite é por TOKEN e não por IP porque
+        // todas as clínicas saem do mesmo endereço — por IP, a mais barulhenta
+        // derrubaria as outras.
+        $this->criarContexto();
+
+        $rota = route('api.whatsapp.criar-paciente');
+
+        for ($i = 0; $i < 20; $i++) {
+            $this->comoIntegracao()
+                ->postJson($rota, ['nome' => 'Paciente '.$i, 'telefone' => '55119999000'.$i])
+                ->assertCreated();
+        }
+
+        $this->comoIntegracao()
+            ->postJson($rota, ['nome' => 'Estourou', 'telefone' => '55119999999'])
+            ->assertStatus(429);
+    }
+
+    public function test_leitura_tem_limite_mais_alto_que_escrita(): void
+    {
+        // 25 leituras passam todas, enquanto 21 escritas já estourariam. É o que
+        // impede a troca "um limite só, mais frouxo" de passar no teste anterior e
+        // travar o bot de atendimento no meio do dia.
+        $this->criarContexto();
+
+        $rota = route('api.whatsapp.disponibilidade', ['dias' => 1]);
+
+        for ($i = 0; $i < 25; $i++) {
+            $this->comoIntegracao()->getJson($rota)->assertOk();
+        }
     }
 
     public function test_token_so_de_leitura_nao_cria_consulta(): void

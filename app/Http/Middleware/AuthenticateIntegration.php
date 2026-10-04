@@ -36,7 +36,7 @@ class AuthenticateIntegration
 
     public function handle(Request $request, Closure $next): Response
     {
-        $provided = $this->extractToken($request);
+        $provided = IntegrationToken::extractFromRequest($request);
 
         if ($provided === null) {
             return response()->json(['message' => 'Token de integração não informado.'], 401);
@@ -72,30 +72,5 @@ class AuthenticateIntegration
         $request->attributes->set(self::REQUEST_ATTRIBUTE, $token);
 
         return $next($request);
-    }
-
-    /**
-     * Aceita `Authorization: Bearer <token>` e o header legado
-     * `X-WhatsApp-Token: WhatsApp <token>`, que o n8n já enviava.
-     */
-    protected function extractToken(Request $request): ?string
-    {
-        $bearer = $request->bearerToken();
-
-        if ($bearer !== null && $bearer !== '') {
-            return $bearer;
-        }
-
-        $header = trim((string) $request->header('X-WhatsApp-Token', ''));
-
-        if ($header === '') {
-            $header = trim((string) $request->header('X-Integration-Token', ''));
-        }
-
-        if ($header === '') {
-            return null;
-        }
-
-        return str_starts_with($header, 'WhatsApp ') ? substr($header, 9) : $header;
     }
 }

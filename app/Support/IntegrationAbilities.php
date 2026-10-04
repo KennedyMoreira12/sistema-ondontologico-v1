@@ -23,6 +23,12 @@ use RuntimeException;
 final class IntegrationAbilities
 {
     /**
+     * Ability que libera tudo. É o que o operador marca para uma integração que
+     * realmente precisa de todas as rotas — e é explícito, nunca implícito.
+     */
+    public const WILDCARD = '*';
+
+    /**
      * Rota => ability exigida. `null` significa "sem requirement": liberada
      * para qualquer token autenticado.
      *
@@ -53,6 +59,46 @@ final class IntegrationAbilities
     public static function all(): array
     {
         return self::MAP;
+    }
+
+    /**
+     * Todas as abilities que um token pode receber, sem repetição e sem o
+     * wildcard. É o vocabulário que o formulário do painel oferece: uma ability
+     * fora daqui não existe no mapa, então marcá-la não liberaria nada.
+     *
+     * @return list<string>
+     */
+    public static function available(): array
+    {
+        return array_values(array_unique(array_filter(self::MAP)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function selectable(): array
+    {
+        return [self::WILDCARD, ...self::available()];
+    }
+
+    /**
+     * Rótulo de uma ability para a tela de tokens. O nome segue o vocabulário
+     * `modulo.acao` das permissões, então o operador lê a mesma coisa nos dois
+     * lugares.
+     *
+     * @return array<string, string>
+     */
+    public static function labels(): array
+    {
+        return [
+            self::WILDCARD => 'Acesso completo (todas as abilities)',
+            'patients.view' => 'Consultar pacientes',
+            'patients.create' => 'Cadastrar pacientes',
+            'professionals.view' => 'Consultar profissionais',
+            'appointments.view' => 'Consultar agenda e disponibilidade',
+            'appointments.create' => 'Criar agendamentos',
+            'appointments.update' => 'Confirmar e cancelar agendamentos',
+        ];
     }
 
     /**

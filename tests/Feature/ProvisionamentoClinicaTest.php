@@ -296,13 +296,32 @@ class ProvisionamentoClinicaTest extends TestCase
             ->invoke(app(TenantProvisioner::class), $clinica);
     }
 
+    public function test_guarda_a_instancia_evolution_pedida(): void
+    {
+        // A instância Evolution é o que amarra a clínica a UM número no
+        // WhatsApp. O provisionador precisa gravar o que veio no pedido: sem
+        // isso a clínica fica criada sem instância e ninguém descobre depois qual
+        // número é o dela, porque o nome da instância só existe aqui.
+        ['clinic' => $clinica] = $this->provisionar(evolution_instance: 'clinica-aurora');
+
+        $this->assertSame('clinica-aurora', $clinica->fresh()->evolution_instance);
+    }
+
+    public function test_clinica_sem_instancia_evolution_provisiona_normalmente(): void
+    {
+        ['clinic' => $clinica] = $this->provisionar();
+
+        $this->assertNull($clinica->fresh()->evolution_instance);
+    }
+
     /**
      * @return array{clinic: Clinic, user: User, connection: TenantConnection, subscription: Subscription, password: string}
      */
-    protected function provisionar(
+protected function provisionar(
         string $nome = 'Clínica Aurora',
         string $email = 'aurora@teste.test',
         ?Plan $plano = null,
+        ?string $evolution_instance = null,
     ): array {
         $plan = $plano ?? Plan::query()->create([
             'name' => 'Starter',
@@ -318,6 +337,7 @@ class ProvisionamentoClinicaTest extends TestCase
             'admin_name' => 'Dra Aurora',
             'password' => 'senha-teste-123',
             'plan' => $plan,
+            'evolution_instance' => $evolution_instance,
         ]);
     }
 

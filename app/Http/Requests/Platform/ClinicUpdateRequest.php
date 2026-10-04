@@ -61,6 +61,7 @@ class ClinicUpdateRequest extends FormRequest
         return [
             'status.in' => 'Estado de clínica inválido.',
             'timezone.timezone' => 'Fuso horário inválido.',
+            ...EvolutionInstance::messages(),
         ];
     }
 

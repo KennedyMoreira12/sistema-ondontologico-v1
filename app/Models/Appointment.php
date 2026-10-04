@@ -6,7 +6,7 @@ use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['clinica_id', 'paciente_id', 'profissional_id', 'room_id', 'appointment_status_id', 'inicio', 'fim', 'titulo', 'observacao', 'retorno'])]
+#[Fillable(['clinica_id', 'paciente_id', 'profissional_id', 'room_id', 'appointment_status_id', 'inicio', 'fim', 'titulo', 'observacao', 'retorno', 'idempotency_key'])]
 class Appointment extends TenantModel
 {
     /**

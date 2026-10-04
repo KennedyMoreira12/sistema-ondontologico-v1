@@ -7,6 +7,7 @@ use App\Models\Central\Clinic;
 use App\Models\Central\IntegrationToken;
 use App\Models\Central\Plan;
 use App\Models\Central\Subscription;
+use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -265,7 +266,10 @@ class PlatformClinicTest extends TestCase
         ['clinic' => $clinica] = $this->criarClinica();
 
         $response = $this->actingAs($this->admin, 'admin')
-            ->post(route('painel.clinicas.tokens.store', $clinica), ['name' => 'webhook-meta']);
+            ->post(route('painel.clinicas.tokens.store', $clinica), [
+                'name' => 'webhook-meta',
+                'abilities' => [IntegrationAbilities::WILDCARD],
+            ]);
 
         $response->assertSessionHas('token');
 
@@ -277,6 +281,31 @@ class PlatformClinicTest extends TestCase
         $this->assertSame(64, strlen($token->token_hash));
         $this->assertSame(IntegrationToken::hashToken($emTextoPuro), $token->token_hash);
         $this->assertDatabaseMissing('integration_tokens', ['token_hash' => $emTextoPuro]);
+
+        // A escolha de permissões é gravada junto: um token que nasce sem lista
+        // não faria nada, e o painel precisa mostrar o que foi escolhido depois.
+        $this->assertSame([IntegrationAbilities::WILDCARD], $token->abilities);
+    }
+
+    public function test_token_sem_permissao_escolhida_e_recusado(): void
+    {
+        ['clinic' => $clinica] = $this->criarClinica();
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('painel.clinicas.tokens.store', $clinica), ['name' => 'sem-nada'])
+            ->assertSessionHasErrors('abilities');
+
+        // Nem lista vazia, nem ability inventada: o token tem que poder ser
+        // revisto por quem lê a tela, e só aceita valor conhecido.
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('painel.clinicas.tokens.store', $clinica), [
+                'name' => 'inventado',
+                'abilities' => ['patients.delete'],
+            ])
+            ->assertSessionHasErrors('abilities.0');
+
+        $this->assertDatabaseMissing('integration_tokens', ['name' => 'sem-nada']);
+        $this->assertDatabaseMissing('integration_tokens', ['name' => 'inventado']);
     }
 
     public function test_operacoes_de_clinica_negam_para_suporte(): void

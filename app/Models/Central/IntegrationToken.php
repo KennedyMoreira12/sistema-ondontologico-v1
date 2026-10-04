@@ -2,9 +2,11 @@
 
 namespace App\Models\Central;
 
+use App\Support\IntegrationAbilities;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
@@ -57,11 +59,50 @@ class IntegrationToken extends CentralModel
 
     public function hasAbility(string $ability): bool
     {
+        /**
+         * Token sem abilities não faz nada.
+         *
+         * O contrário — `null` valendo para tudo — foi o que يجعل a coluna
+         * inofensiva desde que ela existe: o painel criava token sem gravar
+         * `abilities`, e um token que deveria ler a agenda podia criar e cancelar
+         * consulta. Ausência de permissão não pode significar permissão total.
+         * Liberação total é o wildcard, e ele é escolhido por alguém.
+         */
         if ($this->abilities === null || $this->abilities === []) {
-            return true;
+            return false;
         }
 
-        return in_array('*', $this->abilities, true) || in_array($ability, $this->abilities, true);
+        return in_array(IntegrationAbilities::WILDCARD, $this->abilities, true)
+            || in_array($ability, $this->abilities, true);
+    }
+
+    /**
+     * Extrai o token em claro da requisição: `Authorization: Bearer <token>` e
+     * os headers legados que o n8n já enviava.
+     *
+     * Vive no model para que o middleware de autenticação e o rate limiter leiam
+     * o mesmo header com o mesmo código — duas extrações divergentes dão limite
+     * por IP num caminho e por token no outro.
+     */
+    public static function extractFromRequest(Request $request): ?string
+    {
+        $bearer = $request->bearerToken();
+
+        if ($bearer !== null && $bearer !== '') {
+            return $bearer;
+        }
+
+        foreach (['X-WhatsApp-Token', 'X-Integration-Token'] as $header) {
+            $value = trim((string) $request->header($header, ''));
+
+            if ($value === '') {
+                continue;
+            }
+
+            return str_starts_with($value, 'WhatsApp ') ? substr($value, 9) : $value;
+        }
+
+        return null;
     }
 
     public function markUsed(?string $ip = null): void

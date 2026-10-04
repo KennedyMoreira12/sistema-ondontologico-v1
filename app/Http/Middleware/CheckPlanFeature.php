@@ -27,24 +27,40 @@ class CheckPlanFeature
         $subscription = $clinic->latestSubscription;
 
         if (! $subscription?->isActive()) {
-            return $this->deny($request, 'Sua assinatura não está ativa.');
+            return $this->deny($request, 'Sua assinatura não está ativa.', 'subscription');
         }
 
         foreach ($features as $feature) {
             if (! $subscription->hasFeature($feature)) {
-                return $this->deny($request, $this->featureLabel($feature));
+                return $this->deny(
+                    $request,
+                    'O recurso '.$this->featureLabel($feature).' não está disponível no seu plano.',
+                    $feature,
+                );
             }
         }
 
         return $next($request);
     }
 
-    protected function deny(Request $request, string $feature): Response
+    /**
+     * O motivo e o recurso são parâmetros separados de propósito: quem consome a
+     * resposta em JSON precisa saber QUAL recurso faltou para oferecer a
+     * assinatura certa, e um motivo que já é frase completa não serve como
+     * identificador.
+     */
+    protected function deny(Request $request, string $message, ?string $feature = null): Response
     {
-        $message = "O recurso {$feature} não está disponível no seu plano.";
-
+        /**
+         * Resposta JSON em vez de `abort(403, [...])`: o segundo argumento de
+         * `abort()` é a mensagem da exceção, e uma `HttpException` com array
+         * estoura em TypeError — o sintoma era 500 em rota de API em vez de 403.
+         */
         if ($request->expectsJson()) {
-            abort(403, ['message' => $message, 'feature' => $feature]);
+            return response()->json([
+                'message' => $message,
+                'feature' => $feature,
+            ], 403);
         }
 
         return redirect()

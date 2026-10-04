@@ -11,8 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
  * Exige que o token de integração tenha a ability da rota sendo chamada.
  *
  * Roda depois do `AuthenticateIntegration`, que é quem coloca o token
- * autenticado na requisição. Token sem `abilities` vale para tudo, que é o
- * retrocomportamento de quando a coluna não era aplicada.
+ * autenticado na requisição. Token sem `abilities` não passa em rota que exige
+ * ability: ausência de permissão é recusa, e a liberação total é o wildcard,
+ * escolhido por alguém no painel.
  */
 class EnsureIntegrationAbility
 {
