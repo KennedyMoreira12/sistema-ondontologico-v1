@@ -9,6 +9,7 @@ use App\Models\Central\TenantConnection;
 use App\Models\Central\User;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Support\EvolutionToken;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -53,6 +54,19 @@ class TenantProvisioner
                      * descobre de quem é a mensagem.
                      */
                     'evolution_instance' => $attributes['evolution_instance'] ?? null,
+
+                    /**
+                     * O token da instância entra com a clínica, e não depois. É o
+                     * que o Laravel usa para chamar a Evolution em nome dela, e
+                     * deixar de fora produzia uma clínica com instância e sem
+                     * token: o webhook até identificava de quem é a mensagem, e o
+                     * envio morria em 401 na primeira resposta do bot.
+                     *
+                     * @see EvolutionToken::mask() para o que é
+                     *      registrado em auditoria no lugar do valor.
+                     */
+                    'evolution_token' => $attributes['evolution_token'] ?? null,
+
                     'primary_color' => $attributes['primary_color'] ?? '#0b7285',
                     'secondary_color' => $attributes['secondary_color'] ?? '#0ca678',
                     'status' => $plan->trial_days > 0 ? 'trial' : 'active',

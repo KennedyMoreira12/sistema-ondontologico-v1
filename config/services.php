@@ -51,4 +51,47 @@ return [
         'verify_token' => env('WHATSAPP_VERIFY_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Evolution API
+    |--------------------------------------------------------------------------
+    |
+    | `url` é a instalação da Evolution que hospeda as instâncias das clínicas.
+    | O token NÃO vive aqui: cada instância tem o seu, guardado em
+    | `clinics.evolution_token` (cifrado) e enviado pelo `EvolutionService` que
+    | recebe a clínica. Uma chave global daria a mesma autoridade sobre todas as
+    | instâncias para qualquer código que conseguisse ler o .env.
+    |
+    | `webhook_secret` é o que autentica a Evolution chamando esta aplicação. A
+    | rota do webhook é pública — a Evolution não tem token de clínica para
+    | mandar — então ela manda o token da instância no corpo e a rota compara com
+    | o da clínica resolvida pela instância. Esta variável é a segunda porta:
+    | serve para os eventos que não carregam mensagem (conexão, QR code) e para
+    | barrar quem tentar forjar um corpo. Vazio = webhook fechado.
+    |
+    */
+
+    'evolution' => [
+        'url' => env('EVOLUTION_API_URL'),
+        'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
+        'timeout' => (int) env('EVOLUTION_API_TIMEOUT', 30),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | n8n
+    |--------------------------------------------------------------------------
+    |
+    | O webhook do workflow que executa o atendimento. O Laravel entrega o
+    | evento já resolvido — clínica, instância, mensagem — para que o n8n não
+    | precise manter o `CLINICAS_MAP` nem adivinhar de quem é a mensagem.
+    |
+    */
+
+    'n8n' => [
+        'webhook_url' => env('N8N_WEBHOOK_URL'),
+        'webhook_token' => env('N8N_WEBHOOK_TOKEN'),
+        'timeout' => (int) env('N8N_WEBHOOK_TIMEOUT', 15),
+    ],
+
 ];

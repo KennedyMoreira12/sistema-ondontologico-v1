@@ -51,6 +51,15 @@ final class IntegrationAbilities
         // automaticamente quem pode ler, e vice-versa.
         'api.whatsapp.confirmar' => 'appointments.update',
         'api.whatsapp.cancelar' => 'appointments.update',
+
+        /**
+         * Falar com o paciente é a única rota deste mapa que escreve FORA do banco
+         * da clínica: o efeito dela chega na tela do WhatsApp de uma pessoa, e
+         * não se desfaz apagando um registro. Por isso tem ability própria, e
+         * não herda `appointments.create` — um token montado para agendar não
+         * pode mandar mensagem em nome da clínica só porque já escreve na agenda.
+         */
+        'api.whatsapp.mensagem' => 'messages.send',
     ];
 
     /**
@@ -98,6 +107,7 @@ final class IntegrationAbilities
             'appointments.view' => 'Consultar agenda e disponibilidade',
             'appointments.create' => 'Criar agendamentos',
             'appointments.update' => 'Confirmar e cancelar agendamentos',
+            'messages.send' => 'Enviar mensagens de WhatsApp ao paciente',
         ];
     }
 

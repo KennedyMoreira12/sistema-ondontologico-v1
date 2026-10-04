@@ -58,6 +58,27 @@
                         @error('evolution_instance')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-4">
+                        <label for="evolution_token" class="form-label">Token da instância</label>
+                        <input
+                            id="evolution_token"
+                            type="password"
+                            autocomplete="off"
+                            class="form-control @error('evolution_token') is-invalid @enderror"
+                            name="evolution_token"
+                            value="{{ old('evolution_token') }}"
+                            placeholder="{{ \App\Support\EvolutionToken::mask($clinica->evolution_token) ?? 'não cadastrado' }}"
+                        >
+                        @error('evolution_token')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            @if ($clinica->evolution_token)
+                                Guardado como {{ \App\Support\EvolutionToken::mask($clinica->evolution_token) }}.
+                                Deixe vazio para manter.
+                            @else
+                                Nenhum token cadastrado — a Evolution recusa o envio com 401.
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         <label for="timezone" class="form-label">Fuso horário</label>
                         <input id="timezone" type="text" class="form-control @error('timezone') is-invalid @enderror" name="timezone" value="{{ old('timezone', $clinica->timezone) }}" required>
                         @error('timezone')<div class="invalid-feedback">{{ $message }}</div>@enderror

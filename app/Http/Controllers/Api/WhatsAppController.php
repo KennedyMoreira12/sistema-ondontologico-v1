@@ -2,23 +2,30 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\EvolutionIndisponivel;
 use App\Exceptions\HorarioOcupadoException;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
+use App\Models\Central\Clinic;
 use App\Models\ClinicProfile;
 use App\Models\Paciente;
 use App\Models\Professional;
 use App\Models\Room;
+use App\Models\WhatsAppMessage;
 use App\Services\AuditLogger;
+use App\Services\EvolutionService;
 use App\Services\Tenant\TenantManager;
+use App\Support\EvolutionPayload;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -26,23 +33,164 @@ use Illuminate\Support\Facades\Validator;
  *
  * Não existe "a clínica" aqui: a clínica é a do token que o middleware
  * autentica, e o banco conectado é o dela. Nenhum método aceita id de clínica
- * por parâmetro, porque isso permitiria o n8n de uma clínica escrever no banco
+ * por parâmetro, porque isso permitiria ao n8n de uma clínica escrever no banco
  * de outra.
  */
 class WhatsAppController extends Controller
 {
-    public function __construct(protected TenantManager $tenants) {}
+    public function __construct(
+        protected TenantManager $tenants,
+        protected EvolutionService $evolution,
+    ) {}
 
     public function info(): JsonResponse
     {
+        $clinica = $this->tenants->current();
+
         return response()->json([
             'clinica' => [
                 'id' => $this->tenants->id(),
-                'nome' => $this->tenants->current()?->name,
+                'nome' => $clinica?->name,
                 'perfil' => ClinicProfile::current(),
+
+                /**
+                 * O n8n descobre aqui se ele pode responder por esta clínica. Sem
+                 * `evolution_instance` a Evolution não tem por onde entregar a
+                 * mensagem e sem `evolution_token` o Laravel não consegue chamar
+                 * de volta — e o bot falando "não consigo responder" para o
+                 * paciente é pior do que o n8n saber que a integração falta.
+                 */
+                'evolution_instance' => $clinica?->evolution_instance,
+                'evolution_pronta' => $clinica?->hasEvolutionIntegration() ?? false,
             ],
             'statuses' => AppointmentStatus::orderBy('id')->get(),
         ]);
+    }
+
+    /**
+     * Envia texto pelo WhatsApp da clínica.
+     *
+     * A clínica é a do token, nunca uma do corpo: o middleware já conectou no
+     * banco dela e a Evolution instance/token vêm do registro central. Um
+     * parâmetro `clinica_id` aqui deixaria o n8n de uma clínica escrever na
+     * instância de outra.
+     *
+     * A Evolution responde 200 mesmo quando não conseguiu enviar, com `error` no
+     * corpo. Devolver esse array como sucesso faria o n8n marcar a mensagem como
+     * entregue e o paciente nunca receberia nada — por isso o `error` vira 502
+     * aqui, que é o status que faz o n8n tentar de novo.
+     */
+    public function enviarMensagem(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'telefone' => ['required', 'string', 'max:20'],
+            'texto' => ['required', 'string', 'max:4096'],
+        ])->validate();
+
+        $clinica = $this->tenants->require();
+
+        try {
+            $resposta = $this->evolution->sendText(
+                $clinica,
+                $validated['telefone'],
+                $validated['texto'],
+            );
+        } catch (EvolutionIndisponivel $exception) {
+            // 503 e não 500: a clínica não tem integração configurada, e isso se
+            // resolve no painel, não é defeito do sistema.
+            return response()->json(['message' => $exception->getMessage()], 503);
+        } catch (RequestException $exception) {
+            Log::error('A Evolution API recusou o envio de mensagem.', [
+                'clinica' => $clinica->id,
+                'status' => $exception->response?->status(),
+            ]);
+
+            return response()->json(['message' => 'A Evolution API recusou o envio.'], 502);
+        }
+
+        if (isset($resposta['error'])) {
+            return response()->json([
+                'message' => 'A Evolution API não conseguiu enviar a mensagem.',
+                'erro' => $resposta['error'],
+            ], 502);
+        }
+
+        $this->registrarMensagemEnviada($clinica, $validated['telefone'], $validated['texto'], $resposta);
+
+        return response()->json([
+            'status' => 'sent',
+            'message' => $resposta,
+        ], 200);
+    }
+
+    /**
+     * Guarda no histórico da clínica a mensagem que saiu.
+     *
+     * Registrar aqui e não esperar o `SEND_MESSAGE` do webhook é deliberado: o
+     * webhook chega depois, e um n8n que caiu no meio do caminho deixaria a
+     * resposta da clínica fora do histórico. A linha é gravada com o `key.id` que
+     * a Evolution devolveu, que é o mesmo que vem no webhook — então, quando ele
+     * chegar, o índice único absorve em vez de duplicar.
+     *
+     * Sem `key.id` na resposta cai numa chave local, e aí a linha duplicada é o
+     * preço aceito: melhor dois registros do mesmo texto do que a resposta da
+     * clínica sumir do histórico.
+     *
+     * @param  array<string, mixed>  $resposta
+     */
+    protected function registrarMensagemEnviada(Clinic $clinica, string $telefone, string $texto, array $resposta): void
+    {
+        try {
+            WhatsAppMessage::create([
+                'message_key' => $this->chaveDaEvolucao($resposta)
+                    ?? $this->chaveLocal($clinica, $telefone, $texto),
+                'from_me' => true,
+                'event' => EvolutionPayload::EVENTO_MENSAGEM,
+                'message_type' => 'conversation',
+                'remote_jid' => $this->jidDoWhatsapp($telefone),
+                'body' => $texto,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // O webhook da Evolution chegou antes do retorno. Nada a fazer.
+        }
+    }
+
+    /**
+     * O `remote_jid` no MESMO formato que o webhook grava.
+     *
+     * O webhook grava o JID que o WhatsApp manda (`5511…@s.whatsapp.net`), e
+     * guardar aqui só os dígitos deixaria a mesma conversa com dois formatos de
+     * `remote_jid` — o `telefone()` continuaria funcionando, mas qualquer
+     * consulta por `remote_jid` perderia metade do histórico sem erro nenhum.
+     */
+    protected function jidDoWhatsapp(string $telefone): string
+    {
+        return $this->normalizarTelefone($telefone).'@s.whatsapp.net';
+    }
+
+    /**
+     * @param  array<string, mixed>  $resposta
+     */
+    protected function chaveDaEvolucao(array $resposta): ?string
+    {
+        $chave = $resposta['key']['id'] ?? null;
+
+        return is_string($chave) && $chave !== '' ? $chave : null;
+    }
+
+    /**
+     * Chave provisória para quando a Evolution não devolveu `key.id`.
+     *
+     * O prefixo `local` não existe no formato de id do WhatsApp, então a chave
+     * jamais colide com a que o webhook traz.
+     */
+    protected function chaveLocal(Clinic $clinica, string $telefone, string $texto): string
+    {
+        return 'local-'.substr(
+            hash('sha256', $clinica->id.'|'.$this->normalizarTelefone($telefone).'|'.$texto.'|'.microtime(true)),
+            0,
+            64,
+        );
     }
 
     public function profissionais(): JsonResponse

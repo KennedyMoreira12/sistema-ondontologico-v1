@@ -12,6 +12,7 @@ use App\Models\Central\PlatformAuditLog;
 use App\Services\Platform\PlatformLogger;
 use App\Services\Tenant\TenantDatabaseProvisioner;
 use App\Services\Tenant\TenantProvisioner;
+use App\Support\EvolutionToken;
 use App\Support\IntegrationAbilities;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -119,21 +120,48 @@ class ClinicController extends Controller
 
     public function update(ClinicUpdateRequest $request, Clinic $clinic): RedirectResponse
     {
-        $antes = $clinic->only(array_keys($request->validated()));
-
-        $clinic->update([
+        $dados = [
             ...$request->validated(),
+            ...$request->evolutionTokenUpdate(),
             'is_active' => $request->boolean('is_active'),
-        ]);
+        ];
+
+        /**
+         * O token entra no log de auditoria só mascarado. O `before` abaixo é o
+         * token em claro decifrado pelo cast, e `platform_audit_logs` é lido por
+         * mais gente que a Evolution — deixar o segredo ali daria a qualquer
+         * operador com leitura de auditoria o direito de mandar mensagem como a
+         * clínica, e o token não volta de forma reversível.
+         *
+         * @var array<string, mixed> $antes
+         */
+        $antes = $this->comTokenMascarado($clinic->only(array_keys($dados)));
+
+        $clinic->update($dados);
 
         PlatformLogger::log('clinica.atualizada', 'clinic', $clinic->id, [
             'antes' => $antes,
-            'depois' => $clinic->fresh()->only(array_keys($antes)),
+            'depois' => $this->comTokenMascarado($clinic->fresh()->only(array_keys($antes))),
         ], $clinic);
 
         return redirect()
             ->route('painel.clinicas.show', $clinic)
             ->with('success', 'Dados da clínica atualizados.');
+    }
+
+    /**
+     * Troca o token em claro do snapshot pela versão mascarada.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function comTokenMascarado(array $snapshot): array
+    {
+        if (array_key_exists('evolution_token', $snapshot)) {
+            $snapshot['evolution_token'] = EvolutionToken::mask($snapshot['evolution_token']);
+        }
+
+        return $snapshot;
     }
 
     /**

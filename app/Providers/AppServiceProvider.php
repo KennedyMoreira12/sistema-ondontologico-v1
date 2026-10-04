@@ -89,5 +89,35 @@ class AppServiceProvider extends ServiceProvider
                 ? [Limit::perMinute(120)->by('req:'.$chave), $diario]
                 : [Limit::perMinute(20)->by('req:'.$chave), $diario];
         });
+
+        /**
+         * Limite do webhook da Evolution.
+         *
+         * A chave é a INSTÂNCIA, e não o IP: todas as instâncias das clínicas
+         * saem do mesmo endereço da Evolution, e um limite por IP faria a clínica
+         * mais barulhenta estourar o limite das outras. Por instância, uma
+         * clínica não trava a outra, e uma requisição forjada de uma só
+         * instância não gasta o orçamento de ninguém.
+         *
+         * A instância vem do corpo, não da URL, porque é o mesmo campo que o
+         * middleware usa para achar a clínica. Quando ela não vem, cai no IP:
+         * ainda é melhor que nenhuma chave, que contaria tudo como uma requisição
+         * só.
+         *
+         * 120 por minuto é folgado para o pior caso real — uma clínica recebe
+         * algumas dezenas de mensagens por minuto — e aperta o bastante para que
+         * um laço de reentrega da Evolution não consuma a fila do resto.
+         */
+        RateLimiter::for('evolution', function (Request $request): Limit|array {
+            $instancia = $request->json('instance');
+            $instancia = is_string($instancia) && $instancia !== '' ? $instancia : null;
+
+            $chave = $instancia === null ? 'ip:'.$request->ip() : 'instancia:'.$instancia;
+
+            return [
+                Limit::perMinute(120)->by('min:'.$chave),
+                Limit::perHour(2000)->by('hora:'.$chave),
+            ];
+        });
     }
 }

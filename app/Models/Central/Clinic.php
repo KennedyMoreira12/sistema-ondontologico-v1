@@ -16,7 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * banco onde vivem os dados clínicos dela.
  */
 #[Fillable([
-    'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp', 'evolution_instance',
+    'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
+    'evolution_instance', 'evolution_token',
     'logo_path', 'primary_color', 'secondary_color',
     'status', 'timezone', 'is_active', 'trial_ends_at',
     'suspended_at', 'suspension_reason',
@@ -34,6 +35,14 @@ class Clinic extends CentralModel
             'is_active' => 'boolean',
             'trial_ends_at' => 'datetime',
             'suspended_at' => 'datetime',
+
+            /**
+             * O token da instância é usado em claro na chamada, então não pode
+             * ser hash como o do `integration_tokens` — mas também não fica em
+             * texto puro na tabela. O cast `encrypted` cifra com a APP_KEY, o
+             * que mantém o dump do banco central inútil sozinho.
+             */
+            'evolution_token' => 'encrypted',
         ];
     }
 
@@ -141,6 +150,35 @@ class Clinic extends CentralModel
     {
         $query->where('is_active', true)
             ->whereIn('status', config('tenancy.accessible_clinic_states'));
+    }
+
+    /**
+     * Clínicas que já têm a integração Evolution completa.
+     *
+     * Instância sem token não entra: o Laravel chamaria `/message/sendText` sem
+     * `apikey` válido e receberia 401 em toda resposta. Filtrar na consulta
+     * economiza o decrypt de token de clínica que não manda nada.
+     */
+    #[Scope]
+    protected function withEvolution(Builder $query): void
+    {
+        $query->whereNotNull('evolution_instance')
+            ->whereNotNull('evolution_token');
+    }
+
+    /**
+     * A clínica está pronta para a Evolution falar com ela?
+     *
+     * `isAccessible()` entra porque instance e token cadastrados não dizem se a
+     * assinatura ainda vale: uma clínica suspensa tem o par completo e não pode
+     * agendar consulta pelo WhatsApp.
+     */
+    public function hasEvolutionIntegration(): bool
+    {
+        return $this->evolution_instance !== null
+            && $this->evolution_token !== null
+            && $this->evolution_instance !== ''
+            && $this->evolution_token !== '';
     }
 
     /**

@@ -9,8 +9,11 @@ use App\Models\Central\IntegrationToken;
 use App\Models\Paciente;
 use App\Models\Professional;
 use App\Models\Room;
+use App\Models\WhatsAppMessage;
 use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
 
@@ -23,6 +26,21 @@ class WhatsAppApiTest extends TestCase
      * precisa manter o valor original para apresentá-lo no header.
      */
     private string $token = 'token-teste';
+
+    /**
+     * A Evolution e o segredo do webhook ficam em endereço de teste: nenhum teste
+     * pode alcançar a API de verdade, e um envio de mensagem para um número real
+     * seria o pior resultado possível de uma suíte.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.evolution.url' => 'https://evolution.test',
+            'services.evolution.webhook_secret' => 'segredo',
+        ]);
+    }
 
     /**
      * Clínica com o banco tenant pronto, o plano que libera a API e o token, como
@@ -428,6 +446,159 @@ class WhatsAppApiTest extends TestCase
         $this->comoIntegracao()
             ->getJson(route('api.whatsapp.info'))
             ->assertOk();
+    }
+
+    public function test_envia_mensagem_pela_evolution_e_registra_no_historico(): void
+    {
+        Http::fake([
+            'https://evolution.test/*' => Http::response([
+                'key' => ['id' => '3EB0OUTRA999'],
+                'status' => 'PENDING',
+            ], 201),
+        ]);
+
+        $clinica = $this->criarContexto(['messages.send']);
+
+        $clinica->update([
+            'evolution_instance' => 'clinica-teste',
+            'evolution_token' => 'token-da-instancia',
+        ]);
+
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.mensagem'), [
+                'telefone' => '5511988887777',
+                'texto' => 'Sua consulta está confirmada para amanhã às 09:00.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'sent');
+
+        // A Evolution autentica pelo header `apikey`, e o que ela aceita é o
+        // token da INSTÂNCIA. Mandar a chave global daria autoridade sobre as
+        // instâncias de todas as clínicas.
+        Http::assertSent(function (Request $request): bool {
+            return $request->url() === 'https://evolution.test/message/sendText/clinica-teste'
+                && $request->hasHeader('apikey', 'token-da-instancia')
+                && $request['number'] === '5511988887777';
+        });
+
+        // Registrar aqui, e não só pelo webhook, é o que mantém a resposta da
+        // clínica no histórico mesmo com o n8n fora do ar.
+        $mensagem = WhatsAppMessage::query()->firstOrFail();
+
+        $this->assertTrue($mensagem->from_me);
+        $this->assertSame('3EB0OUTRA999', $mensagem->message_key);
+        $this->assertSame('5511988887777@s.whatsapp.net', $mensagem->remote_jid);
+        $this->assertSame('Sua consulta está confirmada para amanhã às 09:00.', $mensagem->body);
+    }
+
+    public function test_clinica_sem_evolution_responde_503_e_nao_500(): void
+    {
+        Http::fake();
+
+        $this->criarContexto(['messages.send']);
+
+        // 503 e não 500: clínica sem instância é configuração pendente no painel,
+        // não defeito. Um 500 aqui mandaria o n8n reentregar em loop e sugeriria
+        // que o sistema está quebrado.
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.mensagem'), [
+                'telefone' => '5511988887777',
+                'texto' => 'Olá',
+            ])
+            ->assertStatus(503);
+
+        Http::assertNothingSent();
+        $this->assertSame(0, WhatsAppMessage::query()->count());
+    }
+
+    public function test_token_sem_ability_de_envio_nao_manda_mensagem(): void
+    {
+        Http::fake();
+
+        $clinica = $this->criarContexto(['appointments.create']);
+
+        $clinica->update([
+            'evolution_instance' => 'clinica-teste',
+            'evolution_token' => 'token-da-instancia',
+        ]);
+
+        // Ability própria porque o efeito da rota não fica no banco: chega na
+        // tela do WhatsApp de uma pessoa e não se desfaz apagando registro.
+        // Quem pode agendar não pode, sozinho, falar como a clínica.
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.mensagem'), [
+                'telefone' => '5511988887777',
+                'texto' => 'Olá',
+            ])
+            ->assertForbidden();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_evolution_que_recusa_o_envio_responde_502(): void
+    {
+        Http::fake([
+            'https://evolution.test/*' => Http::response(['error' => 'Invalid apikey'], 401),
+        ]);
+
+        $clinica = $this->criarContexto(['messages.send']);
+
+        $clinica->update([
+            'evolution_instance' => 'clinica-teste',
+            'evolution_token' => 'token-errado',
+        ]);
+
+        // 502: o pedido chegou certo na Evolution e foi ela que recusou. Isso é
+        // diferente de 500 (defeito aqui) e de 503 (configuração pendente).
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.mensagem'), [
+                'telefone' => '5511988887777',
+                'texto' => 'Olá',
+            ])
+            ->assertStatus(502);
+
+        $this->assertSame(0, WhatsAppMessage::query()->count());
+    }
+
+    public function test_webhook_nao_duplica_a_mensagem_que_a_clinica_ja_enviou(): void
+    {
+        Http::fake([
+            'https://evolution.test/*' => Http::response(['key' => ['id' => '3EB0COMPARTILHADA']], 201),
+        ]);
+
+        $clinica = $this->criarContexto(['messages.send']);
+        $clinica->update([
+            'evolution_instance' => 'clinica-teste',
+            'evolution_token' => 'token-da-instancia',
+        ]);
+
+        $this->comoIntegracao()
+            ->postJson(route('api.whatsapp.mensagem'), [
+                'telefone' => '5511988887777',
+                'texto' => 'Olá',
+            ])
+            ->assertOk();
+
+        // A rota de envio grava na hora, e o `messages.upsert` da mesma mensagem
+        // chega depois com o mesmo `key.id`. O índice único absorve: sem ele o
+        // paciente veria a resposta da clínica duas vezes na conversa.
+        $this->postJson(route('api.evolution.webhook.handle'), [
+            'event' => 'messages.upsert',
+            'instance' => 'clinica-teste',
+            'apikey' => 'token-da-instancia',
+            'data' => [
+                'key' => [
+                    'remoteJid' => '5511988887777@s.whatsapp.net',
+                    'fromMe' => true,
+                    'id' => '3EB0COMPARTILHADA',
+                ],
+                'messageType' => 'conversation',
+                'messageTimestamp' => 1772323200,
+                'message' => ['conversation' => 'Olá'],
+            ],
+        ], ['X-Evolution-Secret' => 'segredo'])->assertOk();
+
+        $this->assertSame(1, WhatsAppMessage::query()->count());
     }
 
     public function test_toda_rota_de_integracao_tem_ability_definida(): void

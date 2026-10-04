@@ -69,6 +69,29 @@
                             dona e são descartadas sem erro visível.
                         </div>
                     </div>
+
+                    <div class="col-md-6">
+                        <label for="evolution_token" class="form-label">Token da instância</label>
+                        <input
+                            id="evolution_token"
+                            type="password"
+                            autocomplete="off"
+                            class="form-control @error('evolution_token') is-invalid @enderror"
+                            name="evolution_token"
+                            value="{{ old('evolution_token') }}"
+                            placeholder="token da instância"
+                        >
+                        @error('evolution_token')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            A Evolution só mostra este valor na criação da instância. Copie de lá.
+                            É guardado cifrado e nunca é exibido de novo — nem nesta tela.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text mt-3 mb-0">
+                    Instância e token vão juntos: sem o token a Evolution recusa o envio com 401
+                    em toda mensagem, e sem a instância o webhook não sabe de qual clínica é a
+                    mensagem. Dá para deixar os dois vazios e configurar depois.
                 </div>
             </div>
         </div>

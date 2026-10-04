@@ -1,10 +1,36 @@
 <?php
 
+use App\Http\Controllers\Api\EvolutionWebhookController;
 use App\Http\Controllers\Api\MetaWebhookController;
 use App\Http\Controllers\Api\WhatsAppController;
+use App\Http\Middleware\AuthenticateEvolutionWebhook;
 use App\Http\Middleware\AuthenticateIntegration;
 use App\Http\Middleware\EnsureIntegrationAbility;
 use Illuminate\Support\Facades\Route;
+
+/**
+ * Webhook da Evolution API.
+ *
+ * Rota pública, e não tem id de clínica na URL: a Evolution manda o nome da
+ * instância no corpo e é por ele que a clínica é resolvida. O path com `{clinic}`
+ * deixaria quem conhece o nome da instância — que é dado público no payload do
+ * próprio webhook — escrever no banco de outra clínica.
+ *
+ * A Evolution não assina o webhook, então a confiança vem das duas checagens do
+ * `AuthenticateEvolutionWebhook`: o segredo no header e o token da instância no
+ * corpo. Sem `EVOLUTION_WEBHOOK_SECRET` a rota recusa todo POST.
+ *
+ * `throttle:evolution` limita por instância, e não por IP: todas as instâncias
+ * saem do mesmo endereço da VPS, e um limite por IP faria a clínica mais barulhenta
+ * estourar o limite das outras.
+ */
+Route::prefix('evolution/webhook')
+    ->name('api.evolution.webhook.')
+    ->controller(EvolutionWebhookController::class)
+    ->middleware([AuthenticateEvolutionWebhook::class, 'throttle:evolution'])
+    ->group(function () {
+        Route::post('/', 'handle')->name('handle');
+    });
 
 /**
  * Webhook da Meta: fica fora do grupo autenticado porque a Meta não tem
@@ -50,4 +76,12 @@ Route::prefix('whatsapp')
         Route::get('agendamentos', [WhatsAppController::class, 'agendamentosPaciente'])->name('agendamentos');
         Route::post('agendamento/{consulta}/confirmar', [WhatsAppController::class, 'confirmarAgendamento'])->name('confirmar');
         Route::post('agendamento/{consulta}/cancelar', [WhatsAppController::class, 'cancelarAgendamento'])->name('cancelar');
+
+        /**
+         * A resposta do bot. Fica por último porque é a única rota que ESCREVE
+         * fora do banco da clínica: ela fala com o WhatsApp do paciente. A
+         * ability `messages.send` é separada de propósito — quem pode ler a
+         * agenda não pode, sozinho, mandar mensagem em nome da clínica.
+         */
+        Route::post('mensagem', [WhatsAppController::class, 'enviarMensagem'])->name('mensagem');
     });

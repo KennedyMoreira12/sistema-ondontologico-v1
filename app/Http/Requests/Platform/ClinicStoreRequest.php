@@ -4,6 +4,7 @@ namespace App\Http\Requests\Platform;
 
 use App\Models\Central\AdminUser;
 use App\Support\EvolutionInstance;
+use App\Support\EvolutionToken;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ClinicStoreRequest extends FormRequest
@@ -17,12 +18,24 @@ class ClinicStoreRequest extends FormRequest
      * A instância da Evolution é guardada já minusculizada: o `CLINICAS_MAP`
      * do n8n é sensível a caixa, e "Clinica-Marlene" lá e "clinica-marlene"
      * aqui é mensagem descartada sem erro.
+     *
+     * O token não é minusculizado — a Evolution gera string opaca e mexer nas
+     * Maiúsculas dela troca o segredo por outro — mas o espaço em volta é
+     * aparado, porque colar com espaço copia da tela dá 401 em toda chamada.
+     *
+     * @see EvolutionToken::normalize()
      */
     protected function prepareForValidation(): void
     {
         if ($this->has('evolution_instance')) {
             $this->merge([
                 'evolution_instance' => EvolutionInstance::normalize($this->input('evolution_instance')),
+            ]);
+        }
+
+        if ($this->has('evolution_token')) {
+            $this->merge([
+                'evolution_token' => EvolutionToken::normalize($this->input('evolution_token')),
             ]);
         }
     }
@@ -40,6 +53,7 @@ class ClinicStoreRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
             'evolution_instance' => EvolutionInstance::rules(),
+            'evolution_token' => EvolutionToken::rules(),
             'plan_id' => ['required', 'integer', 'exists:plans,id'],
 
             /**
@@ -62,6 +76,7 @@ class ClinicStoreRequest extends FormRequest
             'plan_id.exists' => 'Escolha um plano ativo para a clínica.',
             'admin_email.unique' => 'Já existe um usuário com este e-mail.',
             ...EvolutionInstance::messages(),
+            ...EvolutionToken::messages(),
         ];
     }
 
