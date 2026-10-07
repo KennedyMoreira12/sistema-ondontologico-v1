@@ -421,43 +421,128 @@ body {
     }
 }
 
-.arcada {
+/* ==========================================================================
+   ODONTOGRAMA
+   ========================================================================== */
+.odontograma-arcada {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.odontograma-arcada-titulo {
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: $lj-texto-suave;
+    margin-bottom: 0.5rem;
+}
+
+.odontograma-linha {
     display: flex;
     justify-content: center;
     gap: 0.35rem;
     flex-wrap: wrap;
+    margin-bottom: 0.35rem;
 }
 
-.tooth {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: 1px solid var(--sco-borda);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #fff;
-    padding: 0;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+.odontograma-linha-label {
+    text-align: center;
+    font-size: 0.72rem;
+    color: $lj-texto-tenue;
+    margin-top: 0.35rem;
+}
 
-    &:hover {
-        transform: scale(1.08);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+.odontograma-tooth {
+    width: 52px;
+    height: 68px;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        transform: scale(1.1);
+        filter: drop-shadow(0 2px 4px rgba(20, 60, 80, 0.25));
+        outline: none;
     }
+}
 
-    &.tooth-ausente {
-        opacity: 0.55;
-    }
+.odontograma-raizes path {
+    fill: #d7e0e4;
+    stroke: $lj-borda;
+    stroke-width: 1;
+}
 
-    &.tooth-readonly {
-        cursor: default;
+.odontograma-contorno {
+    fill: #fbfdfe;
+    stroke: #9aabb3;
+    stroke-width: 1.2;
+}
+
+.odontograma-regiao {
+    stroke: #fff;
+    stroke-width: 1;
+    transition: fill 0.1s ease, stroke-width 0.1s ease;
+
+    &.livre {
+        fill: #eef3f5;
 
         &:hover {
-            transform: none;
-            box-shadow: none;
+            fill: rgba($lj-teal, 0.3);
         }
+    }
+
+    &:hover {
+        stroke-width: 1.6;
+    }
+}
+
+.odontograma-inteiro {
+    stroke: #fff;
+    stroke-width: 1;
+}
+
+.odontograma-x line {
+    stroke: #c62828;
+    stroke-linecap: round;
+}
+
+.odontograma-erupcionado {
+    fill: none;
+    stroke: $lj-texto-tenue;
+    stroke-width: 1.6;
+    stroke-dasharray: 3 3;
+}
+
+.odontograma-label {
+    font-size: 10px;
+    font-weight: 700;
+    fill: $lj-azul-profundo;
+}
+
+.odontograma-sub {
+    font-size: 8px;
+    fill: $lj-texto-tenue;
+}
+
+.odontograma-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    flex: none;
+}
+
+@media (max-width: 575.98px) {
+    .odontograma-tooth {
+        width: 42px;
+        height: 55px;
     }
 }
 

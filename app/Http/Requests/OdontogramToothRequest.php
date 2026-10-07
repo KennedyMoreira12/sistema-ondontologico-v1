@@ -9,19 +9,17 @@ class OdontogramToothRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasPermission('odontograma.update');
+        return $this->user()?->hasPermission('odontograma.update') ?? false;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
-            'dente' => [
-                'required',
-                'integer',
-                Rule::in(array_merge(range(11, 18), range(21, 28), range(31, 38), range(41, 48))),
-            ],
-            'tooth_condition_id' => ['required', 'integer', 'exists:tenant.tooth_conditions,id'],
-            'observacao' => ['nullable', 'string', 'max:500'],
+            'status' => ['sometimes', 'string', Rule::in(array_keys(config('odontograma.status_dente', [])))],
+            'observacao' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

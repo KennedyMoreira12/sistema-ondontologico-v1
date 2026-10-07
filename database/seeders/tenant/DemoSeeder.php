@@ -16,6 +16,7 @@ use App\Models\InsuranceCompany;
 use App\Models\InsurancePlan;
 use App\Models\MedicalAlert;
 use App\Models\OdontogramTooth;
+use App\Models\OdontogramToothCondition;
 use App\Models\Paciente;
 use App\Models\PatientInsurance;
 use App\Models\Payment;
@@ -391,13 +392,21 @@ class DemoSeeder extends Seeder
         );
 
         foreach ($dentes as [$numero, $condicao]) {
-            OdontogramTooth::firstOrCreate(
+            $dente = OdontogramTooth::firstOrCreate(
                 ['odontogram_id' => $odontogram->id, 'dente' => $numero],
                 [
-                    'tooth_condition_id' => $condicao->id,
-                    'condicao' => $condicao->name,
+                    'status' => 'presente',
                     'profissional_id' => $profissional->id,
                     'observacao' => 'Registrado no cadastro inicial',
+                ]
+            );
+
+            OdontogramToothCondition::firstOrCreate(
+                ['odontogram_tooth_id' => $dente->id, 'camada' => 'existente'],
+                [
+                    'tooth_condition_id' => $condicao->id,
+                    'superficie' => null,
+                    'profissional_id' => $profissional->id,
                 ]
             );
         }

@@ -43,13 +43,19 @@ class CatalogSeeder extends Seeder
 
         $conditions = [
             ['name' => 'Hígido', 'codigo' => 'higido', 'cor' => '#28a745', 'is_default' => true],
-            ['name' => 'Cariado', 'codigo' => 'cariado', 'cor' => '#dc3545'],
-            ['name' => 'Restaurado', 'codigo' => 'restaurado', 'cor' => '#0d6efd'],
-            ['name' => 'Ausente', 'codigo' => 'ausente', 'cor' => '#6c757d'],
+            ['name' => 'Cárie', 'codigo' => 'cariado', 'cor' => '#dc3545'],
+            ['name' => 'Fratura', 'codigo' => 'fratura', 'cor' => '#e83e8c'],
+            ['name' => 'Desgaste', 'codigo' => 'desgaste', 'cor' => '#fd7e14'],
+            ['name' => 'Lesão', 'codigo' => 'lesao', 'cor' => '#d63384'],
+            ['name' => 'Dente ausente', 'codigo' => 'ausente', 'cor' => '#6c757d'],
+            ['name' => 'Dente incluso', 'codigo' => 'incluso', 'cor' => '#495057'],
+            ['name' => 'Mobilidade', 'codigo' => 'mobilidade', 'cor' => '#f06595'],
+            ['name' => 'Sensibilidade', 'codigo' => 'sensibilidade', 'cor' => '#ff922b'],
+            ['name' => 'Restauração', 'codigo' => 'restaurado', 'cor' => '#0d6efd'],
             ['name' => 'Coroa', 'codigo' => 'coroa', 'cor' => '#fd7e14'],
             ['name' => 'Implante', 'codigo' => 'implante', 'cor' => '#6f42c1'],
-            ['name' => 'Tratamento de canal', 'codigo' => 'canal', 'cor' => '#ffc107'],
-            ['name' => 'Fraturado', 'codigo' => 'fratura', 'cor' => '#e83e8c'],
+            ['name' => 'Endodontia', 'codigo' => 'canal', 'cor' => '#ffc107'],
+            ['name' => 'Prótese', 'codigo' => 'protese', 'cor' => '#7048e8'],
         ];
         foreach ($conditions as $condition) {
             ToothCondition::firstOrCreate(['codigo' => $condition['codigo']], $condition);

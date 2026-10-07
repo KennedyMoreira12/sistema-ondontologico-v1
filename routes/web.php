@@ -114,8 +114,13 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/{paciente}/documentos/{documento}', [PacienteController::class, 'destroyDocumento'])->name('documentos.destroy');
 
         Route::get('/{paciente}/odontograma', [OdontogramaController::class, 'index'])->name('odontograma.index');
+        Route::get('/{paciente}/odontograma/dados', [OdontogramaController::class, 'dados'])->name('odontograma.dados');
+        Route::get('/{paciente}/odontograma/historico', [OdontogramaController::class, 'historico'])->name('odontograma.historico');
+        Route::put('/{paciente}/odontograma', [OdontogramaController::class, 'update'])->name('odontograma.settings');
         Route::put('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'updateTooth'])->name('odontograma.tooth.update');
         Route::delete('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'destroyTooth'])->name('odontograma.tooth.destroy');
+        Route::post('/{paciente}/odontograma/dente/{dente}/condicoes', [OdontogramaController::class, 'storeCondition'])->name('odontograma.condition.store');
+        Route::delete('/{paciente}/odontograma/dente/{dente}/condicoes/{condicao}', [OdontogramaController::class, 'destroyCondition'])->name('odontograma.condition.destroy');
 
         Route::get('/{paciente}/prescricoes', [PrescricaoController::class, 'index'])->name('prescricoes.index');
         Route::post('/{paciente}/prescricoes', [PrescricaoController::class, 'store'])->name('prescricoes.store');

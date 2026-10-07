@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['odontogram_id', 'tooth_condition_id', 'dente', 'condicao', 'observacao', 'profissional_id'])]
+#[Fillable(['odontogram_id', 'dente', 'status', 'observacao', 'profissional_id'])]
 class OdontogramTooth extends TenantModel
 {
     public function odontogram(): BelongsTo
@@ -14,9 +15,9 @@ class OdontogramTooth extends TenantModel
         return $this->belongsTo(Odontogram::class);
     }
 
-    public function toothCondition(): BelongsTo
+    public function condicoes(): HasMany
     {
-        return $this->belongsTo(ToothCondition::class);
+        return $this->hasMany(OdontogramToothCondition::class, 'odontogram_tooth_id');
     }
 
     public function profissional(): BelongsTo
