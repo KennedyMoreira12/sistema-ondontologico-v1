@@ -10,12 +10,16 @@ use App\Models\AppointmentStatus;
 use App\Models\Central\Clinic;
 use App\Models\ClinicProfile;
 use App\Models\Paciente;
+use App\Models\Procedure;
 use App\Models\Professional;
-use App\Models\Room;
+use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
+use App\Services\Agenda\AgendamentoService;
+use App\Services\Agenda\DisponibilidadeService;
 use App\Services\AuditLogger;
 use App\Services\EvolutionService;
 use App\Services\Tenant\TenantManager;
+use App\Services\WhatsApp\FluxoAtendimento;
 use App\Support\EvolutionPayload;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -23,8 +27,6 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -41,6 +43,9 @@ class WhatsAppController extends Controller
     public function __construct(
         protected TenantManager $tenants,
         protected EvolutionService $evolution,
+        protected DisponibilidadeService $disponibilidadeService,
+        protected AgendamentoService $agendamentoService,
+        protected FluxoAtendimento $fluxo,
     ) {}
 
     public function info(): JsonResponse
@@ -200,6 +205,27 @@ class WhatsAppController extends Controller
         );
     }
 
+    /**
+     * Procedimentos que o bot pode oferecer, com a duração que vai virar o tamanho
+     * da consulta.
+     *
+     * A duração mora aqui, em `procedures.duracao_minutos`, e não no bot: é o
+     * mesmo número que a recepção vê na tela e que o agenda cobra. Se o n8n
+     * decidisse o tamanho da consulta, trocar a duração do procedimento deixaria
+     * o WhatsApp marcando encaixes que a clínica não atende mais.
+     *
+     * Só os ativos saem: oferecer um procedimento inativo é oferecer um
+     * horário que ninguém vai atender.
+     */
+    public function procedimentos(): JsonResponse
+    {
+        $procedimentos = Procedure::where('is_active', true)
+            ->orderBy('nome')
+            ->get(['id', 'codigo', 'nome', 'categoria', 'duracao_minutos']);
+
+        return response()->json(['procedimentos' => $procedimentos]);
+    }
+
     public function paciente(Request $request): JsonResponse
     {
         $telefone = $this->normalizarTelefone($request->input('telefone') ?? $request->input('phone'));
@@ -240,73 +266,139 @@ class WhatsAppController extends Controller
         return response()->json(['paciente' => $paciente]);
     }
 
+    /**
+     * Horários livres, com o tamanho da consulta vindo do procedimento escolhido.
+     *
+     * A duração é o que diferencia este método do anterior: um procedimento de 90
+     * minutos não cabe em qualquer buraco de 30, e oferecer os mesmos horários
+     * para um clareamento e para uma radiografia é oferecer consulta que não cabe
+     * no turno. Por isso o passo entre horários é a própria duração — oferecer
+     * 08:00 e 08:15 para algo de 90 min seria oferecer duas coisas que não podem
+     * acontecer ao mesmo tempo.
+     *
+     * São dois filtros de horário, ambos necessários:
+     *
+     * 1. O slot precisa CABER no turno (`slot + duracao <= fim`). Sem isso, um
+     *    procedimento de 2 h oferecido às 17 h de um turno que fecha às 18 h
+     *    passa, e o agendamento terminaria depois do fim do atendimento.
+     * 2. O slot precisa CABER livre no meio das consultas: basta o início não
+     *    bater com o começo de nada, senão 09:45-10:15 aparece como livre numa
+     *    consulta que ocupa 09:30-10:30.
+     */
     public function disponibilidade(Request $request): JsonResponse
     {
-        $dias = (int) $request->integer('dias', 7);
-        $profissionalId = (int) $request->integer('profissional_id');
+        $validated = Validator::make($request->all(), [
+            'dias' => ['sometimes', 'integer', 'min:1', 'max:60'],
+            'profissional_id' => ['sometimes', 'integer', 'min:1'],
+            'procedimento_id' => ['sometimes', 'integer', 'exists:tenant.procedures,id'],
+            // Só quando não há `procedimento_id`: o bot manda o id e a API
+            // resolve a duração, sem o n8n poder inventar a dela.
+            'duracao' => ['required_without:procedimento_id', 'integer', 'in:15,30,45,60,90,120'],
+        ])->validate();
 
-        $profissionais = Professional::where('is_active', true)
-            ->when($profissionalId > 0, fn ($q) => $q->where('id', $profissionalId))
-            ->orderBy('nome')
-            ->get();
+        $dias = (int) ($validated['dias'] ?? 7);
+        $profissionalId = (int) ($validated['profissional_id'] ?? 0);
 
-        $inicio = Carbon::today();
-        $fim = Carbon::today()->addDays($dias);
+        $duracao = isset($validated['procedimento_id'])
+            ? $this->disponibilidadeService->duracaoDoProcedimento((int) $validated['procedimento_id'])
+            : (int) $validated['duracao'];
 
-        $agendamentos = Appointment::with('status')
-            ->where('fim', '>', $inicio)
-            ->where('inicio', '<', $fim->endOfDay())
-            ->get();
+        return response()->json([
+            'dias' => $this->disponibilidadeService->horariosLivres($profissionalId, $duracao, $dias),
+            'duracao' => $duracao,
+        ]);
+    }
 
-        $diasAbertos = [];
-        for ($i = 0; $i <= $dias; $i++) {
-            $dia = Carbon::today()->addDays($i);
-            if ($dia->isSunday()) {
-                continue;
-            }
-            $diasAbertos[] = $dia;
+    /**
+     * * Etapas por onde a conversa do bot pode passar.
+     *
+     * O n8n escreve este campo, e ele volta a ser lido no próximo turno da
+     * conversa. Sem a lista, qualquer string gravada vira uma etapa que o bot não
+     * conhece — e o `switch` do n8n cairia no `default`, que é o pior lugar
+     * para um estado corrompido: o paciente receberia o menu como se tivesse
+     * recomeçado, sem explicação de por quê.
+     *
+     * @var list<string>
+     */
+    public const ETAPAS = [
+        'consentimento',
+        'menu',
+        'cadastro',
+        'profissional',
+        'procedimento',
+        'data',
+        'horario',
+        'recepcao',
+        'encerrado',
+    ];
+
+    /**
+     * Lê o estado da conversa de um contato; cria se não existir.
+     * O n8n consulta isto para saber em que etapa o paciente está.
+     *
+     * A expiração é verificada aqui, e não só guardada: sem esta checagem, uma
+     * conversa abandonada na etapa `horario` voltaria do dia seguinte ainda
+     * esperando a escolha de um horário que nem existe mais, e o bot marcaria
+     * uma consulta para um turno que já passou.
+     */
+    public function conversa(Request $request): JsonResponse
+    {
+        $jid = $request->string('remote_jid')->toString();
+
+        if ($jid === '') {
+            return response()->json(['message' => 'remote_jid obrigatório.'], 422);
         }
 
-        $resultado = [];
+        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $jid]);
 
-        foreach ($profissionais as $profissional) {
-            foreach ($diasAbertos as $dia) {
-                $ocupados = $agendamentos
-                    ->filter(fn (Appointment $a) => $a->profissional_id === $profissional->id
-                        && $a->status?->name !== AppointmentStatus::CANCELADO
-                        && $a->inicio->toDateString() === $dia->toDateString())
-                    ->map(fn (Appointment $a) => [
-                        'inicio' => $a->inicio->timestamp,
-                        'fim' => $a->fim->timestamp,
-                    ])
-                    ->values();
-
-                $horarios = [];
-                $slot = $dia->copy()->setTime(7, 0);
-                $fimDia = $dia->copy()->setTime(21, 0);
-
-                while ($slot->lt($fimDia)) {
-                    $bloqueado = $ocupados->contains(fn ($a) => $slot->timestamp >= $a['inicio'] && $slot->timestamp < $a['fim']);
-
-                    $horarios[] = [
-                        'hora' => $slot->format('H:i'),
-                        'disponivel' => ! $bloqueado,
-                    ];
-
-                    $slot->addMinutes(30);
-                }
-
-                $resultado[] = [
-                    'profissional_id' => $profissional->id,
-                    'profissional' => $profissional->nome,
-                    'data' => $dia->toDateString(),
-                    'dia_semana' => $dia->translatedFormat('l'),
-                    'horarios' => $horarios,
-                ];
-            }
+        if (! $conversa->exists || $conversa->expires_at?->isPast()) {
+            $conversa->etapa = 'consentimento';
+            $conversa->dados = null;
+            $conversa->expires_at = now()->addHours(4);
+            $conversa->save();
         }
 
-        return response()->json(['dias' => $resultado]);
+        return response()->json(['conversa' => $conversa]);
+    }
+
+    /**
+     * Atualiza a etapa/dados da conversa.
+     *
+     * `dados` é validado como objeto — e não só como array — porque é o que
+     * carrega nome, profissional e procedimento escolhidos. A regra `array` do
+     * Laravel aceita lista, e `[1,2]` passaria por ela: o n8n gravaria lista onde
+     * o próximo turno lê `dados.profissional_id`, e o defeito só apareceria
+     * depois, como paciente em etapa errada. `array_is_list()` é o que separa as
+     * duas coisas.
+     */
+    public function conversaAtualizar(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'remote_jid' => ['required', 'string', 'max:191'],
+            'etapa' => ['sometimes', 'string', 'in:'.implode(',', self::ETAPAS)],
+            'dados' => [
+                'sometimes',
+                'nullable',
+                'array',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (is_array($value) && array_is_list($value)) {
+                        $fail('O campo dados deve ser um objeto com chaves, não uma lista.');
+                    }
+                },
+            ],
+        ])->validate();
+
+        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $validated['remote_jid']]);
+        $conversa->etapa = $validated['etapa'] ?? $conversa->etapa ?? 'consentimento';
+
+        if (array_key_exists('dados', $validated)) {
+            $conversa->dados = $validated['dados'];
+        }
+
+        $conversa->expires_at = now()->addHours(4);
+        $conversa->save();
+
+        return response()->json(['conversa' => $conversa]);
     }
 
     public function agendamento(Request $request): JsonResponse
@@ -330,65 +422,24 @@ class WhatsAppController extends Controller
         $chave = $validated['idempotency_key'] ?? null;
 
         if ($chave !== null) {
-            $existente = Appointment::query()
-                ->where('idempotency_key', $chave)
-                ->first();
+            $existente = $this->agendamentoService->existentePorChave($chave);
 
             if ($existente !== null) {
                 return response()->json(['agendamento' => $existente->load(['paciente', 'profissional', 'status'])]);
             }
         }
 
-        $duracao = $validated['duracao'] ?? 30;
-        $tipo = $validated['tipo'] ?? AppointmentStatus::AGENDADO;
-
-        $inicio = Carbon::parse($validated['dia'])->setTimeFromTimeString($validated['hora_inicio']);
-        $fim = $inicio->copy()->addMinutes($duracao);
-
-        $statusId = $this->statusId($tipo);
-
         try {
-            /**
-             * O mutex vai por PROFISSIONAL E DIA, não pelo horário pedido: dois
-             * agendamentos que se sobrepõem sem coincidir de início (09:00 e
-             * 09:15) precisam cair no mesmo lock, e travar pelo horário exato
-             * deixaria os dois passarem.
-             *
-             * E é um lock, e não `lockForUpdate()` na consulta de conflito: um
-             * `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda
-             * não existe, então os dois "não há conflito" aconteciam mesmo assim.
-             * O lock é o que segura; a transção mantém checagem e gravação no
-             * mesmo passo, e o índice único da chave de idempotência é a rede
-             * final se tudo acima falhar.
-             */
-            $consulta = Cache::lock(
-                "agenda:{$validated['profissional_id']}:{$inicio->toDateString()}",
-                10,
-            )->block(5, fn (): Appointment => DB::transaction(function () use ($validated, $chave, $inicio, $fim, $statusId): Appointment {
-                $conflito = Appointment::query()
-                    ->where('profissional_id', $validated['profissional_id'])
-                    ->whereHas('status', fn ($query) => $query->where('name', '!=', AppointmentStatus::CANCELADO))
-                    ->where('fim', '>', $inicio)
-                    ->where('inicio', '<', $fim)
-                    ->exists();
-
-                if ($conflito) {
-                    throw new HorarioOcupadoException;
-                }
-
-                return Appointment::create([
-                    'clinica_id' => $this->tenants->id(),
-                    'paciente_id' => $validated['paciente_id'],
-                    'profissional_id' => $validated['profissional_id'],
-                    'room_id' => Room::where('is_active', true)->value('id'),
-                    'appointment_status_id' => $statusId,
-                    'inicio' => $inicio,
-                    'fim' => $fim,
-                    'titulo' => 'Agendamento via WhatsApp',
-                    'observacao' => $validated['observacao'] ?? null,
-                    'idempotency_key' => $chave,
-                ]);
-            }));
+            $consulta = $this->agendamentoService->criar([
+                'paciente_id' => (int) $validated['paciente_id'],
+                'profissional_id' => (int) $validated['profissional_id'],
+                'dia' => $validated['dia'],
+                'hora_inicio' => $validated['hora_inicio'],
+                'duracao' => $validated['duracao'] ?? 30,
+                'tipo' => $validated['tipo'] ?? AppointmentStatus::AGENDADO,
+                'observacao' => $validated['observacao'] ?? null,
+                'idempotency_key' => $chave,
+            ]);
         } catch (HorarioOcupadoException) {
             return response()->json(['message' => 'Horário já não está disponível para este profissional.'], 409);
         } catch (LockTimeoutException) {
@@ -405,20 +456,45 @@ class WhatsAppController extends Controller
                 throw $exception;
             }
 
-            $consulta = Appointment::query()
-                ->where('idempotency_key', $chave)
-                ->first();
+            $recuperada = $this->agendamentoService->existentePorChave($chave);
 
-            if ($consulta === null) {
+            if ($recuperada === null) {
                 throw $exception;
             }
 
-            return response()->json(['agendamento' => $consulta->load(['paciente', 'profissional', 'status'])]);
+            return response()->json(['agendamento' => $recuperada->load(['paciente', 'profissional', 'status'])]);
         }
 
-        AuditLogger::log('criar', 'appointments', $consulta->id, depois: $consulta->only(['paciente_id', 'profissional_id', 'inicio', 'fim', 'appointment_status_id']));
-
         return response()->json(['agendamento' => $consulta->load(['paciente', 'profissional', 'status'])], 201);
+    }
+
+    /**
+     * Um turno da conversa: recebe o texto do paciente e devolve a resposta.
+     *
+     * Este é o único endpoint que o n8n chama por mensagem. A máquina de estados
+     * mora no Laravel porque o Code node do n8n não tem HTTP nesta instalação,
+     * e porque estado de conversa testável é estado em PHP — o mesmo `switch` aqui
+     * é um teste de feature comum, e lá dentro só se verifica lendo registro de
+     * execução do n8n.
+     *
+     * O n8n continua sendo o orquestrador: os guards (token, allowlist,
+     * `from_me`) são dele, e o envio da resposta também. Aqui não há regra de
+     * negócio, só o turno da conversa.
+     */
+    public function fluxo(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'remote_jid' => ['required', 'string', 'max:191'],
+            'texto' => ['nullable', 'string', 'max:4096'],
+        ])->validate();
+
+        $clinica = $this->tenants->require();
+
+        return response()->json($this->fluxo->processar(
+            $validated['remote_jid'],
+            $validated['texto'] ?? '',
+            $clinica?->name ?? '',
+        ));
     }
 
     public function agendamentosPaciente(Request $request): JsonResponse
@@ -460,15 +536,6 @@ class WhatsAppController extends Controller
         $consulta->update(['appointment_status_id' => $cancelado]);
 
         return response()->json(['message' => 'Agendamento cancelado.']);
-    }
-
-    /**
-     * Id do status pedido pelo bot. O nome vem da própria validação (`in:`), então
-     * aqui nunca é valor fora da lista de canônicos.
-     */
-    private function statusId(string $name): int
-    {
-        return AppointmentStatus::idFor($name);
     }
 
     private function normalizarTelefone(?string $telefone): string

@@ -26,6 +26,7 @@ class RolePermissionSeeder extends Seeder
             ['module' => 'profissionais', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'documentos', 'actions' => ['view', 'create', 'delete']],
             ['module' => 'contratos', 'actions' => ['view', 'create', 'update', 'delete']],
+            ['module' => 'social', 'actions' => ['view', 'manage']],
             ['module' => 'relatorios', 'actions' => ['view']],
             ['module' => 'auditoria', 'actions' => ['view']],
             ['module' => 'admin', 'actions' => ['view', 'create', 'update', 'delete']],

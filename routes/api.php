@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\EvolutionWebhookController;
 use App\Http\Controllers\Api\MetaWebhookController;
+use App\Http\Controllers\Api\SocialPostController;
 use App\Http\Controllers\Api\WhatsAppController;
 use App\Http\Middleware\AuthenticateEvolutionWebhook;
 use App\Http\Middleware\AuthenticateIntegration;
@@ -66,11 +67,24 @@ Route::prefix('whatsapp')
     ->group(function () {
         Route::get('info', [WhatsAppController::class, 'info'])->name('info');
         Route::get('profissionais', [WhatsAppController::class, 'profissionais'])->name('profissionais');
+        Route::get('procedimentos', [WhatsAppController::class, 'procedimentos'])->name('procedimentos');
 
         Route::get('paciente', [WhatsAppController::class, 'paciente'])->name('paciente');
         Route::post('paciente', [WhatsAppController::class, 'criarPaciente'])->name('criar-paciente');
 
+        /**
+         * Um turno da conversa. É a rota que o n8n chama por mensagem: a máquina
+         * de estados mora no Laravel porque o Code node do n8n não tem HTTP nesta
+         * instalação. Ela concentra o que o bot precisaria para conduzir a
+         * conversa inteira, então exige uma ability própria em vez de herdar
+         * `appointments.create` — ler a agenda e agendar é diferente de avançar a
+         * conversa de um paciente até o fim.
+         */
+        Route::post('fluxo', [WhatsAppController::class, 'fluxo'])->name('fluxo');
+
         Route::get('disponibilidade', [WhatsAppController::class, 'disponibilidade'])->name('disponibilidade');
+        Route::get('conversa', [WhatsAppController::class, 'conversa'])->name('conversa');
+        Route::put('conversa', [WhatsAppController::class, 'conversaAtualizar'])->name('conversa.atualizar');
         Route::post('agendamento', [WhatsAppController::class, 'agendamento'])->name('agendamento');
 
         Route::get('agendamentos', [WhatsAppController::class, 'agendamentosPaciente'])->name('agendamentos');
@@ -84,4 +98,26 @@ Route::prefix('whatsapp')
          * agenda não pode, sozinho, mandar mensagem em nome da clínica.
          */
         Route::post('mensagem', [WhatsAppController::class, 'enviarMensagem'])->name('mensagem');
+    });
+
+/**
+ * API isolada do módulo de redes sociais.
+ *
+ * Separa os posts sociais do atendimento do WhatsApp: o token que gerencia
+ * uma agenda de clínica não precisa responder também pela agenda editorial.
+ */
+Route::prefix('social')
+    ->name('api.social.')
+    ->middleware([
+        AuthenticateIntegration::class,
+        EnsureIntegrationAbility::class,
+        'throttle:integration',
+    ])
+    ->group(function () {
+        Route::get('posts', [SocialPostController::class, 'index'])->name('posts.index');
+        Route::post('posts', [SocialPostController::class, 'store'])->name('posts.store');
+        Route::post('posts/{id}/image', [SocialPostController::class, 'storeImage'])->name('posts.image');
+        Route::get('posts/{id}', [SocialPostController::class, 'show'])->name('posts.show');
+        Route::patch('posts/{id}/approve', [SocialPostController::class, 'approve'])->name('posts.approve');
+        Route::patch('posts/{id}/reject', [SocialPostController::class, 'reject'])->name('posts.reject');
     });

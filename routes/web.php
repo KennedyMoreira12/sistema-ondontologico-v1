@@ -19,6 +19,7 @@ use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfissionalController;
 use App\Http\Controllers\RelatorioController;
+use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\TratamentoPlanoController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +81,15 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/{contrato}/edit', [ContratoController::class, 'edit'])->name('edit');
         Route::put('/{contrato}', [ContratoController::class, 'update'])->name('update');
         Route::delete('/{contrato}', [ContratoController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('social')->name('social.')->group(function () {
+        Route::get('/', [SocialPostController::class, 'index'])->name('index');
+        Route::get('/create', [SocialPostController::class, 'create'])->name('create');
+        Route::post('/', [SocialPostController::class, 'store'])->name('store');
+        Route::get('/{socialPost}', [SocialPostController::class, 'show'])->name('show');
+        Route::patch('/{socialPost}/approve', [SocialPostController::class, 'approve'])->name('approve');
+        Route::patch('/{socialPost}/reject', [SocialPostController::class, 'reject'])->name('reject');
     });
 
     Route::prefix('estoque')->name('estoque.')->group(function () {

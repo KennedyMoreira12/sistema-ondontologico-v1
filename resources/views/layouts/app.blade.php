@@ -64,6 +64,11 @@
                 <a href="{{ route('contratos.index') }}" class="nav-link {{ request()->routeIs('contratos.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-check"></i> Contratos
                 </a>
+                @can('social.view')
+                    <a href="{{ route('social.index') }}" class="nav-link {{ request()->routeIs('social.*') ? 'active' : '' }}">
+                        <i class="bi bi-share"></i> Social
+                    </a>
+                @endcan
                 <a href="{{ route('dashboard') }}?modulo=relatorios" class="nav-link">
                     <i class="bi bi-graph-up-arrow"></i> Relatórios
                 </a>

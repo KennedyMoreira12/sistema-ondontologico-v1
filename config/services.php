@@ -94,4 +94,25 @@ return [
         'timeout' => (int) env('N8N_WEBHOOK_TIMEOUT', 15),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gerador de conteúdo social (n8n)
+    |--------------------------------------------------------------------------
+    |
+    | O webhook do workflow que gera o conteúdo editorial (LJSocialAI01). O
+    | formulário "Novo Post" do painel entrega os dados da solicitação a este
+    | webhook; o workflow chama o modelo e só então cria o SocialPost pela API
+    | interna de posts, que autentica com a credencial de integração que já
+    | existe. O formulário web não envia token nenhum.
+    |
+    | O timeout é maior que o do atendimento porque a resposta só volta depois
+    | da chamada ao modelo.
+    |
+    */
+
+    'social_ai' => [
+        'webhook_url' => env('SOCIAL_AI_WEBHOOK_URL'),
+        'timeout' => (int) env('SOCIAL_AI_TIMEOUT', 60),
+    ],
+
 ];

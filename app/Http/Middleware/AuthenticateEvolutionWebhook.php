@@ -148,12 +148,42 @@ class AuthenticateEvolutionWebhook
      */
     protected function tokenConfere(Request $request, Clinic $clinica): bool
     {
-        $informado = $request->json('apikey');
+        $informado = $this->tokenDaInstancia($request);
 
         if (! is_string($informado) || $informado === '') {
             return false;
         }
 
         return hash_equals((string) $clinica->evolution_token, $informado);
+    }
+
+    /**
+     * Token da instância que gerou o evento, em qualquer um dos formatos que a
+     * Evolution manda: no JSON do corpo (`apikey`), no header `apikey`, ou no
+     * header `Authorization` (com ou sem o prefixo "Bearer "). Nunca confundir
+     * com `LJ_INTEGRATION_TOKEN`, que é o segredo do n8n chamando a API interna;
+     * este é o token da instância, que vem da Evolution.
+     */
+    protected function tokenDaInstancia(Request $request): ?string
+    {
+        $corpo = $request->json('apikey');
+
+        if (is_string($corpo) && $corpo !== '') {
+            return $corpo;
+        }
+
+        $headerApiKey = $request->header('apikey');
+
+        if (is_string($headerApiKey) && $headerApiKey !== '') {
+            return $headerApiKey;
+        }
+
+        $autorizacao = $request->header('Authorization');
+
+        if (is_string($autorizacao) && $autorizacao !== '') {
+            return preg_replace('/^(?:Bearer|Basic)\s+/i', '', $autorizacao);
+        }
+
+        return null;
     }
 }

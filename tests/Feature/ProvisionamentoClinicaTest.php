@@ -317,7 +317,7 @@ class ProvisionamentoClinicaTest extends TestCase
     /**
      * @return array{clinic: Clinic, user: User, connection: TenantConnection, subscription: Subscription, password: string}
      */
-protected function provisionar(
+    protected function provisionar(
         string $nome = 'Clínica Aurora',
         string $email = 'aurora@teste.test',
         ?Plan $plano = null,

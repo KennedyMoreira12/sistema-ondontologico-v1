@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Plataforma de Gestão de Clínicas | LJ Automação</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 14mm 18mm 14mm;
+  }
+
+  :root {
+    --azul: #0b7285;
+    --azul-escuro: #084c5b;
+    --azul-prof: #063642;
+    --teal: #0ca678;
+    --verde: #2b8a3e;
+    --ambar: #e8890c;
+    --roxo: #7048e8;
+    --rosa: #d6336c;
+    --cinza-bg: #f4f7f9;
+    --cinza-texto: #5a6a72;
+    --texto: #1d2b33;
+    --borda: #dde7ec;
+    --sombra: 0 1px 4px rgba(20, 60, 80, .08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--texto);
+    font-size: 10.2pt;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- CAPA ---------- */
+  .capa {
+    page-break-after: always;
+    height: 247mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(150deg, var(--azul-prof) 0%, var(--azul) 55%, var(--teal) 130%);
+    color: #fff;
+    margin: -16mm -14mm -18mm -14mm;
+    padding: 18mm 16mm 16mm 16mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .capa::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(1.4px 1.4px at 18% 24%, rgba(255,255,255,.30) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 68% 16%, rgba(255,255,255,.22) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 42% 72%, rgba(255,255,255,.18) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 88% 58%, rgba(255,255,255,.26) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 30% 88%, rgba(255,255,255,.16) 50%, transparent 51%);
+    background-size: 190px 190px, 230px 230px, 270px 270px, 210px 210px, 250px 250px;
+  }
+  .capa > * { position: relative; z-index: 2; }
+
+  .capa-logo { height: 17mm; width: auto; }
+  .capa-logo-wrap {
+    background: #fff; border-radius: 4mm; padding: 4mm 6mm;
+    display: inline-block; box-shadow: 0 3px 10px rgba(0,0,0,.18);
+  }
+  .capa-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .capa-selo {
+    border: 1px solid rgba(255,255,255,.4); border-radius: 999px;
+    padding: 2mm 5mm; font-size: 8pt; letter-spacing: .16em; text-transform: uppercase;
+  }
+  .capa h1 { font-size: 30pt; line-height: 1.12; font-weight: 800; letter-spacing: -.5pt; }
+  .capa h1 small { display: block; font-size: 12pt; font-weight: 500; opacity: .82; letter-spacing: 0; margin-top: 4mm; }
+  .capa .regua { width: 26mm; height: 1.4mm; background: var(--teal); border-radius: 2mm; margin: 7mm 0 6mm; }
+  .capa .lead { font-size: 11pt; opacity: .9; max-width: 132mm; }
+  .capa-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; }
+  .capa-facts { display: flex; gap: 3mm; }
+  .capa-fact {
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+    border-radius: 3mm; padding: 3mm 4mm; min-width: 26mm;
+  }
+  .capa-fact b { display: block; font-size: 15pt; font-weight: 800; line-height: 1.1; }
+  .capa-fact span { font-size: 7pt; text-transform: uppercase; letter-spacing: .08em; opacity: .82; }
+  .capa-contato { text-align: right; font-size: 8.4pt; opacity: .88; line-height: 1.65; flex: 0 1 auto; }
+  .capa-contato b { color: #fff; font-weight: 700; }
+
+  /* ---------- ESTRUTURA ---------- */
+  section { page-break-inside: auto; }
+  .page { page-break-before: always; }
+  .no-break { page-break-inside: avoid; }
+
+  h2.secao {
+    font-size: 16pt; font-weight: 800; color: var(--azul-prof);
+    letter-spacing: -.3pt; margin-bottom: 2mm;
+  }
+  h2.secao .num {
+    display: inline-block; background: linear-gradient(135deg, var(--azul), var(--teal));
+    color: #fff; font-size: 9pt; font-weight: 700; border-radius: 2.4mm;
+    padding: .8mm 3mm; margin-right: 3mm; vertical-align: 3px;
+  }
+  .kicker {
+    font-size: 7.6pt; text-transform: uppercase; letter-spacing: .18em;
+    color: var(--teal); font-weight: 700; margin-bottom: 1.5mm;
+  }
+  .subtitulo { color: var(--cinza-texto); font-size: 10pt; margin-bottom: 6mm; }
+  .regua2 { width: 18mm; height: 1mm; background: var(--teal); border-radius: 2mm; margin: 3mm 0 5mm; }
+
+  h3.bloco {
+    font-size: 11.4pt; font-weight: 700; color: var(--azul);
+    margin: 6mm 0 2.5mm; padding-left: 3mm; border-left: 1.2mm solid var(--teal);
+  }
+
+  p { margin-bottom: 2.5mm; }
+  p:last-child { margin-bottom: 0; }
+
+  ul.lista { list-style: none; margin: 0 0 3mm; }
+  ul.lista li {
+    position: relative; padding-left: 5mm; margin-bottom: 1.6mm;
+  }
+  ul.lista li::before {
+    content: ""; position: absolute; left: 0; top: 1.7mm;
+    width: 2.4mm; height: 2.4mm; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--azul));
+  }
+
+  /* ---------- COMPONENTES ---------- */
+  .cards { display: flex; flex-wrap: wrap; gap: 4mm; margin: 4mm 0 5mm; }
+  .card {
+    flex: 1 1 calc(33.333% - 3mm); min-width: 46mm;
+    background: #fff; border: 1px solid var(--borda); border-radius: 3.5mm;
+    padding: 4.5mm 4.5mm 4mm; box-shadow: var(--sombra);
+    page-break-inside: avoid;
+  }
+  .card .ico {
+    width: 8mm; height: 8mm; border-radius: 2.4mm; display: flex;
+    align-items: center; justify-content: center; color: #fff;
+    font-size: 11pt; margin-bottom: 2.5mm;
+  }
+  .card h4 { font-size: 10.4pt; font-weight: 700; margin-bottom: 1.2mm; color: var(--texto); }
+  .card p { font-size: 8.8pt; color: var(--cinza-texto); line-height: 1.45; }
+  .card ul.lista { margin: 2mm 0 0; }
+  .card ul.lista li { font-size: 8.6pt; margin-bottom: 1mm; }
+  .card.wide { flex: 1 1 100%; }
+
+  .grade4 { display: flex; flex-wrap: wrap; gap: 3.5mm; margin: 4mm 0 5mm; }
+  .grade4 .card { flex: 1 1 calc(25% - 2.7mm); min-width: 38mm; padding: 4mm 3.6mm 3.6mm; }
+
+  .num { background: #fff; border: 1px solid var(--borda); border-radius: 3.5mm; padding: 4mm; text-align: center; flex: 1 1 0; }
+  .num b { display: block; font-size: 19pt; font-weight: 800; line-height: 1.05; color: var(--azul); }
+  .num span { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .08em; color: var(--cinza-texto); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 8.9pt; }
+  thead th {
+    background: var(--azul-prof); color: #fff; text-align: left; font-weight: 600;
+    padding: 2.4mm 3mm; font-size: 8.2pt; text-transform: uppercase; letter-spacing: .06em;
+  }
+  thead th:first-child { border-radius: 2mm 0 0 0; }
+  thead th:last-child { border-radius: 0 2mm 0 0; }
+  tbody td { padding: 2.3mm 3mm; border-bottom: 1px solid var(--borda); vertical-align: top; }
+  tbody tr:nth-child(even) { background: #fafcfd; }
+  tbody td:first-child { font-weight: 600; color: var(--azul); }
+  tbody td small { color: var(--cinza-texto); font-weight: 400; }
+
+  .tag {
+    display: inline-block; border-radius: 999px; padding: .5mm 2.4mm;
+    font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .tag.ok { background: #e4f7ec; color: #1f7a34; }
+  .tag.parcial { background: #fff4e0; color: #b06400; }
+  .tag.novo { background: #e2f4f1; color: #0a7a5a; }
+
+  .callout {
+    background: linear-gradient(135deg, #f0faf9, #f4f9fc);
+    border: 1px solid #cfe6ee; border-left: 1.4mm solid var(--teal);
+    border-radius: 2.5mm; padding: 4mm 4.5mm; margin: 4mm 0 5mm; font-size: 9.2pt;
+    page-break-inside: avoid;
+  }
+  .callout b { color: var(--azul-prof); }
+  .callout.aviso { background: linear-gradient(135deg, #fffaf0, #fffdf8); border-color: #f3e2c4; border-left-color: var(--ambar); }
+
+  .fluxo { display: flex; align-items: stretch; gap: 0; margin: 4mm 0 5mm; }
+  .fluxo .etapa {
+    flex: 1; background: #fff; border: 1px solid var(--borda); border-radius: 3mm;
+    padding: 3.4mm 2.6mm; text-align: center; box-shadow: var(--sombra);
+  }
+  .fluxo .etapa b { display: block; font-size: 8.8pt; font-weight: 700; margin-bottom: .8mm; }
+  .fluxo .etapa span { font-size: 7.2pt; color: var(--cinza-texto); line-height: 1.35; display: block; }
+  .fluxo .seta {
+    display: flex; align-items: center; padding: 0 1.6mm;
+    color: var(--teal); font-size: 11pt; font-weight: 700;
+  }
+
+  /* ---------- MOCKUP DA INTERFACE ---------- */
+  .mockup {
+    border: 1px solid var(--borda); border-radius: 3.5mm; overflow: hidden;
+    box-shadow: var(--sombra); margin: 4mm 0 5mm; background: #fff;
+  }
+  .mockup .barra {
+    background: var(--azul-prof); color: #fff; font-size: 7.4pt;
+    padding: 1.8mm 3mm; display: flex; align-items: center; gap: 2mm;
+  }
+  .mockup .barra .ponto { width: 1.8mm; height: 1.8mm; border-radius: 50%; background: rgba(255,255,255,.3); }
+  .mockup .corpo { display: flex; min-height: 46mm; }
+  .mockup .side { width: 34mm; background: #f7fafb; border-right: 1px solid var(--borda); padding: 2.4mm 0; }
+  .mockup .side .marca {
+    display: flex; align-items: center; gap: 1.6mm; padding: 0 2.4mm 2.4mm;
+    border-bottom: 1px solid var(--borda); margin-bottom: 1.8mm;
+    font-size: 7.4pt; font-weight: 700; color: var(--azul-prof);
+  }
+  .mockup .side .marca i {
+    width: 4mm; height: 4mm; border-radius: 1.2mm; display: block;
+    background: linear-gradient(135deg, var(--azul), var(--teal));
+  }
+  .mockup .side .grupo {
+    font-size: 5.9pt; text-transform: uppercase; letter-spacing: .12em;
+    color: #9aabb3; font-weight: 700; padding: 1.8mm 2.4mm .8mm;
+  }
+  .mockup .side .it { font-size: 7pt; color: #4a5c64; padding: .9mm 2.4mm; display: block; }
+  .mockup .side .it.on {
+    background: linear-gradient(90deg, rgba(12,166,120,.16), transparent);
+    color: var(--azul); font-weight: 700; border-left: .8mm solid var(--teal);
+  }
+  .mockup .main { flex: 1; padding: 2.6mm 3mm; background: var(--cinza-bg); }
+  .mockup .kpis { display: flex; gap: 2mm; margin-bottom: 2.4mm; }
+  .mockup .kpi {
+    flex: 1; background: #fff; border: 1px solid var(--borda); border-radius: 2mm; padding: 1.8mm 2mm;
+  }
+  .mockup .kpi b { display: block; font-size: 10pt; color: var(--azul); line-height: 1.1; }
+  .mockup .kpi span { font-size: 5.9pt; text-transform: uppercase; letter-spacing: .08em; color: var(--cinza-texto); }
+  .mockup .grade { display: flex; gap: 2mm; }
+  .mockup .bloco-b {
+    background: #fff; border: 1px solid var(--borda); border-radius: 2mm;
+    padding: 2mm; flex: 1;
+  }
+  .mockup .bloco-b .t {
+    font-size: 6.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--cinza-texto); margin-bottom: 1.6mm; border-bottom: 1px solid var(--borda); padding-bottom: 1mm;
+  }
+  .mockup .linha {
+    display: flex; justify-content: space-between; font-size: 6.6pt;
+    padding: .9mm 0; border-bottom: 1px dashed #eef3f5; color: #4a5c64;
+  }
+  .mockup .linha:last-child { border-bottom: 0; }
+  .mockup .linha .p { color: var(--azul); font-weight: 700; }
+  .mockup .badge-s {
+    font-size: 5.8pt; font-weight: 700; border-radius: 999px; padding: .3mm 1.6mm;
+  }
+
+  /* ---------- MÓDULOS (layout duas colunas) ---------- */
+  .modulo {
+    background: #fff; border: 1px solid var(--borda); border-radius: 3.5mm;
+    padding: 4mm 4.2mm; margin-bottom: 4mm; box-shadow: 0 1px 3px rgba(20,60,80,.06);
+    page-break-inside: avoid;
+  }
+  .modulo .cab { display: flex; align-items: flex-start; gap: 3mm; margin-bottom: 2.4mm; }
+  .modulo .cab .ico {
+    width: 8.5mm; height: 8.5mm; border-radius: 2.6mm; flex: none;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12pt;
+  }
+  .modulo .cab h4 { font-size: 11pt; font-weight: 700; color: var(--azul-prof); }
+  .modulo .cab p { font-size: 8.6pt; color: var(--cinza-texto); }
+  .modulo ul.lista li { font-size: 8.8pt; }
+  .modulo .telas {
+    margin-top: 2.4mm; padding-top: 2.2mm; border-top: 1px dashed var(--borda);
+    font-size: 7.8pt; color: var(--cinza-texto);
+  }
+  .modulo .telas b { color: var(--azul); text-transform: uppercase; letter-spacing: .08em; font-size: 6.8pt; }
+
+  .duas { display: flex; gap: 4mm; }
+  .duas > div { flex: 1; min-width: 0; }
+
+  /* ---------- SUMÁRIO ---------- */
+  .sumario { display: flex; flex-wrap: wrap; gap: 2.5mm 6mm; margin-top: 4mm; }
+  .sumario div { flex: 1 1 calc(50% - 4mm); font-size: 9.2pt; display: flex; gap: 2.6mm; align-items: baseline; }
+  .sumario div span.n {
+    color: var(--teal); font-weight: 800; min-width: 6mm; font-size: 8.4pt;
+  }
+  .sumario div span.t { color: var(--texto); }
+
+  /* ---------- RODAPÉ ---------- */
+  .rodape {
+    margin-top: 7mm; padding-top: 3mm; border-top: 1px solid var(--borda);
+    display: flex; justify-content: space-between; font-size: 7.4pt; color: var(--cinza-texto);
+  }
+
+  /* ---------- SAAS: DIAGRAMA DE TENANTS ---------- */
+  .destaque {
+    background: linear-gradient(135deg, var(--azul-prof), var(--azul) 70%, var(--teal));
+    color: #fff; border-radius: 3.5mm; padding: 5mm 5.5mm; margin: 4mm 0 5mm;
+    text-align: center;
+  }
+  .destaque b { display: block; font-size: 13pt; font-weight: 800; line-height: 1.25; }
+  .destaque span { display: block; font-size: 9pt; opacity: .88; margin-top: 1.5mm; }
+
+  .plataforma {
+    background: var(--azul-prof); color: #fff; border-radius: 3.5mm;
+    padding: 4mm 5mm; text-align: center;
+  }
+  .plataforma b { display: block; font-size: 12pt; font-weight: 800; }
+  .plataforma span { font-size: 8.2pt; opacity: .85; }
+
+  .conector {
+    text-align: center; font-size: 8pt; color: var(--cinza-texto);
+    padding: 2mm 0; position: relative;
+  }
+  .conector .seta { color: var(--teal); font-size: 15pt; font-weight: 700; line-height: 1; }
+  .conector em { font-style: normal; display: block; color: var(--teal); font-weight: 700; }
+
+  .tenants { display: flex; gap: 3.5mm; margin-top: 3mm; }
+  .tenant {
+    flex: 1; background: #fff; border: 1.5px solid var(--borda); border-top: 1.4mm solid var(--teal);
+    border-radius: 3mm; padding: 3.4mm 3.4mm 3mm; text-align: center;
+    page-break-inside: avoid;
+  }
+  .tenant .nome { font-size: 9.4pt; font-weight: 700; color: var(--azul-prof); }
+  .tenant .banco {
+    display: inline-block; font-family: Consolas, monospace; font-size: 7.6pt;
+    background: #eef6f8; color: var(--azul); border-radius: 2mm;
+    padding: .8mm 2.4mm; margin: 1.6mm 0 2mm;
+  }
+  .tenant ul.lista { text-align: left; margin: 0; }
+  .tenant ul.lista li { font-size: 7.4pt; margin-bottom: .6mm; padding-left: 4mm; }
+  .tenant ul.lista li::before { width: 1.8mm; height: 1.8mm; top: 1.5mm; }
+  .tenant .selo {
+    margin-top: 2mm; font-size: 6.6pt; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--teal);
+  }
+
+  /* ---------- SAAS: PASSOS DE PROVISIONAMENTO ---------- */
+  .passos { margin: 4mm 0 5mm; }
+  .passo {
+    display: flex; gap: 3.4mm; align-items: flex-start; margin-bottom: 3.2mm;
+    page-break-inside: avoid;
+  }
+  .passo .n {
+    flex: none; width: 8mm; height: 8mm; border-radius: 50%;
+    background: linear-gradient(135deg, var(--azul), var(--teal)); color: #fff;
+    font-size: 9.4pt; font-weight: 800; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .passo .txt { flex: 1; padding-top: .4mm; }
+  .passo .txt b { font-size: 9.8pt; color: var(--azul-prof); display: block; margin-bottom: .6mm; }
+  .passo .txt p { font-size: 8.6pt; color: var(--cinza-texto); line-height: 1.45; }
+  .passo .txt code {
+    font-family: Consolas, monospace; font-size: 8pt; background: #eef6f8;
+    color: var(--azul); border-radius: 1.6mm; padding: .3mm 1.6mm;
+  }
+
+  /* ---------- SAAS: TABELA COMPARATIVA ---------- */
+  table.comparar th.meio, table.comparar td.meio { background: #eef8f4; }
+  table.comparar th.meio { background: var(--azul); }
+  table.comparar td.meio { font-weight: 600; color: var(--azul-prof); }
+  table.comparar thead th.meio { background: var(--teal); }
+  .col-meio { width: 34%; }
+
+  /* ---------- SAAS: ESTADOS ---------- */
+  .estados { display: flex; flex-wrap: wrap; gap: 2.6mm; margin: 3mm 0 4mm; }
+  .estado {
+    flex: 1 1 calc(33.333% - 2mm); min-width: 44mm; border-radius: 2.6mm;
+    border: 1px solid var(--borda); border-left: 1.2mm solid var(--borda);
+    padding: 2.6mm 3.2mm; background: #fff;
+  }
+  .estado b { display: block; font-size: 8.6pt; color: var(--azul-prof); }
+  .estado span { font-size: 7.6pt; color: var(--cinza-texto); line-height: 1.4; display: block; margin-top: .6mm; }
+  .estado.libera { border-left-color: var(--verde); }
+  .estado.libera b { color: var(--verde); }
+  .estado.carcencia { border-left-color: var(--ambar); }
+  .estado.carcencia b { color: var(--ambar); }
+  .estado.bloqueia { border-left-color: #c92a2a; }
+  .estado.bloqueia b { color: #c92a2a; }
+
+  /* ---------- SAAS: FAIXA DE ENGAJAMENTO ---------- */
+  .faixa {
+    display: flex; gap: 0; margin: 4mm 0 5mm; border-radius: 3.5mm; overflow: hidden;
+    border: 1px solid var(--borda);
+  }
+  .faixa > div {
+    flex: 1; padding: 3.6mm 3.2mm; text-align: center;
+    border-right: 1px solid var(--borda);
+  }
+  .faixa > div:last-child { border-right: 0; }
+  .faixa b { display: block; font-size: 10.4pt; color: var(--azul); line-height: 1.15; }
+  .faixa span { font-size: 7.2pt; text-transform: uppercase; letter-spacing: .07em; color: var(--cinza-texto); font-weight: 600; }
+  .faixa .destaque-faixa { background: #eef8f4; }
+</style>
+</head>
+<body>
+
+<!-- ================= CAPA ================= -->
+<div class="capa">
+  <div class="capa-top">
+    <div class="capa-logo-wrap">
+      <img class="capa-logo" src="proposta_comercial/lj_logo.png" alt="LJ Automação">
+    </div>
+    <div class="capa-selo">Plataforma SaaS</div>
+  </div>
+
+  <div>
+    <h1>Plataforma de<br>Gestão de Clínicas
+      <small>LJ Automação — sistema em nuvem para qualquer especialidade. Cada clínica que assina recebe um sistema completo, exclusivo e isolado.</small>
+    </h1>
+    <div class="regua"></div>
+    <p class="lead">
+      Agenda, prontuário, pacientes, orçamentos, financeiro, contratos, estoque, convênios,
+      relatórios e permissões em uma única plataforma. A mesma instalação atende todas as
+      clínicas clientes, e cada uma tem banco de dados, usuários, perfis e catálogos próprios
+      — configurados para a sua especialidade, com os dados de uma clínica nunca visíveis para
+      outra.
+    </p>
+  </div>
+
+  <div class="capa-bottom">
+    <div class="capa-facts">
+      <div class="capa-fact"><b>1</b><span>Plataforma</span></div>
+      <div class="capa-fact"><b>N</b><span>Sistemas isolados</span></div>
+      <div class="capa-fact"><b>20</b><span>Módulos</span></div>
+      <div class="capa-fact"><b>72</b><span>Telas</span></div>
+      <div class="capa-fact"><b>108</b><span>Testes</span></div>
+    </div>
+    <div class="capa-contato">
+      <b>LJ Automação — Tecnologia do Seu Jeito</b><br>
+      John Kennedy Moreira<br>
+      (38) 99201-5253 · kennedyjan2012@hotmail.com<br>
+      <span style="opacity:.7">Setembro de 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SUMÁRIO ================= -->
+<section>
+  <div class="kicker">Conteúdo</div>
+  <h2 class="secao">Sumário</h2>
+  <div class="regua2"></div>
+
+  <div class="sumario">
+    <div><span class="n">01</span><span class="t">O que é: uma plataforma SaaS de gestão de clínicas</span></div>
+    <div><span class="n">02</span><span class="t">Uma plataforma, qualquer clínica</span></div>
+    <div><span class="n">03</span><span class="t">Como a clínica adquire o seu sistema</span></div>
+    <div><span class="n">04</span><span class="t">Cada clínica tem um sistema só dela</span></div>
+    <div><span class="n">05</span><span class="t">Arquitetura de duas camadas</span></div>
+    <div><span class="n">06</span><span class="t">O painel da plataforma</span></div>
+    <div><span class="n">07</span><span class="t">Planos comerciais e ciclo de assinatura</span></div>
+    <div><span class="n">08</span><span class="t">Como o sistema está organizado</span></div>
+    <div><span class="n">09</span><span class="t">Módulos — parte 1: paciente e clínica</span></div>
+    <div><span class="n">10</span><span class="t">Módulos — parte 2: tratamento e financeiro</span></div>
+    <div><span class="n">11</span><span class="t">Módulos — parte 3: equipe e administração</span></div>
+    <div><span class="n">12</span><span class="t">Fluxo completo do atendimento</span></div>
+    <div><span class="n">13</span><span class="t">Perfis de acesso e permissões</span></div>
+    <div><span class="n">14</span><span class="t">Catálogos e base de dados pronta</span></div>
+    <div><span class="n">15</span><span class="t">Ambiente demonstrativo</span></div>
+    <div><span class="n">16</span><span class="t">API de WhatsApp por clínica</span></div>
+    <div><span class="n">17</span><span class="t">Segurança, auditoria e LGPD</span></div>
+    <div><span class="n">18</span><span class="t">Engenharia e qualidade</span></div>
+    <div><span class="n">19</span><span class="t">O que já está pronto e próximos passos</span></div>
+    <div><span class="n">20</span><span class="t">Onboarding da clínica e implantação</span></div>
+    <div><span class="n">21</span><span class="t">Contato</span></div>
+  </div>
+
+  <h3 class="bloco">Como ler este documento</h3>
+  <p>
+    As seções 01 a 07 explicam <b>o modelo do SaaS</b>: o que a clínica contrata, que a plataforma
+    serve a qualquer especialidade, como o sistema é preparado para ela, por que os dados ficam
+    isolados e como a assinatura é controlada. As seções 08 a 21 detalham <b>o que há dentro
+    de cada sistema</b>: os módulos, as permissões, as integrações e a engenharia. Cada módulo é
+    descrito com o que permite fazer, as telas envolvidas e o nível de maturidade do recurso.
+  </p>
+  <table>
+    <thead>
+      <tr><th style="width:32mm">Etiqueta</th><th>Significado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="tag ok">Pronto</span></td><td>Funcionalidade implementada, com validação de dados, permissão de acesso e testes automatizados.</td></tr>
+      <tr><td><span class="tag novo">Recém-entregue</span></td><td>Funcionalidade concluída recentemente e já integrada ao restante do sistema.</td></tr>
+      <tr><td><span class="tag parcial">Em evolução</span></td><td>Módulo em funcionamento com melhorias incrementais previstas na próxima fase.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 01 O QUE É SAAS ================= -->
+<section class="page">
+  <div class="kicker">01 — O modelo de negócio</div>
+  <h2 class="secao">O que é: uma plataforma SaaS de gestão de clínicas</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    SaaS (<i>Software as a Service</i>) é um sistema que a clínica usa pela internet, pagando
+    uma mensalidade, sem comprar licença nem instalar programa em cada computador. A plataforma é
+    construído sobre esse modelo: uma única plataforma é mantida e evoluída pela LJ Automação,
+    e cada clínica assinante opera o seu próprio sistema dentro dela.
+  </p>
+
+  <div class="destaque">
+    <b>Uma plataforma. Vários sistemas. Nenhuma mistura de dados.</b>
+    <span>Todas as clínicas usam o mesmo software atualizado — mas cada uma tem banco, usuários, permissões e catálogos próprios.</span>
+  </div>
+
+  <h3 class="bloco">As duas promessas da plataforma</h3>
+  <div class="duas">
+    <div>
+      <div class="card wide" style="border-left:1.4mm solid var(--teal)">
+        <h4 style="color:var(--azul-prof)">1. Sistema sempre atualizado, sem trabalho da clínica</h4>
+        <p style="font-size:9pt;margin-bottom:2.5mm">
+          A equipe da LJ Automação aplica correções e melhorias em uma só lugar. Todas as clínicas
+          acordadas passam a usar a nova versão no próximo acesso, sem reinstalar nada, sem
+          computador lento e sem pagar mão de obra de atualização.
+        </p>
+        <ul class="lista">
+          <li>Correções de segurança aplicadas de forma centralizada.</li>
+          <li>Novos módulos e recursos entram como atualização, não como nova instalação.</li>
+          <li>Nenhuma dependência de computador, servidor ou sistema operacional da clínica.</li>
+          <li>Backup e manutenção fazem parte da mensalidade.</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card wide" style="border-left:1.4mm solid var(--azul)">
+        <h4 style="color:var(--azul-prof)">2. Um sistema exclusivo, com os dados da própria clínica</h4>
+        <p style="font-size:9pt;margin-bottom:2.5mm">
+          Enquanto a estrutura de navegação, os módulos e as telas são o mesmo produto para
+          todos, o conteúdo é individual. A clínica entra no sistema e enxerga somente os seus
+          pacientes, a sua agenda e os seus valores — porque o isolamento é do banco de dados,
+          não apenas um filtro na tela.
+        </p>
+        <ul class="lista">
+          <li>Banco de dados separado, criado só para aquela clínica.</li>
+          <li>Usuários, perfis e permissões cadastrados pela própria clínica.</li>
+          <li>Catálogos de procedimentos, salas, convênios e produtos editáveis.</li>
+          <li>Identidade visual com o logo e as cores da clínica.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="bloco">Comparação com o sistema comprado e instalado</h3>
+  <table class="comparar">
+    <thead>
+      <tr>
+        <th style="width:36mm">Aspecto</th>
+        <th>Sistema comprado e instalado</th>
+        <th class="meio">Plataforma LJ Automação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Instalação</td>
+        <td>Servidor, licença e programa instalado em cada máquina ou em um servidor próprio.</td>
+        <td class="meio">Acesso pela internet, sem instalação na clínica.</td>
+      </tr>
+      <tr>
+        <td>Atualizações</td>
+        <td>Contratação de manutenção, com visita técnica e janela de parada.</td>
+        <td class="meio">Aplicadas uma vez na plataforma e liberadas para todas as clínicas.</td>
+      </tr>
+      <tr>
+        <td>Isolamento dos dados</td>
+        <td>Dados ficam em um servidor da clínica, sob responsabilidade da sua operação.</td>
+        <td class="meio">Um banco dedicado por clínica, gerenciado pela plataforma.</td>
+      </tr>
+      <tr>
+        <td>Custo inicial</td>
+        <td>Licença, hardware, servidor, instalação e configuração.</td>
+        <td class="meio">Sem investimento em servidor ou licença.</td>
+      </tr>
+      <tr>
+        <td>Custo mensal</td>
+        <td>Suporte e manutenção, quando contratado.</td>
+        <td class="meio">Uma mensalidade por plano, com tudo incluído.</td>
+      </tr>
+      <tr>
+        <td>Entrada em operação</td>
+        <td>Dias ou semanas, dependendo da equipe de informática.</td>
+        <td class="meio">Imediata: o sistema é preparado e o acesso é liberado.</td>
+      </tr>
+      <tr>
+        <td>Funciona em rede</td>
+        <td>Depende de VPN, servidor interno e manutenção da rede da clínica.</td>
+        <td class="meio>Acesso por navegador em qualquer computador com internet.</td>
+      </tr>
+      <tr>
+        <td>Encerro do contrato</td>
+        <td>Migração de dados do servidor da clínica para outro lugar.</td>
+        <td class="meio">Backup do banco da clínica entregue para arquivamento.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>Resumo do modelo:</b> a clínica contrata acesso, não instala software. Em troca da
+    mensalidade, recebe um sistema completo, com todos os módulos, sempre atualizado e com os
+    dados guardados em um banco exclusivo que só ela acessa.
+  </div>
+</section>
+
+<!-- ================= 02 ABRANGENCIA ================= -->
+<section class="page">
+  <div class="kicker">02 — Abrangência</div>
+  <h2 class="secao">Uma plataforma, qualquer clínica</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    A plataforma não é restrita a uma especialidade. O que a clínica contrata é um sistema
+    completo de gestão; o que define a área de atuação são os catálogos — especialidades,
+    procedimentos, valores, formas de pagamento e convenções. Esses catálogos são configuráveis
+    pela própria clínica, dentro do próprio sistema, sem depender de desenvolvimento.
+  </p>
+
+  <div class="destaque">
+    <b>Mesmo sistema, clínicas diferentes.</b>
+    <span>Uma clínica de odontologia, uma de medicina estética, uma de fisioterapia ou uma de psicologia usam a mesma plataforma — cada uma com os seus catálogos, os seus perfis e a sua configuração.</span>
+  </div>
+
+  <table class="comparar">
+    <thead>
+      <tr>
+        <th style="width:34mm">O que é</th>
+        <th>Como funciona em qualquer especialidade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pacientes e cadastro</td>
+        <td>Identificação, contato, endereço, responsável, convênio, documentos e alertas. Idêntico em qualquer área.</td>
+      </tr>
+      <tr>
+        <td>Agenda</td>
+        <td>Marcação por profissional e sala, tipos de atendimento, status, lista de espera e bloqueio de horário duplicado.</td>
+      </tr>
+      <tr>
+        <td>Prontuário e evolução</td>
+        <td>Linha do tempo do paciente, anamnese, alertas clínicos, prescrições e anexos. O conteúdo da anamnese muda por especialidade; o registro é o mesmo.</td>
+      </tr>
+      <tr>
+        <td>Profissionais</td>
+        <td>Cadastro, registro profissional, especialidades, comissão e vínculo com usuário do sistema.</td>
+      </tr>
+      <tr>
+        <td>Orçamento e financeiro</td>
+        <td>Orçamento com validade e desconto, conversão em conta a receber, baixa parcial ou total, comissões e relatórios de faturamento.</td>
+      </tr>
+      <tr>
+        <td>Contratos e documentos</td>
+        <td>Termos de consentimento, contratos de serviço e assinatura com controle de situação.</td>
+      </tr>
+      <tr>
+        <td>Estoque</td>
+        <td>Produtos, lotes, validade, custo, preço, estoque mínimo, entrada e saída com rastro de consumo.</td>
+      </tr>
+      <tr>
+        <td>Convênios e seguros</td>
+        <td>Operadoras, planos com registro ANS, cobertura, carteirinha e vinculação do paciente.</td>
+      </tr>
+      <tr>
+        <td>Perfis e permissões</td>
+        <td>Seis perfis prontos e 58 permissões, definidos pela clínica conforme a sua equipe.</td>
+      </tr>
+      <tr>
+        <td>Relatórios e auditoria</td>
+        <td>Consolidado de financeiro, agenda e estoque, com trilha de auditoria de toda operação relevante.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="bloco">O que a clínica configura para a sua especialidade</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">☰</div>
+      <h4>Especialidades</h4>
+      <p>A clínica cadastra as especialidades que atende e vincula cada profissional às suas. As 7 especialidades odontológicas vêm prontas, mas a lista é totalmente substituível.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">▦</div>
+      <h4>Procedimentos e preços</h4>
+      <p>Catálogo com código, nome, categoria, duração e valor. É o que alimenta automaticamente planos de tratamento e orçamentos — a clínica define a tabela de preços da sua área.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">⛨</div>
+      <h4>Convênios e planos</h4>
+      <p>Operadoras que a clínica aceita, planos oferecidos, cobertura e tabela de valores. Relevante para qualquer área que atue com convênio.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#d6336c)">$</div>
+      <h4>Formas de pagamento</h4>
+      <p>Dinheiro, PIX, cartão, boleto e convênio vêm prontos. A clínica combina as formas aceitas na sua operação e pode acrescentar outras.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0ca678,#2b8a3e)">▣</div>
+      <h4>Produtos e categorias</h4>
+      <p>As 7 categorias de insumo que vêm prontas são de odontologia. Uma clínica de outra área simplesmente cadastra as suas — cosméticos, farmácia, lupas, apostilas e insumos específicos da área.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#1d2b33,#7048e8)">◱</div>
+      <h4>Identidade visual</h4>
+      <p>Logo e cores próprias da clínica aplicados ao sistema. Cada cliente enxerga a sua marca, e não a marca da plataforma.</p>
+    </div>
+  </div>
+
+  <h3 class="bloco">A especialidade já entregue: odontologia</h3>
+  <div class="duas">
+    <div>
+      <p>
+        A plataforma foi configurada e entregue com a especialidade odontológica, que é o
+        cenário mais exigente em prontuário, e é ele que define a vertical inicial. O que já vem
+        pronto nesse recorte:
+      </p>
+      <ul class="lista">
+        <li>Odontograma com arcada permanente e decidua, na posição correta de cada dente.</li>
+        <li>8 condições dentárias com cor própria: hígido, cariado, restaurado, ausente, coroa, implante, tratamento de canal e fraturado.</li>
+        <li>7 especialidades odontológicas pré-cadastradas.</li>
+        <li>10 procedimentos com código, duração e valor, prontos para faturamento e convênio.</li>
+        <li>7 categorias de produto típicas de consultório odontológico.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="bloco" style="margin-top:0">Como habilitar outra especialidade</h3>
+      <p style="font-size:9.2pt">
+        Habilitar outra área é uma tarefa de configuração, feita pela própria clínica dentro do
+        sistema, sem novo desenvolvimento:
+      </p>
+      <ul class="lista">
+        <li>Substituir a lista de especialidades pelas da nova área.</li>
+        <li>Cadastrar a tabela de procedimentos com códigos, durações e preços da especialidade.</li>
+        <li>Cadastrar as categorias de produto e os insumos utilizados.</li>
+        <li>Ajustar formas de pagamento, convênios e salas.</li>
+        <li>Definir os perfis de acesso da equipe conforme a nova rotina.</li>
+        <li>Desativar o que não se aplica — como o odontograma — simplesmente retirando a permissão, sem afetar o restante do sistema.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Na prática:</b> agenda, prontuário, orçamento, financeiro, contratos, estoque, relatórios,
+    permissões e auditoria são exatamente os mesmos módulos para qualquer clínica. O que muda
+    entre uma clínica e outra é a configuração dos catálogos e dos perfis — e essa configuração
+    é feita sem a ajuda de um programador.
+  </div>
+</section>
+
+<!-- ================= 03 COMO ADQUIRE ================= -->
+<section class="page">
+  <div class="kicker">03 — Do contrato ao primeiro acesso</div>
+  <h2 class="secao">Como a clínica adquire o seu sistema</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Quando uma clínica fecha a contratação, a plataforma prepara o sistema dela de forma
+    automática. Não há instalação manual, não há projeto de banco de dados e não há
+    intervenção técnica na fase de preparação. O processo inteiro é executado por um comando
+    de provisionamento da própria plataforma.
+  </p>
+
+  <div class="passos">
+    <div class="passo">
+      <div class="n">1</div>
+      <div class="txt">
+        <b>Contratação e cadastro da clínica</b>
+        <p>
+          São registrados os dados que identificam a clínica: nome, razão social, CNPJ, e-mail,
+          telefone, WhatsApp, logo e as cores que ela quer usar no sistema. A partir daqui ela
+          já existe como cliente da plataforma.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">2</div>
+      <div class="txt">
+        <b>Escolha do plano</b>
+        <p>
+          A clínica é vinculada a um plano comercial — Starter, Pro ou Premium — que define
+          quais recursos ficam liberados e por quanto tempo. Todo plano começa com
+          <b>14 dias de avaliação</b>, sem cobrança, para a clínica testar antes de decidir.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">3</div>
+      <div class="txt">
+        <b>Criação do banco de dados exclusivo</b>
+        <p>
+          A plataforma cria um banco de dados novo, com nome gerado a partir do identificador
+          da clínica — por exemplo <code>clinic_000001</code>. Este banco é o sistema da clínica:
+          todos os pacientes, consultas, valores e arquivos dela ficam aqui.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">4</div>
+      <div class="txt">
+        <b>Estrutura do sistema aplicada</b>
+        <p>
+          As 42 tabelas do sistema são criadas nesse banco, com índices, relações e
+          restrições. A clínica recebe o mesmo sistema usado por todas as outras, na mesma
+          versão.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">5</div>
+      <div class="txt">
+        <b>Carga inicial dos catálogos e permissões</b>
+        <p>
+          O banco nasce com os catálogos de procedimentos, condições dentárias, status de
+          consulta, formas de pagamento, especialidades, salas e categorias de produto, além
+          dos 6 perfis e das 58 permissões. A clínica pode ajustar tudo isso para a sua
+          realidade.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">6</div>
+      <div class="txt">
+        <b>Criação do administrador da clínica</b>
+        <p>
+          O primeiro usuário é criado já com o perfil <b>Administrador</b>, que enxerga todo o
+          sistema. Uma senha é gerada automaticamente e exibida uma única vez no momento da
+          criação.
+        </p>
+      </div>
+    </div>
+    <div class="passo">
+      <div class="n">7</div>
+      <div class="txt">
+        <b>Assinatura iniciada e acesso liberado</b>
+        <p>
+          A assinatura entra no estado <i>em avaliação</i> e a clínica já pode entrar no sistema.
+          Todo o restante da equipe é cadastrado por ela, a partir do próprio sistema.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="bloco">Na prática, é um comando</h3>
+  <p>
+    Todo esse processo roda por um único comando da plataforma, que já existe e está testado.
+    A saída informa o banco criado, o plano, o administrador e a senha gerada:
+  </p>
+  <div class="callout" style="font-family:Consolas,monospace;font-size:8.6pt;line-height:1.7">
+    php artisan tenant:create "Clínica Exemplo" --plan=pro<br>
+    <span style="color:#0a7a5a">→ Banco ............ clinic_000001</span><br>
+    <span style="color:#0a7a5a">→ Plano ............ Pro (R$ 299,00)</span><br>
+    <span style="color:#0a7a5a">→ Administrador .... admin@exemplo.com</span><br>
+    <span style="color:#0a7a5a">→ Senha ............ (gerada, exibida uma vez)</span>
+  </div>
+
+  <h3 class="bloco">O que a clínica tem no primeiro dia de uso</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">✓</div>
+      <h4>Sistema completo</h4>
+      <p>Todos os 20 módulos liberados, do cadastro do paciente ao relatório de faturamento. Nada é vendido como módulo extra.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">◑</div>
+      <h4>Banco próprio e vazio</h4>
+      <p>Nenhum dado de outra clínica é copiado ou compartilhado. A clínica cadastra os seus pacientes, os seus profissionais e os seus produtos.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">⚙</div>
+      <h4>Configuração sob controle</h4>
+      <p>Perfis, permissões, catálogos, salas, convênios, cores e logo são editáveis pelo próprio administrador da clínica.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#d6336c)">⛨</div>
+      <h4>Backup independente</h4>
+      <p>Como o banco é exclusivo, o backup e a restauração de uma clínica não dependem nem interferem em nenhuma outra.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#1d2b33)">◱</div>
+      <h4>Documentos separados</h4>
+      <p>Exames e anexos são gravados em pasta identificada pela clínica e pelo paciente, sem colisão entre clínicas diferentes.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0ca678,#7048e8)">◷</div>
+      <h4>14 dias para avaliar</h4>
+      <p>Período de avaliação em que a clínica usa o sistema completo, com o mesmo plano que pretende contratar, antes de qualquer decisão.</p>
+    </div>
+  </div>
+
+  <div class="callout aviso">
+    <b>Segurança do provisionamento:</b> a criação da clínica é feita dentro de uma transação.
+    Se qualquer etapa falhar, banco, usuário e assinatura são descartados automaticamente, e
+    a tentativa não deixa pendência que prejudique a próxima contratação.
+  </div>
+</section>
+
+<!-- ================= 03 ISOLAMENTO ================= -->
+<section class="page">
+  <div class="kicker">04 — O diferencial da plataforma</div>
+  <h2 class="secao">Cada clínica tem um sistema só dela</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Este é o ponto central da plataforma. A clínica não é mais um cadastro dentro de um sistema
+    compartilhado: quando ela assina, a plataforma cria um sistema inteiro para ela. Várias
+    clínicas podem usar a mesma plataforma ao mesmo tempo, e mesmo assim os dados de uma
+    nunca ficam acessíveis a outra.
+  </p>
+
+  <div class="plataforma">
+    <b>Uma única plataforma — LJ Automação</b>
+    <span>Mesmo software, mesma versão e mesmas atualizações para todas as clínicas clientes</span>
+  </div>
+
+  <div class="conector">
+    <div class="seta">▼</div>
+    <em>a plataforma provisiona um sistema próprio para cada clínica</em>
+  </div>
+
+  <div class="tenants">
+    <div class="tenant">
+      <div class="nome">Clínica A</div>
+      <div class="banco">clinic_000001</div>
+      <ul class="lista">
+        <li>Seus pacientes</li>
+        <li>Sua agenda</li>
+        <li>Seus valores</li>
+        <li>Seus usuários</li>
+        <li>Seus produtos</li>
+      </ul>
+      <div class="selo">Sistema exclusivo</div>
+    </div>
+    <div class="tenant">
+      <div class="nome">Clínica B</div>
+      <div class="banco">clinic_000002</div>
+      <ul class="lista">
+        <li>Seus pacientes</li>
+        <li>Sua agenda</li>
+        <li>Seus valores</li>
+        <li>Seus usuários</li>
+        <li>Seus produtos</li>
+      </ul>
+      <div class="selo">Sistema exclusivo</div>
+    </div>
+    <div class="tenant">
+      <div class="nome">Clínica C</div>
+      <div class="banco">clinic_000003</div>
+      <ul class="lista">
+        <li>Seus pacientes</li>
+        <li>Sua agenda</li>
+        <li>Seus valores</li>
+        <li>Seus usuários</li>
+        <li>Seus produtos</li>
+      </ul>
+      <div class="selo">Sistema exclusivo</div>
+    </div>
+    <div class="tenant">
+      <div class="nome">Clínica N</div>
+      <div class="banco">clinic_00000N</div>
+      <ul class="lista">
+        <li>Seus pacientes</li>
+        <li>Sua agenda</li>
+        <li>Seus valores</li>
+        <li>Seus usuários</li>
+        <li>Seus produtos</li>
+      </ul>
+      <div class="selo">Sistema exclusivo</div>
+    </div>
+  </div>
+
+  <h3 class="bloco">Isolamento de verdade, não filtro de tela</h3>
+  <p>
+    Existem dois jeitos de(isolar) uma clínica em um sistema multiusuário. O mais comum — e o
+    que a maioria dos sistemas SaaS adota — é manter <b>um único banco de dados</b> e
+    adicionar uma coluna de identificador da clínica em cada tabela, filtrando por ela a cada
+    consulta. A plataforma usa outra abordagem: <b>um banco de dados inteiro por clínica</b>.
+  </p>
+
+  <table class="comparar">
+    <thead>
+      <tr>
+        <th style="width:34mm">Ponto</th>
+        <th>SaaS com banco compartilhado</th>
+        <th class="meio">Banco dedicado por clínica</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Como o isolamento é feito</td>
+        <td>Uma coluna com o identificador da clínica em cada tabela, e um filtro em cada consulta.</td>
+        <td class="meio">Cada clínica tem um banco próprio, e a aplicação conecta nele.</td>
+      </tr>
+      <tr>
+        <td>Falha de um filtro</td>
+        <td>Uma consulta sem o filtro devolve pacientes de outra clínica. O risco existe e depende de revisão constante de código.</td>
+        <td class="meio">A consulta nem enxerga o banco da outra clínica. O erro é tecnicamente impossível.</td>
+      </tr>
+      <tr>
+        <td>Perfis e permissões</td>
+        <td>Compartilhados entre clínicas, com identificador de clínica em todas as tabelas de acesso.</td>
+        <td class="meio">Cada clínica define os seus perfis livremente, sem afetar as demais.</td>
+      </tr>
+      <tr>
+        <td>Backup e restauração</td>
+        <td>Um backup conjunto, que precisa ser processado para separar uma clínica.</td>
+        <td class="meio">Backup individual por clínica, restaurado sem tocar nas outras.</td>
+      </tr>
+      <tr>
+        <td>Problema em uma clínica</td>
+        <td>Instabilidade ou crescimento de volume atinge todas.</td>
+        <td class="meio">Afeta apenas o banco daquela clínica; as demais seguem operando.</td>
+      </tr>
+      <tr>
+        <td>Saída do cliente</td>
+        <td>Extração do banco compartilhado exige filtro cuidadoso para não levar dados alheios.</td>
+        <td class="meio">O banco da clínica é entregue inteiro, e nada além dele.</td>
+      </tr>
+      <tr>
+        <td>Verificação</td>
+        <td>Normalmente não há garantia formal de separação.</td>
+        <td class="meio">13 testes automatizados verificam que uma clínica nunca acessa dados de outra.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>O que a clínica ganha com isso:</b> sigilo real dos dados de pacientes (exigência da
+    LGPD para dado sensível de saúde), liberdade para configurar o sistema do seu jeito sem
+    afetar nenhuma outra clínica, backup independente, e a garantia de que um problema técnico
+    em uma clínica não derruba o atendimento das demais.
+  </div>
+</section>
+
+<!-- ================= 04 ARQUITETURA ================= -->
+<section class="page">
+  <div class="kicker">05 — Estrutura técnica</div>
+  <h2 class="secao">Arquitetura de duas camadas</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Toda a instalação é dividida em duas partes: o <b>banco central</b>, que pertence à
+    plataforma e guarda as informações comerciais de todas as clínicas; e o <b>banco de cada
+    clínica</b>, que guarda os dados operacionais e clínicos. Uma parte nunca se mistura com a
+    outra, e uma nunca substitui a outra.
+  </p>
+
+  <div class="duas">
+    <div>
+      <div class="modulo" style="margin-bottom:0">
+        <div class="cab">
+          <div class="ico" style="background:linear-gradient(135deg,#1d2b33,#5a6a72)">◆</div>
+          <div>
+            <h4>Camada 1 — Banco central <span class="tag ok">1 instalação</span></h4>
+            <p>Pertence à LJ Automação. Serve à operação da plataforma.</p>
+          </div>
+        </div>
+        <ul class="lista">
+          <li><b>clínicas</b> — dados de cada clínica cliente, seu estado, seu logo, suas cores e o fim do período de avaliação.</li>
+          <li><b>planos</b> — Starter, Pro e Premium, com mensalidade, dias de avaliação e plano em destaque.</li>
+          <li><b>recursos do plano</b> — o que cada plano libera e com quais limites, em formato editável.</li>
+          <li><b>assinaturas</b> — plano contratado, período vigente, carência, cancelamento e referência ao pagamento.</li>
+          <li><b>conexões</b> — o banco de cada clínica, com host, porta e última data de atualização.</li>
+          <li><b>administradores</b> — quem opera a plataforma, com perfil e último acesso.</li>
+          <li><b>tokens de integração</b> — credencial de API de cada clínica, com capacidades e data do último uso.</li>
+          <li><b>métricas de uso</b> — consumo mensal por clínica: mensagens, uso de IA, publicações e armazenamento.</li>
+          <li><b>auditoria da plataforma</b> — quem alterou planos, assinaturas ou clínicas, com registro anterior e posterior.</li>
+          <li><b>configurações</b> — parâmetros gerais da instalação, organizados por grupo.</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="modulo" style="margin-bottom:0">
+        <div class="cab">
+          <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◰</div>
+          <div>
+            <h4>Camada 2 — Banco da clínica <span class="tag novo">1 por clínica</span></h4>
+            <p>Pertence à clínica. É o seu sistema, com os seus dados.</p>
+          </div>
+        </div>
+        <ul class="lista">
+          <li><b>Clínicos</b> — pacientes, prontuários, anamneses, alertas clínicos, odontograma, contratos e documentos.</li>
+          <li><b>Agenda</b> — consultas, salas, status de atendimento e lista de espera.</li>
+          <li><b>Comercial</b> — procedimentos, planos de tratamento, orçamentos, convênios e planos de saúde.</li>
+          <li><b>Financeiro</b> — contas a receber, pagamentos e formas de pagamento.</li>
+          <li><b>Operação</b> — profissionais, especialidades, estoque, movimentações, fornecedores e produtos.</li>
+          <li><b>Configuração</b> — dados da clínica, com razão social, CNPJ, endereço, logo e cores.</li>
+          <li><b>Usuários</b> — contas de acesso, com vínculo a um perfil.</li>
+          <li><b>Perfis e permissões</b> — 6 perfis e 58 permissões, definidos pela própria clínica.</li>
+          <li><b>Trilha de auditoria</b> — registro de toda operação relevante feita dentro da clínica.</li>
+          <li><b>Arquivos</b> — exames e anexos em <code>uploads/{clínica}/{paciente}</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="bloco">Como o sistema sabe com qual clínica falar</h3>
+  <p>
+    A sessão do usuário carrega a identificação da clínica a que ele pertence. A aplicação usa
+    essa identificação para conectar ao banco correto <b>antes</b> de qualquer consulta, e uma
+    sequência de verificações acontece a cada acesso:
+  </p>
+
+  <div class="fluxo">
+    <div class="etapa"><b>1. Resolver a clínica</b><span>Lê a clínica do usuário e localiza o banco dela</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>2. Conferir a conexão</b><span>Verifica se o banco da clínica está ativo</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>3. Conferir a assinatura</b><span>Valida se o estado permite o acesso</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>4. Conferir o plano</b><span>Bloqueia recursos não contratados</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>5. Conferir a permissão</b><span>Aplica a regra do perfil do usuário</span></div>
+  </div>
+
+  <div class="callout">
+    <b>Por que a ordem importa:</b> cada verificação tem uma resposta própria quando falha.
+    Um usuário sem vínculo com clínica recebe uma mensagem, uma clínica com assinatura vencida
+    recebe outra, um banco desativado tem a sua, e um recurso fora do plano é barrado com a
+    indicação de que faz parte de outro plano. A clínica nunca cai em uma página de erro
+    genérica.
+  </div>
+</section>
+
+<!-- ================= 05 PAINEL DA PLATAFORMA ================= -->
+<section class="page">
+  <div class="kicker">06 — O outro lado</div>
+  <h2 class="secao">O painel da plataforma</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    A mesma instalação tem dois lados de uso. De um, a clínica opera o seu sistema. Do outro, a
+    LJ Automação opera a plataforma: acompanha as clínicas clientes, controla planos e
+    assinaturas, e resolve problemas de cada sistema sem precisar acessar os dados clínicos.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◉</div>
+      <h4>Carteira de clínicas</h4>
+      <p>Todas as clínicas clientes com nome, responsável, contato, plano contratado, estado da assinatura e data de entrada. Um filtro por estado mostra quem está em avaliação, ativo, em atraso, suspenso ou cancelado.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">▤</div>
+      <h4>Planos e recursos</h4>
+      <p>Os três planos comerciais com mensalidade e dias de avaliação, e a lista de recursos que cada um libera. Mudar o que um plano inclui é uma alteração de registro, não de sistema — a decisão comercial não exige novo deploy.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">◷</div>
+      <h4>Assinaturas e estados</h4>
+      <p>Período vigente, data de início, fim do ciclo, carência e cancelamento de cada assinatura, com a referência do pagamento correspondente — o que permite responder rapidamente por que uma clínica está bloqueada.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#d6336c)">◰</div>
+      <h4>Infraestrutura por clínica</h4>
+      <p>Onde está o banco de cada clínica, com host, porta, driver e a data da última atualização de estrutura. É o que permite rodar a atualização de todos os sistemas de forma ordenada.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#1d2b33)">⚿</div>
+      <h4>Integrações e tokens</h4>
+      <p>Credenciais de API de cada clínica, com as capacidades concedidas, a data do último uso, o endereço de origem e a possibilidade de revogação. Credencial de uma clínica não abre a API de outra.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0ca678,#7048e8)">▱</div>
+      <h4>Métricas de uso</h4>
+      <p>Consumo mensal de cada clínica: mensagens recebidas e enviadas, requisições e tokens de IA, publicações em redes sociais, execuções de automação e espaço de armazenamento utilizado.</p>
+    </div>
+  </div>
+
+  <h3 class="bloco">Auditoria da plataforma</h3>
+  <p>
+    Toda alteração feita no lado da plataforma — troca de plano, mudança de estado de clínica,
+    ajuste de limites, emissão ou revogação de token — é registrada com a ação realizada, a
+    entidade afetada, o registro específico, o valor anterior e o novo, o administrador
+    responsável, o endereço de origem e a data. Isso responde à pergunta “quem mexeu no plano
+    desta clínica e quando” sem depender de memória de ninguém.
+  </p>
+
+  <div class="duas">
+    <div>
+      <h3 class="bloco" style="margin-top:0">O que a plataforma enxerga</h3>
+      <ul class="lista">
+        <li>Identificação da clínica, do contrato e do plano.</li>
+        <li>Consumo de recursos contratados, em números agregados.</li>
+        <li>Estado técnico da conexão e da aplicação.</li>
+        <li>Registros de acesso e de alteração da própria plataforma.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="bloco" style="margin-top:0">O que a plataforma não acessa</h3>
+      <ul class="lista">
+        <li>Nomes e dados de pacientes.</li>
+        <li>Prontuários, evoluções clínicas e odontogramas.</li>
+        <li>Valores, orçamentos e contas a receber.</li>
+        <li>Documentos e arquivos anexados.</li>
+        <li>Histórico de auditoria da clínica.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Suporte mais seguro:</b> como o suporte técnico não precisa — e não pode — abrir o banco
+    da clínica para investigar um problema, o atendimento acontece com o modelo do sistema, os
+    registros técnicos e as configurações, sem exposição de dado sensível de paciente.
+  </div>
+</section>
+
+<!-- ================= 06 PLANOS ================= -->
+<section class="page">
+  <div class="kicker">07 — Comercial</div>
+  <h2 class="secao">Planos comerciais e ciclo de assinatura</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Cada clínica contrata um plano. O plano define a mensalidade, o tempo de avaliação e
+    quais recursos adicionais ficam liberados. O sistema base — todos os 20 módulos — está
+    liberado em qualquer plano.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:26mm">Plano</th>
+        <th style="width:26mm">Mensalidade</th>
+        <th style="width:20mm">Avaliação</th>
+        <th>Recursos adicionais incluídos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Starter</td>
+        <td>R$ 149,00</td>
+        <td>14 dias</td>
+        <td>Agente de IA, publicação automatizada (15 posts/mês), Instagram e Facebook.</td>
+      </tr>
+      <tr>
+        <td>Pro <span class="tag novo">Destaque</span></td>
+        <td>R$ 299,00</td>
+        <td>14 dias</td>
+        <td>Tudo do Starter, mais agente de IA ampliado (2.000 mensagens/mês), agendamento pela IA e publicação automatizada (50 posts/mês).</td>
+      </tr>
+      <tr>
+        <td>Premium</td>
+        <td>R$ 450,00</td>
+        <td>14 dias</td>
+        <td>Tudo do Pro, mais WhatsApp integrado, API externa, automações avançadas, IA ampliada (10.000 mensagens/mês), publicação automatizada (100 posts/mês) e suporte prioritário.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="bloco">Nove recursos que podem ser liberados por plano</h3>
+  <p style="font-size:9.2pt">
+    Agente de IA · WhatsApp · Instagram · Facebook · Publicação automática · Agendamento pela IA ·
+    API externa · Automações avançadas · Suporte prioritário.
+    <span style="color:var(--cinza-texto)">
+      Cada recurso tem um interruptor por clínica, e os limites de consumo ficam registrados no
+      banco. Um recurso contratado e não usado pela clínica não é cobrado duas vezes: a
+      verificação acontece a cada uso.
+    </span>
+  </p>
+
+  <h3 class="bloco">Os estados de uma assinatura</h3>
+  <div class="estados">
+    <div class="estado libera">
+      <b>Em avaliação — liberada</b>
+      <span>Os 14 dias iniciais. Acesso completo ao sistema, para a clínica conhecer antes de contratar.</span>
+    </div>
+    <div class="estado libera">
+      <b>Ativa — liberada</b>
+      <span>Assinatura em dia. Acesso completo e recursos do plano liberados.</span>
+    </div>
+    <div class="estado carencia">
+      <b>Em atraso — liberada por 7 dias</b>
+      <span>Carência de 7 dias para regularizar. A clínica ainda entra, mas os recursos pagos do plano ficam bloqueados.</span>
+    </div>
+    <div class="estado bloqueia">
+      <b>Suspensa — bloqueada</b>
+      <span>Carência esgotada. O painel não abre, com mensagem clara sobre o motivo e o contato de regularização.</span>
+    </div>
+    <div class="estado bloqueia">
+      <b>Cancelada — bloqueada</b>
+      <span>Encerramento do contrato por decisão da clínica ou da plataforma.</span>
+    </div>
+    <div class="estado bloqueia">
+      <b>Expirada — bloqueada</b>
+      <span>Período contratado encerrado sem renovação. O histórico da clínica é preservado.</span>
+    </div>
+  </div>
+
+  <h3 class="bloco">Dois estados, duas finalidades</h3>
+  <p>
+    O estado da <b>clínica</b> e o estado da <b>assinatura</b> são registrados separadamente,
+    porque descrevem coisas diferentes. Uma clínica em avaliação está marcada como
+    <i>trial</i>, enquanto a assinatura correspondente está <i>trialing</i>. Uma clínica suspensa
+    por falta de pagamento tem a assinatura <i>past_due</i> ou <i>suspended</i> conforme o
+    tempo decorrido. Mantê-los separados é o que evita que a rotina de verificação bloqueie a
+    clínica errada.
+  </p>
+
+  <div class="callout aviso">
+    <b>Sem susto para a clínica:</b> a suspensão nunca acontece de surpresa. Após o
+    vencimento, a clínica tem 7 dias de carência para regularizar — período em que o acesso
+    continua funcionando. Só depois disso o painel é bloqueado, e a mensagem exibida explica o
+    motivo e o caminho para voltar. Nenhum dado é apagado em nenhum desses estados.
+  </div>
+</section>
+
+<!-- ================= 02 ORGANIZAÇÃO ================= -->
+<section class="page">
+  <div class="kicker">08 — Arquitetura de navegação</div>
+  <h2 class="secao">Como o sistema está organizado</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    O menu lateral é dividido em três blocos. Cada item abre a tela correspondente e cada
+    tela é protegida pela permissão do perfil do usuário.
+  </p>
+
+  <div class="mockup">
+    <div class="barra">
+      <span class="ponto"></span><span class="ponto"></span><span class="ponto"></span>
+      <span style="margin-left:3mm">app.ljautomacao.com.br — Gestão da Clínica</span>
+    </div>
+    <div class="corpo">
+      <div class="side">
+        <div class="marca"><i></i> Clínica</div>
+        <div class="grupo">Principal</div>
+        <span class="it on">Dashboard</span>
+        <span class="it">Pacientes</span>
+        <span class="it">Agenda</span>
+        <span class="it">Prontuário</span>
+        <span class="it">Odontograma</span>
+        <span class="it">Tratamentos</span>
+        <div class="grupo">Gestão</div>
+        <span class="it">Orçamentos</span>
+        <span class="it">Financeiro</span>
+        <span class="it">Convênios</span>
+        <span class="it">Profissionais</span>
+        <span class="it">Procedimentos</span>
+        <span class="it">Estoque</span>
+        <span class="it">Contratos</span>
+        <span class="it">Relatórios</span>
+        <span class="it">Documentos</span>
+        <div class="grupo">Administração</div>
+        <span class="it">Usuários</span>
+        <span class="it">Perfis</span>
+        <span class="it">Permissões</span>
+        <span class="it">Clínica</span>
+        <span class="it">Auditoria</span>
+      </div>
+      <div class="main">
+        <div class="kpis">
+          <div class="kpi"><b>6</b><span>Consultas hoje</span></div>
+          <div class="kpi"><b>12</b><span>Pacientes</span></div>
+          <div class="kpi"><b>3</b><span>Tratamentos ativos</span></div>
+          <div class="kpi"><b>R$ 2.150</b><span>Em aberto</span></div>
+          <div class="kpi"><b>2</b><span>Estoque baixo</span></div>
+        </div>
+        <div class="grade">
+          <div class="bloco-b" style="flex:1.5">
+            <div class="t">Agenda de hoje</div>
+            <div class="linha"><span>08:00 · Maria Oliveira — Limpeza</span><span class="badge-s" style="background:#e4f7ec;color:#1f7a34">Confirmado</span></div>
+            <div class="linha"><span>09:00 · João Pereira — Clínica geral</span><span class="badge-s" style="background:#fff4e0;color:#b06400">Em atend.</span></div>
+            <div class="linha"><span>10:00 · Fernanda Costa — Avaliação</span><span class="badge-s" style="background:#e2f0fd;color:#0a5fb4">Agendado</span></div>
+            <div class="linha"><span>14:00 · Ana Clara Santos — Canal</span><span class="badge-s" style="background:#e4f7ec;color:#1f7a34">Confirmado</span></div>
+            <div class="linha"><span>15:30 · Rafael Mendes — Retorno</span><span class="badge-s" style="background:#efe7fd;color:#5b32c9">Atendido</span></div>
+          </div>
+          <div class="bloco-b">
+            <div class="t">Contas a receber</div>
+            <div class="linha"><span>Maria Oliveira</span><span class="p">R$ 2.150</span></div>
+            <div class="linha"><span>Ana Clara Santos</span><span class="p">R$ 600</span></div>
+            <div class="linha"><span>Estoque baixo</span><span class="p">2 itens</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◉</div>
+      <h4>Bloco Principal</h4>
+      <p>O dia a dia do atendimento e do paciente.</p>
+      <ul class="lista">
+        <li>Dashboard</li>
+        <li>Pacientes</li>
+        <li>Agenda</li>
+        <li>Prontuário</li>
+        <li>Odontograma</li>
+        <li>Tratamentos</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">▦</div>
+      <h4>Bloco Gestão</h4>
+      <p>Dinheiro, materiais, contratos e números.</p>
+      <ul class="lista">
+        <li>Orçamentos</li>
+        <li>Financeiro</li>
+        <li>Convênios</li>
+        <li>Profissionais</li>
+        <li>Procedimentos</li>
+        <li>Estoque</li>
+        <li>Contratos</li>
+        <li>Relatórios</li>
+        <li>Documentos</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#1d2b33,#5a6a72)">⚙</div>
+      <h4>Bloco Administração</h4>
+      <p>Quem usa, com o que pode, e registro de tudo.</p>
+      <ul class="lista">
+        <li>Usuários</li>
+        <li>Perfis (roles)</li>
+        <li>Permissões</li>
+        <li>Dados da clínica</li>
+        <li>Auditoria</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 MÓDULOS 1 ================= -->
+<section class="page">
+  <div class="kicker">09 — Módulos</div>
+  <h2 class="secao">Parte 1 — Paciente e clínica</h2>
+  <div class="regua2"></div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◎</div>
+      <div>
+        <h4>Dashboard <span class="tag ok">Pronto</span></h4>
+        <p>Página inicial com a situação da clínica em números.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Consultas do dia, ordenadas por horário, com paciente, profissional e status.</li>
+      <li>Total de pacientes cadastrados.</li>
+      <li>Planos de tratamento aprovados ou em andamento.</li>
+      <li>Valores em aberto das contas a receber que ainda têm saldo.</li>
+      <li>Alerta de produtos de estoque que atingiram o estoque mínimo.</li>
+      <li>Cada indicador respeita a permissão do usuário: quem não tem acesso ao financeiro não vê valores.</li>
+    </ul>
+    <div class="telas"><b>Tela:</b> dashboard principal</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◍</div>
+      <div>
+        <h4>Pacientes <span class="tag ok">Pronto</span></h4>
+        <p>Cadastro completo, busca e ficha individual do paciente.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Cadastro com validação de CPF, e-mail, celular, CEP e data de nascimento.</li>
+      <li>Busca por nome ou CPF, com filtro de status.</li>
+      <li>Ficha do paciente com resumo clínico, financeiro e de convênio.</li>
+      <li>Edição dos dados cadastrais com registro do que foi alterado.</li>
+      <li>Exclusão com verificação de que o paciente não possui atendimentos vinculados.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista · cadastro · ficha · edição</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">✚</div>
+      <div>
+        <h4>Prontuário Clínico <span class="tag ok">Pronto</span></h4>
+        <p>Todo o histórico do paciente em uma única linha do tempo.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Evoluções clínicas vinculadas a cada consulta realizada, com autor e data.</li>
+      <li>Anamnese em formato de perguntas e respostas (alergias, doenças pré-existentes, medicações em uso).</li>
+      <li>Alertas clínicos em destaque: alergia a medicamento, alergia a látex, uso contínuo de medicação, condição de saúde.</li>
+      <li>Prescrições com medicamentos, dose, frequência e duração.</li>
+      <li>Anexos de documentos do paciente (exames, radiografias, termos), com download.</li>
+    </ul>
+    <div class="telas"><b>Tela:</b> prontuário do paciente</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#d6336c)">▤</div>
+      <div>
+        <h4>Agenda <span class="tag ok">Pronto</span></h4>
+        <p>Organização dos atendimentos por profissional e por sala.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Marcação de consulta com paciente, profissional, sala, duração e tipo de atendimento.</li>
+      <li>Seis status de acompanhamento: agendado, confirmado, em atendimento, atendido, faltou e cancelado.</li>
+      <li>Alteração e cancelamento de horários já marcados.</li>
+      <li>Lista de espera com prioridade e período desejado pelo paciente.</li>
+      <li>Validação que impede marcação em horário já ocupado para o mesmo profissional.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> agenda diária · nova consulta · edição · lista de espera</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0ca678,#0b7285)">⊞</div>
+      <div>
+        <h4>Odontograma <span class="tag ok">Pronto</span></h4>
+        <p>Mapa visual da arcada dentária, dente a dente.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Representação visual dos dentes permanentes e decíduos na posição correta da arcada.</li>
+      <li>Oito condições com cor própria: hígido, cariado, restaurado, ausente, coroa, implante, tratamento de canal e fraturado.</li>
+      <li>Clique no dente abre a ficha de condição, com profissional responsável, data e observação.</li>
+      <li>Remoção de marcação quando a condição não se aplica.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> odontograma do paciente · ficha do dente</div>
+  </div>
+</section>
+
+<!-- ================= 04 MÓDULOS 2 ================= -->
+<section class="page">
+  <div class="kicker">10 — Módulos</div>
+  <h2 class="secao">Parte 2 — Tratamento, Convênio e Financeiro</h2>
+  <div class="regua2"></div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">☰</div>
+      <div>
+        <h4>Planos de Tratamento <span class="tag novo">Recém-entregue</span></h4>
+        <p>Planejamento clínico e financeiro do tratamento do paciente.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Plano com título, descrição, profissional responsável e desconto.</li>
+      <li>Itens do plano vinculados ao catálogo de procedimentos, com dente, quantidade e valores.</li>
+      <li>Cinco estágios de acompanhamento: rascunho, aprovado, em andamento, concluído e recusado.</li>
+      <li>Status individual por item — planejado, em execução ou executado.</li>
+      <li>Total do plano recalculado automaticamente a cada item adicionado ou removido.</li>
+      <li>Valor do plano já pode ser aproveitado na criação do orçamento.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista de planos · detalhe do plano · itens</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#7048e8)">▦</div>
+      <div>
+        <h4>Orçamentos <span class="tag novo">Recém-entregue</span></h4>
+        <p>Proposta comercial apresentada ao paciente, com validade.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Orçamento com título, validade, profissional emissor e desconto aplicado.</li>
+      <li>Itens com descrição livre, procedimento vinculado, dente, quantidade e valor unitário.</li>
+      <li>Subtotal e total recalculados automaticamente, nunca digitados à mão.</li>
+      <li>Status de acompanhamento: emitido, aprovado, recusado e convertido em conta a receber.</li>
+      <li>Lista com filtro por paciente e detalhe em tela própria para leitura junto ao paciente.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista de orçamentos · detalhe do orçamento</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#e8890c)">$</div>
+      <div>
+        <h4>Financeiro <span class="tag ok">Pronto</span></h4>
+        <p>Contas a receber e baixa de pagamentos.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Contas a receber geradas a partir do orçamento aprovado, com vencimento e valor total.</li>
+      <li>Quitação parcial ou integral com registro do valor, data, forma de pagamento e usuário que registrou.</li>
+      <li>Seis formas de pagamento: dinheiro, PIX, cartão de crédito, cartão de débito, boleto e convênio.</li>
+      <li>Situação da conta: aberta, parcial ou paga.</li>
+      <li>Painel de resumo com total a receber, valor em aberto e valor recebido.</li>
+    </ul>
+    <div class="telas"><b>Tela:</b> financeiro com resumo e baixa de pagamento</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0ca678,#2b8a3e)">⛨</div>
+      <div>
+        <h4>Convênios <span class="tag ok">Pronto</span></h4>
+        <p>Operadoras de saúde e vínculo do paciente ao plano.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Cadastro de operadora com CNPJ, telefone e responsável comercial.</li>
+      <li>Planos da operadora com registro ANS e tipo de cobertura (ambulatorial, hospitalar).</li>
+      <li>Vínculo do paciente ao plano com número de carteirinha e validade.</li>
+      <li>Ativação e desativação do vínculo sem perder o histórico.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> operadora · planos · vínculo por paciente</div>
+  </div>
+</section>
+
+<!-- ================= 05 MÓDULOS 3 ================= -->
+<section class="page">
+  <div class="kicker">11 — Módulos</div>
+  <h2 class="secao">Parte 3 — Equipe, Materiais, Contratos e Administração</h2>
+  <div class="regua2"></div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#d6336c)">◉</div>
+      <div>
+        <h4>Profissionais <span class="tag ok">Pronto</span></h4>
+        <p>Cadastro da equipe clínica, com especialidades e comissão.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Dados do profissional: nome, CPF, CRO, tipo de atuação e percentual de comissão.</li>
+      <li>Vínculo com uma ou mais especialidades — sete especialidades disponíveis.</li>
+      <li>Vínculo opcional com um usuário do sistema, para acesso ao painel.</li>
+      <li>Marcação de profissional inativo sem apagar o histórico de atendimentos.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista · cadastro · edição</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">≡</div>
+      <div>
+        <h4>Procedimentos <span class="tag ok">Pronto</span></h4>
+        <p>Tabela de preços e durações usada por planos e orçamentos.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Cadastro por código, nome, categoria, duração em minutos e valor padrão.</li>
+      <li>Sete categorias: consulta, exame, prevenção, restauradora, endodontia, cirurgia, prótese e estética.</li>
+        <li>Procedimento com código padronizado, pronto para faturamento e convênio.</li>
+      <li>Alimenta automaticamente planos de tratamento e orçamentos.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista · cadastro · edição</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#7048e8)">▣</div>
+      <div>
+        <h4>Estoque <span class="tag ok">Pronto</span></h4>
+        <p>Materiais, consumo e rastreabilidade de entrada e saída.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Produto com código, unidade, custo, preço de venda, lote e data de validade.</li>
+      <li>Estoque mínimo por produto, com sinalização automática de item baixo.</li>
+      <li>Registro de entrada e saída com saldo anterior e saldo posterior de cada movimentação.</li>
+      <li>Motivo obrigatório na movimentação, o que dá rastreabilidade de consumo em consultório.</li>
+      <li>Cadastro de fornecedores e de sete categorias de produto.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista · cadastro · edição · movimentação</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#1d2b33)">▤</div>
+      <div>
+        <h4>Contratos <span class="tag novo">Recém-entregue</span></h4>
+        <p>Termos de consentimento e contratos de serviço por paciente.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Contrato vinculado ao paciente, com tipo, conteúdo e situação.</li>
+      <li>Status: pendente, assinado, cancelado e expirado.</li>
+      <li>Data de assinatura registrada e usuário responsável pela operação.</li>
+      <li>Histórico de contratos serve como evidência de autorização do procedimento.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> lista · cadastro · edição</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0b7285)">◱</div>
+      <div>
+        <h4>Relatórios <span class="tag novo">Recém-entregue</span></h4>
+        <p>Leitura consolidada da operação no período escolhido.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li>Período de análise selecionado por data inicial e final.</li>
+      <li>Resumo financeiro: total a receber, valor em aberto, valor pago e recebido no período.</li>
+      <li>Resumo de agenda: total de consultas, atendidas, canceladas e faltas.</li>
+      <li>Resumo de estoque: produtos cadastrados, itens abaixo do mínimo, entradas e saídas.</li>
+      <li>Listas detalhadas de contas a receber, consultas do período e últimas movimentações.</li>
+      <li>Filtros por status de agenda e por status de conta.</li>
+    </ul>
+    <div class="telas"><b>Tela:</b> relatórios com quatro blocos de resumo</div>
+  </div>
+
+  <div class="modulo">
+    <div class="cab">
+      <div class="ico" style="background:linear-gradient(135deg,#1d2b33,#7048e8)">⚙</div>
+      <div>
+        <h4>Administração <span class="tag ok">Pronto</span></h4>
+        <p>Usuários, perfis, permissões, dados da clínica e auditoria.</p>
+      </div>
+    </div>
+    <ul class="lista">
+      <li><b>Usuários:</b> cadastro com nome, e-mail, perfil e estado ativo/inativo.</li>
+      <li><b>Perfis:</b> seis perfis prontos, editáveis conforme a necessidade da clínica.</li>
+      <li><b>Permissões:</b> 58 permissões distribuídas em 18 módulos, listadas e atribuíveis.</li>
+      <li><b>Clínica:</b> razão social, CNPJ, endereço, telefone, logo e dados de apresentação do sistema.</li>
+      <li><b>Auditoria:</b> trilha de operações com ação, tabela, registro afetado, valores antes e depois, usuário e data.</li>
+    </ul>
+    <div class="telas"><b>Telas:</b> usuários · perfis · permissões · clínica · auditoria</div>
+  </div>
+</section>
+
+<!-- ================= 06 FLUXO ================= -->
+<section class="page">
+  <div class="kicker">12 — Operação</div>
+  <h2 class="secao">O fluxo completo de um atendimento</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Veja como as áreas se conectam na prática, do primeiro contato até a quitação.
+    Nenhum passo exige digitar a mesma informação duas vezes.
+  </p>
+
+  <div class="fluxo">
+    <div class="etapa"><b>1. Cadastro</b><span>Paciente entra no sistema com documentos e convênio</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>2. Agenda</b><span>Consulta marcada com profissional e sala</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>3. Prontuário</b><span>Anamnese, alertas e evolução da consulta</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>4. Odontograma</b><span>Condição de cada dente registrada</span></div>
+  </div>
+  <div class="fluxo">
+    <div class="etapa"><b>5. Plano</b><span>Procedimentos, dentes, valores e desconto</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>6. Orçamento</b><span>Proposta enviada ao paciente com validade</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>7. Contrato</b><span>Termo de consentimento assinado</span></div>
+    <div class="seta">›</div>
+    <div class="etapa"><b>8. Financeiro</b><span>Conta a receber e baixa do pagamento</span></div>
+  </div>
+
+  <div class="duas">
+    <div>
+      <h3 class="bloco">O que isso evita</h3>
+      <ul class="lista">
+        <li>Ficha de papel perdida ou esquecida no balcão.</li>
+        <li>Radiografia guardada em arquivo físico sem vínculo com o paciente.</li>
+        <li>Valores combinados de cabeça e não registrados.</li>
+        <li>Lista de materiais comprada sem controle de consumo.</li>
+        <li>Financeiro descobrindo o parcelamento só no fim do mês.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="bloco">O que isso entrega</h3>
+      <ul class="lista">
+        <li>Um único lugar para o histórico completo do paciente.</li>
+        <li>Retorno garantido ao saber exatamente o que foi feito na última consulta.</li>
+        <li>Comissão do profissional calculada a partir dos itens executados.</li>
+        <li>Estoque com rastreio de cada lote e consumo.</li>
+        <li>Relatório de faturamento e de perdas (faltas e cancelamentos) por período.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Sobre o registro das operações:</b> cada movimentação relevante — criação de plano, envio de
+    orçamento, registro de pagamento, assinatura de contrato, marcação de dente — grava uma linha
+    na trilha de auditoria com o usuário responsável, a data e os valores alterados. Isso responde,
+    em qualquer momento, à pergunta “quem mudou o quê e quando”.
+  </div>
+</section>
+
+<!-- ================= 07 PERFIS ================= -->
+<section class="page">
+  <div class="kicker">13 — Controle de acesso</div>
+  <h2 class="secao">Perfis de acesso e permissões</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Nem todo mundo vê tudo. A recepção não acessa custos, o financeiro não edita prontuário,
+    o dentista não altera o cadastro de convênio. Isso é configurável por perfil, sem alterar
+    a configuração de cada usuário individualmente.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:34mm">Perfil</th>
+        <th style="width:62mm">Responsável típico</th>
+        <th>Acesso liberado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Administrador</td>
+        <td>Gestor da clínica</td>
+        <td>Acesso integral a todos os módulos, incluindo administração, perfis, permissões e auditoria.</td>
+      </tr>
+      <tr>
+        <td>Dentista</td>
+        <td>Profissional atendente</td>
+        <td>Prontuário, anamnese, alertas, odontograma, tratamento, agenda, prescrição e visualização de orçamento, financeiro e relatórios.</td>
+      </tr>
+      <tr>
+        <td>Recepção</td>
+        <td>Balcão</td>
+        <td>Cadastro completo de pacientes, agenda e lista de espera, convênio, contratos, documentos e recebimento de pagamento.</td>
+      </tr>
+      <tr>
+        <td>Financeiro</td>
+        <td>Contabilidade</td>
+        <td>Orçamentos, financeiro completo, visualização de pacientes, agenda, convênios, estoque, contratos e relatórios.</td>
+      </tr>
+      <tr>
+        <td>Estoque</td>
+        <td>Almoxarifado</td>
+        <td>Estoque completo com movimentações, visualização de pacientes, agenda, financeiro e relatórios.</td>
+      </tr>
+      <tr>
+        <td>Auxiliar</td>
+        <td>Suporte</td>
+        <td>Consulta de pacientes, agenda e prontuário — somente leitura.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="bloco">Como os módulos são protegidos</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">18</div>
+      <h4>Módulos com permissão</h4>
+      <p>Pacientes, prontuário, anamnese, alertas, odontograma, agenda, tratamentos, procedimentos, orçamentos, financeiro, convênios, estoque, profissionais, documentos, contratos, relatórios, auditoria e administração.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#d6336c)">58</div>
+      <h4>Permissões cadastradas</h4>
+      <p>Ações de ver, criar, alterar, excluir e — no módulo financeiro — receber. Cada permissão pertence a um módulo, o que permite conceder regras como “ver, mas não alterar”.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">6</div>
+      <h4>Perfis prontos</h4>
+      <p>Administrador, Dentista, Recepção, Financeiro, Estoque e Auxiliar — todos editáveis para se adequar à organização real da clínica.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Perfis são por clínica, não globais:</b> os perfis e permissões ficam gravados no banco
+    da própria clínica, sem nenhuma coluna de identificador de clínica — o recorte já é o banco
+    conectado. Isso significa que a clínica A renomear um perfil, criar um novo ou trocar as
+    permissões do perfil Financeiro não interfere em nada na clínica B. Cada empresa de
+    grupos de clínicas organiza os seus próprios perfis do jeito que precisa, inclusive
+    mantendo nomes iguais aos de outras clínicas com regras completamente diferentes.
+  </div>
+</section>
+
+<!-- ================= 08 CATÁLOGOS ================= -->
+<section class="page">
+  <div class="kicker">14 — Base pronta</div>
+  <h2 class="secao">Catálogos e base de dados pronta</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    O sistema não começa com telas vazias. As tabelas de apoio que toda clínica precisa já
+    vêm preenchidas e podem ser ajustadas pela própria equipe durante a implantação.
+  </p>
+
+  <div class="duas">
+    <div>
+      <table>
+        <thead><tr><th style="width:26mm">Catálogo</th><th style="width:11mm">Qtd.</th><th>Conteúdo inicial</th></tr></thead>
+        <tbody>
+          <tr><td>Procedimentos</td><td>10</td><td>Consulta geral, limpeza, radiografia panorâmica, restauração em resina e amálgama, canal, extração, coroa de porcelana, clareamento</td></tr>
+          <tr><td>Condições dentárias</td><td>8</td><td>Hígido, cariado, restaurado, ausente, coroa, implante, tratamento de canal, fraturado</td></tr>
+          <tr><td>Status de consulta</td><td>6</td><td>Agendado, confirmado, em atendimento, atendido, faltou, cancelado</td></tr>
+          <tr><td>Formas de pagamento</td><td>6</td><td>Dinheiro, PIX, cartão de crédito, cartão de débito, boleto, convênio</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th style="width:26mm">Catálogo</th><th style="width:11mm">Qtd.</th><th>Conteúdo inicial</th></tr></thead>
+        <tbody>
+          <tr><td>Especialidades</td><td>7</td><td>Clínica geral, endodontia, cirurgia, periodontia, ortodontia, implantes, odontopediatria</td></tr>
+          <tr><td>Categorias de produto</td><td>7</td><td>Descartáveis, instrumentais, materiais restauradores, medicamentos, equipamentos, cimentos, anestésicos</td></tr>
+          <tr><td>Salas</td><td>3</td><td>Sala 1, Sala 2, Sala 3</td></tr>
+          <tr><td>Convênio</td><td>1</td><td>Operadora com plano ambulatorial de exemplo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h3 class="bloco">Cadastro de paciente — o que já é validado</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">✓</div>
+      <h4>Identificação</h4>
+      <ul class="lista">
+        <li>Nome completo obrigatório</li>
+        <li>CPF com validação dos dígitos verificadores</li>
+        <li>Data de nascimento</li>
+        <li>Sexo e estado civil</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">✉</div>
+      <h4>Contato</h4>
+      <ul class="lista">
+        <li>Celular e telefone com máscara</li>
+        <li>E-mail com validação de formato</li>
+        <li>CEP, endereço, número, bairro, cidade e estado</li>
+        <li>Responsável vinculado, quando o paciente é menor ou assistido</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">⛨</div>
+      <h4>Administrativo</h4>
+      <ul class="lista">
+        <li>Status do paciente (ativo, inativo)</li>
+        <li>Convênio vinculado com carteirinha e validade</li>
+        <li>Documentos anexados ao prontuário</li>
+        <li>Alertas clínicos exibidos em destaque</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 09 DEMO ================= -->
+<section class="page">
+  <div class="kicker">15 — Demonstração</div>
+  <h2 class="secao">Ambiente demonstrativo</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Para apresentar o sistema funcionando — e não apenas desenhado — existe um ambiente de
+    demonstração populado com dados realistas de uma clínica em operação. Serve para
+    treinamento da equipe antes da entrada em produção e para validação das rotinas da clínica.
+  </p>
+
+  <div class="grade4">
+    <div class="num"><b>12</b><span>Pacientes</span></div>
+    <div class="num"><b>4</b><span>Profissionais</span></div>
+    <div class="num"><b>18</b><span>Consultas</span></div>
+    <div class="num"><b>5</b><span>Planos</span></div>
+    <div class="num"><b>6</b><span>Orçamentos</span></div>
+    <div class="num"><b>3</b><span>Contas a receber</span></div>
+    <div class="num"><b>8</b><span>Produtos</span></div>
+    <div class="num"><b>5</b><span>Contratos</span></div>
+  </div>
+
+  <h3 class="bloco">O que já vem preenchido</h3>
+  <div class="duas">
+    <div>
+      <ul class="lista">
+        <li><b>Usuários de teste por perfil</b> — administrador, recepção, financeiro e dentista, cada um com senha própria, para demonstrar na prática como o acesso muda conforme o perfil.</li>
+        <li><b>Agenda em três janelas</b> — consultas de hoje, de amanhã e da próxima semana, além de consultas passadas com status de atendido, falta e cancelamento.</li>
+        <li><b>Casos clínicos completos</b> — pacientes com alergia a penicilina, alergia a látex, hipertensão em tratamento e medicação contínua em uso.</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="lista">
+        <li><b>Histórico financeiro realista</b> — orçamento pago à vista, orçamento com entrada de 50% via PIX e orçamento ainda aberto.</li>
+        <li><b>Documentos e contratos</b> — termos de consentimento assinados, um contrato pendente e um cancelado.</li>
+        <li><b>Estoque com consumo</b> — entradas e saídas registradas, incluindo itens que já estão abaixo do estoque mínimo, acionando o alerta do painel.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Para o treinamento:</b> como os dados de demonstração ficam num banco isolado,
+    podem ser usados livremente em treinamentos, sem risco de confundir a equipe com registros
+    reais. Na entrada em produção a clínica começa com o banco limpo e cadastra os seus dados.
+  </div>
+</section>
+
+<!-- ================= 11 WHATSAPP API ================= -->
+<section class="page">
+  <div class="kicker">16 — Integração por clínica</div>
+  <h2 class="secao">API de WhatsApp por clínica</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Camada pronta para o paciente resolver, sozinho, o que normalmente toma tempo da recepção:
+    consultar informações da clínica, ver profissionais, localizar-se no cadastro, consultar
+    disponibilidade e confirmar ou cancelar horário. Cada clínica recebe a sua própria
+    integração, independente das demais.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th style="width:66mm">Recurso da API</th><th>O que o paciente consegue fazer</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Informações da clínica</td><td>Recebe nome, endereço, telefone e horário de funcionamento da clínica.</td></tr>
+      <tr><td>Profissionais</td><td>Lista os profissionais disponíveis, com a especialidade de cada um.</td></tr>
+      <tr><td>Consulta de paciente</td><td>Localiza o cadastro pelo CPF e retorna os dados já existentes, sem criar duplicidade.</td></tr>
+      <tr><td>Cadastro de paciente</td><td>Registra um paciente novo a partir do atendimento automático.</td></tr>
+      <tr><td>Disponibilidade</td><td>Retorna os horários livres para um profissional em uma data informada.</td></tr>
+      <tr><td>Agendamento</td><td>Marca a consulta diretamente na agenda, criando o registro no prontuário do paciente.</td></tr>
+      <tr><td>Agendamentos do paciente</td><td>Lista as consultas já marcadas, com data e profissional.</td></tr>
+      <tr><td>Confirmação</td><td>O paciente confirma a presença na consulta agendada.</td></tr>
+      <tr><td>Cancelamento</td><td>O paciente cancela o horário e libera a agenda.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">⛨</div>
+      <h4>Autenticação por token</h4>
+      <p>Cada clínica recebe o seu próprio token de integração, com permissões específicas por capacidade concedida. Token de uma clínica não abre a API de outra.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#d6336c)">⛨</div>
+      <h4>Limitada ao plano contratado</h4>
+      <p>O uso da API só é liberado se o recurso estiver disponível no plano da clínica. Regra de plano e regra de token são verificadas em toda chamada.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">✓</div>
+      <h4>Testada</h4>
+      <p>17 casos de teste automatizados cobrem o funcionamento da API e a garantia de que nenhuma resposta carrega dados de outra clínica.</p>
+    </div>
+  </div>
+
+  <div class="callout aviso">
+    <b>Situação atual:</b> a API está pronta e testada. A conexão com o WhatsApp em si
+    (conta Business, número verificado e Templates da Meta) depende de aprovação da Meta e
+    é uma etapa de configuração por clínica, feita na implantação. O sistema já prevê os
+    estados de conversa — atendimento automático, aguardando paciente, atendente humano e
+    encerrado — para que a automação e o atendimento humano sejam coordenados.
+  </div>
+</section>
+
+<!-- ================= 12 SEGURANÇA ================= -->
+<section class="page">
+  <div class="kicker">17 — Segurança</div>
+  <h2 class="secao">Segurança, auditoria e LGPD</h2>
+  <div class="regua2"></div>
+
+  <h3 class="bloco">Recursos já implementados</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">◍</div>
+      <h4>Acesso individual e por perfil</h4>
+      <p>Nenhum acesso compartilhado. Cada pessoa entra com usuário próprio e enxerga apenas o que o perfil permite.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">⚿</div>
+      <h4>Senha protegida</h4>
+      <p>Senhas gravadas com hash. Confirmação de identidade antes de ações sensíveis e redefinição de senha por e-mail.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">▤</div>
+      <h4>Trilha de auditoria</h4>
+      <p>Registro de quem fez o quê, quando, em qual registro e com quais valores antes e depois da alteração.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#e8890c,#d6336c)">⛨</div>
+      <h4>Isolamento por clínica</h4>
+      <p>Banco separado por clínica, com testes automatizados que impedem vazamento de dados entre clientes.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#1d2b33,#5a6a72)">◱</div>
+      <h4>Documentos protegidos</h4>
+      <p>Exames e anexos ficam em pasta identificada pela clínica e pelo paciente, e só são baixados por usuário autorizado.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">⚙</div>
+      <h4>Infraestrutura gerenciada</h4>
+      <p>Servidor, aplicação e banco ficam sob responsabilidade da plataforma, com conexão protegida por HTTPS e backup conforme a infraestrutura contratada.</p>
+    </div>
+  </div>
+
+  <h3 class="bloco">Alinhamento com a LGPD</h3>
+  <p>
+    Dados de saúde são dados pessoais sensíveis. O sistema foi desenhado tomando isso em conta:
+    acesso restrito por função, minimização do que é exibido a cada perfil, registro de todas as
+    operações relevantes, possibilidade de ajuste de consentimento e organização dos documentos
+    por clínica. A definição de base legal, a finalidade do tratamento e o atendimento aos
+    direitos do titular são responsabilidades da clínica, apoiadas por esta estrutura.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th style="width:52mm">Princípio</th><th>Como aparece no sistema</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Finalidade</td><td>Consentimento registrado em contrato, vinculado ao paciente e ao procedimento.</td></tr>
+      <tr><td>Minimização</td><td>Cada perfil visualiza apenas o necessário à sua função; o painel não exibe valores a quem não tem a permissão financeira.</td></tr>
+      <tr><td>Segurança</td><td>Controle de acesso por perfil, trilha de auditoria e isolamento físico dos dados de cada clínica.</td></tr>
+      <tr><td>Transparência</td><td>Trilha de auditoria permite demonstrar quem acessou e o que alterou.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 13 ENGENHARIA ================= -->
+<section class="page">
+  <div class="kicker">18 — Qualidade</div>
+  <h2 class="secao">Engenharia e qualidade</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    O sistema é construído com padrão de produto de software, não como script de uso único.
+    Isso é o que garante que a plataforma pueda evoluir sem perder o que já funciona.
+  </p>
+
+  <div class="grade4">
+    <div class="num"><b>108</b><span>Testes automatizados</span></div>
+    <div class="num"><b>25</b><span>Arquivos de teste</span></div>
+    <div class="num"><b>55</b><span>Migrations de banco</span></div>
+    <div class="num"><b>20</b><span>Formulários validados</span></div>
+  </div>
+
+  <h3 class="bloco">Tecnologias que sustentam a plataforma</h3>
+  <table>
+    <thead>
+      <tr><th style="width:36mm">Camada</th><th>Tecnologia</th><th style="width:60mm">Observação</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Backend</td><td>Laravel 13 <small>(PHP 8.3)</small></td><td>Framework web <small>(versão estável atual)</small></td></tr>
+      <tr><td>Frontend</td><td>Blade + Bootstrap 5 + SCSS + Alpine.js</td><td>Carregado com Vite 8</td></tr>
+      <tr><td>Banco central</td><td>MySQL</td><td>Clínicas, planos, assinaturas e métricas da plataforma</td></tr>
+      <tr><td>Banco por clínica</td><td>Um banco isolado por clínica</td><td>Dados de uma clínica nunca se misturam a outra</td></tr>
+      <tr><td>Autenticação</td><td>Laravel Breeze</td><td>Login, e-mail, redefinição e confirmação de senha</td></tr>
+      <tr><td>API</td><td>API REST em <small>/api/whatsapp</small></td><td>Autenticada por token próprio de cada clínica, com abilities</td></tr>
+      <tr><td>Testes</td><td>PHPUnit 12</td><td>25 arquivos de teste, 108 casos</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="bloco">O que a suíte de testes cobre</h3>
+  <div class="duas">
+    <div>
+      <ul class="lista">
+        <li><b>Autenticação</b> — login, logout, registro, verificação de e-mail, redefinição e atualização de senha.</li>
+        <li><b>Cada módulo funcional</b> — agenda, convênio, profissionais, procedimentos, orçamentos, financeiro, estoque, contratos, relatórios e dashboard.</li>
+        <li><b>Regras de permissão</b> — verificação de que um usuário sem permissão recebe bloqueio e não vê a informação.</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="lista">
+        <li><b>Isolamento entre clínicas</b> — 13 casos dedicados a garantir que nenhuma consulta atravesse a base de outra clínica.</li>
+        <li><b>API de WhatsApp</b> — 17 casos de funcionamento e de isolamento.</li>
+        <li><b>Provisionamento</b> — criação de clínica, geração do banco e carga inicial dos catálogos.</li>
+        <li><b>Base populada</b> — o ambiente de demonstração é verificado por teste, o que impede que a base de treinamento seque.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="bloco">Como o código está organizado</h3>
+  <table>
+    <thead>
+      <tr><th style="width:44mm">Camada</th><th style="width:20mm">Quantidade</th><th>Responsabilidade</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Controllers</td><td>31</td><td>Recebem a requisição, delegam a regra e devolvem a resposta ou o redirecionamento.</td></tr>
+      <tr><td>Modelos</td><td>51</td><td>Regras de domínio, relacionamentos e validações de dados.</td></tr>
+      <tr><td>Form Requests</td><td>20</td><td>Validação de entrada com mensagens claras em português.</td></tr>
+      <tr><td>Views Blade</td><td>72</td><td>Telas do sistema, incluindo modais e formulários.</td></tr>
+      <tr><td>Middleware</td><td>5</td><td>Resolução da clínica, verificação de acesso, verificação de plano e autenticação de integração.</td></tr>
+      <tr><td>Serviços</td><td>5</td><td>Provisionamento de clínica, criação de banco e registro de auditoria.</td></tr>
+      <tr><td>Comandos de console</td><td>3</td><td>Criação de clínica, execução de migrations por clínica e carga de dados.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>O que isso significa na prática:</b> qualquer ajuste pedido depois da entrega pode ser
+    feito com segurança, sem risco de quebrar o que já foi entregue, e cada mudança entra em
+    produção acompanhada de verificação automática.
+  </div>
+</section>
+
+<!-- ================= 14 ESTADO ================= -->
+<section class="page">
+  <div class="kicker">19 — Panorama atual</div>
+  <h2 class="secao">O que já está pronto e o que vem a seguir</h2>
+  <div class="regua2"></div>
+
+  <h3 class="bloco">Módulos em funcionamento</h3>
+  <div class="duas">
+    <div>
+      <ul class="lista">
+        <li>Dashboard com indicadores do dia</li>
+        <li>Cadastro e ficha de pacientes</li>
+        <li>Prontuário clínico completo</li>
+        <li>Agenda com status e lista de espera</li>
+        <li>Odontograma interativo</li>
+        <li>Planos de tratamento com itens e status</li>
+        <li>Orçamentos com validade e conversão</li>
+        <li>Financeiro com baixa de pagamento</li>
+        <li>Convênios e planos de saúde</li>
+        <li>Profissionais com especialidades e comissão</li>
+        <li>Catálogo de procedimentos</li>
+        <li>Estoque com rastreio de movimentações</li>
+        <li>Contratos e termos de consentimento</li>
+        <li>Relatórios de financeiro, agenda e estoque</li>
+        <li>Usuários, perfis e permissões</li>
+        <li>Dados da clínica e trilha de auditoria</li>
+        <li>API de WhatsApp com autenticação por token</li>
+        <li>Estrutura SaaS completa: plano, assinatura, banco exclusivo e provisionamento automático por clínica</li>
+        <li>Painel da plataforma para gestão de clínicas, planos, tokens e métricas</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="bloco" style="margin-top:0">Próximos passos sugeridos</h3>
+      <table style="margin-top:0">
+        <thead><tr><th style="width:32mm">Prioridade</th><th>Evolução</th></tr></thead>
+        <tbody>
+          <tr><td>Alta</td><td>Conexão do WhatsApp com conta Business e Templates da Meta.</td></tr>
+          <tr><td>Alta</td><td>Envio de lembretes e confirmação automática de consulta.</td></tr>
+          <tr><td>Alta</td><td>Comissão do profissional calculada sobre os itens executados.</td></tr>
+          <tr><td>Média</td><td>Impressão e envio do orçamento em PDF ao paciente.</td></tr>
+          <tr><td>Média</td><td>Assinatura eletrônica do contrato na tela.</td></tr>
+          <tr><td>Média</td><td>Imagens de radiografia no prontuário, com visualização integrada.</td></tr>
+          <tr><td>Média</td><td>Exportação de relatórios em planilha.</td></tr>
+          <tr><td>Evolutiva</td><td>Agendamento por IA e automações de atendimento.</td></tr>
+          <tr><td>Evolutiva</td><td>Canal de Instagram e Facebook.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Todos os módulos do menu lateral já respondem:</b> cada item do menu abre a sua tela
+    correspondente, e os itens que dependem de configuração específica da clínica podem ser
+    ajustados com o perfil da clínica no momento da implantação.
+  </div>
+</section>
+
+<!-- ================= 15 IMPLANTAÇÃO ================= -->
+<section class="page">
+  <div class="kicker">20 — Implantação</div>
+  <h2 class="secao">Onboarding da clínica e implantação</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    A contratação é automática; a preparação do dia a dia é acompanhada. Depois que o sistema
+    já existe e o acesso está liberado, a clínica passa por uma implantação conduzida, que vai
+    da configuração inicial até a equipe operando com autonomia.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th style="width:14mm">Etapa</th><th style="width:44mm">Atividade</th><th>O que a clínica recebe</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Acesso imediato</td><td>Sistema próprio já criado, com banco exclusivo, catálogos carregados e usuário administrador habilitado. Não há instalação a fazer.</td></tr>
+      <tr><td>2</td><td>Alinhamento</td><td>Reunião de definição dos perfis de acesso, dos procedimentos que a clínica trabalha e da forma de pagamento e convênio predominantes.</td></tr>
+      <tr><td>3</td><td>Configuração</td><td>Identidade visual (logo e cores), salas, equipe de profissionais, catálogo de procedimentos com os preços da clínica e cadastro dos demais usuários.</td></tr>
+      <tr><td>4</td><td>Carga dos dados</td><td>Importação da base de pacientes já existente, se a clínica quiser trazer o cadastro atual em vez de começar do zero.</td></tr>
+      <tr><td>5</td><td>Treinamento</td><td>Capacitação por perfil — recepção, profissionais, financeiro e administração — com material didático e ambiente de demonstração para prática.</td></tr>
+      <tr><td>6</td><td>Acompanhamento</td><td>Acompanhamento do uso até a operação plena, com ajuste de permissões e catálogos conforme a clínica descobre novas rotinas.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="bloco">O que a clínica precisa disponibilizar</h3>
+  <ul class="lista">
+    <li>Um computador ou tablet por pessoa, com navegador atualizado e acesso à internet.</li>
+    <li>Uma conta de e-mail institucional para o cadastro do administrador.</li>
+    <li>As informações da clínica para o cadastro inicial (razão social, CNPJ, endereço, responsável).</li>
+    <li>Funcionários disponíveis para o treinamento.</li>
+    <li>Os dados que deseja importar, caso opte por trazer o cadastro atual.</li>
+  </ul>
+
+  <div class="callout">
+    <b>Nada de servidor na clínica:</b> por ser uma plataforma SaaS, a clínica não precisa
+    comprar computador de servidor, instalar banco de dados, configurar rede interna nem
+    contratar profissional de informática para manter o sistema no ar. Um computador com
+    navegador e internet estável é suficiente — de um computador, de um tablet ou do celular,
+    dentro ou fora da clínica.
+  </div>
+
+  <h3 class="bloco">Manutenção e evolução</h3>
+  <p>
+    Correções, atualizações e melhorias da plataforma estão incluídos na mensalidade, assim
+    como o suporte técnico. A evolução acontece de forma incremental e centralizada: um novo
+    recurso entra como atualização da plataforma e aparece para todas as clínicas na próxima
+    atualização, sem que a clínica precise pedir, instalar ou pagar separado.
+  </p>
+
+  <div class="callout aviso">
+    <b>Tempo de implantação:</b> o acesso é liberado no mesmo dia da contratação, já com o
+    sistema completo e os 14 dias de avaliação. A preparação operacional — configuração,
+    carga de dados e treinamento — é concluída em até 30 dias corridos, contados da
+    disponibilização das informações necessárias. O ritmo é acordado na etapa de alinhamento.
+  </div>
+</section>
+
+<!-- ================= 16 CONTATO ================= -->
+<section class="page">
+  <div class="kicker">21 — Fale com a gente</div>
+  <h2 class="secao">Contato</h2>
+  <div class="regua2"></div>
+
+  <p class="subtitulo">
+    Este documento apresenta o estado atual da plataforma. Uma demonstração com o ambiente
+    de testes, funcionando com dados de uma clínica fictícia, pode ser agendada sem custo.
+  </p>
+
+  <div class="card wide" style="padding:7mm">
+    <div style="display:flex;align-items:center;gap:7mm">
+      <img src="proposta_comercial/lj_logo.png" alt="LJ Automação" style="height:22mm;width:auto">
+      <div style="flex:1">
+        <h4 style="font-size:14pt;color:var(--azul-prof)">LJ Automação — Tecnologia do Seu Jeito</h4>
+        <p style="font-size:10pt;margin-top:1.5mm">
+          <b style="color:var(--texto)">John Kennedy Moreira</b><br>
+          (38) 99201-5253 &nbsp;·&nbsp; kennedyjan2012@hotmail.com
+        </p>
+        <p style="font-size:9pt;margin-top:2.5mm;color:var(--cinza-texto)">
+          Plataforma de gestão de clínicas em nuvem: desenvolvimento, implantação e manutenção.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="bloco">Como a demonstração funciona</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#0b7285,#0ca678)">1</div>
+      <h4>Agendamento</h4>
+      <p>Uma conversa rápida para entender o tamanho da equipe e a rotina atual da clínica.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#7048e8,#0b7285)">2</div>
+      <h4>Acesso de teste</h4>
+      <p>Usuários fornecidos por perfil, já com a clínica de demonstração populada.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:linear-gradient(135deg,#2b8a3e,#0ca678)">3</div>
+      <h4>Percurso guiado</h4>
+      <p>Do cadastro do paciente até a quitação do orçamento, passando por cada módulo.</p>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <span>LJ Automação — Tecnologia do Seu Jeito · (38) 99201-5253 · kennedyjan2012@hotmail.com</span>
+    <span>LJ Automação — Plataforma de Gestão de Clínicas</span>
+  </div>
+</section>
+
+</body>
+</html>

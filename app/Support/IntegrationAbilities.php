@@ -43,8 +43,28 @@ final class IntegrationAbilities
         'api.whatsapp.paciente' => 'patients.view',
         'api.whatsapp.criar-paciente' => 'patients.create',
 
+        /**
+         * Catálogo de procedimentos é dado de leitura da clínica, não da agenda:
+         * quem pode ver os profissionais para oferecê-los também precisa saber
+         * quanto tempo cada procedimento ocupa para oferecer horário honesto.
+         */
+        'api.whatsapp.procedimentos' => 'procedures.view',
+
+        /**
+         * Avançar a conversa de um paciente. Ability própria, e não
+         * `appointments.create`: conduzir a conversa até o fim writes no estado
+         * do paciente e pode criar a consulta, e um token montado só para ler a
+         * agenda não pode conduzir a conversa de ninguém. Um token que não a
+         * recebe continua conseguindo usar os endpoints de dados — a máquina de
+         * estados é uma via, não um substituto das outras.
+         */
+        'api.whatsapp.fluxo' => 'conversations.advance',
+
         'api.whatsapp.disponibilidade' => 'appointments.view',
         'api.whatsapp.agendamentos' => 'appointments.view',
+        'api.whatsapp.conversa' => 'appointments.view',
+        'api.whatsapp.conversa.atualizar' => 'appointments.create',
+
         'api.whatsapp.agendamento' => 'appointments.create',
 
         // Confirmar e cancelar mudam o estado da consulta: quem pode mudar não é
@@ -60,6 +80,21 @@ final class IntegrationAbilities
          * pode mandar mensagem em nome da clínica só porque já escreve na agenda.
          */
         'api.whatsapp.mensagem' => 'messages.send',
+
+        'api.social.posts.index' => 'social_posts.manage',
+        'api.social.posts.store' => 'social_posts.manage',
+
+        /**
+         * Guarda no disco da clínica a imagem que o workflow gerou. Entra no
+         * mesmo mapa dos demais endpoints sociais porque escreve no mesmo
+         * registro: um token capaz de criar post já precisa ser capaz de
+         * completar a criação com a imagem que o próprio fluxo produziu.
+         */
+        'api.social.posts.image' => 'social_posts.manage',
+
+        'api.social.posts.show' => 'social_posts.manage',
+        'api.social.posts.approve' => 'social_posts.manage',
+        'api.social.posts.reject' => 'social_posts.manage',
     ];
 
     /**
@@ -104,10 +139,13 @@ final class IntegrationAbilities
             'patients.view' => 'Consultar pacientes',
             'patients.create' => 'Cadastrar pacientes',
             'professionals.view' => 'Consultar profissionais',
+            'procedures.view' => 'Consultar procedimentos e suas durações',
             'appointments.view' => 'Consultar agenda e disponibilidade',
             'appointments.create' => 'Criar agendamentos',
             'appointments.update' => 'Confirmar e cancelar agendamentos',
+            'conversations.advance' => 'Avançar a conversa de um paciente no WhatsApp',
             'messages.send' => 'Enviar mensagens de WhatsApp ao paciente',
+            'social_posts.manage' => 'Cadastrar e aprovar/rejeitar posts sociais',
         ];
     }
 
