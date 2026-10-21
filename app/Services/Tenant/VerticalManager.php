@@ -3,6 +3,7 @@
 namespace App\Services\Tenant;
 
 use App\Models\Central\Clinic;
+use App\Support\Modulos\CatalogoModulos;
 
 /**
  * Vertical da clínica: odontologia ou fisioterapia.
@@ -31,25 +32,30 @@ class VerticalManager
         self::FISIOTERAPIA,
     ];
 
+    public function __construct(protected CatalogoModulos $catalogo) {}
+
     /**
      * Módulos que só existem para odontologia.
      *
-     * @var list<string>
+     * A lista vem do catálogo de módulos: é ele quem diz a que vertical cada
+     * módulo pertence, e não duas listas paralelas que podem divergir.
+     *
+     * @return list<string>
      */
-    protected array $somenteOdontologia = [
-        'odontograma',
-    ];
+    public function somenteOdontologia(): array
+    {
+        return $this->catalogo->modulosDaVertical(self::ODONTOLOGIA);
+    }
 
     /**
      * Módulos que só existem para fisioterapia.
      *
-     * @var list<string>
+     * @return list<string>
      */
-    protected array $somenteFisioterapia = [
-        'avaliacao',
-        'evolucao',
-        'pacotes',
-    ];
+    public function somenteFisioterapia(): array
+    {
+        return $this->catalogo->modulosDaVertical(self::FISIOTERAPIA);
+    }
 
     /**
      * Vertical da clínica, com fallback seguro para odontologia.
@@ -88,15 +94,15 @@ class VerticalManager
             return $this->vertical($clinic) === $modulo;
         }
 
-        if (in_array($modulo, $this->somenteOdontologia, true)) {
-            return $this->isOdontologia($clinic);
+        $verticalDoModulo = $this->catalogo->verticalDoModulo($modulo);
+
+        // Módulo fora do catálogo (ou comum às duas verticais): liberado,
+        // como sempre foi.
+        if ($verticalDoModulo === null || $verticalDoModulo === CatalogoModulos::COMUM) {
+            return true;
         }
 
-        if (in_array($modulo, $this->somenteFisioterapia, true)) {
-            return $this->isFisioterapia($clinic);
-        }
-
-        return true;
+        return $this->vertical($clinic) === $verticalDoModulo;
     }
 
     /**
@@ -106,14 +112,7 @@ class VerticalManager
      */
     public function modulosVisiveis(?Clinic $clinic = null): array
     {
-        $modulos = [
-            'dashboard', 'pacientes', 'agenda', 'prontuario',
-            'tratamentos', 'orcamentos', 'financeiro', 'convenios',
-            'profissionais', 'procedimentos', 'estoque', 'contratos',
-            'relatorios', 'documentos',
-        ];
-
-        $modulos = array_merge($modulos, $this->somenteOdontologia, $this->somenteFisioterapia);
+        $modulos = array_merge(['dashboard'], array_keys($this->catalogo->todos()));
 
         return array_values(array_filter($modulos, fn (string $m): bool => $this->permite($m, $clinic)));
     }
@@ -125,7 +124,7 @@ class VerticalManager
      */
     public function modulosBloqueados(?Clinic $clinic = null): array
     {
-        $todos = array_merge($this->somenteOdontologia, $this->somenteFisioterapia);
+        $todos = array_merge($this->somenteOdontologia(), $this->somenteFisioterapia());
 
         return array_values(array_filter($todos, fn (string $m): bool => ! $this->permite($m, $clinic)));
     }

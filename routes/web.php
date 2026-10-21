@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\ModuloPlanejadoController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
@@ -35,6 +36,11 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Tela padrão de módulo planejado. Um módulo que já está disponível
+    // redireciona para a própria tela; um módulo de outra vertical é recusado
+    // aqui e no servidor.
+    Route::get('/modulos/{modulo}', [ModuloPlanejadoController::class, '__invoke'])->name('modulos.planejado');
 
     Route::prefix('agenda')->name('agenda.')->group(function () {
         Route::get('/', [AgendaController::class, 'index'])->name('index');

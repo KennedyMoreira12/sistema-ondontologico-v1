@@ -7,7 +7,7 @@ use App\Models\Appointment;
 use App\Models\Paciente;
 use App\Models\Product;
 use App\Models\TreatmentPlan;
-use App\Services\Tenant\VerticalManager;
+use App\Services\Modulos\ResolutorModulo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,48 +17,11 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): View|RedirectResponse
     {
+        // `?modulo=` é o endereço legado dos links do menu. Ele passa pelo
+        // mesmo resolvedor de qualquer outro módulo, para que o link interno,
+        // a URL digitada e o item do menu nunca discordem entre si.
         if ($request->filled('modulo')) {
-            $modulo = $request->string('modulo')->value();
-
-            // A vertical decide no servidor: um módulo que não existe para a
-            // clínica não abre nem por URL digitada.
-            if (! app(VerticalManager::class)->permite($modulo)) {
-                return redirect()
-                    ->route('dashboard')
-                    ->with('warning', 'Este módulo não está disponível para o perfil da sua clínica.');
-            }
-
-            $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos', 'avaliacao', 'evolucao', 'pacotes', 'documentos'];
-
-            if (in_array($modulo, $perPaciente, true)) {
-                return redirect()->route('pacientes.index');
-            }
-
-            if ($modulo === 'financeiro') {
-                return redirect()->route('financeiro.index');
-            }
-
-            if ($modulo === 'convenios') {
-                return redirect()->route('convenios.index');
-            }
-
-            if ($modulo === 'profissionais') {
-                return redirect()->route('profissionais.index');
-            }
-
-            if ($modulo === 'procedimentos') {
-                return redirect()->route('procedimentos.index');
-            }
-
-            if ($modulo === 'estoque') {
-                return redirect()->route('estoque.index');
-            }
-
-            if ($modulo === 'relatorios') {
-                return redirect()->route('relatorios.index');
-            }
-
-            return view('em-desenvolvimento', ['modulo' => $modulo]);
+            return app(ResolutorModulo::class)->abrir($request->string('modulo')->value());
         }
 
         $user = auth()->user();
