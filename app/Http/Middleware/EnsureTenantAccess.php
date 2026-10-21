@@ -35,7 +35,7 @@ class EnsureTenantAccess
         }
 
         return redirect()
-            ->route('billing.index')
-            ->with('warning', 'Sua assinatura precisa ser renovada para continuar usando o sistema.');
+            ->route('dashboard')
+            ->with('warning', 'Sua assinatura precisa ser renovada para continuar usando o sistema. Entre em contato com o suporte.');
     }
 }
