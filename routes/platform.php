@@ -5,6 +5,9 @@ use App\Http\Controllers\Platform\Auth\LoginController;
 use App\Http\Controllers\Platform\ClinicController;
 use App\Http\Controllers\Platform\DashboardController;
 use App\Http\Controllers\Platform\PlanController;
+use App\Http\Controllers\Platform\ProspectController;
+use App\Http\Controllers\Platform\ProspectImportController;
+use App\Http\Controllers\Platform\ProspectWhatsAppController;
 use App\Http\Controllers\Platform\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -62,5 +65,51 @@ Route::prefix('painel')->name('painel.')->group(function (): void {
         });
 
         Route::get('auditoria', [AuditLogController::class, 'index'])->name('auditoria.index');
+
+        /**
+         * Prospecção comercial. Fica no banco central e é exclusiva do super
+         * admin (superadmin), diferente do resto do painel, que o suporte
+         * também abrange. Não envia mensagem nem toca no Evolution.
+         */
+        Route::prefix('prospeccao')->name('prospeccao.')->middleware('superadmin')->group(function (): void {
+            Route::get('/', [ProspectController::class, 'index'])->name('index');
+            Route::get('origem/{source}', [ProspectController::class, 'origem'])->name('origem');
+
+            /**
+             * Importação por planilha em duas etapas (prévia -> confirmação).
+             * Fica ANTES de {prospect} para que "importar" não seja capturado
+             * como id de contato.
+             */
+            Route::get('importar', [ProspectImportController::class, 'create'])->name('importar');
+            Route::post('importar', [ProspectImportController::class, 'store'])->name('importar.store');
+            Route::get('importar/previa', [ProspectImportController::class, 'preview'])->name('importar.previa');
+            Route::post('importar/confirmar', [ProspectImportController::class, 'confirm'])->name('importar.confirmar');
+            Route::post('importar/cancelar', [ProspectImportController::class, 'cancel'])->name('importar.cancelar');
+
+            /**
+             * WhatsApp exclusivo da prospecção. Fica ANTES de {prospect} para
+             * que whatsapp não seja capturado como id de contato. O QR tem
+             * throttle próprio; criar instância e ler estado também são
+             * limitados para não virar bomba na Evolution.
+             */
+            Route::prefix('whatsapp')->name('whatsapp.')->group(function (): void {
+                Route::get('/', [ProspectWhatsAppController::class, 'show'])->name('show');
+                Route::post('instancia', [ProspectWhatsAppController::class, 'storeInstance'])
+                    ->middleware('throttle:10,1')
+                    ->name('instancia');
+                Route::post('estado', [ProspectWhatsAppController::class, 'refreshState'])
+                    ->middleware('throttle:10,1')
+                    ->name('estado');
+                Route::post('qrcode', [ProspectWhatsAppController::class, 'qrcode'])
+                    ->middleware('throttle:10,1')
+                    ->name('qrcode');
+            });
+
+            Route::post('comercial', [ProspectController::class, 'comercial'])->name('comercial');
+
+            Route::get('{prospect}', [ProspectController::class, 'show'])->name('show');
+
+            Route::patch('{prospect}', [ProspectController::class, 'update'])->name('update');
+        });
     });
 });

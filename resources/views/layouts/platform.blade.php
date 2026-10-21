@@ -22,24 +22,36 @@
 
             <nav class="flex-grow-1">
                 <div class="nav-section-title">Operação</div>
-                <a href="{{ route('painel.dashboard') }}" class="nav-link {{ request()->routeIs('painel.dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i> Visão geral
+                <a href="{{ route('painel.dashboard') }}" class="nav-link {{ request()->routeIs('painel.dashboard') ? 'active' : '' }}" title="Visão geral">
+                    <i class="bi bi-speedometer2"></i>
                 </a>
-                <a href="{{ route('painel.clinicas.index') }}" class="nav-link {{ request()->routeIs('painel.clinicas.*') ? 'active' : '' }}">
-                    <i class="bi bi-hospital"></i> Clínicas
+                <a href="{{ route('painel.clinicas.index') }}" class="nav-link {{ request()->routeIs('painel.clinicas.*') ? 'active' : '' }}" title="Clínicas">
+                    <i class="bi bi-hospital"></i>
                 </a>
-                <a href="{{ route('painel.assinaturas.index') }}" class="nav-link {{ request()->routeIs('painel.assinaturas.*') ? 'active' : '' }}">
-                    <i class="bi bi-receipt"></i> Assinaturas
+                <a href="{{ route('painel.assinaturas.index') }}" class="nav-link {{ request()->routeIs('painel.assinaturas.*') ? 'active' : '' }}" title="Assinaturas">
+                    <i class="bi bi-receipt"></i>
                 </a>
 
                 <div class="nav-section-title">Comercial</div>
-                <a href="{{ route('painel.planos.index') }}" class="nav-link {{ request()->routeIs('painel.planos.*') ? 'active' : '' }}">
-                    <i class="bi bi-tags"></i> Planos
+                <a href="{{ route('painel.planos.index') }}" class="nav-link {{ request()->routeIs('painel.planos.*') ? 'active' : '' }}" title="Planos">
+                    <i class="bi bi-tags"></i>
                 </a>
+                @if (auth()->user()->isSuperAdmin())
+                    <a href="{{ route('painel.prospeccao.index') }}" class="nav-link {{ request()->routeIs('painel.prospeccao.*') ? 'active' : '' }}" title="Prospecção">
+                        <i class="bi bi-funnel"></i>
+                    </a>
+                @endif
+
+                @if (auth()->user()->isSuperAdmin())
+                    <div class="nav-section-title">Marketing</div>
+                    <a href="{{ route('painel.social.index') }}" class="nav-link {{ request()->routeIs('painel.social.*') ? 'active' : '' }}" title="Redes sociais">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                @endif
 
                 <div class="nav-section-title">Governança</div>
-                <a href="{{ route('painel.auditoria.index') }}" class="nav-link {{ request()->routeIs('painel.auditoria.*') ? 'active' : '' }}">
-                    <i class="bi bi-list-check"></i> Auditoria
+                <a href="{{ route('painel.auditoria.index') }}" class="nav-link {{ request()->routeIs('painel.auditoria.*') ? 'active' : '' }}" title="Auditoria">
+                    <i class="bi bi-list-check"></i>
                 </a>
             </nav>
 

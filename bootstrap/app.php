@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminIsActive;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantAccess;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
@@ -34,6 +35,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'tenant.access' => EnsureTenantAccess::class,
             'plan' => CheckPlanFeature::class,
             'platform.active' => EnsurePlatformAdminIsActive::class,
+            'superadmin' => EnsureSuperAdmin::class,
         ]);
 
         /**
