@@ -10,6 +10,9 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    {{-- Atalho de teclado: pula o menu e vai direto ao conteúdo. --}}
+    <a class="sco-skip-link" href="#scoConteudo">Pular para o conteúdo</a>
+
     {{-- A cor da clínica entra como acento: item ativo, títulos e marca. --}}
     <div class="sco-layout" style="--sco-accent: {{ clinic_primary_color() }}; --sco-accent-2: {{ clinic_secondary_color() }};">
         <aside class="sco-sidebar" id="scoSidebar">
@@ -22,96 +25,42 @@
                 <span class="brand-name">
                     {{ $clinica?->name ?? config('app.name', 'LJ SmartClinic') }}
                 </span>
+                <button type="button" class="btn btn-light d-lg-none sco-sidebar-close" data-sidebar-close aria-label="Fechar menu">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
 
-            <nav class="flex-grow-1">
-                <div class="nav-section-title">Principal</div>
-                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i> Pacientes
-                </a>
-                <a href="{{ route('agenda.index') }}" class="nav-link {{ request()->routeIs('agenda.*') ? 'active' : '' }}">
-                    <i class="bi bi-calendar3"></i> Agenda
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=prontuario" class="nav-link">
-                    <i class="bi bi-journal-medical"></i> Prontuário
-                </a>
-                @if (vertical_permite('odontograma'))
-                    <a href="{{ route('dashboard') }}?modulo=odontograma" class="nav-link">
-                        <i class="bi bi-grid-3x3-gap"></i> Odontograma
+            <nav class="flex-grow-1" aria-label="Menu principal">
+                {{-- O menu vem do catálogo de módulos: nome, ícone, seção e
+                     situação por vertical ficam em um lugar só. --}}
+                <x-menu-modulos>
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" @if (request()->routeIs('dashboard')) aria-current="page" @endif>
+                        <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
-                @endif
-                @if (vertical_permite('avaliacao'))
-                    <a href="{{ route('dashboard') }}?modulo=avaliacao" class="nav-link">
-                        <i class="bi bi-clipboard2-pulse"></i> Avaliação
-                    </a>
-                @endif
-                @if (vertical_permite('evolucao'))
-                    <a href="{{ route('dashboard') }}?modulo=evolucao" class="nav-link">
-                        <i class="bi bi-activity"></i> Evolução
-                    </a>
-                @endif
-                @if (vertical_permite('pacotes'))
-                    <a href="{{ route('dashboard') }}?modulo=pacotes" class="nav-link">
-                        <i class="bi bi-box-seam"></i> Pacotes de sessões
-                    </a>
-                @endif
-                <a href="{{ route('dashboard') }}?modulo=tratamentos" class="nav-link">
-                    <i class="bi bi-clipboard2-pulse"></i> Tratamentos
-                </a>
+                </x-menu-modulos>
 
-                <div class="nav-section-title">Gestão</div>
-                <a href="{{ route('dashboard') }}?modulo=orcamentos" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Orçamentos
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=financeiro" class="nav-link">
-                    <i class="bi bi-cash-stack"></i> Financeiro
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=convenios" class="nav-link">
-                    <i class="bi bi-shield-check"></i> Convênios
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=profissionais" class="nav-link">
-                    <i class="bi bi-person-badge"></i> Profissionais
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=procedimentos" class="nav-link">
-                    <i class="bi bi-journal-code"></i> Procedimentos
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=estoque" class="nav-link">
-                    <i class="bi bi-box-seam"></i> Estoque
-                </a>
-                <a href="{{ route('contratos.index') }}" class="nav-link {{ request()->routeIs('contratos.*') ? 'active' : '' }}">
-                    <i class="bi bi-file-earmark-check"></i> Contratos
-                </a>
                 @can('social.view')
-                    <a href="{{ route('social.index') }}" class="nav-link {{ request()->routeIs('social.*') ? 'active' : '' }}">
+                    <a href="{{ route('social.index') }}" class="nav-link {{ request()->routeIs('social.*') ? 'active' : '' }}" @if (request()->routeIs('social.*')) aria-current="page" @endif>
                         <i class="bi bi-share"></i> Social
                     </a>
                 @endcan
-                <a href="{{ route('dashboard') }}?modulo=relatorios" class="nav-link">
-                    <i class="bi bi-graph-up-arrow"></i> Relatórios
-                </a>
-                <a href="{{ route('dashboard') }}?modulo=documentos" class="nav-link">
-                    <i class="bi bi-folder2-open"></i> Documentos
-                </a>
 
                 @can('admin.view')
                     <div class="nav-section-title">Administração</div>
-                    <a href="{{ route('admin.usuarios.index') }}" class="nav-link {{ request()->routeIs('admin.usuarios*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.usuarios.index') }}" class="nav-link {{ request()->routeIs('admin.usuarios*') ? 'active' : '' }}" @if (request()->routeIs('admin.usuarios*')) aria-current="page" @endif>
                         <i class="bi bi-person-gear"></i> Usuários
                     </a>
-                    <a href="{{ route('admin.perfis.index') }}" class="nav-link {{ request()->routeIs('admin.perfis*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.perfis.index') }}" class="nav-link {{ request()->routeIs('admin.perfis*') ? 'active' : '' }}" @if (request()->routeIs('admin.perfis*')) aria-current="page" @endif>
                         <i class="bi bi-shield-lock"></i> Perfis
                     </a>
-                    <a href="{{ route('admin.permissoes.index') }}" class="nav-link {{ request()->routeIs('admin.permissoes*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.permissoes.index') }}" class="nav-link {{ request()->routeIs('admin.permissoes*') ? 'active' : '' }}" @if (request()->routeIs('admin.permissoes*')) aria-current="page" @endif>
                         <i class="bi bi-keys"></i> Permissões
                     </a>
-                    <a href="{{ route('admin.clinica.edit') }}" class="nav-link {{ request()->routeIs('admin.clinica*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.clinica.edit') }}" class="nav-link {{ request()->routeIs('admin.clinica*') ? 'active' : '' }}" @if (request()->routeIs('admin.clinica*')) aria-current="page" @endif>
                         <i class="bi bi-building"></i> Clínica
                     </a>
                     @can('auditoria.view')
-                        <a href="{{ route('admin.auditoria.index') }}" class="nav-link {{ request()->routeIs('admin.auditoria*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.auditoria.index') }}" class="nav-link {{ request()->routeIs('admin.auditoria*') ? 'active' : '' }}" @if (request()->routeIs('admin.auditoria*')) aria-current="page" @endif>
                             <i class="bi bi-list-check"></i> Auditoria
                         </a>
                     @endcan
@@ -119,10 +68,14 @@
             </nav>
         </aside>
 
+        {{-- No celular, o menu abre por cima do conteúdo: a cortina escurece a
+             página e some ao tocar fora do menu. --}}
+        <div class="sco-backdrop" data-sidebar-backdrop hidden></div>
+
         <div class="sco-main">
             <header class="sco-topbar">
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle onclick="document.getElementById('scoSidebar').classList.toggle('show')" aria-label="Abrir menu">
+                    <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle aria-controls="scoSidebar" aria-expanded="false" aria-label="Abrir menu">
                         <i class="bi bi-list"></i>
                     </button>
                     <div class="sco-topbar-title">@yield('page-title')</div>
@@ -149,7 +102,7 @@
                 </div>
             </header>
 
-            <main class="sco-content">
+            <main class="sco-content" id="scoConteudo" tabindex="-1">
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -181,5 +134,83 @@
     </div>
 
     @stack('scripts')
+
+    {{-- Menu lateral no celular: abre, fecha, fecha ao tocar fora e devolve
+         o foco. Sem isso o menu ficava preso aberto atrás do botão que o
+         abre, e o teclado não tinha como sair dele. --}}
+    <script>
+        (function () {
+            var sidebar = document.getElementById('scoSidebar');
+            var toggle = document.querySelector('[data-sidebar-toggle]');
+
+            if (!sidebar || !toggle) {
+                return;
+            }
+
+            var backdrop = document.querySelector('[data-sidebar-backdrop]');
+            var fecharBotao = document.querySelector('[data-sidebar-close]');
+
+            function telaPequena() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            function abrir() {
+                sidebar.classList.add('show');
+                toggle.setAttribute('aria-expanded', 'true');
+                toggle.setAttribute('aria-label', 'Fechar menu');
+
+                if (backdrop) {
+                    backdrop.hidden = false;
+                }
+            }
+
+            function fechar() {
+                sidebar.classList.remove('show');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Abrir menu');
+
+                if (backdrop) {
+                    backdrop.hidden = true;
+                }
+            }
+
+            toggle.addEventListener('click', function () {
+                if (sidebar.classList.contains('show')) {
+                    fechar();
+                } else {
+                    abrir();
+                }
+            });
+
+            if (backdrop) {
+                backdrop.addEventListener('click', fechar);
+            }
+
+            if (fecharBotao) {
+                fecharBotao.addEventListener('click', fechar);
+            }
+
+            sidebar.querySelectorAll('a.nav-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (telaPequena()) {
+                        fechar();
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', function (evento) {
+                if (evento.key === 'Escape' && sidebar.classList.contains('show')) {
+                    fechar();
+                    toggle.focus();
+                }
+            });
+
+            window.addEventListener('resize', function () {
+                if (!telaPequena()) {
+                    fechar();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

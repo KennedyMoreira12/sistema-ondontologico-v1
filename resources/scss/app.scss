@@ -108,6 +108,49 @@ body {
 }
 
 /* ==========================================================================
+   ACESSIBILIDADE E CELULAR
+   Atalho para o conteúdo, cortina atrás do menu no celular e foco visível
+   para quem navega pelo teclado.
+   ========================================================================== */
+.sco-skip-link {
+    position: absolute;
+    top: 0;
+    left: -9999px;
+    z-index: 2000;
+    padding: 0.6rem 1rem;
+    background: var(--sco-accent);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 0 0 $border-radius 0;
+
+    &:focus {
+        left: 0;
+    }
+}
+
+/* Cortina do menu no celular. O atributo `hidden` esconde a cortina; o
+   JavaScript do layout mostra e esconde conforme o menu abre e fecha. */
+.sco-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgba($lj-azul-profundo, 0.45);
+}
+
+.sco-sidebar-close {
+    flex: none;
+    margin-left: auto;
+    padding: 0.15rem 0.4rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--sco-accent);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
    MARCA
    O quadradinho com gradiente é a assinatura da logo — repete no topo do
    menu, no botão do usuário e nos ícones de destaque.
