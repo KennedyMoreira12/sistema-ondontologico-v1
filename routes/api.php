@@ -82,6 +82,24 @@ Route::prefix('whatsapp')
          */
         Route::post('fluxo', [WhatsAppController::class, 'fluxo'])->name('fluxo');
 
+        /**
+         * Turno COM IA. Ability própria (`conversations.ai`) e uma camada de
+         * plano a mais (`plan:ai_agent`): ter WhatsApp não é ter IA, e o token
+         * que conduz a conversa determinística não ganha, sozinho, o direito de
+         * gastar a cota de IA da clínica.
+         */
+        Route::post('ia', [WhatsAppController::class, 'fluxoIA'])
+            ->name('ia')
+            ->middleware('plan:ai_agent');
+
+        /**
+         * Pausa e retomada do bot para atendimento humano. Não exigem
+         * `ai_agent`: quem atende no balcão precisa poder assumir a conversa
+         * mesmo que o plano não tenha IA.
+         */
+        Route::post('conversa/handoff', [WhatsAppController::class, 'handoff'])->name('handoff');
+        Route::post('conversa/retomar', [WhatsAppController::class, 'retomar'])->name('retomar');
+
         Route::get('disponibilidade', [WhatsAppController::class, 'disponibilidade'])->name('disponibilidade');
         Route::get('conversa', [WhatsAppController::class, 'conversa'])->name('conversa');
         Route::put('conversa', [WhatsAppController::class, 'conversaAtualizar'])->name('conversa.atualizar');

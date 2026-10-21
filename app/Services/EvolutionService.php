@@ -108,6 +108,28 @@ class EvolutionService
     }
 
     /**
+     * Inicia ou retoma o pareamento do WhatsApp da clínica e devolve o QR.
+     *
+     * `GET /instance/connect/{instance}` na Evolution 2.x responde conforme o
+     * estado da instância e nunca desconecta uma já conectada: instância `open`
+     * devolve só o estado; `connecting` devolve o QR corrente; `close` inicia o
+     * pareamento e devolve o QR novo. O parâmetro `number` NÃO é enviado de
+     * propósito — com ele a Evolution troca o QR por um código de pareamento por
+     * telefone, e a tela pede a imagem do QR.
+     *
+     * @return array<string, mixed>
+     */
+    public function connect(Clinic $clinic): array
+    {
+        $response = $this->request($clinic)
+            ->get($this->url("/instance/connect/{$clinic->evolution_instance}"));
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
      * Base da requisição já com o `apikey` da clínica e o timeout da config.
      */
     protected function request(Clinic $clinic): PendingRequest

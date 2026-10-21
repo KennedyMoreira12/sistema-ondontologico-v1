@@ -60,6 +60,22 @@ final class IntegrationAbilities
          */
         'api.whatsapp.fluxo' => 'conversations.advance',
 
+        /**
+         * Turno COM IA. Ability própria, e não herdada de `conversations.advance`:
+         * a rota gasta a cota de IA da clínica e envia dados do paciente a um
+         * provedor externo. Um token que só conduz a conversa determinística não
+         * deve, sozinho, autorizar esse gasto nem essa saída de dados.
+         */
+        'api.whatsapp.ia' => 'conversations.ai',
+
+        /**
+         * Assumir e retomar a conversa (handoff). Separado de `ai`: é operação
+         * humana de atendimento, não uso de IA, e precisa funcionar em planos
+         * sem `ai_agent`.
+         */
+        'api.whatsapp.handoff' => 'conversations.handoff',
+        'api.whatsapp.retomar' => 'conversations.handoff',
+
         'api.whatsapp.disponibilidade' => 'appointments.view',
         'api.whatsapp.agendamentos' => 'appointments.view',
         'api.whatsapp.conversa' => 'appointments.view',
@@ -144,6 +160,8 @@ final class IntegrationAbilities
             'appointments.create' => 'Criar agendamentos',
             'appointments.update' => 'Confirmar e cancelar agendamentos',
             'conversations.advance' => 'Avançar a conversa de um paciente no WhatsApp',
+            'conversations.ai' => 'Responder mensagens no WhatsApp com IA',
+            'conversations.handoff' => 'Assumir e retomar conversas (atendimento humano)',
             'messages.send' => 'Enviar mensagens de WhatsApp ao paciente',
             'social_posts.manage' => 'Cadastrar e aprovar/rejeitar posts sociais',
         ];

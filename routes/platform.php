@@ -3,8 +3,12 @@
 use App\Http\Controllers\Platform\AuditLogController;
 use App\Http\Controllers\Platform\Auth\LoginController;
 use App\Http\Controllers\Platform\ClinicController;
+use App\Http\Controllers\Platform\ClinicWhatsAppController;
 use App\Http\Controllers\Platform\DashboardController;
 use App\Http\Controllers\Platform\PlanController;
+use App\Http\Controllers\Platform\ProspectController;
+use App\Http\Controllers\Platform\ProspectImportController;
+use App\Http\Controllers\Platform\ProspectWhatsAppController;
 use App\Http\Controllers\Platform\SocialPostController;
 use App\Http\Controllers\Platform\SocialSettingController;
 use App\Http\Controllers\Platform\SubscriptionController;
@@ -20,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('painel')->name('painel.')->group(function (): void {
     /**
      * O painel não tem mais tela de login própria: a entrada é a mesma tela de
-     * `/login`, cujo formulário tenta o guard `admin` antes do `web`. Esta rota
+     * /login, cujo formulário tenta o guard `admin` antes do `web`. Esta rota
      * sobra só para links antigos e para o `redirectGuestsTo` do bootstrap, e
      * por isso redireciona em vez de 404.
      */
@@ -45,6 +49,16 @@ Route::prefix('painel')->name('painel.')->group(function (): void {
             Route::post('{clinic}/migrar', [ClinicController::class, 'migrate'])->name('migrate');
             Route::patch('{clinic}/conexao', [ClinicController::class, 'toggleConnection'])->name('conexao');
             Route::post('{clinic}/tokens', [ClinicController::class, 'storeToken'])->name('tokens.store');
+
+            /**
+             * Conexão do WhatsApp. Só leitura no show; o qrcode tem throttle
+             * porque cada chamada pede uma instância à Evolution, e o botão é
+             * repetível.
+             */
+            Route::get('{clinic}/whatsapp', [ClinicWhatsAppController::class, 'show'])->name('whatsapp.show');
+            Route::post('{clinic}/whatsapp/qrcode', [ClinicWhatsAppController::class, 'qrcode'])
+                ->middleware('throttle:10,1')
+                ->name('whatsapp.qrcode');
         });
 
         Route::prefix('planos')->name('planos.')->group(function (): void {

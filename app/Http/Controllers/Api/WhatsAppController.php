@@ -19,6 +19,7 @@ use App\Services\Agenda\DisponibilidadeService;
 use App\Services\AuditLogger;
 use App\Services\EvolutionService;
 use App\Services\Tenant\TenantManager;
+use App\Services\WhatsApp\AtendimentoIA;
 use App\Services\WhatsApp\FluxoAtendimento;
 use App\Support\EvolutionPayload;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -46,6 +47,7 @@ class WhatsAppController extends Controller
         protected DisponibilidadeService $disponibilidadeService,
         protected AgendamentoService $agendamentoService,
         protected FluxoAtendimento $fluxo,
+        protected AtendimentoIA $ia,
     ) {}
 
     public function info(): JsonResponse
@@ -495,6 +497,84 @@ class WhatsAppController extends Controller
             $validated['texto'] ?? '',
             $clinica?->name ?? '',
         ));
+    }
+
+    /**
+     * Um turno da conversa COM IA.
+     *
+     * Mesma responsabilidade de `fluxo()`, mas com a camada que interpreta texto
+     * livre. A IA PROPÕE (intenção e texto); quem decide e executa continua sendo
+     * o Laravel — este método não agenda, não cancela e não confirma nada por
+     * conta própria, apenas delega ao fluxo determinístico quando a resposta não
+     * é uma mera informação.
+     *
+     * A rota exige `plan:ai_agent` além de `plan:whatsapp`: ter WhatsApp não é ter
+     * IA, e o plano que vende uma não vende necessariamente a outra.
+     */
+    public function fluxoIA(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'remote_jid' => ['required', 'string', 'max:191'],
+            'texto' => ['nullable', 'string', 'max:4096'],
+        ])->validate();
+
+        $clinica = $this->tenants->require();
+
+        return response()->json($this->ia->processar(
+            $validated['remote_jid'],
+            $validated['texto'] ?? '',
+            $clinica?->name ?? '',
+        ));
+    }
+
+    /**
+     * Pausa o bot e passa a conversa para atendimento humano.
+     *
+     * Existe como endpoint separado porque a pausa precisa ser uma decisão
+     * explícita e auditável, não um efeito colateral do texto. Enquanto o
+     * `bot_status` for `humano`, nenhuma resposta automática sai.
+     */
+    public function handoff(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'remote_jid' => ['required', 'string', 'max:191'],
+        ])->validate();
+
+        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $validated['remote_jid']]);
+        $conversa->etapa ??= 'menu';
+
+        $conversa->assumirPorHumano();
+
+        AuditLogger::log('handoff', 'whatsapp_conversations', $conversa->id, depois: [
+            'bot_status' => $conversa->bot_status,
+        ]);
+
+        return response()->json(['conversa' => $conversa]);
+    }
+
+    /**
+     * Devolve a conversa ao bot.
+     *
+     * Retomada controlada: limpa a pausa e o vínculo com o atendente de uma vez,
+     * para não sobrar um `humano_iniciado_em` que faria o painel contar um
+     * atendimento que já terminou.
+     */
+    public function retomar(Request $request): JsonResponse
+    {
+        $validated = Validator::make($request->all(), [
+            'remote_jid' => ['required', 'string', 'max:191'],
+        ])->validate();
+
+        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $validated['remote_jid']]);
+        $conversa->etapa ??= 'menu';
+
+        $conversa->retomarBot();
+
+        AuditLogger::log('retomar', 'whatsapp_conversations', $conversa->id, depois: [
+            'bot_status' => $conversa->bot_status,
+        ]);
+
+        return response()->json(['conversa' => $conversa]);
     }
 
     public function agendamentosPaciente(Request $request): JsonResponse
