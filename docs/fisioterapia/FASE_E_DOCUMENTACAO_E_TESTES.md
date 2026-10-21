@@ -141,11 +141,20 @@ correria o risco de **mascarar** o defeito que ele existe para denunciar.
 
 ## 6. Estado do branch de trabalho
 
-Branch: `feature/fisioterapia` — **18 → 21 commits locais, sem `push`**.
+Branch: `feature/fisioterapia` — **23 commits locais, sem `push`**.
 `origin/main` continua em `7cb2f05`.
 
 ```
 git log --oneline origin/main..HEAD
+```
+
+Os quatro commits desta fase:
+
+```
+f668620 feat(modulos): catalogo unico com os 12 modulos padronizados e tela padronizada
+d5f6edb feat(menu): menu lateral gerado pelo catalogo, com celular e acessibilidade
+d468565 docs: corrige o link quebrado do repositorio e documenta as fases C, D e E
+abb38e3 test: cobertura da fase D (catalogo, tela padronizada e acessibilidade)
 ```
 
 O trabalho está em commits separados por funcionalidade (por exemplo: um
