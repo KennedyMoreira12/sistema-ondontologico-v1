@@ -5,9 +5,8 @@ use App\Http\Controllers\Platform\Auth\LoginController;
 use App\Http\Controllers\Platform\ClinicController;
 use App\Http\Controllers\Platform\DashboardController;
 use App\Http\Controllers\Platform\PlanController;
-use App\Http\Controllers\Platform\ProspectController;
-use App\Http\Controllers\Platform\ProspectImportController;
-use App\Http\Controllers\Platform\ProspectWhatsAppController;
+use App\Http\Controllers\Platform\SocialPostController;
+use App\Http\Controllers\Platform\SocialSettingController;
 use App\Http\Controllers\Platform\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -110,6 +109,27 @@ Route::prefix('painel')->name('painel.')->group(function (): void {
             Route::get('{prospect}', [ProspectController::class, 'show'])->name('show');
 
             Route::patch('{prospect}', [ProspectController::class, 'update'])->name('update');
+        });
+
+        /**
+         * Redes sociais DA PLATAFORMA (a LJ). Banco central, exclusiva do super
+         * admin. A publicacao e manual ("Publicar agora") e usa as contas
+         * configuradas em platform_social_settings; nada aqui e de clinica.
+         * configuracao e create ficam antes de {post} para nao serem
+         * capturados como id.
+         */
+        Route::prefix('redes-sociais')->name('social.')->middleware('superadmin')->group(function (): void {
+            Route::get('/', [SocialPostController::class, 'index'])->name('index');
+            Route::get('create', [SocialPostController::class, 'create'])->name('create');
+            Route::post('/', [SocialPostController::class, 'store'])->name('store');
+
+            Route::get('configuracao', [SocialSettingController::class, 'edit'])->name('configuracao');
+            Route::put('configuracao', [SocialSettingController::class, 'update'])->name('configuracao.update');
+            Route::post('configuracao/verificar', [SocialSettingController::class, 'verificar'])->name('configuracao.verificar');
+
+            Route::get('{post}', [SocialPostController::class, 'show'])->name('show');
+            Route::post('{post}/publicar', [SocialPostController::class, 'publish'])->name('publicar');
+            Route::delete('{post}', [SocialPostController::class, 'destroy'])->name('destroy');
         });
     });
 });

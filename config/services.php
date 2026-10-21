@@ -115,4 +115,21 @@ return [
         'timeout' => (int) env('SOCIAL_AI_TIMEOUT', 60),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Publicação nas redes da plataforma (Instagram e Facebook da LJ)
+    |--------------------------------------------------------------------------
+    |
+    | A publicação dos posts próprios da plataforma fala direto com a Graph API
+    | da Meta. `graph_version` é o padrão da instalação; a tela de configuração
+    | pode salvar uma versão própria, que tem precedência. As credenciais (IDs e
+    | token) ficam no banco central, nunca em .env.
+    |
+    */
+
+    'social_publish' => [
+        'graph_version' => env('SOCIAL_PUBLISH_GRAPH_VERSION', 'v23.0'),
+        'timeout' => (int) env('SOCIAL_PUBLISH_TIMEOUT', 30),
+    ],
+
 ];
