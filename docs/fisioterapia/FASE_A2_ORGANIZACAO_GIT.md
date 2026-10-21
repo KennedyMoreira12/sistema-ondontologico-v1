@@ -25,7 +25,7 @@ relatório anterior**:
 | `git branch --show-current` | `main` |
 | `git log -1` | `e1c6529 chore: checkpoint antes da IA WhatsApp` |
 | `git status --porcelain` | **86** entradas → **27 `M`** + **59 `??`** (números batem com o relatório anterior) |
-| `git remote -v` | `origin https://github.com/KennedyMoreira12/sistema-odontontologico-v1.git` |
+| `git remote -v` | `origin https://github.com/KennedyMoreira12/sistema-ondontologico-v1.git` |
 | Idas e voltas destrutivas | nenhuma executada |
 
 ---
