@@ -16,6 +16,7 @@ class RolePermissionSeeder extends Seeder
             ['module' => 'anamnese', 'actions' => ['view', 'create', 'update']],
             ['module' => 'alertas', 'actions' => ['view', 'create', 'update']],
             ['module' => 'odontograma', 'actions' => ['view', 'update']],
+            ['module' => 'avaliacao', 'actions' => ['view', 'create', 'update']],
             ['module' => 'agenda', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'tratamentos', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'procedimentos', 'actions' => ['view', 'create', 'update', 'delete']],
@@ -90,6 +91,17 @@ class RolePermissionSeeder extends Seeder
                 'label' => 'Auxiliar',
                 'permissions' => [
                     'pacientes.view', 'agenda.view', 'prontuario.view',
+                ],
+            ],
+            'fisioterapeuta' => [
+                'label' => 'Fisioterapeuta',
+                'permissions' => [
+                    'pacientes.view', 'pacientes.create', 'pacientes.update',
+                    'prontuario.view', 'prontuario.create',
+                    'avaliacao.*',
+                    'agenda.view', 'agenda.create', 'agenda.update',
+                    'procedimentos.view',
+                    'relatorios.view',
                 ],
             ],
         ];

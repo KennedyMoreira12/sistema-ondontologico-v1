@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Paciente;
 use App\Models\Product;
 use App\Models\TreatmentPlan;
+use App\Services\Tenant\VerticalManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,13 +22,13 @@ class DashboardController extends Controller
 
             // A vertical decide no servidor: um módulo que não existe para a
             // clínica não abre nem por URL digitada.
-            if (! app(\App\Services\Tenant\VerticalManager::class)->permite($modulo)) {
+            if (! app(VerticalManager::class)->permite($modulo)) {
                 return redirect()
                     ->route('dashboard')
                     ->with('warning', 'Este módulo não está disponível para o perfil da sua clínica.');
             }
 
-            $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos'];
+            $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos', 'avaliacao', 'documentos'];
 
             if (in_array($modulo, $perPaciente, true)) {
                 return redirect()->route('pacientes.index');
@@ -55,10 +56,6 @@ class DashboardController extends Controller
 
             if ($modulo === 'relatorios') {
                 return redirect()->route('relatorios.index');
-            }
-
-            if ($modulo === 'documentos') {
-                return redirect()->route('pacientes.index');
             }
 
             return view('em-desenvolvimento', ['modulo' => $modulo]);

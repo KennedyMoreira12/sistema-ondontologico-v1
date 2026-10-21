@@ -39,6 +39,11 @@
                         <i class="bi bi-grid-3x3-gap"></i> Odontograma
                     </a>
                 @endif
+                @if (vertical_permite('avaliacao'))
+                    <a href="{{ route('dashboard') }}?modulo=avaliacao" class="nav-link">
+                        <i class="bi bi-clipboard2-pulse"></i> Avaliação
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}?modulo=tratamentos" class="nav-link">
                     <i class="bi bi-clipboard2-pulse"></i> Tratamentos
                 </a>
@@ -141,6 +146,13 @@
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                @endif
+
+                @if (session('warning'))
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ session('warning') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
                     </div>
                 @endif

@@ -32,6 +32,13 @@
                     </a>
                 @endif
             @endcan
+            @if (vertical_permite('avaliacao'))
+                @can('avaliacao.view')
+                    <a href="{{ route('pacientes.avaliacoes.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-clipboard2-pulse me-1"></i>Avaliação
+                    </a>
+                @endcan
+            @endif
             @can('tratamentos.view')
                 <a href="{{ route('pacientes.planos.index', $paciente) }}" class="btn btn-outline-primary">
                     <i class="bi bi-clipboard2-pulse me-1"></i>Planos

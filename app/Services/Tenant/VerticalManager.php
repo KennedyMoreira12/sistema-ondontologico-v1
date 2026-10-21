@@ -22,6 +22,16 @@ class VerticalManager
     public const FISIOTERAPIA = 'fisioterapia';
 
     /**
+     * Verticais conhecidas.
+     *
+     * @var list<string>
+     */
+    public const VERTICAIS = [
+        self::ODONTOLOGIA,
+        self::FISIOTERAPIA,
+    ];
+
+    /**
      * Módulos que só existem para odontologia.
      *
      * @var list<string>
@@ -37,8 +47,6 @@ class VerticalManager
      */
     protected array $somenteFisioterapia = [
         'avaliacao',
-        'evolucao',
-        'pacotes',
     ];
 
     /**
@@ -67,9 +75,17 @@ class VerticalManager
 
     /**
      * A clínica pode acessar este módulo?
+     *
+     * O parâmetro pode ser um MÓDULO (`odontograma`, `avaliacao`) ou o nome da
+     * VERTICAL (`fisioterapia`): no segundo caso a pergunta é "esta clínica é
+     * de fisioterapia?", e o módulo inteiro vem junto.
      */
     public function permite(string $modulo, ?Clinic $clinic = null): bool
     {
+        if (in_array($modulo, self::VERTICAIS, true)) {
+            return $this->vertical($clinic) === $modulo;
+        }
+
         if (in_array($modulo, $this->somenteOdontologia, true)) {
             return $this->isOdontologia($clinic);
         }

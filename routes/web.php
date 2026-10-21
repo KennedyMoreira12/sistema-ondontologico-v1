@@ -6,8 +6,8 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\ContratoController;
-use App\Http\Controllers\ConvenioController;
+use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\ContratoController;use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\FinanceiroController;
@@ -139,6 +139,21 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'destroyTooth'])->middleware('vertical:odontograma')->name('odontograma.tooth.destroy');
         Route::post('/{paciente}/odontograma/dente/{dente}/condicoes', [OdontogramaController::class, 'storeCondition'])->middleware('vertical:odontograma')->name('odontograma.condition.store');
         Route::delete('/{paciente}/odontograma/dente/{dente}/condicoes/{condicao}', [OdontogramaController::class, 'destroyCondition'])->middleware('vertical:odontograma')->name('odontograma.condition.destroy');
+
+        /**
+         * Núcleo da fisioterapia: ficha de avaliação, evolução por sessão e
+         * pacotes de sessões. As três rotas são exclusivas da vertical de
+         * fisioterapia — uma clínica odontológica não abre nem digitando a URL.
+         */
+        Route::prefix('{paciente}/avaliacoes')->name('avaliacoes.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [AvaliacaoController::class, 'index'])->name('index');
+            Route::get('/create', [AvaliacaoController::class, 'create'])->name('create');
+            Route::post('/', [AvaliacaoController::class, 'store'])->name('store');
+            Route::get('/{avaliacao}', [AvaliacaoController::class, 'show'])->name('show');
+            Route::get('/{avaliacao}/edit', [AvaliacaoController::class, 'edit'])->name('edit');
+            Route::put('/{avaliacao}', [AvaliacaoController::class, 'update'])->name('update');
+            Route::post('/{avaliacao}/finalizar', [AvaliacaoController::class, 'finalize'])->name('finalize');
+        });
 
         Route::get('/{paciente}/prescricoes', [PrescricaoController::class, 'index'])->name('prescricoes.index');
         Route::post('/{paciente}/prescricoes', [PrescricaoController::class, 'store'])->name('prescricoes.store');
