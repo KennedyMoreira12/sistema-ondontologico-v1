@@ -17,7 +17,6 @@
                 <span class="sco-mark"><i class="bi bi-hospital"></i></span>
                 <span class="brand-name">
                     {{ $clinica?->name ?? config('app.name', 'LJ SmartClinic') }}
-                    <span class="brand-tagline">LJ Automação</span>
                 </span>
             </div>
 
@@ -97,8 +96,6 @@
                     @endcan
                 @endcan
             </nav>
-
-            <div class="sidebar-footer">{{ config('app.name', 'LJ SmartClinic') }}</div>
         </aside>
 
         <div class="sco-main">
@@ -107,7 +104,7 @@
                     <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle onclick="document.getElementById('scoSidebar').classList.toggle('show')" aria-label="Abrir menu">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div class="sco-topbar-title">@yield('page-title', config('app.name', 'LJ SmartClinic'))</div>
+                    <div class="sco-topbar-title">@yield('page-title')</div>
                 </div>
 
                 <div class="dropdown">

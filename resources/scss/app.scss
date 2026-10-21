@@ -167,9 +167,13 @@ body {
         border-bottom: 1px solid var(--sco-borda);
 
         .brand-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            /* O nome da clínica pode ser longo: quebra em quantas linhas forem
+               necessárias em vez de aparecer cortado com reticências. O
+               min-width: 0 libera o item flex para encolher dentro da largura
+               fixa do menu, e o overflow-wrap evita estourar com palavras
+               longas sem espaço. */
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .brand-tagline {
@@ -237,6 +241,40 @@ body {
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--sco-texto-tenue);
+    }
+}
+
+.sco-sidebar.sco-collapsed {
+    width: 64px;
+
+    .sidebar-brand {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+
+        .brand-name {
+            /* Menu recolhido é só ícone: esconde o nome para não amassá-lo
+               em 64px de largura. */
+            display: none;
+        }
+
+        .nav-link {
+            justify-content: center;
+
+            i {
+                font-size: 1.25rem;
+                width: auto;
+                color: var(--sco-texto-tenue);
+
+                &:hover {
+                    color: var(--sco-accent);
+                }
+            }
+        }
+
+        .nav-section-title {
+            display: none;
+        }
     }
 }
 

@@ -48,12 +48,17 @@
 
         <div class="sco-main">
             <header class="sco-topbar">
-                <div class="d-flex align-items-center gap-2">
+<div class="d-flex align-items-center gap-2">
+                    <!-- Botao mobile (sempre visivel em telas pequenas) -->
                     <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle onclick="document.getElementById('scoSidebar').classList.toggle('show')" aria-label="Abrir menu">
                         <i class="bi bi-list"></i>
                     </button>
+                    <!-- Botao desktop para recolher/expandir -->
+                    <button class="btn btn-light d-lg-inline-block sidebar-toggle" type="button" aria-label="Recolher menu" id="sidebarToggle">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
                     <div class="sco-topbar-title">@yield('page-title', 'Painel da plataforma')</div>
-                </div>
+</div>
 
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -92,6 +97,48 @@
         </div>
     </div>
 
-    @stack('scripts')
+    <script>
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const scoSidebar = document.getElementById('scoSidebar');
+        
+        // Check saved state or default to expanded
+        const savedState = localStorage.getItem('scoSidebarState');
+        const isCollapsed = savedState === 'collapsed';
+        
+        if (isCollapsed) {
+            scoSidebar.classList.add('sco-collapsed');
+            document.body.classList.add('sco-main-collapsed');
+        }
+        
+        // Toggle functionality
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                const isCurrentlyCollapsed = scoSidebar.classList.contains('sco-collapsed');
+                if (isCurrentlyCollapsed) {
+                    scoSidebar.classList.remove('sco-collapsed');
+                    document.body.classList.remove('sco-main-collapsed');
+                    localStorage.setItem('scoSidebarState', 'expanded');
+                } else {
+                    scoSidebar.classList.add('sco-collapsed');
+                    document.body.classList.add('sco-main-collapsed');
+                    localStorage.setItem('scoSidebarState', 'collapsed');
+                }
+            });
+        }
+        
+        // Also handle the mobile show toggle
+        const mobileToggles = document.querySelectorAll('[data-sidebar-toggle]');
+        mobileToggles.forEach(function(toggle) {
+            toggle.addEventListener('click', function() {
+                const isCollapsed = scoSidebar.classList.contains('sco-collapsed');
+                if (!isCollapsed) {
+                    scoSidebar.classList.toggle('show');
+                }
+            });
+        });
+    </script>
+
+@stack('scripts')
 </body>
 </html>
