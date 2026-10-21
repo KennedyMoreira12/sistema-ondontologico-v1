@@ -7,7 +7,8 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AvaliacaoController;
-use App\Http\Controllers\ContratoController;use App\Http\Controllers\ConvenioController;
+use App\Http\Controllers\ContratoController;
+use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\EvolucaoSessaoController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PacoteSessaoController;
 use App\Http\Controllers\PrescricaoController;
 use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
@@ -167,6 +169,19 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('/{evolucao}/edit', [EvolucaoSessaoController::class, 'edit'])->name('edit');
             Route::put('/{evolucao}', [EvolucaoSessaoController::class, 'update'])->name('update');
             Route::post('/{evolucao}/finalizar', [EvolucaoSessaoController::class, 'finalize'])->name('finalize');
+        });
+
+        /**
+         * Pacotes de sessões: o consumo é transacional e nunca deixa o saldo
+         * negativo, mesmo com duas atendentes marcando sessão ao mesmo tempo.
+         */
+        Route::prefix('{paciente}/pacotes')->name('pacotes.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [PacoteSessaoController::class, 'index'])->name('index');
+            Route::get('/create', [PacoteSessaoController::class, 'create'])->name('create');
+            Route::post('/', [PacoteSessaoController::class, 'store'])->name('store');
+            Route::get('/{pacote}', [PacoteSessaoController::class, 'show'])->name('show');
+            Route::post('/{pacote}/consumir', [PacoteSessaoController::class, 'consumir'])->name('consumir');
+            Route::delete('/{pacote}', [PacoteSessaoController::class, 'destroy'])->name('destroy');
         });
 
         Route::get('/{paciente}/prescricoes', [PrescricaoController::class, 'index'])->name('prescricoes.index');

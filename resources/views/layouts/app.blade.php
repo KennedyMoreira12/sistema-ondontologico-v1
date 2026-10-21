@@ -49,6 +49,11 @@
                         <i class="bi bi-activity"></i> Evolução
                     </a>
                 @endif
+                @if (vertical_permite('pacotes'))
+                    <a href="{{ route('dashboard') }}?modulo=pacotes" class="nav-link">
+                        <i class="bi bi-box-seam"></i> Pacotes de sessões
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}?modulo=tratamentos" class="nav-link">
                     <i class="bi bi-clipboard2-pulse"></i> Tratamentos
                 </a>

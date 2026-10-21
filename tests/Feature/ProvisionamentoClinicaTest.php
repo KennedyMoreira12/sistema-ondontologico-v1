@@ -96,9 +96,9 @@ class ProvisionamentoClinicaTest extends TestCase
         $this->assertTrue($admin->fresh()->hasRole('admin'));
 
         // Papéis e permissões semeados: é o que dá ao admin acesso a tudo.
-        $this->assertTenantDatabaseCount('roles', 6);
+        $this->assertTenantDatabaseCount('roles', 7);
         $this->assertEqualsCanonicalizing(
-            ['admin', 'auxiliar', 'estoque', 'financeiro', 'dentista', 'recepcao'],
+            ['admin', 'auxiliar', 'estoque', 'financeiro', 'dentista', 'fisioterapeuta', 'recepcao'],
             DB::connection('tenant')->table('roles')->pluck('name')->all(),
         );
         $totalPermissoes = DB::connection('tenant')->table('permissions')->count();

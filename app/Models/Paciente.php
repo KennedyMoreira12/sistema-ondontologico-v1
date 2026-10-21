@@ -75,6 +75,14 @@ class Paciente extends TenantModel
         return $this->hasMany(EvolucaoSessao::class);
     }
 
+    /**
+     * Pacotes de sessões contratados.
+     */
+    public function pacotesSessao(): HasMany
+    {
+        return $this->hasMany(PacoteSessao::class);
+    }
+
     public function planosTratamento(): HasMany
     {
         return $this->hasMany(TreatmentPlan::class);

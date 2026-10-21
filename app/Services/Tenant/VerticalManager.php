@@ -48,6 +48,7 @@ class VerticalManager
     protected array $somenteFisioterapia = [
         'avaliacao',
         'evolucao',
+        'pacotes',
     ];
 
     /**
