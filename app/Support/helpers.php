@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\Central\Clinic;
 use App\Services\Tenant\TenantManager;
+use App\Services\Tenant\VerticalManager;
+use Illuminate\Support\Facades\Storage;
 
 if (! function_exists('tenant')) {
-    function tenant(): ?App\Models\Central\Clinic
+    function tenant(): ?Clinic
     {
         return app(TenantManager::class)->current();
     }
@@ -33,7 +36,7 @@ if (! function_exists('vertical')) {
      */
     function vertical(): string
     {
-        return app(App\Services\Tenant\VerticalManager::class)->vertical();
+        return app(VerticalManager::class)->vertical();
     }
 }
 
@@ -43,7 +46,7 @@ if (! function_exists('vertical_permite')) {
      */
     function vertical_permite(string $modulo): bool
     {
-        return app(App\Services\Tenant\VerticalManager::class)->permite($modulo);
+        return app(VerticalManager::class)->permite($modulo);
     }
 }
 
@@ -66,5 +69,25 @@ if (! function_exists('clinic_secondary_color')) {
     function clinic_secondary_color(string $fallback = '#0ca678'): string
     {
         return app(TenantManager::class)->current()?->secondary_color ?: $fallback;
+    }
+}
+
+if (! function_exists('clinic_logo_url')) {
+    /**
+     * Logo da clínica em atendimento, ou null quando ela não configurou nenhum.
+     *
+     * O arquivo vive no disco público, em `clinicas/{id}/marca`. A URL é
+     * montada pelo próprio disco, que já sabe o prefixo público do deploy —
+     * e é a clínica que faz o upload, do próprio painel dela.
+     */
+    function clinic_logo_url(): ?string
+    {
+        $caminho = app(TenantManager::class)->current()?->logo_path;
+
+        if (! is_string($caminho) || $caminho === '') {
+            return null;
+        }
+
+        return Storage::disk('public')->url($caminho);
     }
 }

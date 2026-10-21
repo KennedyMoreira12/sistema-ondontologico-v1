@@ -14,7 +14,11 @@
     <div class="sco-layout" style="--sco-accent: {{ clinic_primary_color() }}; --sco-accent-2: {{ clinic_secondary_color() }};">
         <aside class="sco-sidebar" id="scoSidebar">
             <div class="sidebar-brand">
-                <span class="sco-mark"><i class="bi bi-hospital"></i></span>
+                @if (clinic_logo_url())
+                    <img src="{{ clinic_logo_url() }}" alt="" class="sco-logo">
+                @else
+                    <span class="sco-mark"><i class="bi bi-hospital"></i></span>
+                @endif
                 <span class="brand-name">
                     {{ $clinica?->name ?? config('app.name', 'LJ SmartClinic') }}
                 </span>

@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.clinica.update') }}">
+    <form method="POST" action="{{ route('admin.clinica.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -85,9 +85,61 @@
                     </div>
                 </div>
             </div>
-            <div class="card-footer bg-white text-end">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar alterações</button>
+        </div>
+
+        <div class="card shadow-sm mb-3" style="max-width: 760px;">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-palette me-2"></i>Marca</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="primary_color" class="form-label">Cor principal</label>
+                        <input
+                            type="color"
+                            id="primary_color"
+                            name="primary_color"
+                            class="form-control form-control-color"
+                            value="{{ old('primary_color', $clinica?->primary_color ?: '#0b7285') }}"
+                        >
+                        @error('primary_color')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <div class="form-text">Cor do menu ativo, dos títulos e dos botões.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="secondary_color" class="form-label">Cor secundária</label>
+                        <input
+                            type="color"
+                            id="secondary_color"
+                            name="secondary_color"
+                            class="form-control form-control-color"
+                            value="{{ old('secondary_color', $clinica?->secondary_color ?: '#0ca678') }}"
+                        >
+                        @error('secondary_color')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <div class="form-text">Acompanha a principal na borda de destaque.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="logo" class="form-label">Logo</label>
+                        <input type="file" id="logo" name="logo" class="form-control" accept="image/png,image/jpeg,image/webp">
+                        @error('logo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+                        @if ($clinica?->logo_path)
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <img src="{{ clinic_logo_url() }}" alt="Logo atual da clínica" class="img-thumbnail" style="max-height: 44px;">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remover_logo" value="1" id="remover_logo" @checked(old('remover_logo'))>
+                                    <label class="form-check-label" for="remover_logo">Remover</label>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="form-text">PNG, JPG ou WEBP de até 2 MB.</div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div style="max-width: 760px;">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar alterações</button>
         </div>
     </form>
 @endsection
