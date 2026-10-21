@@ -13,9 +13,11 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             @can('odontograma.view')
-                <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
-                </a>
+                @if (vertical_permite('odontograma'))
+                    <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
+                    </a>
+                @endif
             @endcan
             @can('prontuario.view')
                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">

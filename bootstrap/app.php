@@ -4,6 +4,7 @@ use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminIsActive;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantAccess;
+use App\Http\Middleware\EnsureVertical;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -33,6 +34,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'tenant.access' => EnsureTenantAccess::class,
+            'vertical' => EnsureVertical::class,
             'plan' => CheckPlanFeature::class,
             'platform.active' => EnsurePlatformAdminIsActive::class,
             'superadmin' => EnsureSuperAdmin::class,

@@ -17,41 +17,51 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View|RedirectResponse
     {
         if ($request->filled('modulo')) {
+            $modulo = $request->string('modulo')->value();
+
+            // A vertical decide no servidor: um módulo que não existe para a
+            // clínica não abre nem por URL digitada.
+            if (! app(\App\Services\Tenant\VerticalManager::class)->permite($modulo)) {
+                return redirect()
+                    ->route('dashboard')
+                    ->with('warning', 'Este módulo não está disponível para o perfil da sua clínica.');
+            }
+
             $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos'];
 
-            if (in_array($request->string('modulo')->value(), $perPaciente, true)) {
+            if (in_array($modulo, $perPaciente, true)) {
                 return redirect()->route('pacientes.index');
             }
 
-            if ($request->string('modulo')->value() === 'financeiro') {
+            if ($modulo === 'financeiro') {
                 return redirect()->route('financeiro.index');
             }
 
-            if ($request->string('modulo')->value() === 'convenios') {
+            if ($modulo === 'convenios') {
                 return redirect()->route('convenios.index');
             }
 
-            if ($request->string('modulo')->value() === 'profissionais') {
+            if ($modulo === 'profissionais') {
                 return redirect()->route('profissionais.index');
             }
 
-            if ($request->string('modulo')->value() === 'procedimentos') {
+            if ($modulo === 'procedimentos') {
                 return redirect()->route('procedimentos.index');
             }
 
-            if ($request->string('modulo')->value() === 'estoque') {
+            if ($modulo === 'estoque') {
                 return redirect()->route('estoque.index');
             }
 
-            if ($request->string('modulo')->value() === 'relatorios') {
+            if ($modulo === 'relatorios') {
                 return redirect()->route('relatorios.index');
             }
 
-            if ($request->string('modulo')->value() === 'documentos') {
+            if ($modulo === 'documentos') {
                 return redirect()->route('pacientes.index');
             }
 
-            return view('em-desenvolvimento', ['modulo' => $request->string('modulo')]);
+            return view('em-desenvolvimento', ['modulo' => $modulo]);
         }
 
         $user = auth()->user();

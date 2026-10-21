@@ -25,6 +25,28 @@ if (! function_exists('tenant_cache_key')) {
     }
 }
 
+if (! function_exists('vertical')) {
+    /**
+     * Vertical da clínica em atendimento: 'odontologia' ou 'fisioterapia'.
+     *
+     * A vertical é lida do registro central da clínica, nunca da requisição.
+     */
+    function vertical(): string
+    {
+        return app(App\Services\Tenant\VerticalManager::class)->vertical();
+    }
+}
+
+if (! function_exists('vertical_permite')) {
+    /**
+     * A clínica em atendimento pode acessar este módulo?
+     */
+    function vertical_permite(string $modulo): bool
+    {
+        return app(App\Services\Tenant\VerticalManager::class)->permite($modulo);
+    }
+}
+
 if (! function_exists('clinic_primary_color')) {
     /**
      * A cor da clínica é o acento do layout (item ativo, títulos, botões).

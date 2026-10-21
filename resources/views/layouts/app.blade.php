@@ -34,9 +34,11 @@
                 <a href="{{ route('dashboard') }}?modulo=prontuario" class="nav-link">
                     <i class="bi bi-journal-medical"></i> Prontuário
                 </a>
-                <a href="{{ route('dashboard') }}?modulo=odontograma" class="nav-link">
-                    <i class="bi bi-grid-3x3-gap"></i> Odontograma
-                </a>
+                @if (vertical_permite('odontograma'))
+                    <a href="{{ route('dashboard') }}?modulo=odontograma" class="nav-link">
+                        <i class="bi bi-grid-3x3-gap"></i> Odontograma
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}?modulo=tratamentos" class="nav-link">
                     <i class="bi bi-clipboard2-pulse"></i> Tratamentos
                 </a>
