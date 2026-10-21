@@ -67,6 +67,14 @@ class Paciente extends TenantModel
         return $this->hasMany(Avaliacao::class);
     }
 
+    /**
+     * Evoluções por sessão da fisioterapia (uma por atendimento).
+     */
+    public function evolucoesSessao(): HasMany
+    {
+        return $this->hasMany(EvolucaoSessao::class);
+    }
+
     public function planosTratamento(): HasMany
     {
         return $this->hasMany(TreatmentPlan::class);

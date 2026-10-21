@@ -44,6 +44,11 @@
                         <i class="bi bi-clipboard2-pulse"></i> Avaliação
                     </a>
                 @endif
+                @if (vertical_permite('evolucao'))
+                    <a href="{{ route('dashboard') }}?modulo=evolucao" class="nav-link">
+                        <i class="bi bi-activity"></i> Evolução
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}?modulo=tratamentos" class="nav-link">
                     <i class="bi bi-clipboard2-pulse"></i> Tratamentos
                 </a>

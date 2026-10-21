@@ -10,6 +10,7 @@ use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\ContratoController;use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
+use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
@@ -153,6 +154,19 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('/{avaliacao}/edit', [AvaliacaoController::class, 'edit'])->name('edit');
             Route::put('/{avaliacao}', [AvaliacaoController::class, 'update'])->name('update');
             Route::post('/{avaliacao}/finalizar', [AvaliacaoController::class, 'finalize'])->name('finalize');
+        });
+
+        /**
+         * Evolução por sessão: um registro por atendimento, assinado pelo
+         * profissional. Quando assinado, não muda mais.
+         */
+        Route::prefix('{paciente}/evolucoes-sessao')->name('evolucoes-sessao.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [EvolucaoSessaoController::class, 'index'])->name('index');
+            Route::get('/create', [EvolucaoSessaoController::class, 'create'])->name('create');
+            Route::post('/', [EvolucaoSessaoController::class, 'store'])->name('store');
+            Route::get('/{evolucao}/edit', [EvolucaoSessaoController::class, 'edit'])->name('edit');
+            Route::put('/{evolucao}', [EvolucaoSessaoController::class, 'update'])->name('update');
+            Route::post('/{evolucao}/finalizar', [EvolucaoSessaoController::class, 'finalize'])->name('finalize');
         });
 
         Route::get('/{paciente}/prescricoes', [PrescricaoController::class, 'index'])->name('prescricoes.index');

@@ -28,7 +28,7 @@ class DashboardController extends Controller
                     ->with('warning', 'Este módulo não está disponível para o perfil da sua clínica.');
             }
 
-            $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos', 'avaliacao', 'documentos'];
+            $perPaciente = ['prontuario', 'odontograma', 'tratamentos', 'orcamentos', 'avaliacao', 'evolucao', 'documentos'];
 
             if (in_array($modulo, $perPaciente, true)) {
                 return redirect()->route('pacientes.index');

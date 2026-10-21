@@ -39,6 +39,13 @@
                     </a>
                 @endcan
             @endif
+            @if (vertical_permite('evolucao'))
+                @can('evolucao.view')
+                    <a href="{{ route('pacientes.evolucoes-sessao.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-activity me-1"></i>Evolução
+                    </a>
+                @endcan
+            @endif
             @can('tratamentos.view')
                 <a href="{{ route('pacientes.planos.index', $paciente) }}" class="btn btn-outline-primary">
                     <i class="bi bi-clipboard2-pulse me-1"></i>Planos

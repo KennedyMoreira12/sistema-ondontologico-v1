@@ -40,6 +40,14 @@ class Avaliacao extends TenantModel
         return $this->belongsTo(Professional::class);
     }
 
+    /**
+     * Evoluções por sessão que saem desta avaliação.
+     */
+    public function evolucoes(): HasMany
+    {
+        return $this->hasMany(EvolucaoSessao::class);
+    }
+
     public function estaFinalizada(): bool
     {
         return $this->status === self::FINALIZADA;
