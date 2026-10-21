@@ -29,10 +29,22 @@
                         <input type="text" id="cro" name="cro" class="form-control @error('cro') is-invalid @enderror" value="{{ old('cro') }}" maxlength="30">
                         @error('cro')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                    <div class="col-md-3">
+                        <label for="registro_profissional" class="form-label">Registro profissional</label>
+                        <input type="text" id="registro_profissional" name="registro_profissional" class="form-control @error('registro_profissional') is-invalid @enderror" value="{{ old('registro_profissional') }}" maxlength="50">
+                        <div class="form-text">CREFITO na fisioterapia.</div>
+                        @error('registro_profissional')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label for="conselho_regional" class="form-label">Conselho regional</label>
+                        <input type="text" id="conselho_regional" name="conselho_regional" class="form-control @error('conselho_regional') is-invalid @enderror" value="{{ old('conselho_regional') }}" maxlength="20" placeholder="Ex.: CREFITO-1">
+                        @error('conselho_regional')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                     <div class="col-md-4">
                         <label for="tipo" class="form-label">Tipo *</label>
                         <select id="tipo" name="tipo" class="form-select @error('tipo') is-invalid @enderror" required>
                             <option value="dentista" @selected(old('tipo', 'dentista') === 'dentista')>Dentista</option>
+                            <option value="fisioterapeuta" @selected(old('tipo') === 'fisioterapeuta')>Fisioterapeuta</option>
                             <option value="auxiliar" @selected(old('tipo') === 'auxiliar')>Auxiliar</option>
                             <option value="recepcionista" @selected(old('tipo') === 'recepcionista')>Recepcionista</option>
                             <option value="outro" @selected(old('tipo') === 'outro')>Outro</option>
