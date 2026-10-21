@@ -8,15 +8,14 @@ use App\Http\Requests\RejectSocialPostRequest;
 use App\Http\Requests\StoreSocialPostImageRequest;
 use App\Http\Requests\StoreSocialPostRequest;
 use App\Models\SocialPost;
-use App\Rules\PublicHttpsUrl;
+use App\Services\SocialImageStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class SocialPostController extends Controller
 {
+    public function __construct(private SocialImageStorage $images) {}
+
     public function index(Request $request): JsonResponse
     {
         $posts = SocialPost::query()
@@ -83,23 +82,14 @@ class SocialPostController extends Controller
             return response()->json(['message' => 'Este post já possui imagem. Gere outra antes de enviar.'], 422);
         }
 
-        $mime = $arquivo->getMimeType();
-        $extensao = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime] ?? 'bin';
-        $disco = Storage::disk('public');
-        $caminho = $disco->putFileAs(
-            'social/'.now()->format('Y/m'),
-            $arquivo,
-            Str::uuid()->toString().'.'.$extensao
-        );
+        $salvo = $this->images->store($arquivo);
 
-        if ($caminho === false) {
+        if ($salvo === null) {
             return response()->json(['message' => 'Não foi possível armazenar a imagem gerada.'], 500);
         }
 
-        $url = $disco->url($caminho);
-
-        if (Validator::make(['image_url' => $url], ['image_url' => ['required', new PublicHttpsUrl]])->fails()) {
-            $disco->delete($caminho);
+        if (! $this->images->urlIsPublicHttps($salvo['url'])) {
+            $this->images->delete($salvo['path']);
 
             return response()->json(['message' => 'A URL pública da imagem gerada não é HTTPS. Confira o APP_URL.'], 422);
         }
@@ -108,17 +98,17 @@ class SocialPostController extends Controller
             'provider' => 'openrouter',
             'model' => $request->validated('model'),
             'cost_usd' => $request->filled('cost_usd') ? (float) $request->input('cost_usd') : null,
-            'media_type' => $mime,
+            'media_type' => $salvo['mime'],
         ]);
 
         unset($geracao['error']);
 
         $post->update([
-            'image_url' => $url,
+            'image_url' => $salvo['url'],
             'payload' => array_merge($payload, ['image_generation' => $geracao]),
         ]);
 
-        return response()->json(['post' => $post, 'image_url' => $url]);
+        return response()->json(['post' => $post, 'image_url' => $salvo['url']]);
     }
 
     public function show(int $id): JsonResponse

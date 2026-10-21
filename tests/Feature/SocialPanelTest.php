@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\SocialPost;
+use App\Models\SocialSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\UsesTestTenant;
@@ -11,15 +12,6 @@ use Tests\TestCase;
 class SocialPanelTest extends TestCase
 {
     use RefreshDatabase, UsesTestTenant;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        config([
-            'services.social_ai.webhook_url' => 'https://n8n.test/webhook/LJSocialAI01/webhook/lj-social-ai',
-        ]);
-    }
 
     private function criarPost(array $atributos = []): SocialPost
     {
@@ -38,15 +30,26 @@ class SocialPanelTest extends TestCase
     private function dadosFormulario(array $atributos = []): array
     {
         return array_merge([
-            'tema' => 'Clareamento dental',
-            'objetivo' => 'Atrair novos pacientes',
-            'publico' => 'Adultos de 25 a 45 anos',
-            'tipo' => 'promocional',
-            'observacoes' => 'Destacar a segurança do procedimento',
+            'titulo' => 'Clareamento dental',
+            'legenda_instagram' => 'Volte a sorrir com segurança.',
+            'legenda_facebook' => 'Agende sua avaliação.',
+            'hashtags' => '#odonto #sorriso',
             'platforms' => ['instagram'],
             'image_url' => 'https://exemplo.test/imagem.jpg',
-            'scheduled_at' => '2026-11-01T09:00',
         ], $atributos);
+    }
+
+    /**
+     * @param  array<string, mixed>  $atributos
+     */
+    private function criarSetting(array $atributos = []): SocialSetting
+    {
+        return SocialSetting::create(array_merge([
+            'facebook_page_id' => '1234567890',
+            'instagram_business_id' => '17841400000000000',
+            'page_access_token' => 'token-de-teste',
+            'graph_version' => 'v23.0',
+        ], $atributos));
     }
 
     public function test_usuario_sem_role_nao_acessa_social(): void
@@ -219,68 +222,39 @@ class SocialPanelTest extends TestCase
         $this->actingAs($user)
             ->get(route('social.create'))
             ->assertOk()
-            ->assertSee('Gerar conteúdo');
+            ->assertSee('Criar post');
     }
 
-    public function test_gera_conteudo_pelo_webhook_e_redireciona(): void
+    public function test_cria_post_manual_como_rascunho_pendente(): void
     {
-        Http::fake([
-            '*' => Http::response(['success' => true, 'post' => ['id' => 321]], 200),
-        ]);
-
         [, $user] = $this->criarUsuarioComPermissao('social.manage');
 
         $this->actingAs($user)
-            ->post(route('social.store'), $this->dadosFormulario())
-            ->assertRedirect(route('social.show', 321))
+            ->post(route('social.store'), $this->dadosFormulario([
+                'titulo' => 'Clareamento dental',
+                'hashtags' => 'odonto, sorriso',
+            ]))
+            ->assertSessionHasNoErrors()
             ->assertSessionHas('success');
 
-        Http::assertSent(function ($request) {
-            $body = $request->data();
+        $post = SocialPost::firstOrFail();
 
-            return $request->url() === config('services.social_ai.webhook_url')
-                && $body['tema'] === 'Clareamento dental'
-                && $body['platforms'] === ['instagram']
-                && $body['image_url'] === 'https://exemplo.test/imagem.jpg'
-                && ! array_key_exists('model', $body)
-                && ! array_key_exists('token', $body);
-        });
-    }
+        $this->assertSame('pendente', $post->status);
+        $this->assertSame('Clareamento dental', $post->titulo);
+        $this->assertSame('Clareamento dental', $post->tema);
+        $this->assertSame(['#odonto', '#sorriso'], $post->hashtags);
+        $this->assertSame(['instagram'], $post->platforms);
+        $this->assertSame('https://exemplo.test/imagem.jpg', $post->image_url);
 
-    public function test_webhook_recusando_entrada_nao_cria_post(): void
-    {
-        Http::fake([
-            '*' => Http::response(['success' => false, 'error' => 'tema obrigatório'], 200),
+        $this->assertTenantDatabaseHas('social_posts', [
+            'id' => $post->id,
+            'status' => 'pendente',
+            'titulo' => 'Clareamento dental',
         ]);
-
-        [, $user] = $this->criarUsuarioComPermissao('social.manage');
-
-        $this->actingAs($user)
-            ->post(route('social.store'), $this->dadosFormulario())
-            ->assertSessionHas('error');
-
-        $this->assertTenantDatabaseCount('social_posts', 0);
-    }
-
-    public function test_webhook_indisponivel_nao_cria_post(): void
-    {
-        Http::fake([
-            '*' => Http::response('erro interno', 500),
-        ]);
-
-        [, $user] = $this->criarUsuarioComPermissao('social.manage');
-
-        $this->actingAs($user)
-            ->post(route('social.store'), $this->dadosFormulario())
-            ->assertSessionHas('error');
-
-        $this->assertTenantDatabaseCount('social_posts', 0);
     }
 
     public function test_formulario_valida_plataformas_e_imagem_https(): void
     {
-        Http::fake();
-
         [, $user] = $this->criarUsuarioComPermissao('social.manage');
 
         $this->actingAs($user)
@@ -290,6 +264,194 @@ class SocialPanelTest extends TestCase
             ]))
             ->assertSessionHasErrors(['platforms', 'image_url']);
 
-        Http::assertNothingSent();
+        $this->assertTenantDatabaseCount('social_posts', 0);
+    }
+
+    public function test_configuracao_de_social_exige_permissao_manage(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.view');
+
+        $this->actingAs($user)
+            ->get(route('social.configuracao'))
+            ->assertForbidden();
+    }
+
+    public function test_salva_configuracao_e_guarda_token_cifrado(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+
+        $this->actingAs($user)
+            ->put(route('social.configuracao.update'), [
+                'facebook_page_id' => '1234567890',
+                'instagram_business_id' => '17841400000000000',
+                'page_access_token' => 'TOKEN-SUPER-SECRETO',
+                'graph_version' => 'v23.0',
+            ])
+            ->assertRedirect(route('social.configuracao'))
+            ->assertSessionHas('success');
+
+        $setting = SocialSetting::firstOrFail();
+
+        $this->assertSame('1234567890', $setting->facebook_page_id);
+        $this->assertSame('TOKEN-SUPER-SECRETO', $setting->page_access_token);
+
+        // O token jamais é gravado em claro no banco.
+        $this->assertTenantDatabaseMissing('social_settings', ['page_access_token' => 'TOKEN-SUPER-SECRETO']);
+    }
+
+    public function test_salvar_configuracao_em_branco_mantem_token(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+
+        $this->criarSetting(['page_access_token' => 'token-antigo']);
+
+        $this->actingAs($user)
+            ->put(route('social.configuracao.update'), [
+                'facebook_page_id' => '999',
+                'page_access_token' => '',
+            ])
+            ->assertSessionHas('success');
+
+        $setting = SocialSetting::firstOrFail();
+
+        $this->assertSame('token-antigo', $setting->page_access_token);
+        $this->assertSame('999', $setting->facebook_page_id);
+    }
+
+    public function test_publicacao_real_exige_permissao_manage(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.view');
+
+        $post = $this->criarPost();
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertForbidden();
+    }
+
+    public function test_publicar_sem_configuracao_retorna_erro(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+
+        $post = $this->criarPost();
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('error');
+
+        $this->assertNull($post->refresh()->published_at);
+    }
+
+    public function test_publica_no_facebook_com_sucesso(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['id' => 'fb-123'], 200),
+        ]);
+
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+        $this->criarSetting();
+
+        $post = $this->criarPost([
+            'platforms' => ['facebook'],
+            'legenda_facebook' => 'Olá, Facebook',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('success');
+
+        $fresh = $post->refresh();
+
+        $this->assertSame('publicado', $fresh->facebook_status);
+        $this->assertSame('fb-123', $fresh->facebook_post_id);
+        $this->assertNotNull($fresh->published_at);
+        $this->assertNull($fresh->error);
+    }
+
+    public function test_publica_no_instagram_com_sucesso_em_dois_passos(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['id' => 'ig-media-id'], 200),
+        ]);
+
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+        $this->criarSetting();
+
+        $post = $this->criarPost([
+            'platforms' => ['instagram'],
+            'image_url' => 'https://exemplo.test/imagem.jpg',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('success');
+
+        $fresh = $post->refresh();
+
+        $this->assertSame('publicado', $fresh->instagram_status);
+        $this->assertSame('ig-media-id', $fresh->instagram_media_id);
+        $this->assertNotNull($fresh->published_at);
+    }
+
+    public function test_instagram_sem_imagem_publica_com_erro(): void
+    {
+        Http::fake();
+
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+        $this->criarSetting();
+
+        $post = $this->criarPost(['platforms' => ['instagram']]);
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('error');
+
+        $fresh = $post->refresh();
+
+        $this->assertSame('erro', $fresh->instagram_status);
+        $this->assertNull($fresh->published_at);
+        $this->assertNotNull($fresh->error);
+    }
+
+    public function test_falha_da_meta_nao_registra_publicacao(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response([
+                'error' => ['message' => 'Invalid parameter', 'code' => 100],
+            ], 400),
+        ]);
+
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+        $this->criarSetting();
+
+        $post = $this->criarPost(['platforms' => ['facebook']]);
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('error');
+
+        $fresh = $post->refresh();
+
+        $this->assertSame('erro', $fresh->facebook_status);
+        $this->assertNull($fresh->facebook_post_id);
+        $this->assertNull($fresh->published_at);
+    }
+
+    public function test_publicar_nao_altera_status_de_aprovacao(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['id' => 'fb-9'], 200),
+        ]);
+
+        [, $user] = $this->criarUsuarioComPermissao('social.manage');
+        $this->criarSetting();
+
+        $post = $this->criarPost(['platforms' => ['facebook'], 'status' => 'aprovado']);
+
+        $this->actingAs($user)
+            ->post(route('social.publicar', $post))
+            ->assertSessionHas('success');
+
+        $this->assertSame('aprovado', $post->refresh()->status);
     }
 }

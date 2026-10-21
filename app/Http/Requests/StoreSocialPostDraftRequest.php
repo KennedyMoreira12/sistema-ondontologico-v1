@@ -7,12 +7,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Dados que o formulário web "Novo Post" coleta para gerar o conteúdo.
+ * Dados que o formulário web "Novo Post" coleta na composição manual.
  *
- * É o subconjunto de `StoreSocialPostRequest` que o operador informa à mão: o
- * texto gerado (título, legendas, hashtags) não vem do formulário, e sim do
- * workflow que consulta o modelo. O `image_url` reusa a mesma trava de SSRF da
- * API — aqui nada é baixado, mas o endereço é repassado adiante.
+ * O texto (título, legendas e hashtags) é escrito à mão pelo operador — não há
+ * mais geração por IA. O `image_url` reusa a mesma trava de SSRF da API: aqui
+ * nada é baixado, mas o endereço é validado antes de ser persistido.
  */
 class StoreSocialPostDraftRequest extends FormRequest
 {
@@ -24,15 +23,14 @@ class StoreSocialPostDraftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tema' => ['required', 'string', 'max:255'],
-            'objetivo' => ['required', 'string', 'max:255'],
-            'publico' => ['required', 'string', 'max:191'],
-            'tipo' => ['required', 'string', Rule::in(['educativo', 'institucional', 'promocional', 'informativo', 'sazonal'])],
-            'observacoes' => ['nullable', 'string', 'max:2000'],
+            'titulo' => ['required', 'string', 'max:255'],
+            'legenda_instagram' => ['nullable', 'string', 'max:2200'],
+            'legenda_facebook' => ['nullable', 'string', 'max:5000'],
+            'hashtags' => ['nullable', 'string', 'max:1000'],
+            'image' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
             'image_url' => ['nullable', 'string', 'max:1000', new PublicHttpsUrl],
             'platforms' => ['required', 'array', 'min:1'],
             'platforms.*' => ['string', Rule::in(['facebook', 'instagram'])],
-            'scheduled_at' => ['nullable', 'date'],
         ];
     }
 

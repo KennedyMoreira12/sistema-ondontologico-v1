@@ -72,6 +72,8 @@ return [
     */
 
     'evolution' => [
+        'url' => env('EVOLUTION_API_URL'),
+
         /**
          * Chave ADMINISTRATIVA da Evolution (a mesma `AUTHENTICATION_API_KEY` do
          * servidor). É o único segredo que cria instância e lista as existentes.
@@ -88,7 +90,6 @@ return [
          */
         'api_key' => env('EVOLUTION_API_KEY'),
 
-        'url' => env('EVOLUTION_API_URL'),
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'timeout' => (int) env('EVOLUTION_API_TIMEOUT', 30),
     ],
@@ -129,6 +130,23 @@ return [
     'social_ai' => [
         'webhook_url' => env('SOCIAL_AI_WEBHOOK_URL'),
         'timeout' => (int) env('SOCIAL_AI_TIMEOUT', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Publicação nas redes da plataforma (Instagram e Facebook da LJ)
+    |--------------------------------------------------------------------------
+    |
+    | A publicação dos posts próprios da plataforma fala direto com a Graph API
+    | da Meta. `graph_version` é o padrão da instalação; a tela de configuração
+    | pode salvar uma versão própria, que tem precedência. As credenciais (IDs e
+    | token) ficam no banco central, nunca em .env.
+    |
+    */
+
+    'social_publish' => [
+        'graph_version' => env('SOCIAL_PUBLISH_GRAPH_VERSION', 'v23.0'),
+        'timeout' => (int) env('SOCIAL_PUBLISH_TIMEOUT', 30),
     ],
 
     /*
