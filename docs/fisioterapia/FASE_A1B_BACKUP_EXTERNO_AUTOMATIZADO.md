@@ -164,6 +164,46 @@ Regras garantidas pelo código e cobertas por teste:
 | Reexecução com pasta sem marcador | descarta e refaz |
 | Suíte PHPUnit | 16 testes novos, 16 passam |
 
+### 4.2. O teste de restauração a partir do pendrive
+
+Um backup que nunca foi restaurado é um backup que só existe na teoria. A
+Fase A.1 restaurou a cópia do **servidor**; esta restaurou a cópia do
+**pendrive**, que percorre um caminho diferente (ssh → FAT32 → ssh).
+
+**Procedimento**, com o mesmo isolamento da Fase A.1:
+
+1. `/tmp/lj-restore-externo` criado **vazio** na VPS.
+2. Os dois dumps copiados do pendrive com `scp` — de `D:\ljsmartclinic-backup-externo\20261021-031701\`.
+3. Hash conferido na VPS contra o manifesto do pendrive: **2/2 idênticos**
+   (`db5bf98a…` e `69f44f3f…`).
+4. Bancos `restore_test_central` e `restore_test_clinic` criados com root via
+   socket (`--defaults-file=/etc/mysql/debian.cnf`; o usuário `saas` do
+   `~/.my.cnf` não tem privilégio para criar banco — a mesma lição da A.1).
+5. Dump restaurado: `rc=0` nos dois.
+6. Contagem de tabelas comparada e, depois, **todas as tabelas linha a linha**:
+
+| Base | Tabelas em produção | Tabelas restauradas | Tabelas comparadas | Divergências |
+|---|---:|---:|---:|---:|
+| `saas_central` | 29 | 29 | 29 | **0** |
+| `clinic_000001` | 48 | 48 | 48 | **0** |
+| **Total** | 77 | 77 | **77** | **0** |
+
+Amostra de dados efetivamente restaurados (contagens, sem conteúdo):
+`clinics=1`, `prospects=158`, `admin_users=1`, `permissions=64`,
+`procedures=10`, `roles=6`, `rooms=3`.
+
+7. Bancos de teste **removidos**; `/tmp/lj-restore-externo` removido.
+8. Produção conferida depois: `saas_central` com 29 tabelas, `clinic_000001`
+   com 48, `tenant_connections` com `clinic_000001` ativo, `clinics=1`.
+9. Diretório de backup da VPS conferido: **26 arquivos**, nenhum removido.
+
+**Nada foi restaurado sobre banco existente. Nenhum dado de produção foi
+alterado.**
+
+> A primeira tentativa falhou com `Access denied` e criou **nenhum** banco de
+> teste — o `mysql` do shell usava o `saas` do `~/.my.cnf`. A falha foi
+> inofensiva e o estado foi conferido antes de refazer.
+
 ---
 
 ## 5. Os arquivos de 20 bytes: recomendação
@@ -187,10 +227,13 @@ find /var/backups/ljsmartclinic -name '*.sql.gz' -size -100c -delete
 
 ## 6. O que NÃO foi feito
 
-- **Nenhuma alteração na VPS.** As correções do `03-backup.sh` estão no
-  repositório e só entram em vigor no próximo deploy, que não está
+- **Nenhuma alteração no código em produção.** As correções do `03-backup.sh`
+  estão no repositório e só entram em vigor no próximo deploy, que não está
   autorizado. **Até lá, o backup da VPS continua podendo gerar um arquivo
   vazio** — o que o `backup-externo.ps1` agora recusa de copiar.
+- **Nenhum dado de produção alterado.** O teste de restauração trabalhou em
+  bancos temporários (`restore_test_*`), que foram removidos, e em `/tmp`,
+  que foi limpo. As tabelas de produção foram apenas lidas para comparação.
 - **Nenhum arquivo de backup apagado**, nem na VPS nem no pendrive.
 - **Nenhuma credencial criada, alterada ou transcrita.** A senha do
   `/root/.my.cnf` não aparece neste documento nem nos logs.
@@ -208,7 +251,7 @@ find /var/backups/ljsmartclinic -name '*.sql.gz' -size -100c -delete
 | P1 | O `03-backup.sh` corrigido está no repositório, mas a VPS roda a versão antiga | **Alto** | Publicar e rodar `03-backup.sh instalar` (ou ajustar o cron à mão) no próximo deploy autorizado |
 | P2 | O backup externo ainda é manual: o script existe, mas nada o agenda | Médio | Registrar a tarefa no Agendador de Tarefas (comando no `deploy/externo/README.md`) |
 | P3 | O log do cron ainda sobrescreve na VPS, porque o cron de lá é o antigo | Médio | Corrigido pelo próprio script ao ser reinstalado (`03-backup.sh instalar`) |
-| P4 | Não há teste de restauração a partir da cópia **externa** | Médio | Repetir o teste da Fase A.1 (29/29 e 48/48 tabelas) a partir de `D:\ljsmartclinic-backup-externo` |
+| P4 | ~~Não há teste de restauração a partir da cópia **externa**~~ | — | **Resolvido**: restaurado a partir do pendrive, 77/77 tabelas, 0 divergências (seção 4.2) |
 | P5 | Um único destino externo, sem redundância | Médio | Avaliar um segundo destino (nuvem ou segundo servidor) quando houver autorização e credenciais |
 | P6 | O destino é FAT32: um dump acima de 4 GB não cabe | Baixo | O script avisa acima de 3,5 GB; reformatar quando o banco crescer |
 | P7 | A retenção de 14 dias apaga os arquivos de 20 bytes por volta de 03/11 | Baixo | Deixar: são a evidência do incidente e somam 280 bytes |
@@ -219,11 +262,14 @@ find /var/backups/ljsmartclinic -name '*.sql.gz' -size -100c -delete
 
 - O backup externo foi automatizado, testado contra a VPS e deixou de ser
   manual.
+- A cópia externa **restaura**: 77/77 tabelas, 0 divergências, a partir do
+  pendrive.
 - O backup em branco de 14 noites foi diagnosticado, com causa, evidência e
   data.
 - As três correções estão no repositório, com teste que reproduz o caso de
   produção.
 - Nenhum arquivo de backup foi apagado.
-- Nenhuma alteração foi feita na VPS, no banco ou no pendrive existente.
+- Nenhum dado de produção foi alterado: o teste usou bancos temporários, que
+  foram removidos.
 - Nenhuma credencial foi criada, alterada ou transcrita.
 - Nenhum push, deploy ou migration foi feito.
