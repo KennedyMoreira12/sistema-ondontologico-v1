@@ -6,7 +6,8 @@ trabalho foi feito.
 
 **Estado atual:** fases A, B, C, D e E executadas em desenvolvimento local,
 com **commits locais e sem publicação**. Nenhuma alteração foi feita em
-produção.
+produção. O checklist de publicação e o relatório de limpeza estão prontos
+para quando a publicação for autorizada.
 
 ---
 
@@ -56,6 +57,16 @@ produção.
   da documentação e da suíte permanente, como rodar, e o que continua
   pendente.
 
+### 7. Encerramento
+
+* [Checklist de publicação](CHECKLIST_PUBLICACAO.md) — a sequência conferida
+  para publicar a branch quando isso for autorizado: as três travas, o passo a
+  passo, o caminho de volta e o que não entra. **Preparado, não executado.**
+* [Relatório de arquivos pendentes de limpeza](RELATORIO_LIMPEZA.md) — o que
+  está sobrando, quanto ocupa, por que está lá e o que fazer com cada item.
+  Inclui o diagnóstico dos **5,79 GB** de bancos de teste que a suíte deixava
+  para trás. **Relatado, nada apagado.**
+
 ### Outros
 
 * [Atendimento com IA e WhatsApp](../atendimento-ia-whatsapp.md) — o módulo
@@ -81,7 +92,9 @@ produção.
 php artisan test --compact
 ```
 
-Estado na última execução: **494 testes · 493 passam · 1 falha conhecida**
+Estado na última execução: **515 testes · 514 passam · 1 falha conhecida**
 (`SocialPostPanelImageTest`, anterior a este trabalho e fora do escopo
-autorizado) · 2 *risky*. Detalhes em
+autorizado) · 2 *risky*. A suíte roda sem deixar banco de teste para trás:
+o vazamento que ocupava 5,79 GB em `storage/framework/testing` foi
+corrigido e travado por teste. Detalhes em
 [Fase E](FASE_E_DOCUMENTACAO_E_TESTES.md).
