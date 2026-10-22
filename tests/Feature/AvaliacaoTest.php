@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Avaliacao;
 use App\Models\Paciente;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Concerns\CreatesTenants;
 use Tests\Concerns\PreparaClinicaFisioterapia;
 use Tests\TestCase;
@@ -164,5 +165,64 @@ class AvaliacaoTest extends TestCase
         $this->actingAs($user)
             ->get(route('pacientes.avaliacoes.index', $paciente))
             ->assertForbidden();
+    }
+
+    /**
+     * Regressão: a tela não pode depender de `data` chegar como objeto.
+     *
+     * A view formata a data com `->format()`. Sem o cast, `data` chega como
+     * string, o PHP reclama de `Call to a member function format() on string`
+     * e a página inteira vira 500 — o teste falhava antes da correção.
+     */
+    public function test_lista_e_detalhe_da_ficha_abrem_com_as_datas_formatadas(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia('avaliacao.view');
+        $paciente = Paciente::create(['nome' => 'Joana Ribeiro']);
+
+        $avaliacao = Avaliacao::create([
+            'paciente_id' => $paciente->id,
+            'data' => '2026-10-20',
+            'queixa_principal' => 'Dor lombar.',
+            'status' => Avaliacao::FINALIZADA,
+            'finalizada_em' => '2026-10-21 09:30:00',
+        ]);
+
+        $avaliacao = $avaliacao->fresh();
+
+        $this->assertInstanceOf(Carbon::class, $avaliacao->data);
+        $this->assertInstanceOf(Carbon::class, $avaliacao->finalizada_em);
+
+        $this->actingAs($user)
+            ->get(route('pacientes.avaliacoes.index', $paciente))
+            ->assertOk()
+            ->assertSee('20/10/2026');
+
+        $this->actingAs($user)
+            ->get(route('pacientes.avaliacoes.show', [$paciente, $avaliacao]))
+            ->assertOk()
+            ->assertSee('20/10/2026')
+            ->assertSee('21/10/2026 09:30');
+    }
+
+    /**
+     * O formulário de edição repete a data no campo `value`, pelo mesmo
+     * motivo: `->format()` não pode rodar em string.
+     */
+    public function test_formulario_de_edicao_da_ficha_carrega_a_data(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia('avaliacao.view', 'avaliacao.update');
+        $paciente = Paciente::create(['nome' => 'Joana Ribeiro']);
+
+        $avaliacao = Avaliacao::create([
+            'paciente_id' => $paciente->id,
+            'data' => '2026-10-20',
+            'queixa_principal' => 'Dor lombar.',
+            'status' => Avaliacao::RASCUNHO,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('pacientes.avaliacoes.edit', [$paciente, $avaliacao]))
+            ->assertOk()
+            ->assertSee('value="2026-10-20"', false);
     }
 }

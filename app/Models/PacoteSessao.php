@@ -35,6 +35,21 @@ class PacoteSessao extends TenantModel
 
     public const CANCELADO = 'cancelado';
 
+    /**
+     * `validade_em` é data; `total_sessoes` e `sessoes_usadas` são inteiros,
+     * porque o saldo é calculado por conta própria e não deve virar string.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'total_sessoes' => 'integer',
+            'sessoes_usadas' => 'integer',
+            'validade_em' => 'date',
+        ];
+    }
+
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class);
@@ -47,7 +62,10 @@ class PacoteSessao extends TenantModel
 
     public function consumos(): HasMany
     {
-        return $this->hasMany(ConsumoSessao::class);
+        // A coluna é `pacote_id`, não `pacote_sessao_id`: sem a chave explícita
+        // o Eloquent deduz o nome a partir do model pai e a tela do pacote
+        // estoura com "no such column".
+        return $this->hasMany(ConsumoSessao::class, 'pacote_id');
     }
 
     /**

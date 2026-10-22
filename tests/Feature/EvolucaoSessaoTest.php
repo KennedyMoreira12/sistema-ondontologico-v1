@@ -6,6 +6,7 @@ use App\Models\Avaliacao;
 use App\Models\EvolucaoSessao;
 use App\Models\Paciente;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Concerns\CreatesTenants;
 use Tests\Concerns\PreparaClinicaFisioterapia;
 use Tests\TestCase;
@@ -163,5 +164,35 @@ class EvolucaoSessaoTest extends TestCase
         $this->actingAs($user)
             ->get(route('pacientes.evolucoes-sessao.index', $paciente))
             ->assertForbidden();
+    }
+
+    /**
+     * Regressão: a lista formata `data` e `finalizada_em` com `->format()`.
+     *
+     * Sem o cast, as colunas chegam como string e a página inteira vira 500
+     * com "Call to a member function format() on string".
+     */
+    public function test_lista_de_evolucoes_abre_com_as_datas_formatadas(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia('evolucao.view');
+        $paciente = Paciente::create(['nome' => 'Joana Ribeiro']);
+
+        EvolucaoSessao::create([
+            'paciente_id' => $paciente->id,
+            'data' => '2026-10-19',
+            'conteudo' => 'Sessao realizada com boa evolucao.',
+            'status' => EvolucaoSessao::FINALIZADA,
+            'finalizada_em' => '2026-10-19 10:30:00',
+        ]);
+
+        $evolucao = EvolucaoSessao::first();
+
+        $this->assertInstanceOf(Carbon::class, $evolucao->data);
+        $this->assertInstanceOf(Carbon::class, $evolucao->finalizada_em);
+
+        $this->actingAs($user)
+            ->get(route('pacientes.evolucoes-sessao.index', $paciente))
+            ->assertOk()
+            ->assertSee('19/10/2026');
     }
 }

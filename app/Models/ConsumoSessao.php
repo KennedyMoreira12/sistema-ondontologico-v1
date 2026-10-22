@@ -23,6 +23,19 @@ class ConsumoSessao extends TenantModel
      */
     protected $table = 'consumo_sessao';
 
+    /**
+     * `data` é data: sem o cast a coluna da lista de consumos chama
+     * `->format()` em string e a tela estoura 500.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => 'date',
+        ];
+    }
+
     public function pacote(): BelongsTo
     {
         return $this->belongsTo(PacoteSessao::class);
@@ -40,6 +53,8 @@ class ConsumoSessao extends TenantModel
 
     public function evolucao(): BelongsTo
     {
-        return $this->belongsTo(EvolucaoSessao::class);
+        // A coluna é `evolucao_sessao_id`; sem a chave explícita o Eloquent
+        // procura `evolucao_id` e a tela do pacote estoura.
+        return $this->belongsTo(EvolucaoSessao::class, 'evolucao_sessao_id');
     }
 }

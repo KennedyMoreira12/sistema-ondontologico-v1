@@ -234,6 +234,86 @@ class PacoteSessaoTest extends TestCase
             ->assertForbidden();
     }
 
+    /**
+     * Regressão: o extrato de sessões do pacote.
+     *
+     * A coluna chama `pacote_id`. Sem a chave explícita, `hasMany` deduz
+     * `pacote_sessao_id` a partir do nome do model e a tela do pacote vira
+     * 500 com "no such column: consumo_sessao.pacote_sessao_id".
+     */
+    public function test_detalhe_do_pacote_lista_os_consumos_e_abre_a_tela(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia('pacotes.view');
+        $paciente = Paciente::create(['nome' => 'Joana Ribeiro']);
+
+        $pacote = PacoteSessao::create([
+            'paciente_id' => $paciente->id,
+            'nome' => 'Pacote 10 sessoes',
+            'total_sessoes' => 10,
+            'sessoes_usadas' => 1,
+            'validade_em' => '2027-01-31',
+            'status' => PacoteSessao::ATIVO,
+        ]);
+
+        ConsumoSessao::create([
+            'pacote_id' => $pacote->id,
+            'paciente_id' => $paciente->id,
+            'data' => '2026-10-19',
+        ]);
+
+        $this->assertSame('pacote_id', $pacote->consumos()->getForeignKeyName());
+        $this->assertCount(1, $pacote->fresh()->consumos);
+
+        $this->actingAs($user)
+            ->get(route('pacientes.pacotes.index', $paciente))
+            ->assertOk()
+            ->assertSee('31/01/2027');
+
+        $this->actingAs($user)
+            ->get(route('pacientes.pacotes.show', [$paciente, $pacote]))
+            ->assertOk()
+            ->assertSee('19/10/2026');
+    }
+
+    /**
+     * Regressão: o consumo aponta para a evolução da sessão pela coluna
+     * `evolucao_sessao_id` — não `evolucao_id`, que é o nome que o Eloquent
+     * deduziria do método e que não existe na tabela.
+     */
+    public function test_consumo_vinculado_a_evolucao_resolve_a_coluna_certa(): void
+    {
+        $this->clinicaFisioterapia('pacotes.view');
+        $paciente = Paciente::create(['nome' => 'Joana Ribeiro']);
+
+        $evolucao = EvolucaoSessao::create([
+            'paciente_id' => $paciente->id,
+            'data' => '2026-10-19',
+            'conteudo' => 'Sessao realizada.',
+            'status' => EvolucaoSessao::FINALIZADA,
+            'finalizada_em' => '2026-10-19 10:30:00',
+        ]);
+
+        $pacote = PacoteSessao::create([
+            'paciente_id' => $paciente->id,
+            'nome' => 'Pacote 10 sessoes',
+            'total_sessoes' => 10,
+            'status' => PacoteSessao::ATIVO,
+        ]);
+
+        $consumo = ConsumoSessao::create([
+            'pacote_id' => $pacote->id,
+            'paciente_id' => $paciente->id,
+            'evolucao_sessao_id' => $evolucao->id,
+            'data' => '2026-10-19',
+        ]);
+
+        $this->assertSame(
+            'evolucao_sessao_id',
+            $consumo->evolucao()->getForeignKeyName()
+        );
+        $this->assertTrue($consumo->evolucao()->is($evolucao));
+    }
+
     public function test_dados_de_fisioterapia_nao_vazam_para_outra_clinica(): void
     {
         $this->clinicaFisioterapia();

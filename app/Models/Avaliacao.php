@@ -30,6 +30,20 @@ class Avaliacao extends TenantModel
 
     public const FINALIZADA = 'finalizada';
 
+    /**
+     * `data` e `finalizada_em` são datas: sem o cast as views chamam
+     * `->format()` em string e a tela estoura 500.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => 'date',
+            'finalizada_em' => 'datetime',
+        ];
+    }
+
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class);
