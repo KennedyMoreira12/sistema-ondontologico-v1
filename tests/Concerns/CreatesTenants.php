@@ -27,11 +27,6 @@ trait CreatesTenants
     use SubscribesPlan;
 
     /**
-     * @var array<int, string>
-     */
-    protected array $tenantFiles = [];
-
-    /**
      * Cria uma clínica completa: registro central, conexão, banco próprio e um
      * usuário administrador. Também devolve um token de integração em texto puro,
      * que só existe aqui — no banco só fica o hash.
@@ -110,21 +105,8 @@ trait CreatesTenants
     {
         $path = TenantSchema::freshDatabasePath();
 
-        $this->tenantFiles[] = $path;
+        $this->bancosDeTeste[] = $path;
 
         return $path;
-    }
-
-    public function tearDown(): void
-    {
-        foreach ($this->tenantFiles as $file) {
-            if (is_file($file)) {
-                @unlink($file);
-            }
-        }
-
-        $this->tenantFiles = [];
-
-        parent::tearDown();
     }
 }

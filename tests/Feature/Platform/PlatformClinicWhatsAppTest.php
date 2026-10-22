@@ -41,11 +41,7 @@ class PlatformClinicWhatsAppTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tenantsDir.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
-            @unlink($arquivo);
-        }
-
-        @rmdir($this->tenantsDir);
+        $this->apagarPastaDeBancosDeTeste($this->tenantsDir);
 
         parent::tearDown();
     }
