@@ -24,6 +24,9 @@ produção.
   que **não** está autorizado (deploy, push, dados da Malheiro).
   * [A.1 — Backup externo](FASE_A1_BACKUP_EXTERNO.md) — cópia validada fora do
     servidor, com hash e teste de restauração.
+  * [A.1-B — Backup externo automatizado](FASE_A1B_BACKUP_EXTERNO_AUTOMATIZADO.md)
+    — cópia externa automática com verificação de hash e de conteúdo, e a
+    correção do backup que saiu vazio por 14 noites em produção.
   * [A.2 — Organização Git](FASE_A2_ORGANIZACAO_GIT.md) — branch de trabalho,
     commits, bundle e patch.
 

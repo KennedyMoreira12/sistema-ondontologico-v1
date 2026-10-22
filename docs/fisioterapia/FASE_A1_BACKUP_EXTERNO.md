@@ -171,9 +171,12 @@ denied`) — ele serve para dump/leitura, que é o papel dele no backup.
 
 ## 7. Itens preservados
 
-- Os backups que já existiam na VPS continuam no lugar: **24 arquivos `.gz`** em
-  `/var/backups/ljsmartclinic`, incluindo os 15 arquivos de 20 bytes mantidos de propósito.
-- O script `03-backup.sh` não foi alterado.
+- Os backups que já existiam na VPS continuam no lugar: **26 arquivos `.gz`** em
+  `/var/backups/ljsmartclinic`, incluindo os 14 arquivos de 20 bytes mantidos de
+  propósito — que a A.1-Bprovou serem **backup vazio** (14 noites sem cópia).
+- O script `03-backup.sh` não foi alterado **na VPS** (a correção do dump vazio
+  existe no repositório e entra no próximo deploy — ver
+  [A.1-B](FASE_A1B_BACKUP_EXTERNO_AUTOMATIZADO.md)).
 - Os arquivos de origem **não foram apagados** após a transferência.
 - Nenhum dado da clínica Malheiro foi lido, alterado ou removido durante a operação.
 
@@ -185,10 +188,14 @@ denied`) — ele serve para dump/leitura, que é o papel dele no backup.
 
 | # | Pendência | Risco | Ação necessária |
 |---|---|---|---|
-| P1 | O pendrive `D:` é removível e pode ser desconectado/esquecido | Médio | Definir uma rotina (ex.: semanal) de reconexão e nova cópia; manter o manifesto `SHA256SUMS.txt` ao lado dos arquivos. |
+| P1 | O pendrive `D:` é removível e pode ser desconectado/esquecido | Médio | Definir uma rotina (ex.: semanal) de reconexão e nova cópia; manter o manifesto `SHA256SUMS.txt` ao lado dos arquivos. **Resolvido pela A.1-B**: existe `deploy/externo/backup-externo.ps1`, que faz a cópia sozinho e confere o hash. Falta registrar a tarefa no Agendador de Tarefas. |
 | P2 | Um único destino externo, sem redundância | Médio | Avaliar um segundo destino (nuvem ou segundo servidor) quando houver autorização e credenciais. |
-| P3 | A cópia externa foi **manual** | Médio | Enquanto não houver destino automatizado, o backup externo depende de alguém executar. Documentado como limitação consciente. |
-| P4 | A senha do usuário `saas` em `/root/.my.cnf` pode voltar a ficar desatualizada | Alto | Já houve esse incidente (raiz da falha anterior). Recomenda-se um teste periódico do backup que falhe de forma visível. |
+| P3 | A cópia externa foi **manual** | Médio | Enquanto não houver destino automatizado, o backup externo depende de alguém executar. Documentado como limitação consciente. **Resolvido pela A.1-B**: a cópia é automatizada; o que falta é o agendamento. |
+| P4 | A senha do usuário `saas` em `/root/.my.cnf` pode voltar a ficar desatualizada | Alto | Já houve esse incidente (raiz da falha anterior). Recomenda-se um teste periódico do backup que falhe de forma visível. **Resolvido pela A.1-B**: o `03-backup.sh` confere o conteúdo do dump e grava `STATUS`; o backup externo recusa dump vazio. |
+
+> **Retomada:** os "15 arquivos de 20 bytes" do item 7 **não eram ruído** — eram
+> 14 noites de backup vazio. O diagnóstico completo está em
+> [A.1-B](FASE_A1B_BACKUP_EXTERNO_AUTOMATIZADO.md).
 
 ### 8.2. Retenção recomendada
 
