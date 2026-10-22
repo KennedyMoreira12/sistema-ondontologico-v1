@@ -17,6 +17,7 @@ class CreateTenantCommand extends Command
         {--admin= : Nome do administrador}
         {--plan= : Slug do plano (padrão: o primeiro plano ativo)}
         {--password= : Senha do administrador (padrão: gerada)}
+        {--vertical= : Vertical da clínica (odontologia ou fisioterapia; padrão: odontologia)}
         {--instance= : Instância da Evolution API desta clínica}';
 
     protected $description = 'Cria uma clínica com banco de dados próprio, papéis, admin e assinatura';
@@ -69,6 +70,7 @@ class CreateTenantCommand extends Command
                 'admin_name' => $this->option('admin') ?: $name,
                 'password' => $this->option('password'),
                 'evolution_instance' => $instancia,
+                'vertical' => $this->option('vertical') ?? 'odontologia',
                 'plan' => $plan,
             ]);
         } catch (Throwable $exception) {
@@ -80,6 +82,7 @@ class CreateTenantCommand extends Command
         $this->newLine();
         $this->components->info('Clínica criada com sucesso.');
         $this->components->twoColumnDetail('Banco', $result['connection']->database_name);
+        $this->components->twoColumnDetail('Vertical', $result['clinic']->vertical ?? 'odontologia');
         $this->components->twoColumnDetail('Plano', $plan->name.' ('.$plan->monthlyPrice().')');
         $this->components->twoColumnDetail('Instância', $result['clinic']->evolution_instance ?? '(nenhuma)');
         $this->components->twoColumnDetail('Administrador', $result['user']->email);
