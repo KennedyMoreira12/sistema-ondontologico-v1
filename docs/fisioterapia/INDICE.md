@@ -5,9 +5,10 @@ tem um documento próprio, e a ordem de leitura abaixo é a ordem em que o
 trabalho foi feito.
 
 **Estado atual:** fases A, B, C, D e E executadas em desenvolvimento local,
-com **commits locais e sem publicação**. Nenhuma alteração foi feita em
-produção. O checklist de publicação e o relatório de limpeza estão prontos
-para quando a publicação for autorizada.
+com **commits locais**. A branch `feature/fisioterapia` foi publicada no
+GitHub em 22/10 (`origin/feature/fisioterapia`), mas **nada foi publicado em
+`main` e nenhuma alteração foi feita em produção**. O checklist de publicação
+e o relatório de limpeza estão prontos para quando o deploy for autorizado.
 
 ---
 

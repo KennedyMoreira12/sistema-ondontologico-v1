@@ -12,12 +12,13 @@ com o motivo de cada passo e o que fazer quando o passo dá errado.
 
 ## 1. Onde o sistema está hoje
 
-| Item | Estado (21/10/2026) |
+| Item | Estado (22/10/2026) |
 |---|---|
 | Branch de trabalho | `feature/fisioterapia` |
-| Commit da branch | `14f9961` |
-| `origin/main` | `7cb2f05` (6 de outubro) |
-| Commits a publicar | **30** |
+| Commit da branch | `9e55007` |
+| Branch no GitHub | `origin/feature/fisioterapia` → `9e55007` ✅ |
+| `origin/main` | `7cb2f05` (6 de outubro) — **intocado** |
+| Commits na branch | **30** |
 | Arquivos alterados | **229** |
 | Produção | `7cb2f05` **com 21 arquivos modificados e 136 arquivos soltos fora do commit** |
 | Suíte de testes | 515 testes · 514 passam · 1 falha conhecida |
@@ -37,9 +38,13 @@ colateral.
 
 ### Trava 1 — Autorização
 
-Push e deploy **não** estão autorizados neste momento. Enquanto isso não
-mudar, nada abaixo é executado. Os passos 1 a 9 existem para quando a
-autorização vier.
+**O push da branch já foi feito** (22/10): `origin/feature/fisioterapia` está
+em `9e55007`. Ele não entra em `main`, não roda nada em produção e não
+toca em nenhum dado.
+
+O **deploy continua não autorizado**. Os passos 1 a 9 abaixo existem para
+quando ele vier — e o passo 3 perde a primeira etapa (o push), que já
+aconteceu.
 
 ### Trava 2 — O backup da VPS ainda é o antigo (risco alto)
 
@@ -121,7 +126,8 @@ ssh root@179.236.238.61 '
 
 A ordem importa: **primeiro** o código novo, **depois** as migrations.
 
-- [ ] Push da branch (ainda não autorizado):
+- [x] Push da branch — **feito em 22/10**: `origin/feature/fisioterapia`
+      está em `9e55007`. `main` não foi tocado.
 
 ```powershell
 git push origin feature/fisioterapia
@@ -310,15 +316,16 @@ Depois de qualquer rollback, **o cache precisa ser refeito** — um
 
 | # | Pendência | Quem resolve |
 |---|---|---|
-| 1 | Push e deploy | autorização do proprietário |
+| 1 | **Deploy** (o push da branch já foi feito em 22/10) | autorização do proprietário |
 | 2 | Os 10 pontos de confirmação da cliente (contratos, pacotes, convênios, ficha, unidades, marca, CREFITO, texto jurídico, repositório do GitHub Pages, Malheiro intocada) | cliente |
 | 3 | Plano de tratamento da fisioterapia | cliente — sem isso o módulo fica "planejado" |
 | 4 | Agendar o backup externo no Agendador de Tarefas | dono da máquina (comando pronto em `deploy/externo/README.md`) |
-| 5 | Limpeza dos arquivos soltos na produção (10 cópias do `ProspectController.php.backup*`, 3 do `app.scss`, 3 do `platform.blade.php`, 3 do `routes/platform.php`, `backup_antes_remocao/`, `test.env`, `test.txt`) | ver `RELATORIO_LIMPEZA.md` |
+| 5 | Limpeza dos arquivos soltos na produção (11 cópias do `ProspectController.php.backup*`, 3 do `app.scss`, 4 do `platform.blade.php`, 3 do `routes/platform.php`, 3 cópias do `.env`, `backup_antes_remocao/`, `test.env`, `test.txt`) | ver `RELATORIO_LIMPEZA.md` |
 
-O item 5 é o que a trava 3 deixa mais_visível: são ~20 arquivos de backup
-jogados no meio do código, em produção, que ninguém versionou. Não são
-necessários para o deploy, e podem ser removidos depois — nunca antes.
+O item 5 é o que a trava 3 deixa mais visível: são 34 arquivos de backup
+jogados no meio do código, em produção, que ninguém versionou — três deles
+são cópias do `.env` com credencial de produção. Não são necessários para o
+deploy, e podem ser removidos depois — nunca antes.
 
 ---
 

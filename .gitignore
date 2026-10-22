@@ -54,3 +54,9 @@ Thumbs.db
 
 # Credenciais geradas por script (rotacionar_admin.php e afins).
 /senha_rotacionada.txt
+
+# Saída de teste redirecionada na raiz. Nenhum script do repositório produz
+# este arquivo — ele aparece quando a suíte é rodada com um redirecionamento
+# na mão. O exemplar encontrado tinha 0 byte. Fica fora do status do git para
+# a árvore não sujar a cada rodada.
+test_feature.out

@@ -15,7 +15,7 @@ Levantamento feito em 21/10/2026, na estação de trabalho e na VPS.
 | `storage/framework/testing/` (local) | 14.413 `.sqlite` + 771 pastas | **5,79 GB** | vazamento **corrigido**; apagar quando der |
 | `storage/logs/laravel.log` (local) | log de uma semana | 4,9 MB | truncar |
 | `storage/framework/views/` (local) | 313 views compiladas | ~1 MB | opcional |
-| raiz do projeto | `test_feature.out` (0 bytes) | 0 | apagar ou ignorar |
+| raiz do projeto | `test_feature.out` (0 bytes) | 0 | **resolvido** — apagado e ignorado |
 | `docs/fisioterapia/` | `AUDITORIA_IA_HISTORICO_FOLLOWUP…md` | 22 KB | **manter** — trabalho em andamento |
 | `app/`, `resources/` | `ProspectController.php` e `prospeccao/index.blade.php` modificados | — | **manter** — trabalho em andamento |
 | VPS `/var/www/ljsmartclinic/` | 34 arquivos de backup no código | 449 KB | remover **depois** do deploy |
@@ -109,16 +109,21 @@ Cache do Blade. O Laravel recompila sozinho quando o arquivo muda. Pode ser
 apagado; a única consequência é o primeiro acesso a cada tela ficar mais
 lento.
 
-### 3.3 `test_feature.out` — 0 bytes, na raiz
+### 3.3 `test_feature.out` — 0 bytes, na raiz — **resolvido em 22/10**
 
-Arquivo vazio, sem dono conhecido, na raiz do repositório. Três saídas
-possíveis:
+Arquivo vazio na raiz do repositório. Antes de mexer, foi procurado em todo o
+código (incluindo `composer.json`, `package.json`, `phpunit.xml` e todos os
+scripts): **nenhum script do repositório o produz ou o consome**. As únicas
+menções em todo o repositório estavam nos relatórios deste trabalho.
 
-- **apagar** — é o mais limpo;
-- **adicionar ao `.gitignore`** — se algum comando sempre o cria;
-- **manter** — se for gerado por algo em uso.
+A tentativa de rastrear a origem pelo histórico também não fechou: o arquivo
+foi criado em 12/10 19:00 e sua última escrita é de 09/10 22:36 — data
+**anterior** à criação, o que indica cópia a partir de outro lugar, e não
+geração local.
 
-A decisão é do dono. Não foi apagado nem ignorado.
+**Decisão:** apagado, e o nome exato foi para o `.gitignore`, para que a
+árvore não suje a cada rodada de teste. O nome é específico demais para
+esconder qualquer coisa que importe.
 
 ### 3.4 `docs/fisioterapia/AUDITORIA_IA_HISTORICO_FOLLOWUP_LJ_SMARTCLINIC.md` — 22 KB
 
@@ -218,13 +223,16 @@ prático antes de o FAT32 recusar a escrita.
 | Item | Motivo |
 |---|---|
 | Os 5,79 GB de `.sqlite` | o pedido foi **relatar**, não apagar |
-| `test_feature.out` | não se sabe de onde vem |
 | `AUDITORIA_IA_HISTORICO_FOLLOWUP…md` | trabalho do dono, não deste escopo |
 | `ProspectController.php`, `prospeccao/index.blade.php` | trabalho do dono, em andamento |
 | Os 34 arquivos de backup da VPS | são o estado real de produção; o snapshot do passo 2 ainda não foi guardado |
 | As 3 cópias do `.env` | idem, e envolver credencial de produção |
 | Os 14 dumps vazios | evidência do incidente; a retenção apaga sozinha até ~03/11 |
 | `D:\Backups\...` | do dono |
+
+**O que foi resolvido em 22/10:** o `test_feature.out` foi apagado e o nome
+entrou no `.gitignore`. Foi a única coisa do relatório que o dono autorizou
+apagar.
 
 ---
 
