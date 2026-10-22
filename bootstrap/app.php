@@ -31,6 +31,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        /**
+         * Quando o app roda atras de um tunel local (ngrok/cloudflared) ou de um
+         * nginx na mesma maquina, o HTTPS termina no proxy e o PHP so enxerga
+         * HTTP. Sem confiar nos cabecalhos `X-Forwarded-*` o `route()` gera
+         * `http://` no meio de uma pagina `https://`, e o navegador bloqueia
+         * formulario e asset como conteudo misto.
+         *
+         * A confianca e restrita ao loopback: so o proxy que fala com o PHP
+         * pelo proprio servidor pode reescrever o esquema/host. Um cliente
+         * remoto que mande `X-Forwarded-Proto` na mao continua ignorado.
+         */
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'tenant.access' => EnsureTenantAccess::class,
