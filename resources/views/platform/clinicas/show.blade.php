@@ -54,6 +54,52 @@
 
     <div class="row g-3">
         <div class="col-lg-8">
+            <div class="card shadow-sm mb-3" id="wa-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 mb-0">WhatsApp</h2>
+                        <span class="badge bg-secondary" id="wa-status-badge">Carregando…</span>
+                    </div>
+
+                    <dl class="row mb-3 small">
+                        <dt class="col-4 text-muted">Número</dt>
+                        <dd class="col-8 text-end mb-0" id="wa-numero">{{ $clinica->whatsapp ?: '—' }}</dd>
+                    </dl>
+
+                    @if (auth()->user()->isSuperAdmin())
+                        <form id="wa-form" class="row g-2 align-items-end mb-3">
+                            <div class="col-md-8">
+                                <label for="wa-numero-input" class="form-label small text-muted">Número do WhatsApp (DDI + DDD)</label>
+                                <input id="wa-numero-input" type="text" inputmode="numeric" class="form-control form-control-sm"
+                                       name="numero" placeholder="5511999999999" value="{{ $clinica->whatsapp }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" id="wa-gerar" class="btn btn-primary btn-sm w-100">
+                                    <i class="bi bi-qr-code me-1"></i>Gerar QR Code
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <button type="button" id="wa-atualizar" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Atualizar estado
+                        </button>
+                        <span id="wa-loading" class="text-muted small d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Consultando…
+                        </span>
+                    </div>
+
+                    <div id="wa-erro" class="alert alert-danger py-2 small d-none" role="alert"></div>
+                    <div id="wa-info" class="alert alert-info py-2 small d-none" role="alert"></div>
+
+                    <div id="wa-qr" class="text-center d-none">
+                        <img id="wa-qr-img" src="" alt="QR Code do WhatsApp" class="img-fluid border rounded p-2 bg-white" style="max-width: 260px;">
+                        <p class="text-muted small mt-2 mb-0">Abra o WhatsApp da clínica → Aparelhos conectados → Conectar aparelho.</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h2 class="h6 mb-3">Assinatura</h2>
@@ -344,3 +390,160 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    @php
+        $whatsappConfig = [
+            'statusUrl' => route('painel.clinicas.whatsapp.show', $clinica),
+            'qrcodeUrl' => route('painel.clinicas.whatsapp.qrcode', $clinica),
+            'podeGerar' => auth()->user()->isSuperAdmin(),
+        ];
+    @endphp
+    <script>
+        window.ljWhatsappConfig = @json($whatsappConfig);
+    </script>
+    <script>
+        (function () {
+            const config = window.ljWhatsappConfig;
+            if (! config) {
+                return;
+            }
+
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const badge = document.getElementById('wa-status-badge');
+            const numeroEl = document.getElementById('wa-numero');
+            const form = document.getElementById('wa-form');
+            const input = document.getElementById('wa-numero-input');
+            const btnGerar = document.getElementById('wa-gerar');
+            const btnAtualizar = document.getElementById('wa-atualizar');
+            const loading = document.getElementById('wa-loading');
+            const erro = document.getElementById('wa-erro');
+            const info = document.getElementById('wa-info');
+            const qrArea = document.getElementById('wa-qr');
+            const qrImg = document.getElementById('wa-qr-img');
+
+            const rotulos = { open: 'Conectado', connecting: 'Aguardando leitura', close: 'Desconectado' };
+
+            function limpar() {
+                erro?.classList.add('d-none');
+                info?.classList.add('d-none');
+            }
+
+            function mostrarErro(mensagem) {
+                info?.classList.add('d-none');
+                if (erro) {
+                    erro.textContent = mensagem;
+                    erro.classList.remove('d-none');
+                }
+            }
+
+            function mostrarInfo(mensagem) {
+                erro?.classList.add('d-none');
+                if (info) {
+                    info.textContent = mensagem;
+                    info.classList.remove('d-none');
+                }
+            }
+
+            function carregando(ativo) {
+                loading?.classList.toggle('d-none', ! ativo);
+                if (btnGerar) { btnGerar.disabled = ativo; }
+                if (btnAtualizar) { btnAtualizar.disabled = ativo; }
+            }
+
+            function aplicarEstado(data) {
+                const estado = data.estado || null;
+                const conectado = data.conectado === true || estado === 'open';
+
+                if (badge) {
+                    badge.textContent = estado ? (rotulos[estado] || 'Desconhecido') : 'Não configurado';
+                    badge.className = 'badge bg-' + (conectado ? 'success' : (estado === 'connecting' ? 'warning text-dark' : 'secondary'));
+                }
+
+                if (numeroEl) {
+                    numeroEl.textContent = data.numero || '—';
+                }
+
+                if (data.qrcode && qrImg && qrArea) {
+                    qrImg.src = data.qrcode;
+                    qrArea.classList.remove('d-none');
+                } else {
+                    qrArea?.classList.add('d-none');
+                }
+
+                if (data.mensagem) {
+                    mostrarInfo(data.mensagem);
+                }
+            }
+
+            async function pedir(url, opcoes = {}) {
+                const resposta = await fetch(url, {
+                    method: opcoes.method || 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: opcoes.body ? JSON.stringify(opcoes.body) : undefined,
+                    credentials: 'same-origin',
+                });
+
+                let data = {};
+                try {
+                    data = await resposta.json();
+                } catch (e) {
+                    data = {};
+                }
+
+                if (! resposta.ok) {
+                    throw new Error(data.mensagem || 'Não foi possível completar a ação.');
+                }
+
+                return data;
+            }
+
+            async function atualizar() {
+                carregando(true);
+                limpar();
+                qrArea?.classList.add('d-none');
+
+                try {
+                    aplicarEstado(await pedir(config.statusUrl));
+                } catch (e) {
+                    mostrarErro(e.message);
+                } finally {
+                    carregando(false);
+                }
+            }
+
+            async function gerar(evento) {
+                evento?.preventDefault();
+                carregando(true);
+                limpar();
+                qrArea?.classList.add('d-none');
+
+                try {
+                    const data = await pedir(config.qrcodeUrl, {
+                        method: 'POST',
+                        body: { numero: input ? (input.value.trim() || null) : null },
+                    });
+
+                    aplicarEstado(data);
+
+                    if (data.qrcode) {
+                        mostrarInfo('Escaneie o QR Code no WhatsApp da clínica para conectar.');
+                    }
+                } catch (e) {
+                    mostrarErro(e.message);
+                } finally {
+                    carregando(false);
+                }
+            }
+
+            btnAtualizar?.addEventListener('click', atualizar);
+            form?.addEventListener('submit', gerar);
+
+            atualizar();
+        })();
+    </script>
+@endpush

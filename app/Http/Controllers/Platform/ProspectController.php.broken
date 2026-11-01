@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers\Platform;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Platform\ProspectCommercialRequest;
+use Illuminate\Support\Collection;
+use App\Models\Central\Prospect;
+use App\Services\Platform\PlatformLogger;
+use App\Services\Platform\Prospeccao\ProspectWhatsAppService;
+
+class ProspectController extends Controller
+{
+    /**
+     * @var array<int, string>
+     */
+    private const CANAIS_COMERCIAIS = ['whatsapp'];
+
+    public function __construct(protected ProspectWhatsAppService ) {}
+
+    public function index(Request ): View
+    {
+         = trim(->string('buseca')->toString());
+         = trim(->string('category')->toString());
+         = trim(->string('city')->toString());
+
+         = Prospect::where('status', '!=', 'inactive');
+
+        if (!empty()) {
+            ->where(function () use () {
+                ->where('nome', 'like', '%' .  . '%')
+                      ->orWhere('telefone', 'like', '%' .  . '%');
+            });
+        }
+
+        ->orderBy('created_at', 'desc');
+
+        return view('platform.prospeccao.index', [
+            'prospects' => ->paginate(20),
+            'busca' => ,
+            'category' => ,
+            'city' => ,
+        ]);
+    }
+}

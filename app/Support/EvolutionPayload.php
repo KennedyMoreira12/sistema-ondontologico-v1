@@ -31,6 +31,15 @@ final class EvolutionPayload
     public const EVENTO_MENSAGEM = 'MESSAGES_UPSERT';
 
     /**
+     * Mudança de estado de entrega/leitura de uma mensagem que já existe.
+     *
+     * Não vira linha nova e não é entregue ao n8n: reenviar isso ao workflow
+     * faria o bot responder de novo a uma mensagem que já foi atendida. O que
+     * ele atualiza é `whatsapp_messages.delivery_status`.
+     */
+    public const EVENTO_STATUS = 'MESSAGES_UPDATE';
+
+    /**
      * Eventos que o app registra em log e devolve 200 sem persistir.
      *
      * `connection.update` e `qrcode.updated` são o estado do WhatsApp da clínica.
@@ -91,6 +100,59 @@ final class EvolutionPayload
     public static function enviadaPelaClinica(array $payload): bool
     {
         return (bool) (self::data($payload)['key']['fromMe'] ?? false);
+    }
+
+    /**
+     * Atualizações de status contidas em um evento `MESSAGES_UPDATE`.
+     *
+     * A Evolution manda o mesmo evento em formatos diferentes conforme a
+     * versão: às vezes `data` é um objeto (`key` + `update.status`), às vezes é
+     * uma lista de objetos. Ler as duas formas é o que evita perder status em
+     * uma atualização do gateway.
+     *
+     * Nada aqui estoura: item sem `key.id` ou sem status reconhecível é
+     * descartado, porque um webhook de status inválido não pode virar 500 que
+     * faz a Evolution reentregar em loop.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return list<array{key: string, from_me: bool, status: string, timestamp: int|null}>
+     */
+    public static function atualizacoesDeStatus(array $payload): array
+    {
+        $data = $payload['data'] ?? null;
+
+        if (! is_array($data)) {
+            return [];
+        }
+
+        $itens = array_is_list($data) ? $data : [$data];
+        $atualizacoes = [];
+
+        foreach ($itens as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $chave = $item['key']['id'] ?? $item['keyId'] ?? null;
+            $status = $item['update']['status'] ?? $item['status'] ?? null;
+
+            if (! is_string($chave) || $chave === '' || ! is_string($status) || $status === '') {
+                continue;
+            }
+
+            $timestamp = $item['messageTimestamp']
+                ?? $item['update']['messageTimestamp']
+                ?? null;
+
+            $atualizacoes[] = [
+                'key' => $chave,
+                'from_me' => (bool) ($item['key']['fromMe'] ?? $item['fromMe'] ?? true),
+                'status' => $status,
+                'timestamp' => is_numeric($timestamp) ? (int) $timestamp : null,
+            ];
+        }
+
+        return $atualizacoes;
     }
 
     /**

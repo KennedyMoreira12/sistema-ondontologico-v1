@@ -14,7 +14,7 @@ use Illuminate\View\View;
  *
  * Não há route model binding aqui de propósito: a clínica é a do tenant
  * ativo, resolvida pelo ResolveTenant a partir de `users.clinic_id`. Aceitar
- * um id pela URL deixaria qualquer usuáriologado editar os dados de outra
+ * um id pela URL deixaria qualquer usuário logado editar os dados de outra
  * clínica.
  */
 class ClinicaController extends Controller
@@ -37,6 +37,7 @@ class ClinicaController extends Controller
             'document' => ['nullable', 'string', 'max:30'],
             'phone' => ['nullable', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:191'],
             'postal_code' => ['nullable', 'string', 'max:10'],
             'address' => ['nullable', 'string', 'max:255'],
             'number' => ['nullable', 'string', 'max:20'],
@@ -44,6 +45,11 @@ class ClinicaController extends Controller
             'district' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:2'],
+            'state_registration' => ['nullable', 'string', 'max:30'],
+            'municipal_registration' => ['nullable', 'string', 'max:30'],
+            'cnae' => ['nullable', 'string', 'max:10'],
+            'city_ibge_code' => ['nullable', 'string', 'size:7'],
+            'tax_regime' => ['nullable', 'in:simples,simples_nacional,lucro_presumido,lucro_real,mei'],
         ]);
 
         $perfil = ClinicProfile::current();

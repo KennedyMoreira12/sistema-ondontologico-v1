@@ -155,6 +155,46 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Estados do bot de uma conversa
+    |--------------------------------------------------------------------------
+    |
+    | Quem responde à mensagem, e não em que etapa a conversa está. É o que a
+    | coluna `whatsapp_conversations.bot_status` guarda:
+    |
+    | - ativo: o bot responde automaticamente.
+    | - pausado: pausa temporária; volta sozinho quando `pausado_ate` passa.
+    | - aguardando_atendente: o paciente pediu um humano e o bot se cala até
+    |   alguém assumir.
+    | - humano: um atendente assumiu; o bot só volta por comando explícito.
+    |
+    | `humano` e `aguardando_atendente` são separados porque a recepção precisa
+    | distinguir "ninguém pegou ainda" de "já estou atendendo", e o bot não pode
+    | responder em nenhum dos dois.
+    |
+    */
+
+    'bot_states' => [
+        'ativo' => 'Bot ativo',
+        'pausado' => 'Bot pausado',
+        'aguardando_atendente' => 'Aguardando atendente',
+        'humano' => 'Atendimento humano',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados do bot que deixam a IA responder
+    |--------------------------------------------------------------------------
+    |
+    | Lista separada de `bot_states` porque as duas coisas divergem: `pausado`
+    | com prazo vencido e `ativo` respondem, e os demais não. Comparar contra a
+    | lista inteira faria o bot responder durante o atendimento humano.
+    |
+    */
+
+    'bot_states_ativos' => ['ativo', 'pausado'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Canais da Meta
     |--------------------------------------------------------------------------
     */

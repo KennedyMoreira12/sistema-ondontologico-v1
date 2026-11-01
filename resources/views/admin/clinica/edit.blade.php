@@ -34,13 +34,17 @@
             <div class="card-header bg-white fw-semibold"><i class="bi bi-telephone me-2"></i>Contato</div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="phone" class="form-label">Telefone</label>
                         <input type="text" id="phone" name="phone" value="{{ old('phone', $perfil->phone) }}" class="form-control phone-mask">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="whatsapp" class="form-label">WhatsApp</label>
                         <input type="text" id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $perfil->whatsapp) }}" class="form-control phone-mask">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" id="email" name="email" value="{{ old('email', $perfil->email) }}" class="form-control">
                     </div>
                 </div>
             </div>
@@ -82,6 +86,45 @@
                                 <option value="{{ $uf }}" @selected(old('state', $perfil->state) === $uf)>{{ $uf }}</option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3" style="max-width: 760px;">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-receipt me-2"></i>Dados fiscais (emissão de nota)</div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Usados na emissão de NFS-e. Sem inscrição municipal e código IBGE o provedor pode recusar a nota.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="municipal_registration" class="form-label">Inscrição municipal</label>
+                        <input type="text" id="municipal_registration" name="municipal_registration"
+                            value="{{ old('municipal_registration', $perfil->municipal_registration) }}" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="state_registration" class="form-label">Inscrição estadual</label>
+                        <input type="text" id="state_registration" name="state_registration"
+                            value="{{ old('state_registration', $perfil->state_registration) }}" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="cnae" class="form-label">CNAE</label>
+                        <input type="text" id="cnae" name="cnae" value="{{ old('cnae', $perfil->cnae) }}" class="form-control" placeholder="0000-0/00">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tax_regime" class="form-label">Regime tributário</label>
+                        <select id="tax_regime" name="tax_regime" class="form-select">
+                            <option value="">—</option>
+                            @foreach (['simples' => 'Simples Nacional', 'simples_nacional' => 'Simples Nacional (ME/EPP)', 'mei' => 'MEI', 'lucro_presumido' => 'Lucro presumido', 'lucro_real' => 'Lucro real'] as $valor => $label)
+                                <option value="{{ $valor }}" @selected(old('tax_regime', $perfil->tax_regime) === $valor)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="city_ibge_code" class="form-label">Código IBGE do município</label>
+                        <input type="text" id="city_ibge_code" name="city_ibge_code" maxlength="7"
+                            value="{{ old('city_ibge_code', $perfil->city_ibge_code) }}" class="form-control" placeholder="0000000">
                     </div>
                 </div>
             </div>

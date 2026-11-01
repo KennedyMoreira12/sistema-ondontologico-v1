@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Exceptions\N8nIndisponivel;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AssignCorrelationId;
 use App\Http\Middleware\AuthenticateEvolutionWebhook;
 use App\Models\Central\Clinic;
 use App\Models\WhatsAppMessage;
 use App\Services\N8nDispatcher;
 use App\Support\EvolutionPayload;
+use App\Support\WhatsAppDeliveryStatus;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +39,8 @@ use Illuminate\Support\Facades\Log;
  * - 200 `stored`: falha que reentrega não resolve (URL vazia, 4xx do n8n). Seria
  *   dez reentregas inúteis se respondesse 503.
  * - 200 `duplicate`: o mesmo `key.id` já foi entregue ao n8n.
+ * - 200 `status_updated`: era `MESSAGES_UPDATE`; o histórico foi atualizado e
+ *   o n8n não foi chamado.
  */
 class EvolutionWebhookController extends Controller
 {
@@ -49,6 +53,7 @@ class EvolutionWebhookController extends Controller
 
         $payload = $request->json()->all();
         $evento = EvolutionPayload::evento($payload);
+        $correlationId = $request->attributes->get(AssignCorrelationId::ATTRIBUTE);
 
         if ($evento === null) {
             Log::warning('Webhook da Evolution sem nome de evento.', [
@@ -56,6 +61,17 @@ class EvolutionWebhookController extends Controller
             ]);
 
             return response()->json(['status' => 'ignored'], 200);
+        }
+
+        /**
+         * Status de entrega/leitura. Atualiza o histórico e NÃO despacha ao
+         * n8n: o workflow já respondeu a essa mensagem, e reenviá-la faria o
+         * paciente receber resposta repetida.
+         */
+        if ($evento === EvolutionPayload::EVENTO_STATUS) {
+            $atualizadas = $this->atualizarStatus($payload, is_string($correlationId) ? $correlationId : null);
+
+            return response()->json(['status' => 'status_updated', 'updated' => $atualizadas], 200);
         }
 
         if (! EvolutionPayload::temMensagem($payload)) {
@@ -75,7 +91,7 @@ class EvolutionWebhookController extends Controller
             return response()->json(['status' => 'ignored'], 200);
         }
 
-        $mensagem = $this->registrarMensagem($clinica, $payload, $chave, $evento);
+        $mensagem = $this->registrarMensagem($clinica, $payload, $chave, $evento, is_string($correlationId) ? $correlationId : null);
 
         /**
          * A reserva decide entre despachar e dizer `duplicate`, e é ela — não a
@@ -135,7 +151,7 @@ class EvolutionWebhookController extends Controller
      * Baileys, que nada aqui consome e que um dump do banco da clínica acabaria
      * guardando.
      */
-    protected function registrarMensagem(Clinic $clinica, array $payload, string $chave, string $evento): WhatsAppMessage
+    protected function registrarMensagem(Clinic $clinica, array $payload, string $chave, string $evento, ?string $correlationId = null): WhatsAppMessage
     {
         try {
             return WhatsAppMessage::create([
@@ -151,6 +167,7 @@ class EvolutionWebhookController extends Controller
                     'context_info' => $payload['data']['contextInfo']['messageId'] ?? null,
                 ],
                 'sent_at' => $this->sentAt($payload),
+                'correlation_id' => $correlationId,
             ]);
         } catch (UniqueConstraintViolationException) {
             return WhatsAppMessage::query()
@@ -170,6 +187,70 @@ class EvolutionWebhookController extends Controller
         $timestamp = EvolutionPayload::timestamp($payload);
 
         return $timestamp === null ? null : Carbon::createFromTimestamp($timestamp);
+    }
+
+    /**
+     * Aplica os eventos `MESSAGES_UPDATE` ao histórico.
+     *
+     * Devolve quantas linhas mudaram, que é o que o teste e o operador usam
+     * para distinguir "evento chegou e não interessava" de "evento não chegou".
+     *
+     * A mensagem é procurada por `message_key` + `from_me` porque o WhatsApp
+     * reusa o mesmo id nos dois sentidos da conversa. Só mensagem da clínica
+     * recebe status: o status de uma inbound é do aparelho do paciente e não
+     * diz nada sobre a entrega da clínica.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    protected function atualizarStatus(array $payload, ?string $correlationId): int
+    {
+        $atualizadas = 0;
+
+        foreach (EvolutionPayload::atualizacoesDeStatus($payload) as $atualizacao) {
+            $novo = WhatsAppDeliveryStatus::fromEvolution($atualizacao['status']);
+
+            if ($novo === null) {
+                continue;
+            }
+
+            $mensagem = WhatsAppMessage::query()
+                ->where('message_key', $atualizacao['key'])
+                ->where('from_me', $atualizacao['from_me'])
+                ->first();
+
+            if ($mensagem === null) {
+                continue;
+            }
+
+            if (! WhatsAppDeliveryStatus::shouldApply($mensagem->delivery_status, $novo)) {
+                continue;
+            }
+
+            $momento = $atualizacao['timestamp'] !== null
+                ? Carbon::createFromTimestamp($atualizacao['timestamp'])
+                : now();
+
+            $dados = ['delivery_status' => $novo];
+
+            if ($correlationId !== null && $mensagem->correlation_id === null) {
+                $dados['correlation_id'] = $correlationId;
+            }
+
+            if (in_array($novo, [WhatsAppDeliveryStatus::DELIVERED, WhatsAppDeliveryStatus::READ], true)
+                && $mensagem->delivered_at === null) {
+                $dados['delivered_at'] = $momento;
+            }
+
+            if ($novo === WhatsAppDeliveryStatus::READ && $mensagem->read_at === null) {
+                $dados['read_at'] = $momento;
+            }
+
+            $mensagem->forceFill($dados)->save();
+
+            $atualizadas++;
+        }
+
+        return $atualizadas;
     }
 
     /**

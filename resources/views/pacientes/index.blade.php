@@ -9,9 +9,14 @@
             <p class="text-muted small mb-0">{{ $pacientes->total() }} registro(s) encontrado(s)</p>
         </div>
         @can('pacientes.create')
-            <a href="{{ route('pacientes.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>Novo paciente
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('pacientes.importar.create') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Importar planilha
+                </a>
+                <a href="{{ route('pacientes.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Novo paciente
+                </a>
+            </div>
         @endcan
     </div>
 

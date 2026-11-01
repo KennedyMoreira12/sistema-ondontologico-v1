@@ -36,6 +36,18 @@
                 <a href="{{ route('painel.planos.index') }}" class="nav-link {{ request()->routeIs('painel.planos.*') ? 'active' : '' }}">
                     <i class="bi bi-tags"></i> Planos
                 </a>
+                @if (auth()->user()->isSuperAdmin())
+                    <a href="{{ route('painel.prospeccao.index') }}" class="nav-link {{ request()->routeIs('painel.prospeccao.*') ? 'active' : '' }}">
+                        <i class="bi bi-funnel"></i> Prospecção
+                    </a>
+                @endif
+
+                @if (auth()->user()->isSuperAdmin())
+                    <div class="nav-section-title">Marketing</div>
+                    <a href="{{ route('painel.social.index') }}" class="nav-link {{ request()->routeIs('painel.social.*') ? 'active' : '' }}">
+                        <i class="bi bi-instagram"></i> Redes sociais
+                    </a>
+                @endif
 
                 <div class="nav-section-title">Governança</div>
                 <a href="{{ route('painel.auditoria.index') }}" class="nav-link {{ request()->routeIs('painel.auditoria.*') ? 'active' : '' }}">

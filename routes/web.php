@@ -14,11 +14,14 @@ use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PacienteImportacaoController;
 use App\Http\Controllers\PrescricaoController;
 use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfissionalController;
 use App\Http\Controllers\RelatorioController;
+use App\Http\Controllers\SocialPostController;
+use App\Http\Controllers\SocialSettingController;
 use App\Http\Controllers\TratamentoPlanoController;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +85,22 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/{contrato}', [ContratoController::class, 'destroy'])->name('destroy');
     });
 
+    Route::prefix('social')->name('social.')->group(function () {
+        Route::get('/', [SocialPostController::class, 'index'])->name('index');
+        Route::get('/create', [SocialPostController::class, 'create'])->name('create');
+        Route::post('/', [SocialPostController::class, 'store'])->name('store');
+
+        Route::get('/configuracao', [SocialSettingController::class, 'edit'])->name('configuracao');
+        Route::put('/configuracao', [SocialSettingController::class, 'update'])->name('configuracao.update');
+        Route::post('/configuracao/verificar', [SocialSettingController::class, 'verificar'])->name('configuracao.verificar');
+
+        Route::get('/{socialPost}', [SocialPostController::class, 'show'])->name('show');
+        Route::post('/{socialPost}/image', [SocialPostController::class, 'uploadImage'])->name('image');
+        Route::post('/{socialPost}/publicar', [SocialPostController::class, 'publish'])->name('publicar');
+        Route::patch('/{socialPost}/approve', [SocialPostController::class, 'approve'])->name('approve');
+        Route::patch('/{socialPost}/reject', [SocialPostController::class, 'reject'])->name('reject');
+    });
+
     Route::prefix('estoque')->name('estoque.')->group(function () {
         Route::get('/', [EstoqueController::class, 'index'])->name('index');
         Route::get('/create', [EstoqueController::class, 'create'])->name('create');
@@ -100,6 +119,17 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/', [PacienteController::class, 'index'])->name('index');
         Route::get('/create', [PacienteController::class, 'create'])->name('create');
         Route::post('/', [PacienteController::class, 'store'])->name('store');
+
+        Route::prefix('importar')->name('importar.')->group(function () {
+            Route::get('/', [PacienteImportacaoController::class, 'create'])->name('create');
+            Route::get('/modelo', [PacienteImportacaoController::class, 'modelo'])->name('modelo');
+            Route::post('/', [PacienteImportacaoController::class, 'preview'])->name('preview');
+            Route::get('/mapear', [PacienteImportacaoController::class, 'mapear'])->name('mapear');
+            Route::post('/processar', [PacienteImportacaoController::class, 'importar'])->name('processar');
+            Route::get('/resultado', [PacienteImportacaoController::class, 'resultado'])->name('resultado');
+            Route::delete('/', [PacienteImportacaoController::class, 'cancelar'])->name('cancelar');
+        });
+
         Route::get('/{paciente}', [PacienteController::class, 'show'])->name('show');
         Route::get('/{paciente}/edit', [PacienteController::class, 'edit'])->name('edit');
         Route::put('/{paciente}', [PacienteController::class, 'update'])->name('update');
@@ -154,8 +184,27 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('permissoes', [PermissionController::class, 'index'])->name('permissoes.index');
         Route::get('clinica', [ClinicaController::class, 'edit'])->name('clinica.edit');
         Route::put('clinica', [ClinicaController::class, 'update'])->name('clinica.update');
+        Route::get('evolution/qr', [\App\Http\Controllers\Api\EvolutionQrController::class, 'show'])->name('evolution.qr');
+        Route::get('test/evolution/qr', [\App\Http\Controllers\Api\EvolutionQrController::class, 'show'])->name('test.evolution.qr');
         Route::get('auditoria', [AuditLogController::class, 'index'])->name('auditoria.index');
     });
 });
 
 require __DIR__.'/auth.php';
+
+// Módulo Fiscal
+Route::middleware(['auth', 'tenant'])->group(function () {
+    Route::prefix('fiscal')->name('fiscal.')->controller(\App\Http\Controllers\FiscalController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/nova', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{notaFiscal}', 'show')->name('show');
+        Route::put('/{notaFiscal}', 'update')->name('update');
+        Route::delete('/{notaFiscal}', 'destroy')->name('destroy');
+        Route::post('/{notaFiscal}/emitir', 'emitir')->name('emitir');
+        Route::post('/{notaFiscal}/cancelar', 'cancelar')->name('cancelar');
+        Route::post('/{notaFiscal}/consultar', 'consultar')->name('consultar');
+        Route::get('/{notaFiscal}/xml', 'xml')->name('xml');
+        Route::get('/{notaFiscal}/imprimir', 'imprimir')->name('imprimir');
+    });
+});

@@ -7,12 +7,16 @@ use App\Models\AppointmentStatus;
 use App\Models\Central\Clinic;
 use App\Models\Central\IntegrationToken;
 use App\Models\Paciente;
+use App\Models\Procedure;
 use App\Models\Professional;
+use App\Models\ProfessionalSchedule;
 use App\Models\Room;
+use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
 use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\UsesTestTenant;
 use Tests\TestCase;
@@ -208,9 +212,15 @@ class WhatsAppApiTest extends TestCase
     public function test_disponibilidade_lista_slots(): void
     {
         $this->criarContexto();
+        ProfessionalSchedule::create([
+            'professional_id' => Professional::first()->id,
+            'weekday' => now()->addDay()->dayOfWeek,
+            'start_time' => '08:00',
+            'end_time' => '12:00',
+        ]);
 
         $response = $this->comoIntegracao()
-            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1, 'duracao' => 30]))
             ->assertOk();
 
         $this->assertNotEmpty($response->json('dias'));
@@ -350,7 +360,7 @@ class WhatsAppApiTest extends TestCase
         // travar o bot de atendimento no meio do dia.
         $this->criarContexto();
 
-        $rota = route('api.whatsapp.disponibilidade', ['dias' => 1]);
+        $rota = route('api.whatsapp.disponibilidade', ['dias' => 1, 'duracao' => 30]);
 
         for ($i = 0; $i < 25; $i++) {
             $this->comoIntegracao()->getJson($rota)->assertOk();
@@ -366,7 +376,7 @@ class WhatsAppApiTest extends TestCase
 
         // Ler a agenda é permitido...
         $this->comoIntegracao()
-            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1, 'duracao' => 30]))
             ->assertOk();
 
         // ...criar consulta não é. Este é o ponto inteiro das abilities: sem
@@ -618,5 +628,249 @@ class WhatsAppApiTest extends TestCase
                 "A rota [{$name}] não tem ability definida em IntegrationAbilities::MAP.",
             );
         });
+    }
+
+    /**
+     * Agenda o profissional para um dia específico, como o painel cadastraria.
+     */
+    private function agendar(Professional $profissional, string $inicio = '08:00', string $fim = '12:00', ?string $dia = null): ProfessionalSchedule
+    {
+        return ProfessionalSchedule::create([
+            'professional_id' => $profissional->id,
+            'weekday' => Carbon::parse($dia ?? now()->addDay())->dayOfWeek,
+            'start_time' => $inicio,
+            'end_time' => $fim,
+        ]);
+    }
+
+    public function test_procedimentos_lista_somente_os_ativos(): void
+    {
+        $this->criarContexto();
+
+        Procedure::create(['codigo' => 'ATIVO', 'nome' => 'Consulta', 'duracao_minutos' => 30, 'is_active' => true]);
+        Procedure::create(['codigo' => 'PARADO', 'nome' => 'Procedimento antigo', 'duracao_minutos' => 60, 'is_active' => false]);
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.procedimentos'))
+            ->assertOk()
+            ->assertJsonCount(1, 'procedimentos')
+            ->assertJsonPath('procedimentos.0.codigo', 'ATIVO')
+            ->assertJsonPath('procedimentos.0.duracao_minutos', 30);
+    }
+
+    public function test_procedimento_precisa_da_ability_para_ser_listado(): void
+    {
+        $this->criarContexto(['appointments.view']);
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.procedimentos'))
+            ->assertForbidden();
+    }
+
+    public function test_disponibilidade_exige_duracao_ou_procedimento(): void
+    {
+        // Sem os dois, a API não teria como saber o tamanho da consulta e cairia
+        // num 30 fixo — que é o horário errado para metade dos procedimentos.
+        $this->criarContexto();
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1]))
+            ->assertStatus(422);
+    }
+
+    public function test_disponibilidade_usa_a_duracao_do_procedimento(): void
+    {
+        $this->criarContexto();
+        $this->agendar(Professional::first(), '08:00', '12:00');
+
+        $procedimento = Procedure::create([
+            'codigo' => 'LONGO',
+            'nome' => 'Tratamento longo',
+            'duracao_minutos' => 120,
+            'is_active' => true,
+        ]);
+
+        $response = $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', [
+                'dias' => 1,
+                'procedimento_id' => $procedimento->id,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('duracao', 120);
+
+        // Turno de 4 h com consulta de 2 h: 08:00-10:00, 10:00-12:00. Sem a
+        // duração real, o bot ofereceria 08:00, 08:30, 09:00... — encaixes que
+        // dois pacientes não poderiam ocupar ao mesmo tempo.
+        $this->assertSame(
+            ['08:00', '10:00'],
+            array_column($response->json('dias.0.horarios'), 'hora'),
+        );
+    }
+
+    public function test_disponibilidade_nao_oferece_horario_que_ultrapassa_o_turno(): void
+    {
+        $this->criarContexto();
+        $this->agendar(Professional::first(), '08:00', '18:00');
+
+        // Turno fecha às 18:00 e a consulta dura 2 h: 17:00 terminaria 19:00,
+        // fora do atendimento. O passo de 2 h já não gera 17:00, mas o teste
+        // fixa a regra para o caso de o turno ser encurtado no meio do dia.
+        $response = $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1, 'duracao' => 120]))
+            ->assertOk();
+
+        foreach ($response->json('dias.0.horarios') as $horario) {
+            $this->assertLessThanOrEqual(
+                '18:00',
+                Carbon::parse('2000-01-01 '.$horario['hora'])->addMinutes(120)->format('H:i'),
+                "O horário {$horario['hora']} termina depois do fim do turno.",
+            );
+        }
+    }
+
+    public function test_disponibilidade_nao_oferece_horario_que_corta_consulta_marcada(): void
+    {
+        $this->criarContexto();
+        $profissional = Professional::first();
+        $this->agendar($profissional, '08:00', '12:00');
+
+        $inicio = now()->addDay()->setTime(9, 30);
+
+        Appointment::create([
+            'paciente_id' => Paciente::create(['nome' => 'Maria', 'celular' => '5511988887777', 'status' => 'ativo'])->id,
+            'profissional_id' => $profissional->id,
+            'appointment_status_id' => AppointmentStatus::where('name', 'agendado')->value('id'),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(60),
+        ]);
+
+        $horarios = array_column(
+            $this->comoIntegracao()
+                ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 1, 'duracao' => 30]))
+                ->assertOk()
+                ->json('dias.0.horarios'),
+            'hora',
+        );
+
+        // occupied 09:30-10:30. Com passo de 30 min, 09:00-09:30 e 10:30-11:00
+        // são livres de verdade: um encosta na consulta e o outro começa quando
+        // ela termina. O que não pode aparecer é 09:30 e 10:00, que caem NO
+        // MEIO dela — oferecer isso é o jeito de a clínica ganhar dois pacientes
+        // no mesmo lugar.
+        $this->assertNotContains('09:30', $horarios);
+        $this->assertNotContains('10:00', $horarios);
+        $this->assertContains('09:00', $horarios);
+        $this->assertContains('10:30', $horarios);
+        $this->assertContains('08:00', $horarios);
+    }
+
+    public function test_dia_sem_agenda_nao_entra_na_resposta(): void
+    {
+        $this->criarContexto();
+        $this->agendar(Professional::first());
+
+        $resposta = $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.disponibilidade', ['dias' => 7, 'duracao' => 30]))
+            ->assertOk();
+
+        // A agenda é só de amanhã, mas a janela vai até o sétimo dia: oferecer
+        // um dia inteiro de horários que a clínica não atende é o que faz o
+        // paciente escolher e o agendamento depois recusar.
+        $this->assertCount(1, $resposta->json('dias'));
+        $this->assertSame(now()->addDay()->toDateString(), $resposta->json('dias.0.data'));
+    }
+
+    public function test_conversa_nova_comeca_no_consentimento(): void
+    {
+        $this->criarContexto();
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.conversa', ['remote_jid' => '5511999998888@s.whatsapp.net']))
+            ->assertOk()
+            ->assertJsonPath('conversa.etapa', 'consentimento')
+            ->assertJsonPath('conversa.dados', null);
+    }
+
+    public function test_conversa_expirada_volta_para_o_consentimento(): void
+    {
+        // Sem esta checagem, uma conversa abandonada na etapa `horario` voltaria
+        // no dia seguinte ainda esperando a escolha de um horário que já passou,
+        // e o bot marcaria a consulta para um turno que não existe mais.
+        $this->criarContexto();
+
+        $jid = '5511999998888@s.whatsapp.net';
+
+        $this->comoIntegracao()->putJson(route('api.whatsapp.conversa'), [
+            'remote_jid' => $jid,
+            'etapa' => 'horario',
+            'dados' => ['profissional_id' => 1, 'hora' => '09:00'],
+        ])->assertOk();
+
+        WhatsAppConversation::query()->where('remote_jid', $jid)->update(['expires_at' => now()->subMinute()]);
+
+        $this->comoIntegracao()
+            ->getJson(route('api.whatsapp.conversa', ['remote_jid' => $jid]))
+            ->assertOk()
+            ->assertJsonPath('conversa.etapa', 'consentimento')
+            ->assertJsonPath('conversa.dados', null);
+    }
+
+    public function test_conversa_atualiza_etapa_e_dados(): void
+    {
+        $this->criarContexto();
+
+        $this->comoIntegracao()->putJson(route('api.whatsapp.conversa'), [
+            'remote_jid' => '5511999998888@s.whatsapp.net',
+            'etapa' => 'profissional',
+            'dados' => ['profissional_id' => 7, 'procedimento_id' => 2],
+        ])->assertOk();
+
+        $this->assertTenantDatabaseHas('whatsapp_conversations', [
+            'remote_jid' => '5511999998888@s.whatsapp.net',
+            'etapa' => 'profissional',
+        ]);
+    }
+
+    public function test_conversa_recusa_etapa_desconhecida(): void
+    {
+        // Etapa fora da lista viraria estado que o switch do n8n não conhece, e o
+        // paciente receberia o menu como se a conversa tivesse começado de novo.
+        $this->criarContexto();
+
+        $this->comoIntegracao()->putJson(route('api.whatsapp.conversa'), [
+            'remote_jid' => '5511999998888@s.whatsapp.net',
+            'etapa' => 'inventada',
+        ])->assertStatus(422);
+    }
+
+    public function test_conversa_recusa_lista_em_dados(): void
+    {
+        // A regra `array` do Laravel aceita lista, e `[1,2]` passaria por ela:
+        // o n8n gravaria lista onde o próximo turno lê `dados.profissional_id`.
+        $this->criarContexto();
+
+        $this->comoIntegracao()->putJson(route('api.whatsapp.conversa'), [
+            'remote_jid' => '5511999998888@s.whatsapp.net',
+            'dados' => [1, 2],
+        ])->assertStatus(422);
+    }
+
+    public function test_token_de_leitura_nao_altera_a_etapa_da_conversa(): void
+    {
+        // Ler o estado é `appointments.view`; mudar o estado é `appointments.create`.
+        // Um token de leitura que reescrevesse a etapa mandaria o bot para um
+        // estado que ninguém pediu.
+        $this->criarContexto(['appointments.view']);
+
+        $rota = route('api.whatsapp.conversa');
+
+        $this->comoIntegracao()
+            ->getJson($rota.'?remote_jid=5511999998888%40s.whatsapp.net')
+            ->assertOk();
+
+        $this->comoIntegracao()->putJson($rota, [
+            'remote_jid' => '5511999998888@s.whatsapp.net',
+            'etapa' => 'menu',
+        ])->assertForbidden();
     }
 }

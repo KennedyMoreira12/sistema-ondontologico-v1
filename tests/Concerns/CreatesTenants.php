@@ -42,6 +42,7 @@ trait CreatesTenants
         string $name = 'Clínica Teste',
         string $email = 'contato@clinica.test',
         bool $comAdmin = true,
+        bool $comPlano = true,
     ): array {
         $clinic = Clinic::create([
             'name' => $name,
@@ -65,7 +66,9 @@ trait CreatesTenants
         // sem abilities não faz nada. Um token de teste nasce com acesso
         // completo; o que restringe token é o que interessa testar, e isso é
         // feito no teste, não na infraestrutura.
-        $this->assinarPlanoComWhatsapp($clinic);
+        if ($comPlano) {
+            $this->assinarPlanoComWhatsapp($clinic);
+        }
 
         $token = IntegrationToken::generateToken();
 

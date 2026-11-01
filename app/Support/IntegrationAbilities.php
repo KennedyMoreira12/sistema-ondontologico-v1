@@ -39,12 +39,56 @@ final class IntegrationAbilities
         // confirmar que está com token válido. Liberado para todo token.
         'api.whatsapp.info' => null,
 
+        // Saúde da conexão/outbox: também sem dado de paciente. O n8n usa para
+        // decidir se tenta responder agora ou deixa para a recepção.
+        'api.whatsapp.saude' => null,
+
         'api.whatsapp.profissionais' => 'professionals.view',
         'api.whatsapp.paciente' => 'patients.view',
         'api.whatsapp.criar-paciente' => 'patients.create',
 
+        /**
+         * Catálogo de procedimentos é dado de leitura da clínica, não da agenda:
+         * quem pode ver os profissionais para oferecê-los também precisa saber
+         * quanto tempo cada procedimento ocupa para oferecer horário honesto.
+         */
+        'api.whatsapp.procedimentos' => 'procedures.view',
+
+        /**
+         * Avançar a conversa de um paciente. Ability própria, e não
+         * `appointments.create`: conduzir a conversa até o fim writes no estado
+         * do paciente e pode criar a consulta, e um token montado só para ler a
+         * agenda não pode conduzir a conversa de ninguém. Um token que não a
+         * recebe continua conseguindo usar os endpoints de dados — a máquina de
+         * estados é uma via, não um substituto das outras.
+         */
+        'api.whatsapp.fluxo' => 'conversations.advance',
+
+        /**
+         * Turno COM IA. Ability própria, e não herdada de `conversations.advance`:
+         * a rota gasta a cota de IA da clínica e envia dados do paciente a um
+         * provedor externo. Um token que só conduz a conversa determinística não
+         * deve, sozinho, autorizar esse gasto nem essa saída de dados.
+         */
+        'api.whatsapp.ia' => 'conversations.ai',
+
+        /**
+         * Assumir e retomar a conversa (handoff). Separado de `ai`: é operação
+         * humana de atendimento, não uso de IA, e precisa funcionar em planos
+         * sem `ai_agent`.
+         */
+        'api.whatsapp.handoff' => 'conversations.handoff',
+        'api.whatsapp.retomar' => 'conversations.handoff',
+        'api.whatsapp.alertas' => 'conversations.handoff',
+        'api.whatsapp.respostas-rapidas' => 'conversations.handoff',
+        'api.whatsapp.notas' => 'conversations.handoff',
+        'api.whatsapp.notas.criar' => 'conversations.handoff',
+
         'api.whatsapp.disponibilidade' => 'appointments.view',
         'api.whatsapp.agendamentos' => 'appointments.view',
+        'api.whatsapp.conversa' => 'appointments.view',
+        'api.whatsapp.conversa.atualizar' => 'appointments.create',
+
         'api.whatsapp.agendamento' => 'appointments.create',
 
         // Confirmar e cancelar mudam o estado da consulta: quem pode mudar não é
@@ -60,6 +104,40 @@ final class IntegrationAbilities
          * pode mandar mensagem em nome da clínica só porque já escreve na agenda.
          */
         'api.whatsapp.mensagem' => 'messages.send',
+
+        // Menu interativo é o mesmo ato de falar com o paciente, em outro
+        // formato. Não ganha ability nova: quem pode mandar texto já pode
+        // mandar botões, e uma ability separada só criaria token que envia
+        // metade das respostas.
+        'api.whatsapp.mensagem-interativa' => 'messages.send',
+
+        'api.social.posts.index' => 'social_posts.manage',
+        'api.social.posts.store' => 'social_posts.manage',
+
+        /**
+         * Guarda no disco da clínica a imagem que o workflow gerou. Entra no
+         * mesmo mapa dos demais endpoints sociais porque escreve no mesmo
+         * registro: um token capaz de criar post já precisa ser capaz de
+         * completar a criação com a imagem que o próprio fluxo produziu.
+         */
+        'api.social.posts.image' => 'social_posts.manage',
+
+        'api.social.posts.show' => 'social_posts.manage',
+        'api.social.posts.approve' => 'social_posts.manage',
+        'api.social.posts.reject' => 'social_posts.manage',
+
+        /*
+         * Fiscal. Emitir e cancelar são operações irreversíveis do ponto de
+         * vista fiscal, então cada uma tem ability própria: um token criado
+         * para ler notas não pode transmitir nem cancelar nenhuma.
+         */
+        'api.fiscal.notas.index' => 'fiscal.view',
+        'api.fiscal.notas.show' => 'fiscal.view',
+        'api.fiscal.notas.xml' => 'fiscal.view',
+        'api.fiscal.notas.consultar' => 'fiscal.view',
+        'api.fiscal.notas.store' => 'fiscal.create',
+        'api.fiscal.notas.emitir' => 'fiscal.emitir',
+        'api.fiscal.notas.cancelar' => 'fiscal.cancelar',
     ];
 
     /**
@@ -104,10 +182,19 @@ final class IntegrationAbilities
             'patients.view' => 'Consultar pacientes',
             'patients.create' => 'Cadastrar pacientes',
             'professionals.view' => 'Consultar profissionais',
+            'procedures.view' => 'Consultar procedimentos e suas durações',
             'appointments.view' => 'Consultar agenda e disponibilidade',
             'appointments.create' => 'Criar agendamentos',
             'appointments.update' => 'Confirmar e cancelar agendamentos',
+            'conversations.advance' => 'Avançar a conversa de um paciente no WhatsApp',
+            'conversations.ai' => 'Responder mensagens no WhatsApp com IA',
+            'conversations.handoff' => 'Assumir e retomar conversas (atendimento humano)',
             'messages.send' => 'Enviar mensagens de WhatsApp ao paciente',
+            'social_posts.manage' => 'Cadastrar e aprovar/rejeitar posts sociais',
+            'fiscal.view' => 'Consultar notas fiscais e baixar XML',
+            'fiscal.create' => 'Criar rascunhos de nota fiscal',
+            'fiscal.emitir' => 'Emitir nota fiscal',
+            'fiscal.cancelar' => 'Cancelar nota fiscal',
         ];
     }
 

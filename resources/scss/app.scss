@@ -154,6 +154,8 @@ body {
     z-index: 1040;
     transition: margin-left 0.3s ease;
     overflow-y: auto;
+    overflow-x: hidden;
+    contain: content;
 
     .sidebar-brand {
         display: flex;
@@ -167,9 +169,13 @@ body {
         border-bottom: 1px solid var(--sco-borda);
 
         .brand-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            /* O nome da clinica pode ser longo: quebra em quantas linhas forem
+               necessarias em vez de aparecer cortado com reticencias. O
+               min-width: 0 libera o item flex para encolher dentro da largura
+               fixa do menu, e o overflow-wrap evita estourar com palavras
+               longas sem espaco. */
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .brand-tagline {
@@ -244,6 +250,7 @@ body {
    ÁREA PRINCIPAL
    ========================================================================== */
 .sco-main {
+    min-width: 0;
     flex: 1;
     margin-left: $sidebar-width;
     display: flex;
@@ -679,4 +686,45 @@ body {
         font-size: 0.85rem;
         opacity: 0.85;
     }
+}
+
+/* ==========================================================================
+   PAGINAÇÃO
+   As setas são chevrons do Bootstrap Icons numa área de 34px — a mesma altura
+   de um número da paginação. Antes, o view padrão do Tailwind deixava o SVG
+   sem medida e ele era desenhado no tamanho intrínseco (300x150px).
+   ========================================================================== */
+.pagination {
+    --bs-pagination-color: #{$lj-texto-suave};
+    --bs-pagination-hover-color: #{$lj-azul};
+    --bs-pagination-hover-bg: #{rgba($lj-azul, 0.08)};
+    --bs-pagination-focus-color: #{$lj-azul};
+    --bs-pagination-focus-bg: #{rgba($lj-azul, 0.08)};
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem #{rgba($lj-azul, 0.2)};
+    --bs-pagination-active-bg: #{$lj-azul};
+    --bs-pagination-active-border-color: #{$lj-azul};
+}
+
+.pagination .lj-page-arrow {
+    width: 2.125rem;
+    min-width: 2.125rem;
+    height: 2.125rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 1rem;
+    line-height: 1;
+
+    i {
+        font-size: 1rem;
+        line-height: 1;
+    }
+}
+
+.pagination .page-item.disabled .lj-page-arrow {
+    color: $lj-texto-tenue;
+    background-color: transparent;
+    cursor: not-allowed;
 }

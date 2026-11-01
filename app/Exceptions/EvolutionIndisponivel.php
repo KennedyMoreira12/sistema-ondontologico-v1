@@ -24,4 +24,9 @@ class EvolutionIndisponivel extends RuntimeException
     {
         return new self('EVOLUTION_API_URL não está configurada.');
     }
+
+    public static function semChaveAdministrativa(): self
+    {
+        return new self('A chave administrativa da Evolution API (EVOLUTION_API_KEY) não está configurada.');
+    }
 }

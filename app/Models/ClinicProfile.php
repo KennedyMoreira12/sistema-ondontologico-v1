@@ -6,12 +6,12 @@ use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 /**
- * Perfil operacional da clínica: razão social, CNPJ, contatos, endereço e
- * marca. Fica no banco da clínica — o central só precisa do mínimo para
- * rotear e faturar.
+ * Perfil operacional da clínica: razão social, CNPJ, contatos, endereço,
+ * marca e dados fiscais do emitente.
  *
- * Tabela de linha única (id 1). Use `ClinicProfile::current()` em vez de
- * `first()`, para não depender de ordering em lugar nenhum.
+ * Fica no banco da clínica — o central só precisa do mínimo para rotear e
+ * faturar. Tabela de linha única (id 1): use `ClinicProfile::current()` em vez
+ * de `first()`.
  */
 #[Fillable([
     'legal_name',
@@ -28,6 +28,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
     'logo_path',
     'primary_color',
     'secondary_color',
+    'email',
+    'state_registration',
+    'municipal_registration',
+    'cnae',
+    'city_ibge_code',
+    'tax_regime',
 ])]
 class ClinicProfile extends TenantModel
 {
@@ -43,5 +49,19 @@ class ClinicProfile extends TenantModel
     public static function current(): self
     {
         return static::query()->firstOrCreate([], []);
+    }
+
+    /**
+     * O emitente tem o mínimo para transmitir uma nota?
+     *
+     * Não valida dígito do CNPJ: isso é papel do provedor. Aqui só se evita
+     * chamar a API com cadastro visivelmente incompleto.
+     */
+    public function emitenteConfigurado(): bool
+    {
+        $documento = preg_replace('/\D+/', '', (string) $this->document) ?? '';
+
+        return filled($this->legal_name)
+            && in_array(strlen($documento), [11, 14], true);
     }
 }

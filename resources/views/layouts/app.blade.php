@@ -17,7 +17,6 @@
                 <span class="sco-mark"><i class="bi bi-hospital"></i></span>
                 <span class="brand-name">
                     {{ $clinica?->name ?? config('app.name', 'LJ SmartClinic') }}
-                    <span class="brand-tagline">LJ Automação</span>
                 </span>
             </div>
 
@@ -49,6 +48,11 @@
                 <a href="{{ route('dashboard') }}?modulo=financeiro" class="nav-link">
                     <i class="bi bi-cash-stack"></i> Financeiro
                 </a>
+                @can('fiscal.view')
+                    <a href="{{ route('fiscal.index') }}" class="nav-link">
+                        <i class="bi bi-receipt"></i> Fiscal
+                    </a>
+                @endcan
                 <a href="{{ route('dashboard') }}?modulo=convenios" class="nav-link">
                     <i class="bi bi-shield-check"></i> Convênios
                 </a>
@@ -64,6 +68,11 @@
                 <a href="{{ route('contratos.index') }}" class="nav-link {{ request()->routeIs('contratos.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-check"></i> Contratos
                 </a>
+                @can('social.view')
+                    <a href="{{ route('social.index') }}" class="nav-link {{ request()->routeIs('social.*') ? 'active' : '' }}">
+                        <i class="bi bi-share"></i> Social
+                    </a>
+                @endcan
                 <a href="{{ route('dashboard') }}?modulo=relatorios" class="nav-link">
                     <i class="bi bi-graph-up-arrow"></i> Relatórios
                 </a>
@@ -92,8 +101,6 @@
                     @endcan
                 @endcan
             </nav>
-
-            <div class="sidebar-footer">{{ config('app.name', 'LJ SmartClinic') }}</div>
         </aside>
 
         <div class="sco-main">
@@ -102,7 +109,7 @@
                     <button class="btn btn-light d-lg-none" type="button" data-sidebar-toggle onclick="document.getElementById('scoSidebar').classList.toggle('show')" aria-label="Abrir menu">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div class="sco-topbar-title">@yield('page-title', config('app.name', 'LJ SmartClinic'))</div>
+                    <div class="sco-topbar-title">@yield('page-title')</div>
                 </div>
 
                 <div class="dropdown">

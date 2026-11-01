@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\AssignCorrelationId;
 use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminIsActive;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantAccess;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
@@ -29,11 +31,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        /**
+         * Identificador de correlação em toda chamada de API. Fica no começo do
+         * grupo para que até a recusa de autenticação seja rastreável pelo
+         * mesmo id que volta no header.
+         */
+        $middleware->prependToGroup('api', AssignCorrelationId::class);
+
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'tenant.access' => EnsureTenantAccess::class,
             'plan' => CheckPlanFeature::class,
             'platform.active' => EnsurePlatformAdminIsActive::class,
+            'superadmin' => EnsureSuperAdmin::class,
         ]);
 
         /**

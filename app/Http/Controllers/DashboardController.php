@@ -48,7 +48,11 @@ class DashboardController extends Controller
             }
 
             if ($request->string('modulo')->value() === 'documentos') {
-                return redirect()->route('pacientes.index');
+                return view('documentos.index');
+            }
+
+            if ($request->string('modulo')->value() === 'fiscal') {
+                return redirect()->route('fiscal.index');
             }
 
             return view('em-desenvolvimento', ['modulo' => $request->string('modulo')]);

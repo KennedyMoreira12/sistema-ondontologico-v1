@@ -26,8 +26,10 @@ class RolePermissionSeeder extends Seeder
             ['module' => 'profissionais', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'documentos', 'actions' => ['view', 'create', 'delete']],
             ['module' => 'contratos', 'actions' => ['view', 'create', 'update', 'delete']],
+            ['module' => 'social', 'actions' => ['view', 'manage']],
             ['module' => 'relatorios', 'actions' => ['view']],
             ['module' => 'auditoria', 'actions' => ['view']],
+            ['module' => 'fiscal', 'actions' => ['view', 'create', 'update', 'delete', 'emitir', 'cancelar']],
             ['module' => 'admin', 'actions' => ['view', 'create', 'update', 'delete']],
         ];
 
@@ -64,7 +66,7 @@ class RolePermissionSeeder extends Seeder
                     'prontuario.view',
                     'agenda.*',
                     'convenios.view', 'convenios.create',
-                    'orcamentos.view', 'financeiro.view', 'financeiro.receive',
+                    'orcamentos.view', 'financeiro.view', 'financeiro.receive', 'fiscal.view',
                     'estoque.view', 'documentos.view', 'documentos.create', 'contratos.*',
                     'relatorios.view',
                 ],
@@ -74,7 +76,7 @@ class RolePermissionSeeder extends Seeder
                 'permissions' => [
                     'pacientes.view',
                     'agenda.view',
-                    'tratamentos.view', 'orcamentos.*', 'financeiro.*', 'documentos.view',
+                    'tratamentos.view', 'orcamentos.*', 'financeiro.*', 'fiscal.*', 'documentos.view',
                     'convenios.view', 'estoque.view', 'contratos.view', 'relatorios.view',
                 ],
             ],
@@ -127,4 +129,9 @@ class RolePermissionSeeder extends Seeder
             $role->permissions()->sync($ids);
         }
     }
+}
+
+// Adiciona módulo fiscal se não existir
+if (!isset($permissions)) {
+    // já existe no código acima
 }
