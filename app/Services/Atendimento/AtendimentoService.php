@@ -37,6 +37,15 @@ class AtendimentoService
         return $this->marcarStatus($consulta, 'faltou');
     }
 
+    /**
+     * Muda o status do atendimento de forma transacional.
+     *
+     * A linha é travada porque presença e falta podem ser clicadas em dois
+     * computadores ao mesmo tempo. E a falta é recusada quando a sessão do
+     * pacote já foi consumida: o extrato ficaria apontando para um
+     * atendimento marcado como falta, quebrando a regra "falta não consome
+     * sessão". Para desfazer, é preciso devolver/estornar a sessão antes.
+     */
     public function marcarStatus(Appointment $consulta, string $status): Appointment
     {
         $statusId = $this->agenda->statusId($status);
@@ -45,9 +54,26 @@ class AtendimentoService
             throw new AtendimentoInvalido("O status [{$status}] não está cadastrado nesta clínica.");
         }
 
-        $consulta->update(['appointment_status_id' => $statusId]);
+        $conexao = $consulta->getConnection();
 
-        return $consulta->refresh();
+        return $conexao->transaction(function () use ($consulta, $status, $statusId): Appointment {
+            $travada = Appointment::query()
+                ->whereKey($consulta->getKey())
+                ->lockForUpdate()
+                ->first();
+
+            if ($travada === null) {
+                throw AtendimentoInvalido::atendimentoInexistente();
+            }
+
+            if ($status === 'faltou' && $travada->consumos()->exists()) {
+                throw AtendimentoInvalido::faltaComSessaoConsumida();
+            }
+
+            $travada->update(['appointment_status_id' => $statusId]);
+
+            return $travada->refresh();
+        });
     }
 
     /**

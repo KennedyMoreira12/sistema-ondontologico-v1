@@ -120,6 +120,19 @@ class AccountsPayable extends TenantModel
         return $this->estaAtrasada() ? self::ATRASADO : self::PENDENTE;
     }
 
+    /**
+     * Expressão SQL do saldo devedor (valor da conta menos baixas).
+     *
+     * Fica no model para que listagem, resumo e fluxo de caixa usem a mesma
+     * regra: uma conta parcialmente paga continua devendo a diferença, e não
+     * o valor cheio.
+     */
+    public static function expressaoSaldo(): string
+    {
+        return 'valor - COALESCE((SELECT SUM(valor) FROM accounts_payable_pagamentos '
+            .'WHERE accounts_payable_pagamentos.accounts_payable_id = accounts_payable.id), 0)';
+    }
+
     public function scopeEmAberto(Builder $query): Builder
     {
         return $query

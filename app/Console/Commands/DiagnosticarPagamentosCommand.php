@@ -28,9 +28,17 @@ class DiagnosticarPagamentosCommand extends Command
 
     public function handle(TenantRunner $runner): int
     {
-        $extracao = $this->lerExtracao((string) $this->option('arquivo'));
+        $arquivo = (string) $this->option('arquivo');
 
-        if ($extracao === null) {
+        /*
+         * `--arquivo` é opcional: sem CSV o comando diagnostica só o banco.
+         * Só é falha quando um arquivo foi PEDIDO e não pôde ser lido — antes,
+         * a ausência da opção era tratada como erro e o comando saía com 1 sem
+         * mostrar diagnóstico nenhum.
+         */
+        $extracao = $this->lerExtracao($arquivo);
+
+        if ($arquivo !== '' && $extracao === null) {
             return self::FAILURE;
         }
 

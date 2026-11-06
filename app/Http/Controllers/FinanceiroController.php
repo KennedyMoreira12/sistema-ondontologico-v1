@@ -36,8 +36,13 @@ class FinanceiroController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $totalAberto = AccountsReceivable::whereIn('status', ['aberta', 'parcial'])
-            ->sum('valor');
+        /*
+         * O total em aberto desconta o que já foi recebido. Uma conta parcial
+         * de R$ 500 com R$ 200 pagos ainda deve R$ 300; somar o valor cheio
+         * faria o topo da tela contradizer o saldo de cada linha.
+         */
+        $totalAberto = (float) AccountsReceivable::whereIn('status', ['aberta', 'parcial'])
+            ->sum(DB::raw('valor - valor_pago'));
 
         $formasPagamento = PaymentMethod::orderBy('label')->get();
 
@@ -86,6 +91,15 @@ class FinanceiroController extends Controller
         $de = $request->filled('de') ? $request->date('de')->startOfDay() : now()->startOfMonth();
         $ate = $request->filled('ate') ? $request->date('ate')->endOfDay() : now()->endOfDay();
 
+        /*
+         * Datas invertidas (de > até) não podem produzir uma tela vazia sem
+         * explicação: o período é normalizado para o intervalo que o usuário
+         * digitou.
+         */
+        if ($de->greaterThan($ate)) {
+            [$de, $ate] = [$ate->copy()->startOfDay(), $de->copy()->endOfDay()];
+        }
+
         $recebimentos = Payment::query()
             ->with(['paciente:id,nome', 'paymentMethod:id,label'])
             ->whereBetween('data', [$de, $ate])
@@ -133,7 +147,7 @@ class FinanceiroController extends Controller
             'devedores' => (float) AccountsReceivable::query()
                 ->whereIn('status', ['aberta', 'parcial'])
                 ->sum(DB::raw('valor - valor_pago')),
-            'aPagar' => (float) AccountsPayable::query()->emAberto()->sum('valor'),
+            'aPagar' => (float) AccountsPayable::query()->emAberto()->sum(DB::raw(AccountsPayable::expressaoSaldo())),
         ]);
     }
 }

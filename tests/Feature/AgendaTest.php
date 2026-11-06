@@ -179,6 +179,67 @@ class AgendaTest extends TestCase
         $this->assertTenantDatabaseCount('appointments', 1);
     }
 
+    /**
+     * Duplo clique ou reenvio do navegador não pode criar duas consultas no
+     * mesmo horário. A chave do formulário faz o segundo envio devolver o
+     * agendamento que o primeiro criou.
+     */
+    public function test_reenvio_do_mesmo_agendamento_nao_duplica(): void
+    {
+        $dia = $this->diaFuturo();
+
+        $dados = [
+            'paciente_id' => $this->paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'room_id' => $this->sala->id,
+            'dia' => $dia->toDateString(),
+            'hora_inicio' => '09:00',
+            'duracao' => 30,
+            'titulo' => 'Pilates',
+            'area' => 'ABDÔMEN',
+            'servico' => 'Pilates',
+            'valor' => 120,
+            'retorno' => false,
+            'idempotency_key' => 'agenda-unica-1',
+        ];
+
+        $this->actingAs($this->user)->post(route('agenda.store'), $dados)->assertRedirect();
+        $this->actingAs($this->user)->post(route('agenda.store'), $dados)->assertRedirect();
+
+        $this->assertTenantDatabaseCount('appointments', 1);
+
+        $consulta = Appointment::query()->firstOrFail();
+
+        $this->assertSame($this->sala->id, $consulta->room_id);
+        $this->assertSame('Pilates', $consulta->titulo);
+        $this->assertSame('Pilates', $consulta->servico);
+        $this->assertSame('ABDÔMEN', $consulta->area);
+        $this->assertSame('120.00', $consulta->valor);
+    }
+
+    /**
+     * "Sem sala" é uma escolha válida da recepção e precisa continuar nula.
+     * O serviço usa a primeira sala ativa apenas quando a chave não foi
+     * enviada (caminho do WhatsApp).
+     */
+    public function test_agendamento_sem_sala_nao_preenche_sala_automaticamente(): void
+    {
+        $dia = $this->diaFuturo();
+
+        $this->actingAs($this->user)
+            ->post(route('agenda.store'), [
+                'paciente_id' => $this->paciente->id,
+                'profissional_id' => $this->profissional->id,
+                'dia' => $dia->toDateString(),
+                'hora_inicio' => '09:00',
+                'duracao' => 30,
+                'idempotency_key' => 'agenda-sem-sala',
+            ])
+            ->assertRedirect();
+
+        $this->assertNull(Appointment::query()->firstOrFail()->room_id);
+    }
+
     public function test_reagendamento_move_o_atendimento_e_recusa_novo_conflito(): void
     {
         $dia = $this->diaFuturo();

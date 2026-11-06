@@ -181,6 +181,122 @@ class ContaPagarTest extends TestCase
         $this->assertTenantDatabaseHas('suppliers', ['id' => $fornecedor->id]);
     }
 
+    /**
+     * O resumo do topo precisa refletir a dívida real. Antes ele somava o
+     * valor cheio das contas e uma baixa parcial de R$ 700 em uma conta de
+     * R$ 1.000 continuava aparecendo como R$ 1.000 em aberto.
+     */
+    public function test_resumo_desconta_baixas_parciais(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.view', 'financeiro.receive');
+
+        $metodo = PaymentMethod::create(['name' => 'Pix', 'label' => 'PIX']);
+
+        $emDia = AccountsPayable::create([
+            'nome_conta' => 'Aluguel',
+            'valor' => 1000,
+            'data_vencimento' => today()->addDays(5)->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'aluguel',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $atrasada = AccountsPayable::create([
+            'nome_conta' => 'Energia',
+            'valor' => 500,
+            'data_vencimento' => today()->subDays(5)->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'energia',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $this->actingAs($user)->post(route('financeiro.contas-pagar.baixar', $emDia), [
+            'valor' => 700,
+            'payment_method_id' => $metodo->id,
+            'data' => today()->toDateString(),
+        ])->assertRedirect();
+
+        $this->actingAs($user)->post(route('financeiro.contas-pagar.baixar', $atrasada), [
+            'valor' => 200,
+            'payment_method_id' => $metodo->id,
+            'data' => today()->toDateString(),
+        ])->assertRedirect();
+
+        $resumo = $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.index'))
+            ->assertOk()
+            ->viewData('resumo');
+
+        $this->assertSame(600.0, round((float) $resumo['emAberto'], 2));
+        $this->assertSame(300.0, round((float) $resumo['atrasado'], 2));
+        $this->assertSame(300.0, round((float) $resumo['vencendo'], 2));
+    }
+
+    public function test_conta_com_baixa_nao_pode_ser_cancelada(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.delete', 'financeiro.receive');
+
+        $conta = AccountsPayable::create([
+            'nome_conta' => 'Internet',
+            'valor' => 200,
+            'data_vencimento' => today()->addDays(3)->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'servico',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $this->actingAs($user)->post(route('financeiro.contas-pagar.baixar', $conta), [
+            'valor' => 50,
+            'data' => today()->toDateString(),
+        ])->assertRedirect();
+
+        $this->actingAs($user)
+            ->patch(route('financeiro.contas-pagar.cancelar', $conta))
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame('pendente', $conta->refresh()->status);
+    }
+
+    public function test_chave_de_idempotencia_de_outra_conta_e_recusada(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.receive');
+
+        $primeira = AccountsPayable::create([
+            'nome_conta' => 'Água',
+            'valor' => 100,
+            'data_vencimento' => today()->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'agua',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $segunda = AccountsPayable::create([
+            'nome_conta' => 'Luz',
+            'valor' => 100,
+            'data_vencimento' => today()->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'energia',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $this->actingAs($user)->post(route('financeiro.contas-pagar.baixar', $primeira), [
+            'valor' => 100,
+            'data' => today()->toDateString(),
+            'idempotency_key' => 'chave-unica',
+        ])->assertRedirect();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $segunda), [
+                'valor' => 100,
+                'data' => today()->toDateString(),
+                'idempotency_key' => 'chave-unica',
+            ])
+            ->assertSessionHasErrors('valor');
+
+        $this->assertTenantDatabaseCount('accounts_payable_pagamentos', 1);
+        $this->assertSame('pendente', $segunda->refresh()->status);
+    }
+
     public function test_cadastra_fornecedor(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('financeiro.create');

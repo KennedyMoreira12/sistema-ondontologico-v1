@@ -58,16 +58,6 @@ class ContasPagarService
         return $conexao->transaction(function () use ($conta, $dados): AccountsPayablePayment {
             $chave = $dados['idempotency_key'] ?? null;
 
-            if (is_string($chave) && $chave !== '') {
-                $existente = AccountsPayablePayment::query()
-                    ->where('idempotency_key', $chave)
-                    ->first();
-
-                if ($existente !== null) {
-                    return $existente;
-                }
-            }
-
             $travada = AccountsPayable::query()
                 ->whereKey($conta->getKey())
                 ->lockForUpdate()
@@ -75,6 +65,27 @@ class ContasPagarService
 
             if ($travada === null) {
                 throw OperacaoFinanceiraInvalida::contaInexistente();
+            }
+
+            /*
+             * A chave é conferida DEPOIS do bloqueio da conta: dois envios do
+             * mesmo formulário entram em fila e o segundo enxerga a baixa
+             * criada pelo primeiro. Se a mesma chave aparecer em OUTRA conta,
+             * a operação é recusada em vez de devolver a baixa errada — a
+             * chave é única no tenant e nunca deve atravessar contas.
+             */
+            if (is_string($chave) && $chave !== '') {
+                $existente = AccountsPayablePayment::query()
+                    ->where('idempotency_key', $chave)
+                    ->first();
+
+                if ($existente !== null) {
+                    if ((int) $existente->accounts_payable_id !== (int) $travada->getKey()) {
+                        throw OperacaoFinanceiraInvalida::baixaDuplicada();
+                    }
+
+                    return $existente;
+                }
             }
 
             if ($travada->status === AccountsPayable::CANCELADO) {
@@ -119,17 +130,41 @@ class ContasPagarService
         });
     }
 
+    /**
+     * Cancela a conta de forma transacional.
+     *
+     * A checagem de baixas fica DENTRO da transação e com a linha travada:
+     * sem isso, uma baixa registrada entre a checagem do controller e o
+     * cancelamento deixaria uma conta cancelada com pagamento no extrato.
+     */
     public function cancelar(AccountsPayable $conta): AccountsPayable
     {
-        if ($conta->status === AccountsPayable::CANCELADO) {
-            return $conta;
-        }
+        $conexao = $conta->getConnection();
 
-        $conta->forceFill([
-            'status' => AccountsPayable::CANCELADO,
-            'data_pagamento' => null,
-        ])->save();
+        return $conexao->transaction(function () use ($conta): AccountsPayable {
+            $travada = AccountsPayable::query()
+                ->whereKey($conta->getKey())
+                ->lockForUpdate()
+                ->first();
 
-        return $conta->refresh();
+            if ($travada === null) {
+                throw OperacaoFinanceiraInvalida::contaInexistente();
+            }
+
+            if ($travada->status === AccountsPayable::CANCELADO) {
+                return $travada;
+            }
+
+            if ($travada->pagamentos()->exists()) {
+                throw OperacaoFinanceiraInvalida::contaComBaixas();
+            }
+
+            $travada->forceFill([
+                'status' => AccountsPayable::CANCELADO,
+                'data_pagamento' => null,
+            ])->save();
+
+            return $travada->refresh();
+        });
     }
 }

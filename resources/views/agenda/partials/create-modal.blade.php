@@ -2,6 +2,7 @@
     <div class="modal-dialog modal-lg">
         <form method="POST" action="{{ route('agenda.store') }}">
             @csrf
+            <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', (string) \Illuminate\Support\Str::uuid()) }}">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Novo agendamento</h5>

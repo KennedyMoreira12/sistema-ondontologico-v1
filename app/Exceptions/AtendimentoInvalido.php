@@ -24,4 +24,14 @@ class AtendimentoInvalido extends RuntimeException
     {
         return new self('O pacote selecionado pertence a outro paciente.');
     }
+
+    public static function faltaComSessaoConsumida(): self
+    {
+        return new self('Este atendimento já consumiu uma sessão do pacote. Estorne a sessão antes de registrar a falta.');
+    }
+
+    public static function atendimentoInexistente(): self
+    {
+        return new self('O atendimento informado não existe mais.');
+    }
 }

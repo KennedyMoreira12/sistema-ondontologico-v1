@@ -197,6 +197,31 @@ class RelatorioTest extends TestCase
             ->assertSee('10');
     }
 
+    public function test_periodo_invertido_e_normalizado(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
+
+        $paciente = $this->criarPaciente('Paciente Período Invertido');
+        $pix = PaymentMethod::create(['name' => 'pix', 'label' => 'PIX']);
+
+        Payment::create([
+            'paciente_id' => $paciente->id,
+            'payment_method_id' => $pix->id,
+            'data' => now()->startOfMonth()->toDateString(),
+            'valor' => 120,
+            'servico' => 'Massagem',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('relatorios.receitas', [
+                'de' => now()->endOfMonth()->toDateString(),
+                'ate' => now()->startOfMonth()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Paciente Período Invertido')
+            ->assertSee('R$ 120,00');
+    }
+
     public function test_exportacao_csv_de_receitas_tem_bom_e_cabecalho(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('relatorios.view');

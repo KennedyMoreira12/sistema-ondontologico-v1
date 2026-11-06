@@ -11,8 +11,10 @@ use App\Models\PaymentMethod;
 use App\Models\Supplier;
 use App\Services\AuditLogger;
 use App\Services\Financeiro\ContasPagarService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -57,18 +59,22 @@ class ContaPagarController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $emAberto = AccountsPayable::query()->where('status', AccountsPayable::PENDENTE)->sum('valor');
+        /*
+         * Os resumos usam o SALDO de cada conta (valor menos baixas), não o
+         * valor cheio. Uma conta de R$ 1.000 com R$ 700 já pagos ainda tem
+         * R$ 300 em aberto — somar o valor original inflaria o "em aberto" e
+         * faria o atrasado parecer maior do que a dívida real.
+         */
+        $emAberto = $this->somarSaldo(AccountsPayable::query()->where('status', AccountsPayable::PENDENTE));
         $pago = AccountsPayable::query()->where('status', AccountsPayable::PAGO)->sum('valor');
 
-        $atrasado = AccountsPayable::query()
+        $atrasado = $this->somarSaldo(AccountsPayable::query()
             ->where('status', AccountsPayable::PENDENTE)
-            ->whereDate('data_vencimento', '<', today())
-            ->sum('valor');
+            ->whereDate('data_vencimento', '<', today()));
 
-        $vencendo = AccountsPayable::query()
+        $vencendo = $this->somarSaldo(AccountsPayable::query()
             ->where('status', AccountsPayable::PENDENTE)
-            ->whereBetween('data_vencimento', [today(), today()->addDays(7)])
-            ->sum('valor');
+            ->whereBetween('data_vencimento', [today(), today()->addDays(7)]));
 
         return view('financeiro.contas-pagar.index', [
             'contas' => $contas,
@@ -149,11 +155,11 @@ class ContaPagarController extends Controller
     {
         $this->authorize('financeiro.delete');
 
-        if ($conta->pagamentos()->exists()) {
-            return back()->withErrors(['status' => 'Uma conta com baixas registradas não pode ser cancelada.']);
+        try {
+            $this->service->cancelar($conta);
+        } catch (OperacaoFinanceiraInvalida $excecao) {
+            return back()->withErrors(['status' => $excecao->getMessage()]);
         }
-
-        $this->service->cancelar($conta);
 
         AuditLogger::log('cancelar_conta_pagar', 'accounts_payable', $conta->id, antes: ['status' => AccountsPayable::PENDENTE], depois: ['status' => AccountsPayable::CANCELADO]);
 
@@ -175,5 +181,16 @@ class ContaPagarController extends Controller
         $conta->refresh();
 
         return back()->with('success', 'Baixa registrada. Saldo restante: R$ '.number_format($conta->saldo, 2, ',', '.').'.');
+    }
+
+    /**
+     * Soma o saldo devedor real das contas do filtro, descontando as baixas.
+     *
+     * A subconsulta é correlacionada para não precisar carregar todas as
+     * linhas na memória nem depender de `withSum` na agregação.
+     */
+    private function somarSaldo(Builder $query): float
+    {
+        return round((float) $query->sum(DB::raw(AccountsPayable::expressaoSaldo())), 2);
     }
 }

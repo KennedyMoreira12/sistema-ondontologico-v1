@@ -184,6 +184,35 @@ class AtendimentoTest extends TestCase
         $this->assertSame($this->status['faltou'], $consulta->refresh()->appointment_status_id);
     }
 
+    /**
+     * Uma vez debitada a sessão, o atendimento não pode virar falta: o
+     * extrato ficaria contando uma sessão de um atendimento que não ocorreu.
+     * Para corrigir, a sessão precisa ser estornada antes.
+     */
+    public function test_nao_permite_marcar_falta_depois_de_consumir_sessao(): void
+    {
+        $consulta = $this->criarConsulta();
+        $pacote = $this->criarPacote();
+
+        $this->actingAs($this->user)
+            ->post(route('agenda.presenca', $consulta), ['status' => 'atendido'])
+            ->assertRedirect();
+
+        $this->actingAs($this->user)
+            ->post(route('atendimentos.consumir', $consulta), ['pacote_id' => $pacote->id])
+            ->assertRedirect();
+
+        $this->actingAs($this->user)
+            ->post(route('agenda.presenca', $consulta), ['status' => 'faltou'])
+            ->assertSessionHasErrors('status');
+
+        $consulta->refresh();
+
+        $this->assertSame($this->status['atendido'], $consulta->appointment_status_id);
+        $this->assertSame(1, $pacote->refresh()->sessoes_usadas);
+        $this->assertTenantDatabaseCount('consumo_sessao', 1);
+    }
+
     public function test_pacote_de_outro_paciente_nao_e_consumido(): void
     {
         $consulta = $this->criarConsulta('atendido');

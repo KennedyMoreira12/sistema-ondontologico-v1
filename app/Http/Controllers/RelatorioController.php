@@ -324,6 +324,15 @@ class RelatorioController extends Controller
         $de = $request->filled('de') ? $request->date('de')->startOfDay() : now()->startOfMonth();
         $ate = $request->filled('ate') ? $request->date('ate')->endOfDay() : now()->endOfDay();
 
+        /*
+         * O usuário pode digitar a data final antes da inicial. Em vez de
+         * devolver uma tela vazia sem pista, o intervalo é invertido para o
+         * período que ele quis consultar.
+         */
+        if ($de->greaterThan($ate)) {
+            [$de, $ate] = [$ate->copy()->startOfDay(), $de->copy()->endOfDay()];
+        }
+
         return [$de, $ate];
     }
 

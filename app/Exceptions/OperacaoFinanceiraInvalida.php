@@ -37,4 +37,9 @@ class OperacaoFinanceiraInvalida extends RuntimeException
     {
         return new self('A conta informada não existe mais.');
     }
+
+    public static function contaComBaixas(): self
+    {
+        return new self('Uma conta com baixas registradas não pode ser cancelada.');
+    }
 }

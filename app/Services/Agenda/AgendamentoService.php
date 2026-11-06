@@ -29,7 +29,22 @@ class AgendamentoService
     ) {}
 
     /**
-     * @param  array{paciente_id: int, profissional_id: int, dia: string, hora_inicio: string, duracao?: int, tipo?: string, observacao?: string|null, idempotency_key?: string|null}  $dados
+     * @param  array{
+     *     paciente_id: int,
+     *     profissional_id: int,
+     *     dia: string,
+     *     hora_inicio: string,
+     *     duracao?: int,
+     *     tipo?: string,
+     *     observacao?: string|null,
+     *     idempotency_key?: string|null,
+     *     room_id?: int|null,
+     *     titulo?: string|null,
+     *     area?: string|null,
+     *     servico?: string|null,
+     *     valor?: float|string|null,
+     *     retorno?: bool
+     * }  $dados
      *
      * @throws HorarioOcupadoException
      * @throws LockTimeoutException
@@ -73,6 +88,22 @@ class AgendamentoService
             $this->chaveDoLock((int) $dados['profissional_id'], $inicio->toDateString()),
             10,
         )->block(5, fn (): Appointment => DB::transaction(function () use ($dados, $chave, $inicio, $fim, $statusId): Appointment {
+            /*
+             * A chave é conferida OUTRA VEZ dentro do lock. A conferência
+             * anterior é só o caminho rápido; esta é a que vale quando dois
+             * envios do mesmo formulário chegam juntos e o primeiro ainda não
+             * tinha terminado de gravar.
+             */
+            if ($chave !== null) {
+                $existente = Appointment::query()
+                    ->where('idempotency_key', $chave)
+                    ->first();
+
+                if ($existente !== null) {
+                    return $existente;
+                }
+            }
+
             $conflito = Appointment::query()
                 ->where('profissional_id', $dados['profissional_id'])
                 ->whereHas('status', fn ($query) => $query->where('name', '!=', AppointmentStatus::CANCELADO))
@@ -84,16 +115,31 @@ class AgendamentoService
                 throw new HorarioOcupadoException;
             }
 
+            /*
+             * A recepção pode escolher "sem sala" e preencher título, área,
+             * serviço, valor e retorno. `array_key_exists` (e não `??`) é o que
+             * distingue "não informado" de "informado como nulo": o bot do
+             * WhatsApp não manda sala e continua recebendo a primeira ativa,
+             * enquanto o formulário consegue gravar sem sala de propósito.
+             */
             return Appointment::create([
                 'clinica_id' => $this->tenants->id(),
                 'paciente_id' => $dados['paciente_id'],
                 'profissional_id' => $dados['profissional_id'],
-                'room_id' => Room::where('is_active', true)->value('id'),
+                'room_id' => array_key_exists('room_id', $dados)
+                    ? $dados['room_id']
+                    : Room::where('is_active', true)->value('id'),
                 'appointment_status_id' => $statusId,
                 'inicio' => $inicio,
                 'fim' => $fim,
-                'titulo' => 'Agendamento via WhatsApp',
+                'titulo' => array_key_exists('titulo', $dados)
+                    ? $dados['titulo']
+                    : 'Agendamento via WhatsApp',
+                'area' => $dados['area'] ?? null,
+                'servico' => $dados['servico'] ?? null,
+                'valor' => $dados['valor'] ?? null,
                 'observacao' => $dados['observacao'] ?? null,
+                'retorno' => (bool) ($dados['retorno'] ?? false),
                 'idempotency_key' => $chave,
             ]);
         }));
