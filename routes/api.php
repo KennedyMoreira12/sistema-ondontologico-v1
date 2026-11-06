@@ -66,6 +66,14 @@ Route::prefix('whatsapp')
     ])
     ->group(function () {
         Route::get('info', [WhatsAppController::class, 'info'])->name('info');
+
+        /**
+         * Diagnóstico da conexão e da outbox. Sem ability própria: não expõe
+         * dado de paciente e é o que o n8n usa para distinguir "token errado"
+         * de "WhatsApp desconectado". A chamada externa à Evolution só acontece
+         * com `check_evolution=1`.
+         */
+        Route::get('saude', [WhatsAppController::class, 'saude'])->name('saude');
         Route::get('profissionais', [WhatsAppController::class, 'profissionais'])->name('profissionais');
         Route::get('procedimentos', [WhatsAppController::class, 'procedimentos'])->name('procedimentos');
 
@@ -100,6 +108,16 @@ Route::prefix('whatsapp')
         Route::post('conversa/handoff', [WhatsAppController::class, 'handoff'])->name('handoff');
         Route::post('conversa/retomar', [WhatsAppController::class, 'retomar'])->name('retomar');
 
+        /**
+         * Operações de atendimento humano: fila de espera, respostas rápidas e
+         * notas internas. Todas exigem `conversations.handoff` — é a mesma
+         * pessoa (recepção) que assume a conversa e usa o material de apoio.
+         */
+        Route::get('alertas', [WhatsAppController::class, 'alertas'])->name('alertas');
+        Route::get('respostas-rapidas', [WhatsAppController::class, 'respostasRapidas'])->name('respostas-rapidas');
+        Route::get('notas', [WhatsAppController::class, 'notas'])->name('notas');
+        Route::post('notas', [WhatsAppController::class, 'criarNota'])->name('notas.criar');
+
         Route::get('disponibilidade', [WhatsAppController::class, 'disponibilidade'])->name('disponibilidade');
         Route::get('conversa', [WhatsAppController::class, 'conversa'])->name('conversa');
         Route::put('conversa', [WhatsAppController::class, 'conversaAtualizar'])->name('conversa.atualizar');
@@ -116,6 +134,14 @@ Route::prefix('whatsapp')
          * agenda não pode, sozinho, mandar mensagem em nome da clínica.
          */
         Route::post('mensagem', [WhatsAppController::class, 'enviarMensagem'])->name('mensagem');
+
+        /**
+         * Menu de botões/lista. Mesma ability de `mensagem`: é o mesmo efeito
+         * externo, só muda o formato. A rota devolve `fallback_texto` e cai
+         * sozinha para ele quando a Evolution recusa o formato interativo.
+         */
+        Route::post('mensagem-interativa', [WhatsAppController::class, 'enviarMensagemInterativa'])
+            ->name('mensagem-interativa');
     });
 
 /**

@@ -274,30 +274,32 @@ class SocialPostPanelImageTest extends TestCase
         $this->assertEmpty(Storage::disk('public')->allFiles());
     }
 
-    public function test_criacao_com_arquivo_envia_url_armazenada_ao_webhook(): void
+    public function test_criacao_com_arquivo_armazena_imagem_no_rascunho(): void
     {
-        Http::fake([
-            '*' => Http::response(['success' => true, 'post' => ['id' => 99]], 200),
-        ]);
+        Http::fake();
 
         $user = $this->usuarioComPermissao('social.manage');
 
-        $this->actingAs($user)
+        $resposta = $this->actingAs($user)
             ->post(route('social.store'), [
-                'tema' => 'Clareamento dental',
-                'objetivo' => 'Atrair novos pacientes',
-                'publico' => 'Adultos',
-                'tipo' => 'promocional',
+                'titulo' => 'Clareamento dental',
                 'platforms' => ['instagram'],
                 'image' => $this->imagem('png'),
-            ])
-            ->assertRedirect(route('social.show', 99));
+            ]);
 
-        Http::assertSent(function ($request) {
-            $body = $request->data();
+        $post = SocialPost::firstOrFail();
 
-            return str_starts_with((string) ($body['image_url'] ?? ''), 'https://social.test/storage/social/')
-                && ! array_key_exists('image', $body);
-        });
+        $resposta
+            ->assertRedirect(route('social.show', $post))
+            ->assertSessionHas('success');
+
+        $this->assertMatchesRegularExpression(
+            '#^https://social\.test/storage/social/\d{4}/\d{2}/[0-9a-f-]{36}\.png$#',
+            $post->image_url
+        );
+
+        // O fluxo manual cria o rascunho; a publicação em si é uma ação
+        // posterior e explícita, então nenhum webhook é chamado agora.
+        Http::assertNothingSent();
     }
 }

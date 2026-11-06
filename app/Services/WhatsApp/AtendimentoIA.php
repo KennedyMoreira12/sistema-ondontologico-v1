@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Models\Procedure;
 use App\Models\Professional;
+use App\Models\WhatsAppAlert;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
 use App\Services\Agenda\DisponibilidadeService;
@@ -42,6 +43,8 @@ class AtendimentoIA
         protected CotaIA $cota,
         protected FluxoAtendimento $fluxo,
         protected DisponibilidadeService $disponibilidade,
+        protected Triagem $triagem,
+        protected AlertaRecepcao $alertas,
     ) {}
 
     /**
@@ -64,13 +67,20 @@ class AtendimentoIA
         $conversa = $this->abrirConversa($remoteJid);
         $etapa = $conversa->etapa ?? 'consentimento';
 
-        // Bot sob atendimento humano: só registra que a mensagem chegou e não
-        // responde. O silêncio é o comportamento — falar por cima do atendente é
-        // exatamente o que a pausa existe para impedir.
-        if (! $conversa->botAtivo()) {
-            $this->registrarNoHistorico($remoteJid, null, false, null);
+        /**
+         * A precedência do atendimento automático mora em um lugar só
+         * (`Triagem`): opt-out, pausa/humano, expediente e regra da clínica vêm
+         * antes da IA e do fluxo. Sem isso, cada caminho teria a sua cópia da
+         * ordem e um deles responderia por cima do atendente.
+         */
+        $triagem = $this->triagem->decidir($conversa, $texto, $nomeClinica);
 
-            return $this->resultado($etapa, $etapa, '', $this->rotuloHumano($conversa), null, autoResposta: false);
+        if ($triagem !== null) {
+            $conversa->refresh();
+
+            $this->registrarNoHistorico($remoteJid, null, $triagem['auto_resposta'], null);
+
+            return $triagem;
         }
 
         // Passos que não ganham nada com IA: consentimento (LGPD), cadastro,
@@ -134,6 +144,8 @@ class AtendimentoIA
                 $conversa->bot_status = 'aguardando_atendente';
                 $conversa->humano_iniciado_em = now();
                 $conversa->save();
+
+                $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, 'IA: pedido de atendimento humano.');
 
                 AuditLogger::log('handoff_ia', 'whatsapp_conversations', $conversa->id, depois: [
                     'bot_status' => 'aguardando_atendente',
@@ -289,6 +301,8 @@ class AtendimentoIA
                 $conversa->humano_iniciado_em = now();
                 $conversa->save();
             }
+
+            $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, 'Fluxo encaminhou para a recepção.');
         }
 
         $this->registrarNoHistorico($remoteJid, $intencao, $intencao !== null, $erroIa ? 'A IA não devolveu uma proposta válida.' : null);
@@ -311,28 +325,7 @@ class AtendimentoIA
      */
     protected function abrirConversa(string $remoteJid): WhatsAppConversation
     {
-        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $remoteJid]);
-
-        if (! $conversa->exists) {
-            $conversa->etapa = 'consentimento';
-            $conversa->dados = null;
-            $conversa->bot_status = 'ativo';
-            $conversa->ia_mensagens = 0;
-            $conversa->expires_at = now()->addHours(FluxoAtendimento::VALIDADE_HORAS);
-            $conversa->save();
-
-            return $conversa;
-        }
-
-        if ($conversa->expires_at?->isPast()) {
-            $conversa->etapa = 'consentimento';
-            $conversa->dados = null;
-            $conversa->ia_mensagens = 0;
-            $conversa->expires_at = now()->addHours(FluxoAtendimento::VALIDADE_HORAS);
-            $conversa->save();
-        }
-
-        return $conversa;
+        return WhatsAppConversation::abrirPara($remoteJid, FluxoAtendimento::VALIDADE_HORAS);
     }
 
     /**
@@ -388,11 +381,6 @@ class AtendimentoIA
         $saudacao = is_string($nome) && $nome !== '' ? ", {$nome}" : '';
 
         return "Olá{$saudacao}! 👋 Como posso ajudar?\n\n1️⃣ Agendar consulta\n2️⃣ Falar com a recepção";
-    }
-
-    protected function rotuloHumano(WhatsAppConversation $conversa): string
-    {
-        return $conversa->bot_status === 'pausado' ? 'pausado' : 'humano';
     }
 
     /**

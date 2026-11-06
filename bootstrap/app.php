@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignCorrelationId;
 use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminIsActive;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -43,6 +44,13 @@ $app = Application::configure(basePath: dirname(__DIR__))
          * remoto que mande `X-Forwarded-Proto` na mao continua ignorado.
          */
         $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
+        /**
+         * Identificador de correlação em toda chamada de API. Fica no começo do
+         * grupo para que até a recusa de autenticação seja rastreável pelo
+         * mesmo id que volta no header.
+         */
+        $middleware->prependToGroup('api', AssignCorrelationId::class);
 
         $middleware->alias([
             'tenant' => ResolveTenant::class,

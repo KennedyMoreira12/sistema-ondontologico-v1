@@ -5,9 +5,13 @@ namespace App\Models;
 use App\Models\Central\User;
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['installment_id', 'accounts_receivable_id', 'payment_method_id', 'user_id', 'data', 'valor', 'observacoes'])]
+#[Fillable([
+    'installment_id', 'accounts_receivable_id', 'payment_method_id', 'user_id',
+    'paciente_id', 'servico', 'origem', 'data', 'valor', 'observacoes',
+])]
 class Payment extends TenantModel
 {
     /**
@@ -35,8 +39,25 @@ class Payment extends TenantModel
         return $this->belongsTo(PaymentMethod::class);
     }
 
+    /**
+     * Paciente dono do pagamento.
+     *
+     * É anulável de propósito: os 6.163 lançamentos importados da planilha
+     * vieram só com o nome no texto e são vinculados por revisão humana. Um
+     * pagamento sem vínculo continua existindo e continua somando no caixa.
+     */
+    public function paciente(): BelongsTo
+    {
+        return $this->belongsTo(Paciente::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeSemPaciente(Builder $query): Builder
+    {
+        return $query->whereNull('paciente_id');
     }
 }

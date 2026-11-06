@@ -10,6 +10,8 @@
         </div>
     </div>
 
+    @include('relatorios.partials.nav')
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('relatorios.index') }}" class="row g-2 align-items-end">

@@ -90,6 +90,52 @@ class EvolutionService
     }
 
     /**
+     * Envia um menu de botões de resposta rápida.
+     *
+     * O payload vem de `MenuInterativo::payload()`, que já o traduziu para o
+     * schema da Evolution (`buttons[].type`, `displayText`, `id`). Aqui não há
+     * validação de negócio: a Evolution 2.3.7 recusa a mensagem inteira quando
+     * o formato está errado, e esse erro precisa chegar a quem chamou para o
+     * fallback textual entrar.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function sendButtons(Clinic $clinic, string $number, array $payload): array
+    {
+        $response = $this->request($clinic)
+            ->post($this->url("/message/sendButtons/{$clinic->evolution_instance}"), array_merge($payload, [
+                'number' => $this->normalizarNumero($number),
+            ]));
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
+     * Envia um menu em lista (uma seção, até dez linhas).
+     *
+     * `footerText`, `buttonText` e `sections` são obrigatórios no schema da
+     * versão instalada; `description` de cada linha é truncada pela própria
+     * Evolution em 72 caracteres, então `MenuInterativo` já corta antes.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function sendList(Clinic $clinic, string $number, array $payload): array
+    {
+        $response = $this->request($clinic)
+            ->post($this->url("/message/sendList/{$clinic->evolution_instance}"), array_merge($payload, [
+                'number' => $this->normalizarNumero($number),
+            ]));
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
      * Estado da conexão do WhatsApp da clínica.
      *
      * Serve ao painel para dizer "QR code pendente" em vez de a clínica só

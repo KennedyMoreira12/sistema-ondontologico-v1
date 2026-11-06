@@ -3,6 +3,7 @@
 @section('title', 'Financeiro — Contas a receber')
 
 @section('content')
+    @include('financeiro.partials.nav')
     @include('financeiro.partials.resumo')
 
     <div class="card shadow-sm mb-4">

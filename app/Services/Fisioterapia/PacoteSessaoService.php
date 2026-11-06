@@ -34,6 +34,8 @@ class PacoteSessaoService
      *     paciente_id: int,
      *     profissional_id?: int|null,
      *     evolucao_sessao_id?: int|null,
+     *     appointment_id?: int|null,
+     *     reposicao?: bool,
      *     data?: string|null,
      *     valor?: float|null,
      *     observacoes?: string|null
@@ -47,6 +49,25 @@ class PacoteSessaoService
         $conexao = $pacote->getConnection();
 
         return $conexao->transaction(function () use ($pacote, $dados): ConsumoSessao {
+            /**
+             * Idempotência por atendimento: se o mesmo appointment já debitou
+             * este ou outro pacote, o consumo existente é devolvido em vez de
+             * criar uma segunda linha. É o que impede um duplo clique em
+             * "registrar presença" de descontar duas sessões.
+             */
+            $appointmentId = $dados['appointment_id'] ?? null;
+
+            if ($appointmentId !== null) {
+                $existente = ConsumoSessao::query()
+                    ->where('appointment_id', $appointmentId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existente !== null) {
+                    return $existente;
+                }
+            }
+
             /**
              * Trava a linha do pacote enquanto a transação estiver aberta. Duas
              * atendentes marcando sessão no mesmo pacote entram em fila aqui,
@@ -71,6 +92,8 @@ class PacoteSessaoService
                 'paciente_id' => $dados['paciente_id'],
                 'profissional_id' => $dados['profissional_id'] ?? null,
                 'evolucao_sessao_id' => $dados['evolucao_sessao_id'] ?? null,
+                'appointment_id' => $appointmentId,
+                'reposicao' => (bool) ($dados['reposicao'] ?? false),
                 'data' => $dados['data'] ?? now()->toDateString(),
                 'valor' => $dados['valor'] ?? $pacoteTravado->valor_sessao,
                 'observacoes' => $dados['observacoes'] ?? null,

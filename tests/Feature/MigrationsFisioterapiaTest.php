@@ -99,7 +99,7 @@ class MigrationsFisioterapiaTest extends TestCase
     {
         $this->rodarMigrationsTenant();
 
-        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => 5]);
+        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => $this->passosParaDesfazerFaseC()]);
 
         foreach (self::TABELAS_NOVAS as $tabela) {
             $this->assertFalse(
@@ -121,7 +121,7 @@ class MigrationsFisioterapiaTest extends TestCase
     public function test_refazer_a_subida_depois_da_descida_deixa_o_banco_no_ponto(): void
     {
         $this->rodarMigrationsTenant();
-        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => 5]);
+        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => $this->passosParaDesfazerFaseC()]);
         $this->rodarMigrationsTenant();
 
         foreach (self::TABELAS_NOVAS as $tabela) {
@@ -147,6 +147,30 @@ class MigrationsFisioterapiaTest extends TestCase
         $migration->up();
 
         $this->assertTrue(Schema::hasColumn('clinics', 'vertical'));
+    }
+
+    /**
+     * Quantas migrations precisam ser desfeitas para chegar ao ponto anterior
+     * à Fase C.
+     *
+     * O número é calculado pela ordem real das migrations já executadas, e não
+     * fixado em código: migrations novas (como as do financeiro) não podem
+     * fazer este teste deixar de exercitar a descida da fisioterapia.
+     */
+    private function passosParaDesfazerFaseC(): int
+    {
+        $migracoes = DB::connection('tenant')
+            ->table('migrations')
+            ->orderByDesc('id')
+            ->pluck('migration');
+
+        $posicao = $migracoes->search(
+            fn (string $nome): bool => str_contains($nome, '2026_10_21_000002_add_registro_profissional')
+        );
+
+        $this->assertNotFalse($posicao, 'A migration inicial da Fase C precisa estar registrada.');
+
+        return $posicao + 1;
     }
 
     /**

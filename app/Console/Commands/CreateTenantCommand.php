@@ -18,7 +18,8 @@ class CreateTenantCommand extends Command
         {--plan= : Slug do plano (padrão: o primeiro plano ativo)}
         {--password= : Senha do administrador (padrão: gerada)}
         {--vertical= : Vertical da clínica (odontologia ou fisioterapia; padrão: odontologia)}
-        {--instance= : Instância da Evolution API desta clínica}';
+        {--instance= : Instância da Evolution API desta clínica}
+        {--id= : Reserva um ID específico (somente em local/demo/testing; ex.: 5 para clinic_000005)}';
 
     protected $description = 'Cria uma clínica com banco de dados próprio, papéis, admin e assinatura';
 
@@ -36,6 +37,12 @@ class CreateTenantCommand extends Command
         if (Clinic::withoutGlobalScopes()->where('email', $email)->exists()) {
             $this->components->error("Já existe uma clínica com o e-mail {$email}.");
 
+            return self::FAILURE;
+        }
+
+        $idReservado = $this->resolveForcedId();
+
+        if ($idReservado === false) {
             return self::FAILURE;
         }
 
@@ -65,6 +72,7 @@ class CreateTenantCommand extends Command
 
         try {
             $result = $provisioner->provision([
+                'id' => $idReservado,
                 'name' => $name,
                 'email' => $email,
                 'admin_name' => $this->option('admin') ?: $name,
@@ -102,5 +110,43 @@ class CreateTenantCommand extends Command
         }
 
         return Plan::query()->where('is_active', true)->orderBy('sort_order')->first();
+    }
+
+    /**
+     * O ID fixo existe para espelhar uma clínica real em ambiente controlado
+     * (demo/restauração), onde o nome do banco precisa ser o mesmo, por exemplo
+     * `clinic_000005`. Em produção o ID continua sendo gerado pelo banco.
+     *
+     * @return int|false|null null quando nenhum ID foi pedido
+     */
+    protected function resolveForcedId(): int|false|null
+    {
+        $id = $this->option('id');
+
+        if ($id === null || $id === '') {
+            return null;
+        }
+
+        if (! app()->environment(['local', 'demo', 'testing'])) {
+            $this->components->error('A opção --id só pode ser usada em ambientes local, demo ou testing.');
+
+            return false;
+        }
+
+        if (filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
+            $this->components->error('O ID da clínica deve ser um número inteiro maior que zero.');
+
+            return false;
+        }
+
+        $id = (int) $id;
+
+        if (Clinic::withoutGlobalScopes()->whereKey($id)->exists()) {
+            $this->components->error("Já existe uma clínica com o ID {$id}.");
+
+            return false;
+        }
+
+        return $id;
     }
 }

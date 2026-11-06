@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
     'remote_jid', 'push_name', 'body', 'payload',
     'sent_at', 'forwarded_at', 'forward_error',
     'ai_intent', 'ai_handled', 'ai_error',
+    'delivery_status', 'delivered_at', 'read_at', 'correlation_id',
 ])]
 class WhatsAppMessage extends TenantModel
 {
@@ -46,6 +47,8 @@ class WhatsAppMessage extends TenantModel
             'sent_at' => 'datetime',
             'forwarded_at' => 'datetime',
             'ai_handled' => 'boolean',
+            'delivered_at' => 'datetime',
+            'read_at' => 'datetime',
         ];
     }
 

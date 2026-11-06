@@ -39,6 +39,10 @@ final class IntegrationAbilities
         // confirmar que está com token válido. Liberado para todo token.
         'api.whatsapp.info' => null,
 
+        // Saúde da conexão/outbox: também sem dado de paciente. O n8n usa para
+        // decidir se tenta responder agora ou deixa para a recepção.
+        'api.whatsapp.saude' => null,
+
         'api.whatsapp.profissionais' => 'professionals.view',
         'api.whatsapp.paciente' => 'patients.view',
         'api.whatsapp.criar-paciente' => 'patients.create',
@@ -75,6 +79,10 @@ final class IntegrationAbilities
          */
         'api.whatsapp.handoff' => 'conversations.handoff',
         'api.whatsapp.retomar' => 'conversations.handoff',
+        'api.whatsapp.alertas' => 'conversations.handoff',
+        'api.whatsapp.respostas-rapidas' => 'conversations.handoff',
+        'api.whatsapp.notas' => 'conversations.handoff',
+        'api.whatsapp.notas.criar' => 'conversations.handoff',
 
         'api.whatsapp.disponibilidade' => 'appointments.view',
         'api.whatsapp.agendamentos' => 'appointments.view',
@@ -96,6 +104,12 @@ final class IntegrationAbilities
          * pode mandar mensagem em nome da clínica só porque já escreve na agenda.
          */
         'api.whatsapp.mensagem' => 'messages.send',
+
+        // Menu interativo é o mesmo ato de falar com o paciente, em outro
+        // formato. Não ganha ability nova: quem pode mandar texto já pode
+        // mandar botões, e uma ability separada só criaria token que envia
+        // metade das respostas.
+        'api.whatsapp.mensagem-interativa' => 'messages.send',
 
         'api.social.posts.index' => 'social_posts.manage',
         'api.social.posts.store' => 'social_posts.manage',

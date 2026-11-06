@@ -61,6 +61,8 @@ class InventarioTabelas
      * @var list<string>
      */
     public const TABELAS_COMUNS = [
+        'accounts_payable',
+        'accounts_payable_pagamentos',
         'accounts_receivable',
         'anamneses',
         'appointment_statuses',
@@ -72,10 +74,14 @@ class InventarioTabelas
         'clinic_settings',
         'clinical_notes',
         'contracts',
+        'financeiro_categorias',
+        'fiscal_companies',
         'installments',
         'insurance_companies',
         'insurance_plans',
         'medical_alerts',
+        'nfse',
+        'nfse_events',
         'pacientes',
         'patient_documents',
         'patient_insurances',
@@ -102,8 +108,13 @@ class InventarioTabelas
         'treatment_plans',
         'user_roles',
         'waiting_lists',
+        'whatsapp_alerts',
         'whatsapp_conversations',
         'whatsapp_messages',
+        'whatsapp_notes',
+        'whatsapp_outbox',
+        'whatsapp_quick_replies',
+        'whatsapp_rules',
     ];
 
     /**

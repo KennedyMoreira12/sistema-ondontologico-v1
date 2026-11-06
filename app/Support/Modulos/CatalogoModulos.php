@@ -105,6 +105,20 @@ class CatalogoModulos
             ],
             'descricao' => 'Consultas, sessões e lista de espera.',
         ],
+        'atendimentos' => [
+            'titulo' => 'Atendimentos',
+            'icone' => 'bi-clipboard2-check',
+            'grupo' => self::GRUPO_PRINCIPAL,
+            'tipo' => 'lista',
+            'rota' => 'atendimentos.index',
+            'padrao' => 'atendimentos.*',
+            'vertical' => self::COMUM,
+            'situacao' => [
+                self::ODONTOLOGIA => self::DISPONIVEL,
+                self::FISIOTERAPIA => self::DISPONIVEL,
+            ],
+            'descricao' => 'Recepção do dia: presença, falta e consumo de sessão do pacote.',
+        ],
         'prontuario' => [
             'titulo' => 'Prontuário',
             'icone' => 'bi-journal-medical',

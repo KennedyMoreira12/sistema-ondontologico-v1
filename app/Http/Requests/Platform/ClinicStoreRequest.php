@@ -73,7 +73,7 @@ class ClinicStoreRequest extends FormRequest
              */
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:191', 'unique:users,email'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:8'],
         ];
     }
 

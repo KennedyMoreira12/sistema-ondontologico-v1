@@ -31,6 +31,12 @@
         </div>
     </div>
 
+    <ul class="nav nav-pills gap-1 mb-3">
+        <li class="nav-item"><a class="nav-link {{ request()->routeIs('agenda.index') ? 'active' : '' }}" href="{{ route('agenda.index', ['data' => $inicioSemana->toDateString()]) }}">Semana</a></li>
+        <li class="nav-item"><a class="nav-link {{ request()->routeIs('agenda.dia') ? 'active' : '' }}" href="{{ route('agenda.dia', ['data' => today()->toDateString()]) }}">Dia</a></li>
+        <li class="nav-item"><a class="nav-link {{ request()->routeIs('agenda.mes') ? 'active' : '' }}" href="{{ route('agenda.mes', ['data' => today()->toDateString()]) }}">Mês</a></li>
+    </ul>
+
     <div class="row g-4">
         <div class="col-lg-9">
             <div class="card shadow-sm">
@@ -193,6 +199,9 @@
                         document.getElementById('editHora').value = data.hora;
                         document.getElementById('editDuracao').value = data.duracao;
                         document.getElementById('editTitulo').value = data.titulo || '';
+                        document.getElementById('editServico').value = data.servico || '';
+                        document.getElementById('editArea').value = data.area || '';
+                        document.getElementById('editValor').value = data.valor || '';
                         document.getElementById('editObservacao').value = data.observacao || '';
                         document.getElementById('editRetorno').checked = data.retorno;
                         document.getElementById('editForm').action = data.url_update;

@@ -8,6 +8,7 @@ use App\Rules\Cpf;
 use App\Services\Tenant\TenantManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
@@ -23,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /**
+         * O projeto é Bootstrap 5; sem isso o Laravel usa o view padrão do
+         * Tailwind, cujas classes de tamanho do SVG não existem aqui e a seta
+         * de navegação era renderizada no tamanho intrínseco (300x150px).
+         */
+        Paginator::useBootstrapFive();
+
         /**
          * Papéis e permissões são POR CLÍNICA, então esta checagem só funciona
          * depois que o ResolveTenant conectou no banco da clínica. É por isso

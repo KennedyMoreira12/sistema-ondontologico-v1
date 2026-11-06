@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['paciente_id', 'budget_id', 'vencimento', 'valor', 'valor_pago', 'desconto', 'status', 'observacoes'])]
+#[Fillable(['paciente_id', 'budget_id', 'descricao', 'servico', 'vencimento', 'valor', 'valor_pago', 'desconto', 'status', 'observacoes'])]
 class AccountsReceivable extends TenantModel
 {
     protected $table = 'accounts_receivable';

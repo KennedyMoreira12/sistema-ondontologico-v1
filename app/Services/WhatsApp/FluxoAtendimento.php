@@ -539,16 +539,7 @@ class FluxoAtendimento
      */
     protected function abrirConversa(string $remoteJid): WhatsAppConversation
     {
-        $conversa = WhatsAppConversation::firstOrNew(['remote_jid' => $remoteJid]);
-
-        if (! $conversa->exists || $conversa->expires_at?->isPast()) {
-            $conversa->etapa = 'consentimento';
-            $conversa->dados = null;
-            $conversa->expires_at = now()->addHours(self::VALIDADE_HORAS);
-            $conversa->save();
-        }
-
-        return $conversa;
+        return WhatsAppConversation::abrirPara($remoteJid, self::VALIDADE_HORAS);
     }
 
     /**

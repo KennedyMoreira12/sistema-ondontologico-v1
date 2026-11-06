@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Fillable([
     'pacote_id', 'paciente_id', 'profissional_id', 'evolucao_sessao_id',
-    'data', 'valor', 'observacoes',
+    'appointment_id', 'reposicao', 'data', 'valor', 'observacoes',
 ])]
 class ConsumoSessao extends TenantModel
 {
@@ -33,6 +33,7 @@ class ConsumoSessao extends TenantModel
     {
         return [
             'data' => 'date',
+            'reposicao' => 'boolean',
         ];
     }
 
@@ -56,5 +57,16 @@ class ConsumoSessao extends TenantModel
         // A coluna é `evolucao_sessao_id`; sem a chave explícita o Eloquent
         // procura `evolucao_id` e a tela do pacote estoura.
         return $this->belongsTo(EvolucaoSessao::class, 'evolucao_sessao_id');
+    }
+
+    /**
+     * Atendimento que originou o débito da sessão.
+     *
+     * É o que impede o mesmo atendimento de debitar o pacote duas vezes: o
+     * serviço procura um consumo existente antes de criar outro.
+     */
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class, 'appointment_id');
     }
 }

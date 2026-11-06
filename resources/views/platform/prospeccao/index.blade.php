@@ -7,7 +7,8 @@
     $corGrupo = ['aberto' => 'secondary', 'ativo' => 'primary', 'ganho' => 'success', 'perdido' => 'dark'];
     $corTelefone = ['valid' => 'success', 'incomplete' => 'warning', 'unconfirmed' => 'secondary', 'invalid' => 'danger'];
     $temFiltro = $filtros['busca'] !== '' || $filtros['category'] !== '' || $filtros['city'] !== ''
-        || $filtros['priority'] !== '' || $filtros['phone_status'] !== '' || $filtros['status'] !== '';
+        || $filtros['priority'] !== '' || $filtros['phone_status'] !== '' || $filtros['status'] !== '' || ($filtros['follow_up'] ?? '') !== '';
+    $hoje = \Illuminate\Support\Carbon::today();
 @endphp
 
 @section('content')
@@ -116,9 +117,30 @@
         </div>
     </div>
 
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="text-muted small me-1">Acompanhamentos:</span>
+                <a href="{{ route('painel.prospeccao.index', array_merge(request()->except(['follow_up', 'page']), ['follow_up' => 'hoje'])) }}" class="btn btn-sm {{ ($filtros['follow_up'] ?? '') === 'hoje' ? 'btn-primary' : 'btn-outline-primary' }}">
+                    Para hoje <span class="badge bg-light text-primary ms-1">{{ $resumo['para_hoje'] }}</span>
+                </a>
+                <a href="{{ route('painel.prospeccao.index', array_merge(request()->except(['follow_up', 'page']), ['follow_up' => 'atrasados'])) }}" class="btn btn-sm {{ ($filtros['follow_up'] ?? '') === 'atrasados' ? 'btn-danger' : 'btn-outline-danger' }}">
+                    Atrasados <span class="badge bg-light text-danger ms-1">{{ $resumo['atrasados'] }}</span>
+                </a>
+                <a href="{{ route('painel.prospeccao.index', array_merge(request()->except(['follow_up', 'page']), ['follow_up' => 'sem_agendamento'])) }}" class="btn btn-sm {{ ($filtros['follow_up'] ?? '') === 'sem_agendamento' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                    Sem agendamento <span class="badge bg-light text-secondary ms-1">{{ $resumo['sem_agendamento'] }}</span>
+                </a>
+                @if (($filtros['follow_up'] ?? '') !== '')
+                    <a href="{{ route('painel.prospeccao.index', request()->except(['follow_up', 'page'])) }}" class="btn btn-sm btn-link text-decoration-none">Limpar acompanhamento</a>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="follow_up" value="{{ $filtros['follow_up'] ?? '' }}">
                 <div class="col-md-4">
                     <label for="busca" class="form-label small text-muted">Buscar</label>
                     <input id="busca" type="search" class="form-control" name="busca" value="{{ $filtros['busca'] }}" placeholder="Nome, telefone ou endereço">
@@ -170,7 +192,7 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary flex-grow-1">Filtrar</button>
-                    @if ($temFiltro)
+                    @if ($temFiltro || ($filtros['follow_up'] ?? '') !== '')
                         <a href="{{ route('painel.prospeccao.index') }}" class="btn btn-outline-secondary">Limpar</a>
                     @endif
                 </div>
@@ -227,7 +249,18 @@
                                         {{ $prospect->statusLabel() }}
                                     </span>
                                     @if ($prospect->next_follow_up_at)
-                                        <div class="text-muted small">retorno {{ $prospect->next_follow_up_at->format('d/m/Y') }}</div>
+                                        @php
+                                            $retornoEmAtraso = $prospect->next_follow_up_at->lt($hoje) && ! in_array($prospect->status, ['cliente', 'sem_interesse'], true);
+                                            $retornoHoje = $prospect->next_follow_up_at->isSameDay($hoje) && ! in_array($prospect->status, ['cliente', 'sem_interesse'], true);
+                                        @endphp
+                                        <div class="small {{ $retornoEmAtraso ? 'text-danger' : ($retornoHoje ? 'text-primary' : 'text-muted') }}">
+                                            <i class="bi bi-calendar-event me-1"></i>retorno {{ $prospect->next_follow_up_at->format('d/m/Y') }}
+                                            @if ($retornoEmAtraso)
+                                                <span class="badge bg-danger-subtle text-danger-emphasis ms-1">Atrasado</span>
+                                            @elseif ($retornoHoje)
+                                                <span class="badge bg-primary-subtle text-primary-emphasis ms-1">Hoje</span>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="small">

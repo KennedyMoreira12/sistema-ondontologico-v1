@@ -98,6 +98,18 @@ class Paciente extends TenantModel
         return $this->hasMany(AccountsReceivable::class);
     }
 
+    /**
+     * Pagamentos recebidos do paciente.
+     *
+     * Nem todo pagamento tem vínculo (os importados da planilha foram
+     * revisados um a um), por isso a relação pode voltar vazia mesmo quando
+     * existe recebimento lançado no caixa.
+     */
+    public function pagamentos(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function prescricoes(): HasMany
     {
         return $this->hasMany(Prescription::class);
