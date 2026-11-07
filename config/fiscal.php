@@ -95,4 +95,25 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | SendNF — cliente legado
+    |--------------------------------------------------------------------------
+    |
+    | Bloco mantido para o cliente anterior (App\Services\Fiscal\SendNfClient e
+    | App\Services\Fiscal\FiscalService), que lê `fiscal.sendnf.*`. O caminho
+    | oficial de emissão é `providers` acima, resolvido pelo FiscalManager.
+    |
+    */
+
+    'sendnf' => [
+        'base_url' => env('SENDFN_BASE_URL'),
+        'api_key' => env('SENDFN_API_KEY'),
+        'timeout' => [
+            'connect' => (int) env('SENDFN_CONNECT_TIMEOUT', 10),
+            'request' => (int) env('SENDFN_TIMEOUT', 30),
+        ],
+        'enabled' => (bool) env('SENDFN_ENABLED', false),
+    ],
+
 ];

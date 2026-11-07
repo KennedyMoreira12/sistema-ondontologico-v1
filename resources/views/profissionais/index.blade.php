@@ -15,7 +15,7 @@
             <form method="GET" action="{{ route('profissionais.index') }}" class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label for="busca" class="form-label">Buscar</label>
-                    <input type="search" id="busca" name="busca" class="form-control" value="{{ request('busca') }}" placeholder="Nome ou CRO...">
+                    <input type="search" id="busca" name="busca" class="form-control" value="{{ request('busca') }}" placeholder="{{ vertical_permite('odontograma') ? 'Nome, CRO ou registro profissional...' : 'Nome ou registro profissional...' }}">
                 </div>
                 <div class="col-md-3">
                     <label for="status" class="form-label">Status</label>
@@ -38,7 +38,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Nome</th>
-                        <th>CRO</th>
+                        <th>Registro no conselho</th>
                         <th>Tipo</th>
                         <th>Especialidades</th>
                         <th>Comissão</th>
@@ -50,7 +50,7 @@
                     @forelse ($profissionais as $profissional)
                         <tr>
                             <td>{{ $profissional->nome }}</td>
-                            <td>{{ $profissional->cro ?? '—' }}</td>
+                            <td>{{ $profissional->registroConselho() ?? '—' }}</td>
                             <td>{{ ucfirst($profissional->tipo) }}</td>
                             <td>
                                 @forelse ($profissional->specialties as $especialidade)

@@ -30,7 +30,14 @@ class TratamentoPlanoItemRequest extends FormRequest
     {
         return [
             'procedure_id' => ['required', 'integer', 'exists:tenant.procedures,id'],
-            'dente' => ['nullable', 'integer', Rule::in($this->dentesFdi())],
+            'dente' => [
+                // "Dente" é conceito odontológico. Em clínica sem odontologia o
+                // campo é ignorado, mesmo que alguém monte a requisição à mão.
+                Rule::excludeIf(fn (): bool => ! vertical_permite('odontograma')),
+                'nullable',
+                'integer',
+                Rule::in($this->dentesFdi()),
+            ],
             'quantidade' => ['required', 'integer', 'min:1', 'max:999'],
             'valor_unitario' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'desconto' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],

@@ -8,18 +8,15 @@ use App\Http\Requests\Platform\ProspectUpdateRequest;
 use App\Models\Central\Prospect;
 use App\Models\Central\ProspectMessageTemplate;
 use App\Services\Platform\PlatformLogger;
-use Illuminate\Support\Collection;
 use App\Services\Platform\Prospeccao\ProspectWhatsAppService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\MessageBag;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 class ProspectController extends Controller
 {
@@ -39,12 +36,15 @@ class ProspectController extends Controller
         $prioridade = $request->string('priority')->toString();
         $telefone = $request->string('phone_status')->toString();
         $status = $request->string('status')->toString();
+        $followUp = $request->string('follow_up')->toString();
 
         $base = $this->baseQuery($busca)
             ->when($categoria !== '', fn (Builder $query) => $query->where('category', $categoria))
             ->when($cidade !== '', fn (Builder $query) => $query->where('city', $cidade))
             ->when($prioridade !== '', fn (Builder $query) => $query->where('priority', $prioridade))
             ->when($telefone !== '', fn (Builder $query) => $query->where('phone_status', $telefone));
+
+        $hoje = now()->toDateString();
 
         $resumo = [
             'total' => (clone $base)->count(),
@@ -53,10 +53,16 @@ class ProspectController extends Controller
             'negociacao' => (clone $base)->where('status', 'negociacao')->count(),
             'reuniao_marcada' => (clone $base)->where('status', 'reuniao_marcada')->count(),
             'cliente' => (clone $base)->where('status', 'cliente')->count(),
+            'para_hoje' => (clone $base)->whereNotIn('status', ['cliente', 'sem_interesse'])->whereDate('next_follow_up_at', $hoje)->count(),
+            'atrasados' => (clone $base)->whereNotIn('status', ['cliente', 'sem_interesse'])->whereNotNull('next_follow_up_at')->whereDate('next_follow_up_at', '<', $hoje)->count(),
+            'sem_agendamento' => (clone $base)->whereNotIn('status', ['cliente', 'sem_interesse'])->whereNull('next_follow_up_at')->count(),
         ];
 
         $prospects = (clone $base)
             ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
+            ->when($followUp === 'hoje', fn (Builder $query) => $query->whereNotIn('status', ['cliente', 'sem_interesse'])->whereDate('next_follow_up_at', $hoje))
+            ->when($followUp === 'atrasados', fn (Builder $query) => $query->whereNotIn('status', ['cliente', 'sem_interesse'])->whereNotNull('next_follow_up_at')->whereDate('next_follow_up_at', '<', $hoje))
+            ->when($followUp === 'sem_agendamento', fn (Builder $query) => $query->whereNotIn('status', ['cliente', 'sem_interesse'])->whereNull('next_follow_up_at'))
             ->withCount('origins')
             ->orderBy('name')
             ->paginate(self::PER_PAGE)
@@ -79,6 +85,7 @@ class ProspectController extends Controller
                 'priority' => $prioridade,
                 'phone_status' => $telefone,
                 'status' => $status,
+                'follow_up' => $followUp,
             ],
         ]);
     }
@@ -149,7 +156,7 @@ class ProspectController extends Controller
         if ($setting->status !== 'connected') {
             return response()->json([
                 'status' => 'erro',
-                'motivo' => 'A instância de prospecção não está conectada. Status: ' . $this->whatsapp->statusLabel($setting->status),
+                'motivo' => 'A instância de prospecção não está conectada. Status: '.$this->whatsapp->statusLabel($setting->status),
             ], 409);
         }
 
@@ -177,7 +184,7 @@ class ProspectController extends Controller
         }
 
         if ($acao === 'preparar') {
-            $template = \App\Models\Central\ProspectMessageTemplate::find($templateId);
+            $template = ProspectMessageTemplate::find($templateId);
             $templateBody = $template?->body ?? '';
 
             $corpoFinal = $this->substituirPlaceholders($prospect, $mensagem ?? '', $templateBody);
@@ -196,7 +203,7 @@ class ProspectController extends Controller
             ]);
         }
 
-        $template = \App\Models\Central\ProspectMessageTemplate::find($templateId);
+        $template = ProspectMessageTemplate::find($templateId);
         $corpoTemplate = $template?->body ?? '';
 
         $corpoFinal = $this->substituirPlaceholders($prospect, $mensagem, $corpoTemplate);
@@ -356,7 +363,7 @@ class ProspectController extends Controller
             ->with('success', 'Oportunidade atualizada.');
     }
 
-    private function substituirPlaceholders(\App\Models\Central\Prospect $prospect, string $mensagem, ?string $templateBody): string
+    private function substituirPlaceholders(Prospect $prospect, string $mensagem, ?string $templateBody): string
     {
         $final = $mensagem;
 

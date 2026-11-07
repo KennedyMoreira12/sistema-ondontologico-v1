@@ -16,11 +16,15 @@ class RolePermissionSeeder extends Seeder
             ['module' => 'anamnese', 'actions' => ['view', 'create', 'update']],
             ['module' => 'alertas', 'actions' => ['view', 'create', 'update']],
             ['module' => 'odontograma', 'actions' => ['view', 'update']],
+            ['module' => 'avaliacao', 'actions' => ['view', 'create', 'update']],
+            ['module' => 'evolucao', 'actions' => ['view', 'create', 'update']],
+            ['module' => 'pacotes', 'actions' => ['view', 'create', 'update']],
             ['module' => 'agenda', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'tratamentos', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'procedimentos', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'orcamentos', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'financeiro', 'actions' => ['view', 'create', 'update', 'delete', 'receive']],
+            ['module' => 'fiscal', 'actions' => ['view', 'update', 'emit', 'cancel']],
             ['module' => 'convenios', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'estoque', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'profissionais', 'actions' => ['view', 'create', 'update', 'delete']],
@@ -30,6 +34,8 @@ class RolePermissionSeeder extends Seeder
             ['module' => 'relatorios', 'actions' => ['view']],
             ['module' => 'auditoria', 'actions' => ['view']],
             ['module' => 'fiscal', 'actions' => ['view', 'create', 'update', 'delete', 'emitir', 'cancelar']],
+            ['module' => 'turmas_pilates', 'actions' => ['view', 'create', 'update', 'delete']],
+            ['module' => 'regioes_laser', 'actions' => ['view', 'create', 'update', 'delete']],
             ['module' => 'admin', 'actions' => ['view', 'create', 'update', 'delete']],
         ];
 
@@ -93,6 +99,37 @@ class RolePermissionSeeder extends Seeder
                     'pacientes.view', 'agenda.view', 'prontuario.view',
                 ],
             ],
+            'fisioterapeuta' => [
+                'label' => 'Fisioterapeuta',
+                'permissions' => [
+                    'pacientes.view', 'pacientes.create', 'pacientes.update',
+                    'prontuario.view', 'prontuario.create',
+                    'avaliacao.*', 'evolucao.*',
+                    'agenda.view', 'agenda.create', 'agenda.update',
+                    'procedimentos.view', 'pacotes.view',
+                    'relatorios.view',
+                ],
+            ],
+            'pilates_instrutor' => [
+                'label' => 'Instrutor de Pilates',
+                'permissions' => [
+                    'pacientes.view', 'pacientes.create', 'pacientes.update',
+                    'prontuario.view', 'prontuario.create',
+                    'agenda.view', 'agenda.create', 'agenda.update',
+                    'turmas_pilates.*',
+                    'relatorios.view',
+                ],
+            ],
+            'laser_operador' => [
+                'label' => 'Operador de Laser',
+                'permissions' => [
+                    'pacientes.view', 'pacientes.create', 'pacientes.update',
+                    'prontuario.view', 'prontuario.create',
+                    'agenda.view', 'agenda.create', 'agenda.update',
+                    'regioes_laser.*',
+                    'relatorios.view',
+                ],
+            ],
         ];
 
         $roleRecords = [];
@@ -132,6 +169,6 @@ class RolePermissionSeeder extends Seeder
 }
 
 // Adiciona módulo fiscal se não existir
-if (!isset($permissions)) {
+if (! isset($permissions)) {
     // já existe no código acima
 }

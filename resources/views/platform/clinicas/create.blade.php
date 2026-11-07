@@ -48,6 +48,55 @@
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
+                <h2 class="h6 mb-3">Perfil de atendimento</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="vertical" class="form-label">Vertical principal</label>
+                        <select id="vertical" class="form-select @error('vertical') is-invalid @enderror" name="vertical">
+                            @foreach (\App\Services\Tenant\VerticalManager::VERTICAIS as $opcao)
+                                <option value="{{ $opcao }}" @selected(old('vertical', 'odontologia') === $opcao)>
+                                    {{ \App\Services\Tenant\VerticalManager::rotulo($opcao) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('vertical')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            A vertical decide quais módulos a clínica enxerga. Nada é apagado do
+                            banco — a clínica pode mudar de vertical sem perder histórico.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <label class="form-label d-block">Verticais habilitadas</label>
+                        <input type="hidden" name="verticals_present" value="1">
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach (\App\Services\Tenant\VerticalManager::VERTICAIS as $opcao)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="verticals[]"
+                                           id="vertical_habilitada_{{ $opcao }}" value="{{ $opcao }}"
+                                           @checked(in_array($opcao, old('verticals', [old('vertical', 'odontologia')]), true))>
+                                    <label class="form-check-label" for="vertical_habilitada_{{ $opcao }}">
+                                        {{ \App\Services\Tenant\VerticalManager::rotulo($opcao) }}
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('verticals')<div class="text-danger small">{{ $message }}</div>@enderror
+                        @error('verticals.*')<div class="text-danger small">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            Uma clínica pode ter mais de uma vertical (ex.: fisioterapia, Pilates e
+                            depilação a laser). A vertical principal entra sempre na lista.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
                 <h2 class="h6 mb-3">WhatsApp</h2>
 
                 <div class="row g-3">

@@ -15,6 +15,7 @@ use App\Models\Paciente;
 use App\Models\PatientDocument;
 use App\Models\Professional;
 use App\Services\AuditLogger;
+use App\Services\Tenant\TenantManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PacienteController extends Controller
 {
+    public function __construct(private TenantManager $tenants) {}
+
     public function index(Request $request): View
     {
         $this->authorize('pacientes.view');
@@ -123,9 +126,8 @@ class PacienteController extends Controller
 
         $evolucoes = $paciente->evolucoes()->with('profissional')->latest()->paginate(20);
         $alertas = $paciente->alertas()->get();
-        $dentistas = Professional::where('tipo', 'dentista')->orderBy('nome')->get();
 
-        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas'));
+        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas'));
     }
 
     public function storeEvolucao(ClinicalNoteStoreRequest $request, Paciente $paciente): RedirectResponse
@@ -193,7 +195,13 @@ class PacienteController extends Controller
 
     public function storeDocumento(PatientDocumentStoreRequest $request, Paciente $paciente): RedirectResponse
     {
-        $path = $request->file('arquivo')->store('documentos/'.$paciente->id, 'public');
+        $this->authorize('documentos.create');
+
+        // Garante que o documento pertence ao paciente da clínica atual (banco tenant)
+        abort_unless($documentoPertenceAoPaciente($paciente, null), 403);
+
+        $tenantId = $this->tenants->id();
+        $path = $request->file('arquivo')->store("clinicas/{$tenantId}/pacientes/{$paciente->id}/documentos", 'local');
 
         PatientDocument::create([
             'paciente_id' => $paciente->id,
@@ -205,7 +213,7 @@ class PacienteController extends Controller
             'tamanho' => $request->file('arquivo')->getSize(),
         ]);
 
-        AuditLogger::log('anexar_documento', 'patient_documents', $paciente->id, depois: ['tipo' => $request->validated('tipo')]);
+        AuditLogger::log('anexar_documento', 'patient_documents', $paciente->id, depois: ['tipo' => $request->validated('tipo'), 'tenant_id' => $tenantId]);
 
         return back()->with('success', 'Documento anexado.');
     }
@@ -214,16 +222,28 @@ class PacienteController extends Controller
     {
         $this->authorize('pacientes.view');
 
-        return Storage::disk('public')->download($documento->arquivo);
+        // Nunca confie na URL: o documento precisa pertencer ao paciente informado
+        abort_if($documento->paciente_id !== $paciente->id, 403);
+
+        $disk = Storage::disk(str_starts_with($documento->arquivo, 'clinicas/') ? 'local' : 'public');
+
+        if (! $disk->exists($documento->arquivo)) {
+            abort(404);
+        }
+
+        return $disk->download($documento->arquivo);
     }
 
     public function destroyDocumento(Paciente $paciente, PatientDocument $documento): RedirectResponse
     {
         $this->authorize('documentos.delete');
 
-        Storage::disk('public')->delete($documento->arquivo);
+        abort_if($documento->paciente_id !== $paciente->id, 403);
 
-        AuditLogger::log('excluir_documento', 'patient_documents', $paciente->id, antes: ['arquivo' => $documento->arquivo]);
+        $disk = Storage::disk(str_starts_with($documento->arquivo, 'clinicas/') ? 'local' : 'public');
+        $disk->delete($documento->arquivo);
+
+        AuditLogger::log('excluir_documento', 'patient_documents', $paciente->id, antes: ['arquivo' => $documento->arquivo, 'tenant_id' => $this->tenants->id()]);
 
         $documento->delete();
 

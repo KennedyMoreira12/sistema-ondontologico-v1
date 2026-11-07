@@ -13,10 +13,33 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             @can('odontograma.view')
-                <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
-                </a>
+                @if (vertical_permite('odontograma'))
+                    <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
+                    </a>
+                @endif
             @endcan
+            @if (vertical_permite('avaliacao'))
+                @can('avaliacao.view')
+                    <a href="{{ route('pacientes.avaliacoes.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-clipboard2-pulse me-1"></i>Avaliações
+                    </a>
+                @endcan
+            @endif
+            @if (vertical_permite('evolucao'))
+                @can('evolucao.view')
+                    <a href="{{ route('pacientes.evolucoes-sessao.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-activity me-1"></i>Evoluções
+                    </a>
+                @endcan
+            @endif
+            @if (vertical_permite('pacotes'))
+                @can('pacotes.view')
+                    <a href="{{ route('pacientes.pacotes.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-box-seam me-1"></i>Pacotes
+                    </a>
+                @endcan
+            @endif
             @can('prontuario.view')
                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-capsule me-1"></i>Prescrições

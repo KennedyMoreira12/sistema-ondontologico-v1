@@ -55,20 +55,22 @@ class AgendamentoService
         $fim = $inicio->copy()->addMinutes($duracao);
 
         /**
-         * O mutex vai por PROFISSIONAL E DIA, não pelo horário pedido: dois
-         * agendamentos que se sobrepõem sem coincidir de início (09:00 e 09:15)
-         * precisam cair no mesmo lock, e travar pelo horário exato deixaria os
-         * dois passarem.
+         * O mutex vai por CLÍNICA, PROFISSIONAL E DIA, não pelo horário pedido:
+         * dois agendamentos que se sobrepõem sem coincidir de início (09:00 e
+         * 09:15) precisam cair no mesmo lock, e travar pelo horário exato deixaria
+         * os dois passarem.
          *
-         * E é um lock, e não `lockForUpdate()` na consulta de conflito: um
-         * `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda não
-         * existe, então os dois "não há conflito" aconteciam mesmo assim. O lock é
-         * o que segura; a transação mantém checagem e gravação no mesmo passo, e
-         * o índice único da chave de idempotência é a rede final se tudo acima
-         * falhar.
+         * A chave inclui o tenant (clinica_id) para impedir que locks sejam
+         * compartilhados entre clínicas quando o cache é compartilhado (banco
+         * de dados). É um lock, e não `lockForUpdate()` na consulta de conflito:
+         * um `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda
+         * não existe, então os dois "não há conflito" aconteciam mesmo assim.
+         * O lock é o que segura; a transação mantém checagem e gravação no mesmo
+         * passo, e o índice único da chave de idempotência é a rede final se
+         * tudo acima falhar.
          */
         $consulta = Cache::lock(
-            "agenda:{$dados['profissional_id']}:{$inicio->toDateString()}",
+            $this->chaveDoLock((int) $dados['profissional_id'], $inicio->toDateString()),
             10,
         )->block(5, fn (): Appointment => DB::transaction(function () use ($dados, $chave, $inicio, $fim, $statusId): Appointment {
             $conflito = Appointment::query()
@@ -110,5 +112,19 @@ class AgendamentoService
         return Appointment::query()
             ->where('idempotency_key', $chave)
             ->first();
+    }
+
+    /**
+     * Chave do lock de agenda: clínica, profissional e dia.
+     *
+     * A clínica entra na chave pelo helper de tenant, e não à mão: a chave é
+     * o que impede que o lock de uma clínica trave a agenda de outra quando o
+     * cache é compartilhado (banco de dados). Fica num método só para que a
+     * garantia possa ser conferida por teste, em vez de espalhada em string
+     * montada dentro da transação.
+     */
+    public function chaveDoLock(int $profissionalId, string $dia): string
+    {
+        return tenant_cache_key("agenda:prof:{$profissionalId}:{$dia}");
     }
 }

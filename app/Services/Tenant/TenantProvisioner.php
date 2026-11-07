@@ -69,6 +69,15 @@ class TenantProvisioner
 
                     'primary_color' => $attributes['primary_color'] ?? '#0b7285',
                     'secondary_color' => $attributes['secondary_color'] ?? '#0ca678',
+
+                    /**
+                     * A vertical decide quais módulos a clínica enxerga. O
+                     * padrão é odontologia — é o que a clínica já em uso é — e
+                     * nada é removido do banco por causa disso.
+                     */
+                    'vertical' => $attributes['vertical'] ?? VerticalManager::ODONTOLOGIA,
+                    'verticals' => $attributes['verticals'] ?? null,
+
                     'status' => $plan->trial_days > 0 ? 'trial' : 'active',
                     'trial_ends_at' => $plan->trial_days > 0 ? now()->addDays($plan->trial_days) : null,
                     'is_active' => true,

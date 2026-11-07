@@ -17,10 +17,20 @@ class PrescricaoController extends Controller
     {
         $this->authorize('prontuario.view');
 
-        $profissionais = Professional::where('tipo', 'dentista')->orderBy('nome')->get();
+        /**
+         * Prescrição é documento de qualquer profissional habilitado da
+         * clínica. O filtro antigo (`tipo = dentista`) deixava a fisioterapia
+         * sem profissional na receita; agora vale o profissional logado e, se
+         * ele não tiver cadastro, o primeiro ativo da clínica.
+         */
+        $profissional = Professional::query()
+            ->where('user_id', auth()->id())
+            ->first()
+            ?? Professional::query()->where('is_active', true)->orderBy('nome')->first();
+
         $prescricoes = $paciente->prescricoes()->with('items')->latest('data')->latest('id')->get();
 
-        return view('prescricoes.index', compact('paciente', 'prescricoes', 'profissionais'));
+        return view('prescricoes.index', compact('paciente', 'prescricoes', 'profissional'));
     }
 
     public function store(PrescricaoStoreRequest $request, Paciente $paciente): RedirectResponse

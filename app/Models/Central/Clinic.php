@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
     'evolution_instance', 'evolution_token',
     'logo_path', 'primary_color', 'secondary_color',
-    'status', 'timezone', 'is_active', 'trial_ends_at',
+    'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',
     'suspended_at', 'suspension_reason',
 ])]
 class Clinic extends CentralModel
@@ -35,6 +35,13 @@ class Clinic extends CentralModel
             'is_active' => 'boolean',
             'trial_ends_at' => 'datetime',
             'suspended_at' => 'datetime',
+
+            /**
+             * Lista de verticais habilitadas (fisioterapia, pilates, laser).
+             * Nula significa "usar apenas a vertical primária" — o
+             * VerticalManager faz esse fallback.
+             */
+            'verticals' => 'array',
 
             /**
              * O token da instância é usado em claro na chamada, então não pode

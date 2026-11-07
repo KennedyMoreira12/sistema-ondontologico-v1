@@ -24,9 +24,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('painel')->name('painel.')->group(function (): void {
     /**
      * O painel não tem mais tela de login própria: a entrada é a mesma tela de
-     * /login, cujo formulário tenta o guard dmin antes do web. Esta rota
-     * sobra só para links antigos e para o
-edirectGuestsTo do bootstrap, e
+     * /login, cujo formulário tenta o guard `admin` antes do `web`. Esta rota
+     * sobra só para links antigos e para o `redirectGuestsTo` do bootstrap, e
      * por isso redireciona em vez de 404.
      */
     Route::middleware('guest:admin')->group(function (): void {

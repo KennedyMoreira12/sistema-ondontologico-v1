@@ -207,7 +207,9 @@ class TratamentoPlanoController extends Controller
 
         $dados = [
             'procedure_id' => $procedure->id,
-            'dente' => $request->filled('dente') ? $request->integer('dente') : null,
+            'dente' => vertical_permite('odontograma') && $request->filled('dente')
+                ? $request->integer('dente')
+                : null,
             'quantidade' => $quantidade,
             'valor_unitario' => $valorUnitario,
             'desconto' => $desconto,

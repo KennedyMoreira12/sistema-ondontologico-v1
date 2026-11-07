@@ -35,7 +35,7 @@
                         @csrf
                         <div class="col-md-4">
                             <label for="titulo" class="form-label">Título do plano *</label>
-                            <input type="text" id="titulo" name="titulo" class="form-control" placeholder="Ex.: Reabilitação dentária" value="{{ old('titulo') }}" required>
+                            <input type="text" id="titulo" name="titulo" class="form-control" placeholder="{{ vertical_permite('odontograma') ? 'Ex.: Reabilitação dentária' : 'Ex.: Plano de reabilitação funcional' }}" value="{{ old('titulo') }}" required>
                         </div>
                         <div class="col-md-5">
                             <label for="descricao" class="form-label">Descrição</label>

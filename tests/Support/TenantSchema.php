@@ -60,15 +60,22 @@ final class TenantSchema
 
     protected static function construir(string $path): void
     {
-        self::prepararDiretorio($path);
-        @unlink($path);
-        touch($path);
+        // O template é montado num arquivo temporário e só entra no lugar no
+        // final. Montar por cima do arquivo definitivo deixava uma janela em
+        // que ele estava vazio: outra suíte rodando ao mesmo tempo copiava
+        // um template sem tabela nenhuma e o erro aparecia longe da causa
+        // ("no such table: roles" em um teste que nada tinha a ver).
+        $temporario = $path.'.construindo';
+
+        self::prepararDiretorio($temporario);
+        @unlink($temporario);
+        touch($temporario);
 
         $configAnterior = config('database.connections.tenant');
 
         Config::set('database.connections.tenant', [
             'driver' => 'sqlite',
-            'database' => $path,
+            'database' => $temporario,
             'prefix' => '',
             'prefix_indexes' => true,
             'foreign_key_constraints' => true,
@@ -88,8 +95,20 @@ final class TenantSchema
         Config::set('database.connections.tenant', $configAnterior);
 
         if ($codigo !== 0) {
+            @unlink($temporario);
+
             throw new RuntimeException(
                 "As migrations de tenant falharam (exit {$codigo}):\n".$saida->fetch()
+            );
+        }
+
+        if (! @rename($temporario, $path)) {
+            @unlink($temporario);
+
+            throw new RuntimeException(
+                "Não foi possível atualizar o template do schema tenant em {$path}. "
+                .'A outra causa é outra suíte de testes rodando ao mesmo tempo: '
+                .'o Windows não renomeia por cima de arquivo aberto por outro processo.'
             );
         }
 

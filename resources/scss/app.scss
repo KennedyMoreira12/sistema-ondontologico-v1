@@ -108,6 +108,49 @@ body {
 }
 
 /* ==========================================================================
+   ACESSIBILIDADE E CELULAR
+   Atalho para o conteúdo, cortina atrás do menu no celular e foco visível
+   para quem navega pelo teclado.
+   ========================================================================== */
+.sco-skip-link {
+    position: absolute;
+    top: 0;
+    left: -9999px;
+    z-index: 2000;
+    padding: 0.6rem 1rem;
+    background: var(--sco-accent);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 0 0 $border-radius 0;
+
+    &:focus {
+        left: 0;
+    }
+}
+
+/* Cortina do menu no celular. O atributo `hidden` esconde a cortina; o
+   JavaScript do layout mostra e esconde conforme o menu abre e fecha. */
+.sco-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgba($lj-azul-profundo, 0.45);
+}
+
+.sco-sidebar-close {
+    flex: none;
+    margin-left: auto;
+    padding: 0.15rem 0.4rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--sco-accent);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
    MARCA
    O quadradinho com gradiente é a assinatura da logo — repete no topo do
    menu, no botão do usuário e nos ícones de destaque.
@@ -169,11 +212,11 @@ body {
         border-bottom: 1px solid var(--sco-borda);
 
         .brand-name {
-            /* O nome da clinica pode ser longo: quebra em quantas linhas forem
-               necessarias em vez de aparecer cortado com reticencias. O
+            /* O nome da clínica pode ser longo: quebra em quantas linhas forem
+               necessárias em vez de aparecer cortado com reticências. O
                min-width: 0 libera o item flex para encolher dentro da largura
                fixa do menu, e o overflow-wrap evita estourar com palavras
-               longas sem espaco. */
+               longas sem espaço. */
             min-width: 0;
             overflow-wrap: anywhere;
         }
@@ -243,6 +286,40 @@ body {
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--sco-texto-tenue);
+    }
+}
+
+.sco-sidebar.sco-collapsed {
+    width: 64px;
+
+    .sidebar-brand {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+
+        .brand-name {
+            /* Menu recolhido é só ícone: esconde o nome para não amassá-lo
+               em 64px de largura. */
+            display: none;
+        }
+
+        .nav-link {
+            justify-content: center;
+
+            i {
+                font-size: 1.25rem;
+                width: auto;
+                color: var(--sco-texto-tenue);
+
+                &:hover {
+                    color: var(--sco-accent);
+                }
+            }
+        }
+
+        .nav-section-title {
+            display: none;
+        }
     }
 }
 

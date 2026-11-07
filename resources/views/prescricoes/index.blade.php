@@ -20,9 +20,6 @@
                 <p class="text-muted small mb-0">Receituário clínico do paciente</p>
             </div>
         </div>
-        <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
-            <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
-        </a>
     </div>
 
     <div class="row g-4 no-print">
@@ -40,7 +37,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="receita_profissional" class="form-label">Profissional</label>
-                                    <input type="text" id="receita_profissional" class="form-control" value="{{ $profissionais->first()?->nome ?? '—' }}" disabled>
+                                    <input type="text" id="receita_profissional" class="form-control" value="{{ $profissional?->nome ?? '—' }}" disabled>
                                 </div>
 
                                 <div class="col-12">

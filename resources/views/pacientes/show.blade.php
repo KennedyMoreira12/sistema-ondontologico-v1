@@ -26,10 +26,33 @@
         </div>
         <div class="d-flex gap-2">
             @can('odontograma.view')
-                <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
-                </a>
+                @if (vertical_permite('odontograma'))
+                    <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
+                    </a>
+                @endif
             @endcan
+            @if (vertical_permite('avaliacao'))
+                @can('avaliacao.view')
+                    <a href="{{ route('pacientes.avaliacoes.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-clipboard2-pulse me-1"></i>Avaliação
+                    </a>
+                @endcan
+            @endif
+            @if (vertical_permite('evolucao'))
+                @can('evolucao.view')
+                    <a href="{{ route('pacientes.evolucoes-sessao.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-activity me-1"></i>Evolução
+                    </a>
+                @endcan
+            @endif
+            @if (vertical_permite('pacotes'))
+                @can('pacotes.view')
+                    <a href="{{ route('pacientes.pacotes.index', $paciente) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-box-seam me-1"></i>Pacotes
+                    </a>
+                @endcan
+            @endif
             @can('tratamentos.view')
                 <a href="{{ route('pacientes.planos.index', $paciente) }}" class="btn btn-outline-primary">
                     <i class="bi bi-clipboard2-pulse me-1"></i>Planos

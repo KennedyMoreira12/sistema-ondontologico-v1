@@ -178,10 +178,12 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label for="item_dente" class="form-label">Dente</label>
-                            <input type="number" id="item_dente" name="dente" class="form-control" min="11" max="48" placeholder="Ex.: 26">
-                        </div>
+                        @if (vertical_permite('odontograma'))
+                            <div class="col-md-2">
+                                <label for="item_dente" class="form-label">Dente</label>
+                                <input type="number" id="item_dente" name="dente" class="form-control" min="11" max="48" placeholder="Ex.: 26">
+                            </div>
+                        @endif
                         <div class="col-md-1">
                             <label for="item_quantidade" class="form-label">Qtd</label>
                             <input type="number" id="item_quantidade" name="quantidade" class="form-control" min="1" value="1" required>
@@ -211,7 +213,9 @@
                 <thead class="table-light">
                     <tr>
                         <th>Procedimento</th>
-                        <th>Dente</th>
+                        @if (vertical_permite('odontograma'))
+                            <th>Dente</th>
+                        @endif
                         <th class="text-center">Qtd</th>
                         <th class="text-end">Valor unit.</th>
                         <th class="text-end">Desc.</th>
@@ -228,7 +232,9 @@
                                     <span class="text-muted small">({{ $item->procedure->codigo }})</span>
                                 @endif
                             </td>
-                            <td>{{ $item->dente ?? '—' }}</td>
+                            @if (vertical_permite('odontograma'))
+                                <td>{{ $item->dente ?? '—' }}</td>
+                            @endif
                             <td class="text-center">{{ $item->quantidade }}</td>
                             <td class="text-end">R$ {{ number_format($item->valor_unitario, 2, ',', '.') }}</td>
                             <td class="text-end text-danger">{{ $item->desconto ? 'R$ '.number_format($item->desconto, 2, ',', '.') : '—' }}</td>

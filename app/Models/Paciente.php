@@ -59,6 +59,30 @@ class Paciente extends TenantModel
         return $this->hasMany(ClinicalNote::class);
     }
 
+    /**
+     * Fichas de avaliação da fisioterapia.
+     */
+    public function avaliacoes(): HasMany
+    {
+        return $this->hasMany(Avaliacao::class);
+    }
+
+    /**
+     * Evoluções por sessão da fisioterapia (uma por atendimento).
+     */
+    public function evolucoesSessao(): HasMany
+    {
+        return $this->hasMany(EvolucaoSessao::class);
+    }
+
+    /**
+     * Pacotes de sessões contratados.
+     */
+    public function pacotesSessao(): HasMany
+    {
+        return $this->hasMany(PacoteSessao::class);
+    }
+
     public function planosTratamento(): HasMany
     {
         return $this->hasMany(TreatmentPlan::class);

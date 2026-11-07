@@ -63,11 +63,7 @@ class DemoSeederTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tenantsDir.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
-            @unlink($arquivo);
-        }
-
-        @rmdir($this->tenantsDir);
+        $this->apagarPastaDeBancosDeTeste($this->tenantsDir);
 
         parent::tearDown();
     }
@@ -85,7 +81,7 @@ class DemoSeederTest extends TestCase
 
         // O seeder não pode deixar a clínica pela metade: oROLL de agenda precisa
         // ter quem atenda e onde atender.
-        $this->assertSame(6, Role::count());
+        $this->assertSame(9, Role::count());
         $this->assertGreaterThan(0, $this->contabilidade('rooms'));
     }
 
@@ -184,7 +180,7 @@ class DemoSeederTest extends TestCase
         $this->conectar($this->clinica());
 
         $this->assertSame(0, $this->contabilidade('pacientes'));
-        $this->assertSame(6, Role::count(), 'Os papéis e permissões devem continuar sendo semeados.');
+        $this->assertSame(9, Role::count(), 'Os papéis e permissões devem continuar sendo semeados.');
     }
 
     /**

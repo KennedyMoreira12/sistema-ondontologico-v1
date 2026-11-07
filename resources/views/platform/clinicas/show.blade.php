@@ -21,7 +21,14 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 class="h4 mb-0">{{ $clinica->name }}</h1>
+            <h1 class="h4 mb-0">
+                {{ $clinica->name }}
+                @foreach ($clinica->verticals ?: [$clinica->vertical ?? 'odontologia'] as $vertical)
+                    <span class="badge bg-light text-dark border align-middle">
+                        {{ \App\Services\Tenant\VerticalManager::rotulo($vertical) }}
+                    </span>
+                @endforeach
+            </h1>
             <p class="text-muted small mb-0">
                 {{ $clinica->email }}
                 @if ($clinica->document) — {{ $clinica->document }} @endif

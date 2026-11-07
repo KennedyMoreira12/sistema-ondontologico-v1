@@ -133,7 +133,9 @@ class OrcamentoController extends Controller
 
         $item = $orcamento->items()->create([
             'procedure_id' => $procedure->id,
-            'dente' => $request->filled('dente') ? $request->integer('dente') : null,
+            'dente' => vertical_permite('odontograma') && $request->filled('dente')
+                ? $request->integer('dente')
+                : null,
             'descricao' => $request->filled('descricao') ? $request->string('descricao')->toString() : null,
             'quantidade' => $quantidade,
             'valor_unitario' => $valorUnitario,

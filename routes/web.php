@@ -2,19 +2,25 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ClinicaController;
+use App\Http\Controllers\Admin\FiscalController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\Api\EvolutionQrController;
+use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
+use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\ModuloPlanejadoController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PacienteImportacaoController;
+use App\Http\Controllers\PacoteSessaoController;
 use App\Http\Controllers\PrescricaoController;
 use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
@@ -33,6 +39,28 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Tela padrão de módulo planejado. Um módulo que já está disponível
+    // redireciona para a própria tela; um módulo de outra vertical é recusado
+    // aqui e no servidor.
+    Route::get('/modulos/{modulo}', [ModuloPlanejadoController::class, '__invoke'])->name('modulos.planejado');
+
+    /**
+     * Pilates: turmas, horários e controle de vagas.
+     * A tela real entra na Etapa 5; até lá, leva para a tela planejada,
+     * protegida pelo middleware `vertical:pilates`.
+     */
+    Route::prefix('pilates/turmas')->name('turmas_pilates.')->middleware('vertical:pilates')->group(function () {
+        Route::get('/', [ModuloPlanejadoController::class, '__invoke'])->name('index');
+    });
+
+    /**
+     * Depilação a laser: regiões corporais, pacotes e sessões.
+     * A tela real entra na Etapa 6.
+     */
+    Route::prefix('laser/regioes')->name('regioes_laser.')->middleware('vertical:laser')->group(function () {
+        Route::get('/', [ModuloPlanejadoController::class, '__invoke'])->name('index');
+    });
 
     Route::prefix('agenda')->name('agenda.')->group(function () {
         Route::get('/', [AgendaController::class, 'index'])->name('index');
@@ -143,14 +171,55 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/{paciente}/documentos/{documento}/download', [PacienteController::class, 'downloadDocumento'])->name('documentos.download');
         Route::delete('/{paciente}/documentos/{documento}', [PacienteController::class, 'destroyDocumento'])->name('documentos.destroy');
 
-        Route::get('/{paciente}/odontograma', [OdontogramaController::class, 'index'])->name('odontograma.index');
-        Route::get('/{paciente}/odontograma/dados', [OdontogramaController::class, 'dados'])->name('odontograma.dados');
-        Route::get('/{paciente}/odontograma/historico', [OdontogramaController::class, 'historico'])->name('odontograma.historico');
-        Route::put('/{paciente}/odontograma', [OdontogramaController::class, 'update'])->name('odontograma.settings');
-        Route::put('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'updateTooth'])->name('odontograma.tooth.update');
-        Route::delete('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'destroyTooth'])->name('odontograma.tooth.destroy');
-        Route::post('/{paciente}/odontograma/dente/{dente}/condicoes', [OdontogramaController::class, 'storeCondition'])->name('odontograma.condition.store');
-        Route::delete('/{paciente}/odontograma/dente/{dente}/condicoes/{condicao}', [OdontogramaController::class, 'destroyCondition'])->name('odontograma.condition.destroy');
+        Route::get('/{paciente}/odontograma', [OdontogramaController::class, 'index'])->middleware('vertical:odontograma')->name('odontograma.index');
+        Route::get('/{paciente}/odontograma/dados', [OdontogramaController::class, 'dados'])->middleware('vertical:odontograma')->name('odontograma.dados');
+        Route::get('/{paciente}/odontograma/historico', [OdontogramaController::class, 'historico'])->middleware('vertical:odontograma')->name('odontograma.historico');
+        Route::put('/{paciente}/odontograma', [OdontogramaController::class, 'update'])->middleware('vertical:odontograma')->name('odontograma.settings');
+        Route::put('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'updateTooth'])->middleware('vertical:odontograma')->name('odontograma.tooth.update');
+        Route::delete('/{paciente}/odontograma/dente/{dente}', [OdontogramaController::class, 'destroyTooth'])->middleware('vertical:odontograma')->name('odontograma.tooth.destroy');
+        Route::post('/{paciente}/odontograma/dente/{dente}/condicoes', [OdontogramaController::class, 'storeCondition'])->middleware('vertical:odontograma')->name('odontograma.condition.store');
+        Route::delete('/{paciente}/odontograma/dente/{dente}/condicoes/{condicao}', [OdontogramaController::class, 'destroyCondition'])->middleware('vertical:odontograma')->name('odontograma.condition.destroy');
+
+        /**
+         * Núcleo da fisioterapia: ficha de avaliação, evolução por sessão e
+         * pacotes de sessões. As três rotas são exclusivas da vertical de
+         * fisioterapia — uma clínica odontológica não abre nem digitando a URL.
+         */
+        Route::prefix('{paciente}/avaliacoes')->name('avaliacoes.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [AvaliacaoController::class, 'index'])->name('index');
+            Route::get('/create', [AvaliacaoController::class, 'create'])->name('create');
+            Route::post('/', [AvaliacaoController::class, 'store'])->name('store');
+            Route::get('/{avaliacao}', [AvaliacaoController::class, 'show'])->name('show');
+            Route::get('/{avaliacao}/edit', [AvaliacaoController::class, 'edit'])->name('edit');
+            Route::put('/{avaliacao}', [AvaliacaoController::class, 'update'])->name('update');
+            Route::post('/{avaliacao}/finalizar', [AvaliacaoController::class, 'finalize'])->name('finalize');
+        });
+
+        /**
+         * Evolução por sessão: um registro por atendimento, assinado pelo
+         * profissional. Quando assinado, não muda mais.
+         */
+        Route::prefix('{paciente}/evolucoes-sessao')->name('evolucoes-sessao.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [EvolucaoSessaoController::class, 'index'])->name('index');
+            Route::get('/create', [EvolucaoSessaoController::class, 'create'])->name('create');
+            Route::post('/', [EvolucaoSessaoController::class, 'store'])->name('store');
+            Route::get('/{evolucao}/edit', [EvolucaoSessaoController::class, 'edit'])->name('edit');
+            Route::put('/{evolucao}', [EvolucaoSessaoController::class, 'update'])->name('update');
+            Route::post('/{evolucao}/finalizar', [EvolucaoSessaoController::class, 'finalize'])->name('finalize');
+        });
+
+        /**
+         * Pacotes de sessões: o consumo é transacional e nunca deixa o saldo
+         * negativo, mesmo com duas atendentes marcando sessão ao mesmo tempo.
+         */
+        Route::prefix('{paciente}/pacotes')->name('pacotes.')->middleware('vertical:fisioterapia')->group(function () {
+            Route::get('/', [PacoteSessaoController::class, 'index'])->name('index');
+            Route::get('/create', [PacoteSessaoController::class, 'create'])->name('create');
+            Route::post('/', [PacoteSessaoController::class, 'store'])->name('store');
+            Route::get('/{pacote}', [PacoteSessaoController::class, 'show'])->name('show');
+            Route::post('/{pacote}/consumir', [PacoteSessaoController::class, 'consumir'])->name('consumir');
+            Route::delete('/{pacote}', [PacoteSessaoController::class, 'destroy'])->name('destroy');
+        });
 
         Route::get('/{paciente}/prescricoes', [PrescricaoController::class, 'index'])->name('prescricoes.index');
         Route::post('/{paciente}/prescricoes', [PrescricaoController::class, 'store'])->name('prescricoes.store');
@@ -184,8 +253,24 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('permissoes', [PermissionController::class, 'index'])->name('permissoes.index');
         Route::get('clinica', [ClinicaController::class, 'edit'])->name('clinica.edit');
         Route::put('clinica', [ClinicaController::class, 'update'])->name('clinica.update');
-        Route::get('evolution/qr', [\App\Http\Controllers\Api\EvolutionQrController::class, 'show'])->name('evolution.qr');
-        Route::get('test/evolution/qr', [\App\Http\Controllers\Api\EvolutionQrController::class, 'show'])->name('test.evolution.qr');
+
+        Route::get('fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
+        Route::put('fiscal/config', [FiscalController::class, 'updateConfig'])->name('fiscal.config.update');
+        Route::post('fiscal/register', [FiscalController::class, 'register'])->name('fiscal.register');
+        Route::post('fiscal/readiness', [FiscalController::class, 'syncReadiness'])->name('fiscal.readiness');
+
+        Route::prefix('fiscal/nfse')->name('fiscal.nfse.')->group(function () {
+            Route::get('/', [FiscalController::class, 'nfseIndex'])->name('index');
+            Route::get('/{nfse}', [FiscalController::class, 'nfseShow'])->name('show');
+            Route::post('/{nfse}/preview', [FiscalController::class, 'nfsePreview'])->name('preview');
+            Route::post('/{nfse}/emit', [FiscalController::class, 'nfseEmit'])->name('emit');
+            Route::post('/{nfse}/cancel', [FiscalController::class, 'nfseCancel'])->name('cancel');
+            Route::get('/{nfse}/pdf', [FiscalController::class, 'nfsePdf'])->name('pdf');
+            Route::get('/{nfse}/xml', [FiscalController::class, 'nfseXml'])->name('xml');
+        });
+
+        Route::get('evolution/qr', [EvolutionQrController::class, 'show'])->name('evolution.qr');
+        Route::get('test/evolution/qr', [EvolutionQrController::class, 'show'])->name('test.evolution.qr');
         Route::get('auditoria', [AuditLogController::class, 'index'])->name('auditoria.index');
     });
 });
@@ -194,7 +279,7 @@ require __DIR__.'/auth.php';
 
 // Módulo Fiscal
 Route::middleware(['auth', 'tenant'])->group(function () {
-    Route::prefix('fiscal')->name('fiscal.')->controller(\App\Http\Controllers\FiscalController::class)->group(function () {
+    Route::prefix('fiscal')->name('fiscal.')->controller(App\Http\Controllers\FiscalController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/nova', 'create')->name('create');
         Route::post('/', 'store')->name('store');

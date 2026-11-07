@@ -4,6 +4,7 @@ namespace App\Http\Requests\Platform;
 
 use App\Models\Central\AdminUser;
 use App\Models\Central\Clinic;
+use App\Services\Tenant\VerticalManager;
 use App\Support\EvolutionInstance;
 use App\Support\EvolutionToken;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,6 +32,27 @@ class ClinicUpdateRequest extends FormRequest
         if ($this->has('evolution_token')) {
             $this->merge([
                 'evolution_token' => EvolutionToken::normalize($this->input('evolution_token')),
+            ]);
+        }
+
+        /**
+         * O formulário novo manda `verticals_present` e a lista de verticais
+         * habilitadas. A vertical primária entra sempre na lista.
+         */
+        if ($this->boolean('verticals_present')) {
+            $verticals = $this->input('verticals', []);
+            $verticals = is_array($verticals)
+                ? array_filter($verticals, fn (mixed $vertical): bool => is_string($vertical))
+                : [];
+
+            $primaria = $this->input('vertical');
+
+            if (! is_string($primaria) || $primaria === '') {
+                $primaria = $this->route('clinic')?->vertical ?: VerticalManager::ODONTOLOGIA;
+            }
+
+            $this->merge([
+                'verticals' => array_values(array_unique([...$verticals, $primaria])),
             ]);
         }
     }
@@ -67,6 +89,16 @@ class ClinicUpdateRequest extends FormRequest
 
             'timezone' => ['required', 'timezone'],
             'status' => ['required', Rule::in(array_keys(config('tenancy.clinic_states')))],
+
+            /**
+             * A vertical define quais módulos a clínica enxerga. Trocá-la não
+             * apaga nada: as tabelas de odontologia continuam lá para a clínica
+             * de fisioterapia, e as de fisioterapia para a odontológica.
+             */
+            'vertical' => ['nullable', Rule::in(VerticalManager::VERTICAIS)],
+            'verticals' => ['nullable', 'array'],
+            'verticals.*' => ['string', Rule::in(VerticalManager::VERTICAIS)],
+
             'is_active' => ['nullable', 'boolean'],
             'suspension_reason' => ['nullable', 'string', 'max:255'],
         ];
@@ -92,6 +124,8 @@ class ClinicUpdateRequest extends FormRequest
         return [
             'status.in' => 'Estado de clínica inválido.',
             'timezone.timezone' => 'Fuso horário inválido.',
+            'vertical.in' => 'Vertical inválida.',
+            'verticals.*.in' => 'Vertical habilitada inválida.',
             ...EvolutionInstance::messages(),
             ...EvolutionToken::messages(),
         ];

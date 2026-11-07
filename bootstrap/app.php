@@ -5,6 +5,7 @@ use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminIsActive;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantAccess;
+use App\Http\Middleware\EnsureVertical;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -32,6 +33,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         /**
+         * Quando o app roda atras de um tunel local (ngrok/cloudflared) ou de um
+         * nginx na mesma maquina, o HTTPS termina no proxy e o PHP so enxerga
+         * HTTP. Sem confiar nos cabecalhos `X-Forwarded-*` o `route()` gera
+         * `http://` no meio de uma pagina `https://`, e o navegador bloqueia
+         * formulario e asset como conteudo misto.
+         *
+         * A confianca e restrita ao loopback: so o proxy que fala com o PHP
+         * pelo proprio servidor pode reescrever o esquema/host. Um cliente
+         * remoto que mande `X-Forwarded-Proto` na mao continua ignorado.
+         */
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
+        /**
          * Identificador de correlação em toda chamada de API. Fica no começo do
          * grupo para que até a recusa de autenticação seja rastreável pelo
          * mesmo id que volta no header.
@@ -41,6 +55,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'tenant.access' => EnsureTenantAccess::class,
+            'vertical' => EnsureVertical::class,
             'plan' => CheckPlanFeature::class,
             'platform.active' => EnsurePlatformAdminIsActive::class,
             'superadmin' => EnsureSuperAdmin::class,

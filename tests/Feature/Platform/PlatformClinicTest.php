@@ -43,11 +43,7 @@ class PlatformClinicTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tenantsDir.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
-            @unlink($arquivo);
-        }
-
-        @rmdir($this->tenantsDir);
+        $this->apagarPastaDeBancosDeTeste($this->tenantsDir);
 
         parent::tearDown();
     }
@@ -178,6 +174,145 @@ class PlatformClinicTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseCount('clinics', 0);
+    }
+
+    public function test_clinica_nova_nasce_odontologica(): void
+    {
+        $plano = $this->plano();
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('painel.clinicas.store'), [
+                'name' => 'Clínica Sem Vertical',
+                'email' => 'sem.vertical@teste.test',
+                'admin_name' => 'Admin',
+                'admin_email' => 'admin.sem.vertical@teste.test',
+                'plan_id' => $plano->id,
+            ]);
+
+        $clinica = Clinic::query()->where('email', 'sem.vertical@teste.test')->firstOrFail();
+
+        // Odontologia é o padrão: é o que a clínica já em uso é, e o que não
+        // pode mudar de perfil sozinha.
+        $this->assertSame('odontologia', $clinica->vertical);
+    }
+
+    public function test_cria_clinica_de_fisioterapia(): void
+    {
+        $plano = $this->plano();
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('painel.clinicas.store'), [
+                'name' => 'Clínica de Fisioterapia',
+                'email' => 'fisio@teste.test',
+                'admin_name' => 'Fisio',
+                'admin_email' => 'admin.fisio@teste.test',
+                'plan_id' => $plano->id,
+                'vertical' => 'fisioterapia',
+            ])
+            ->assertRedirect();
+
+        $clinica = Clinic::query()->where('email', 'fisio@teste.test')->firstOrFail();
+
+        $this->assertSame('fisioterapia', $clinica->vertical);
+    }
+
+    public function test_vertical_invalida_e_recusada(): void
+    {
+        $plano = $this->plano();
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('painel.clinicas.store'), [
+                'name' => 'Clínica Vertical Inventada',
+                'email' => 'inventada@teste.test',
+                'admin_name' => 'Admin',
+                'admin_email' => 'admin.inventada@teste.test',
+                'plan_id' => $plano->id,
+                'vertical' => 'podologia',
+            ])
+            ->assertSessionHasErrors('vertical');
+
+        $this->assertDatabaseMissing('clinics', ['email' => 'inventada@teste.test']);
+    }
+
+    public function test_atualiza_a_vertical_da_clinica(): void
+    {
+        ['clinic' => $clinica] = $this->criarClinica();
+
+        $this->actingAs($this->admin, 'admin')
+            ->put(route('painel.clinicas.update', $clinica), [
+                'name' => $clinica->name,
+                'email' => $clinica->email,
+                'timezone' => 'America/Sao_Paulo',
+                'status' => 'active',
+                'vertical' => 'fisioterapia',
+            ])
+            ->assertRedirect(route('painel.clinicas.show', $clinica));
+
+        $this->assertSame('fisioterapia', $clinica->refresh()->vertical);
+    }
+
+    public function test_atualiza_as_verticais_habilitadas_da_clinica(): void
+    {
+        ['clinic' => $clinica] = $this->criarClinica();
+
+        $this->actingAs($this->admin, 'admin')
+            ->put(route('painel.clinicas.update', $clinica), [
+                'name' => $clinica->name,
+                'email' => $clinica->email,
+                'timezone' => 'America/Sao_Paulo',
+                'status' => 'active',
+                'vertical' => 'fisioterapia',
+                'verticals_present' => '1',
+                'verticals' => ['fisioterapia', 'pilates', 'laser'],
+            ])
+            ->assertRedirect(route('painel.clinicas.show', $clinica));
+
+        $this->assertSame(
+            ['fisioterapia', 'pilates', 'laser'],
+            $clinica->refresh()->verticals,
+        );
+    }
+
+    public function test_vertical_principal_entra_na_lista_mesmo_sem_ser_marcada(): void
+    {
+        ['clinic' => $clinica] = $this->criarClinica();
+
+        $this->actingAs($this->admin, 'admin')
+            ->put(route('painel.clinicas.update', $clinica), [
+                'name' => $clinica->name,
+                'email' => $clinica->email,
+                'timezone' => 'America/Sao_Paulo',
+                'status' => 'active',
+                'vertical' => 'laser',
+                'verticals_present' => '1',
+                'verticals' => ['pilates'],
+            ])
+            ->assertRedirect(route('painel.clinicas.show', $clinica));
+
+        $this->assertSame(
+            ['pilates', 'laser'],
+            $clinica->refresh()->verticals,
+            'A vertical principal precisa entrar na lista mesmo quando não marcada.',
+        );
+    }
+
+    public function test_vertical_habilitada_invalida_e_recusada(): void
+    {
+        ['clinic' => $clinica] = $this->criarClinica();
+
+        $this->actingAs($this->admin, 'admin')
+            ->put(route('painel.clinicas.update', $clinica), [
+                'name' => $clinica->name,
+                'email' => $clinica->email,
+                'timezone' => 'America/Sao_Paulo',
+                'status' => 'active',
+                'vertical' => 'odontologia',
+                'verticals_present' => '1',
+                'verticals' => ['podologia'],
+            ])
+            ->assertSessionHasErrors('verticals.0');
+
+        $this->assertNull($clinica->refresh()->verticals);
     }
 
     public function test_atualiza_o_estado_da_clinica(): void

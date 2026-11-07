@@ -36,13 +36,79 @@ abstract class TestCase extends BaseTestCase
         $this->prepararBancoTenant();
     }
 
+    /**
+     * Bancos de teste que este teste criou e que precisam sumir no fim.
+     *
+     * A lista mora aqui, e não no trait `CreatesTenants`, porque o PHP
+     * prefere o `tearDown` da classe ao do trait: quando a classe define o
+     * próprio `tearDown`, o método do trait é descartado em silêncio e os
+     * arquivos das clínicas ficavam para trás.
+     *
+     * @var array<int, string>
+     */
+    protected array $bancosDeTeste = [];
+
     protected function tearDown(): void
     {
-        if (isset($this->tenantFile) && is_file($this->tenantFile)) {
-            @unlink($this->tenantFile);
+        $this->apagarBancosRegistados();
+
+        if (isset($this->tenantFile)) {
+            $this->apagarBancoDeTeste($this->tenantFile);
         }
 
         parent::tearDown();
+    }
+
+    /**
+     * Apaga todos os bancos que o teste registrou em `bancosDeTeste`.
+     */
+    protected function apagarBancosRegistados(): void
+    {
+        foreach ($this->bancosDeTeste as $arquivo) {
+            $this->apagarBancoDeTeste($arquivo);
+        }
+
+        $this->bancosDeTeste = [];
+    }
+
+    /**
+     * Apaga um banco de teste, fechando a conexão antes.
+     *
+     * O Windows não apaga arquivo com handle aberto. Sem fechar a conexão
+     * primeiro, o `unlink` falhava em silêncio — o `@` escondia o erro — e cada
+     * teste deixava um `.sqlite` de ~360 KB para trás. Em algumas semanas de
+     * suíte eram 14 mil arquivos e 5,8 GB ocupados em
+     * `storage/framework/testing`, que ninguém sabia de onde vinham.
+     *
+     * Por isso o `purge` vem ANTES do `unlink`.
+     */
+    protected function apagarBancoDeTeste(string $caminho): void
+    {
+        DB::purge('tenant');
+
+        if (is_file($caminho)) {
+            @unlink($caminho);
+        }
+    }
+
+    /**
+     * Apaga a pasta com os bancos das clínicas de teste, e a pasta junto.
+     *
+     * Mesma razão de `apagarBancoDeTeste`: o arquivo da clínica fica com o
+     * handle aberto pela conexão `tenant`, e o `rmdir` só consegue remover a
+     * pasta depois que o arquivo sai.
+     */
+    protected function apagarPastaDeBancosDeTeste(string $diretorio): void
+    {
+        DB::purge('tenant');
+
+        foreach (glob($diretorio.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
+            if (is_file($arquivo)) {
+                @unlink($arquivo);
+            }
+        }
+
+        @rmdir($diretorio);
     }
 
     /**

@@ -6,8 +6,15 @@ use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 /**
- * Perfil operacional da clínica: razão social, CNPJ, contatos, endereço,
- * marca e dados fiscais do emitente.
+ * Perfil operacional da clínica: razão social, CNPJ, contatos, endereço e
+ * dados fiscais do emitente (inscrições, CNAE, regime e código IBGE).
+ * Fica no banco da clínica — o central só precisa do mínimo para rotear e
+ * faturar.
+ *
+ * A MARCA (logo e cores) não mora aqui: ela fica no registro central da
+ * clínica, que é o mesmo de onde o layout lê o acento e de onde o painel da
+ * empresa edita. As colunas de marca desta tabela são remanescentes e não são
+ * a fonte — ver `App\Http\Controllers\Admin\ClinicaController`.
  *
  * Fica no banco da clínica — o central só precisa do mínimo para rotear e
  * faturar. Tabela de linha única (id 1): use `ClinicProfile::current()` em vez
