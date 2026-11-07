@@ -4,6 +4,7 @@ namespace App\Http\Requests\Platform;
 
 use App\Models\Central\AdminUser;
 use App\Models\Central\Clinic;
+use App\Services\Tenant\VerticalManager;
 use App\Support\EvolutionInstance;
 use App\Support\EvolutionToken;
 use Illuminate\Foundation\Http\FormRequest;
@@ -67,6 +68,14 @@ class ClinicUpdateRequest extends FormRequest
 
             'timezone' => ['required', 'timezone'],
             'status' => ['required', Rule::in(array_keys(config('tenancy.clinic_states')))],
+
+            /**
+             * A vertical define quais módulos a clínica enxerga. Trocá-la não
+             * apaga nada: as tabelas de odontologia continuam lá para a clínica
+             * de fisioterapia, e as de fisioterapia para a odontológica.
+             */
+            'vertical' => ['nullable', Rule::in(VerticalManager::VERTICAIS)],
+
             'is_active' => ['nullable', 'boolean'],
             'suspension_reason' => ['nullable', 'string', 'max:255'],
         ];
@@ -92,6 +101,7 @@ class ClinicUpdateRequest extends FormRequest
         return [
             'status.in' => 'Estado de clínica inválido.',
             'timezone.timezone' => 'Fuso horário inválido.',
+            'vertical.in' => 'Vertical inválida.',
             ...EvolutionInstance::messages(),
             ...EvolutionToken::messages(),
         ];

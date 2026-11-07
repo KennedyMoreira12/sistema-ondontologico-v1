@@ -95,4 +95,24 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | SendNF (cliente direto usado pelo painel admin da clínica)
+    |--------------------------------------------------------------------------
+    |
+    | Bloco mantido em paralelo a `providers.sendnf` porque o cliente direto
+    | da SendNF lê `fiscal.sendnf.*`. Continua desligado por padrão.
+    |
+    */
+
+    'sendnf' => [
+        'base_url' => env('SENDFN_BASE_URL'),
+        'api_key' => env('SENDFN_API_KEY'),
+        'timeout' => [
+            'connect' => (int) env('SENDFN_CONNECT_TIMEOUT', 10),
+            'request' => (int) env('SENDFN_TIMEOUT', 30),
+        ],
+        'enabled' => (bool) env('SENDFN_ENABLED', false),
+    ],
+
 ];

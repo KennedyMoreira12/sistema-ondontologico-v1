@@ -6,6 +6,8 @@ use App\Models\Central\Clinic;
 use App\Services\Tenant\TenantDatabaseManager;
 use App\Services\Tenant\TenantDatabaseProvisioner;
 use App\Services\Tenant\TenantManager;
+use Database\Seeders\tenant\DemoDaianeSeeder;
+use Database\Seeders\tenant\DemoFisioterapiaSeeder;
 use Database\Seeders\tenant\DemoSeeder;
 use Illuminate\Console\Command;
 use Throwable;
@@ -18,7 +20,9 @@ class SeedTenantCommand extends Command
 {
     protected $signature = 'tenants:seed
         {--clinic= : ID da clínica (padrão: a primeira clínica ativa)}
-        {--demo : Semeia também dados de demonstração (pacientes, agenda, financeiro)}';
+        {--demo : Semeia também dados de demonstração (pacientes, agenda, financeiro)}
+        {--demo-fisio : Demonstração da vertical de fisioterapia (catálogo, avaliação, evolução e pacotes de sessões)}
+        {--demo-daiane : Demonstração completa da clínica Daiane (fisio, Pilates, laser, massagem, pacotes, despesas e financeiro)}';
 
     protected $description = 'Roda os seeders de catálogo no banco de uma clínica';
 
@@ -52,6 +56,14 @@ class SeedTenantCommand extends Command
 
         if ($this->option('demo')) {
             $this->semeDemo($clinic, $tenants, $databases);
+        }
+
+        if ($this->option('demo-fisio')) {
+            $this->semeDemoFisioterapia($clinic, $tenants, $databases);
+        }
+
+        if ($this->option('demo-daiane')) {
+            $this->semeDemoDaiane($clinic, $tenants, $databases);
         }
 
         return self::SUCCESS;
@@ -88,5 +100,69 @@ class SeedTenantCommand extends Command
         }
 
         $this->components->info("Demonstração semeada em [{$clinica->name}].");
+    }
+
+    /**
+     * Demonstração da vertical de fisioterapia.
+     *
+     * Separada do `DemoSeeder` odontológico porque os dois não podem rodar na
+     * mesma clínica: aquele cria odontograma e tratamento de canal; este ajusta
+     * o catálogo para fisioterapia e semeia ficha de avaliação, evolução por
+     * sessão e pacote de sessões.
+     *
+     * O `--demo-fisio` também mexe no catálogo da clínica (remove procedimentos
+     * e especialidades odontológicas), então é ainda mais explícito que o
+     * `--demo`: use só em ambiente de demonstração.
+     */
+    protected function semeDemoFisioterapia(
+        Clinic $clinica,
+        TenantManager $tenants,
+        TenantDatabaseManager $databases,
+    ): void {
+        try {
+            $tenants->set($clinica);
+            $databases->connectFor($clinica, allowInactive: true);
+
+            (new DemoFisioterapiaSeeder)->setContainer(app())->run();
+        } catch (Throwable $exception) {
+            $this->components->error('Falha ao semear a demonstração de fisioterapia: '.$exception->getMessage());
+
+            return;
+        } finally {
+            $databases->forget();
+            $tenants->forget();
+        }
+
+        $this->components->info("Demonstração de fisioterapia semeada em [{$clinica->name}].");
+    }
+
+    /**
+     * Demonstração da clínica Daiane.
+     *
+     * Parte da demonstração de fisioterapia (que já cobre avaliação, evolução,
+     * pacotes e pagamentos) e acrescenta o que a operação dela usa e a fisio
+     * genérica não tinha: Pilates, laser, massagem, contas a pagar e despesas.
+     * Só deve rodar em ambiente de demonstração.
+     */
+    protected function semeDemoDaiane(
+        Clinic $clinica,
+        TenantManager $tenants,
+        TenantDatabaseManager $databases,
+    ): void {
+        try {
+            $tenants->set($clinica);
+            $databases->connectFor($clinica, allowInactive: true);
+
+            (new DemoDaianeSeeder)->setContainer(app())->run();
+        } catch (Throwable $exception) {
+            $this->components->error('Falha ao semear a demonstração da Daiane: '.$exception->getMessage());
+
+            return;
+        } finally {
+            $databases->forget();
+            $tenants->forget();
+        }
+
+        $this->components->info("Demonstração da Daiane semeada em [{$clinica->name}].");
     }
 }

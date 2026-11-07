@@ -62,7 +62,7 @@ class PlatformSubscriptionTest extends TestCase
 
     public function test_plano_inativo_nao_pode_ser_assinado(): void
     {
-        ['clinic' => $clinic] = $this->criarClinica();
+        ['clinic' => $clinic] = $this->criarClinica(comPlano: false);
         $plano = $this->plano('Descontinuado');
         $plano->update(['is_active' => false]);
 

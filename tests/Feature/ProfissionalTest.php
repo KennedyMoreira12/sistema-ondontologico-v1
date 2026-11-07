@@ -77,4 +77,76 @@ class ProfissionalTest extends TestCase
             'nome' => 'Dr. Carlos Silva',
         ]);
     }
+
+    public function test_cria_fisioterapeuta_com_crefito(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
+
+        $this->actingAs($user)
+            ->post(route('profissionais.store'), [
+                'nome' => 'Dra. Marina Alves',
+                'tipo' => 'fisioterapeuta',
+                'registro_profissional' => 'F-123456',
+                'conselho_regional' => 'CREFITO-1',
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('profissionais.index'));
+
+        $this->assertTenantDatabaseHas('professionals', [
+            'nome' => 'Dra. Marina Alves',
+            'tipo' => 'fisioterapeuta',
+            'registro_profissional' => 'F-123456',
+            'conselho_regional' => 'CREFITO-1',
+        ]);
+    }
+
+    public function test_fisioterapeuta_sem_registro_e_recusado(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
+
+        $this->actingAs($user)
+            ->post(route('profissionais.store'), [
+                'nome' => 'Dra. Marina Alves',
+                'tipo' => 'fisioterapeuta',
+                'is_active' => '1',
+            ])
+            ->assertSessionHasErrors('registro_profissional');
+
+        $this->assertTenantDatabaseMissing('professionals', ['nome' => 'Dra. Marina Alves']);
+    }
+
+    public function test_cro_odontologico_continua_valendo(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
+
+        $this->actingAs($user)
+            ->post(route('profissionais.store'), [
+                'nome' => 'Dr. Carlos',
+                'tipo' => 'dentista',
+                'cro' => 'SP-12345',
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('profissionais.index'));
+
+        $this->assertTenantDatabaseHas('professionals', [
+            'nome' => 'Dr. Carlos',
+            'cro' => 'SP-12345',
+        ]);
+    }
+
+    public function test_busca_encontra_pelo_registro_profissional(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.view');
+
+        Professional::create([
+            'nome' => 'Dra. Marina Alves',
+            'tipo' => 'fisioterapeuta',
+            'registro_profissional' => 'F-123456',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('profissionais.index', ['busca' => 'F-123456']))
+            ->assertOk()
+            ->assertSee('Dra. Marina Alves');
+    }
 }

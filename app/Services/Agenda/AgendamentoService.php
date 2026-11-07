@@ -29,7 +29,22 @@ class AgendamentoService
     ) {}
 
     /**
-     * @param  array{paciente_id: int, profissional_id: int, dia: string, hora_inicio: string, duracao?: int, tipo?: string, observacao?: string|null, idempotency_key?: string|null}  $dados
+     * @param  array{
+     *     paciente_id: int,
+     *     profissional_id: int,
+     *     dia: string,
+     *     hora_inicio: string,
+     *     duracao?: int,
+     *     tipo?: string,
+     *     observacao?: string|null,
+     *     idempotency_key?: string|null,
+     *     room_id?: int|null,
+     *     titulo?: string|null,
+     *     area?: string|null,
+     *     servico?: string|null,
+     *     valor?: float|string|null,
+     *     retorno?: bool
+     * }  $dados
      *
      * @throws HorarioOcupadoException
      * @throws LockTimeoutException
@@ -55,22 +70,40 @@ class AgendamentoService
         $fim = $inicio->copy()->addMinutes($duracao);
 
         /**
-         * O mutex vai por PROFISSIONAL E DIA, não pelo horário pedido: dois
-         * agendamentos que se sobrepõem sem coincidir de início (09:00 e 09:15)
-         * precisam cair no mesmo lock, e travar pelo horário exato deixaria os
-         * dois passarem.
+         * O mutex vai por CLÍNICA, PROFISSIONAL E DIA, não pelo horário pedido:
+         * dois agendamentos que se sobrepõem sem coincidir de início (09:00 e
+         * 09:15) precisam cair no mesmo lock, e travar pelo horário exato deixaria
+         * os dois passarem.
          *
-         * E é um lock, e não `lockForUpdate()` na consulta de conflito: um
-         * `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda não
-         * existe, então os dois "não há conflito" aconteciam mesmo assim. O lock é
-         * o que segura; a transação mantém checagem e gravação no mesmo passo, e
-         * o índice único da chave de idempotência é a rede final se tudo acima
-         * falhar.
+         * A chave inclui o tenant (clinica_id) para impedir que locks sejam
+         * compartilhados entre clínicas quando o cache é compartilhado (banco
+         * de dados). É um lock, e não `lockForUpdate()` na consulta de conflito:
+         * um `SELECT EXISTS` não trava a linha nem a faixa onde a linha ainda
+         * não existe, então os dois "não há conflito" aconteciam mesmo assim.
+         * O lock é o que segura; a transação mantém checagem e gravação no mesmo
+         * passo, e o índice único da chave de idempotência é a rede final se
+         * tudo acima falhar.
          */
         $consulta = Cache::lock(
-            "agenda:{$dados['profissional_id']}:{$inicio->toDateString()}",
+            $this->chaveDoLock((int) $dados['profissional_id'], $inicio->toDateString()),
             10,
         )->block(5, fn (): Appointment => DB::transaction(function () use ($dados, $chave, $inicio, $fim, $statusId): Appointment {
+            /*
+             * A chave é conferida OUTRA VEZ dentro do lock. A conferência
+             * anterior é só o caminho rápido; esta é a que vale quando dois
+             * envios do mesmo formulário chegam juntos e o primeiro ainda não
+             * tinha terminado de gravar.
+             */
+            if ($chave !== null) {
+                $existente = Appointment::query()
+                    ->where('idempotency_key', $chave)
+                    ->first();
+
+                if ($existente !== null) {
+                    return $existente;
+                }
+            }
+
             $conflito = Appointment::query()
                 ->where('profissional_id', $dados['profissional_id'])
                 ->whereHas('status', fn ($query) => $query->where('name', '!=', AppointmentStatus::CANCELADO))
@@ -82,16 +115,31 @@ class AgendamentoService
                 throw new HorarioOcupadoException;
             }
 
+            /*
+             * A recepção pode escolher "sem sala" e preencher título, área,
+             * serviço, valor e retorno. `array_key_exists` (e não `??`) é o que
+             * distingue "não informado" de "informado como nulo": o bot do
+             * WhatsApp não manda sala e continua recebendo a primeira ativa,
+             * enquanto o formulário consegue gravar sem sala de propósito.
+             */
             return Appointment::create([
                 'clinica_id' => $this->tenants->id(),
                 'paciente_id' => $dados['paciente_id'],
                 'profissional_id' => $dados['profissional_id'],
-                'room_id' => Room::where('is_active', true)->value('id'),
+                'room_id' => array_key_exists('room_id', $dados)
+                    ? $dados['room_id']
+                    : Room::where('is_active', true)->value('id'),
                 'appointment_status_id' => $statusId,
                 'inicio' => $inicio,
                 'fim' => $fim,
-                'titulo' => 'Agendamento via WhatsApp',
+                'titulo' => array_key_exists('titulo', $dados)
+                    ? $dados['titulo']
+                    : 'Agendamento via WhatsApp',
+                'area' => $dados['area'] ?? null,
+                'servico' => $dados['servico'] ?? null,
+                'valor' => $dados['valor'] ?? null,
                 'observacao' => $dados['observacao'] ?? null,
+                'retorno' => (bool) ($dados['retorno'] ?? false),
                 'idempotency_key' => $chave,
             ]);
         }));
@@ -110,5 +158,19 @@ class AgendamentoService
         return Appointment::query()
             ->where('idempotency_key', $chave)
             ->first();
+    }
+
+    /**
+     * Chave do lock de agenda: clínica, profissional e dia.
+     *
+     * A clínica entra na chave pelo helper de tenant, e não à mão: a chave é
+     * o que impede que o lock de uma clínica trave a agenda de outra quando o
+     * cache é compartilhado (banco de dados). Fica num método só para que a
+     * garantia possa ser conferida por teste, em vez de espalhada em string
+     * montada dentro da transação.
+     */
+    public function chaveDoLock(int $profissionalId, string $dia): string
+    {
+        return tenant_cache_key("agenda:prof:{$profissionalId}:{$dia}");
     }
 }

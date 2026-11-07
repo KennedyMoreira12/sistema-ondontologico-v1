@@ -59,6 +59,30 @@ class Paciente extends TenantModel
         return $this->hasMany(ClinicalNote::class);
     }
 
+    /**
+     * Fichas de avaliação da fisioterapia.
+     */
+    public function avaliacoes(): HasMany
+    {
+        return $this->hasMany(Avaliacao::class);
+    }
+
+    /**
+     * Evoluções por sessão da fisioterapia (uma por atendimento).
+     */
+    public function evolucoesSessao(): HasMany
+    {
+        return $this->hasMany(EvolucaoSessao::class);
+    }
+
+    /**
+     * Pacotes de sessões contratados.
+     */
+    public function pacotesSessao(): HasMany
+    {
+        return $this->hasMany(PacoteSessao::class);
+    }
+
     public function planosTratamento(): HasMany
     {
         return $this->hasMany(TreatmentPlan::class);
@@ -72,6 +96,18 @@ class Paciente extends TenantModel
     public function contasReceber(): HasMany
     {
         return $this->hasMany(AccountsReceivable::class);
+    }
+
+    /**
+     * Pagamentos recebidos do paciente.
+     *
+     * Nem todo pagamento tem vínculo (os importados da planilha foram
+     * revisados um a um), por isso a relação pode voltar vazia mesmo quando
+     * existe recebimento lançado no caixa.
+     */
+    public function pagamentos(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     public function prescricoes(): HasMany

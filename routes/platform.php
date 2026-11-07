@@ -17,16 +17,15 @@ use Illuminate\Support\Facades\Route;
 /**
  * Painel da empresa (a sua equipe): clínicas, planos, assinaturas e auditoria.
  *
- * Fica em arquivo separado e NAO carrega o middleware 	enant: quem opera a
+ * Fica em arquivo separado e NAO carrega o middleware `tenant`: quem opera a
  * plataforma não pertence a nenhuma clínica, e conectar no banco de um paciente
  * aqui seria exatamente o vazamento que o ResolveTenant existe para impedir.
  */
 Route::prefix('painel')->name('painel.')->group(function (): void {
     /**
      * O painel não tem mais tela de login própria: a entrada é a mesma tela de
-     * /login, cujo formulário tenta o guard dmin antes do web. Esta rota
-     * sobra só para links antigos e para o
-edirectGuestsTo do bootstrap, e
+     * /login, cujo formulário tenta o guard `admin` antes do `web`. Esta rota
+     * sobra só para links antigos e para o `redirectGuestsTo` do bootstrap, e
      * por isso redireciona em vez de 404.
      */
     Route::middleware('guest:admin')->group(function (): void {

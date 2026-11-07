@@ -39,7 +39,7 @@ class TenantProvisioner
 
         try {
             return DB::transaction(function () use ($attributes, $plan, &$connection): array {
-                $clinic = Clinic::create([
+                $clinic = new Clinic([
                     'name' => $attributes['name'],
                     'legal_name' => $attributes['legal_name'] ?? null,
                     'document' => $attributes['document'] ?? null,
@@ -69,10 +69,31 @@ class TenantProvisioner
 
                     'primary_color' => $attributes['primary_color'] ?? '#0b7285',
                     'secondary_color' => $attributes['secondary_color'] ?? '#0ca678',
+
+                    /**
+                     * A vertical decide quais módulos a clínica enxerga. O
+                     * padrão é odontologia — é o que a clínica já em uso é — e
+                     * nada é removido do banco por causa disso.
+                     */
+                    'vertical' => $attributes['vertical'] ?? VerticalManager::ODONTOLOGIA,
+
                     'status' => $plan->trial_days > 0 ? 'trial' : 'active',
                     'trial_ends_at' => $plan->trial_days > 0 ? now()->addDays($plan->trial_days) : null,
                     'is_active' => true,
                 ]);
+
+                /**
+                 * O ID é reservado apenas por comandos de ambiente controlado
+                 * (demonstração/restauração), para que o banco gerado
+                 * (`clinic_000005`) case com a clínica real que ele representa.
+                 * O fluxo normal de onboarding continua deixando o banco
+                 * escolher o próximo ID.
+                 */
+                if (isset($attributes['id'])) {
+                    $clinic->id = (int) $attributes['id'];
+                }
+
+                $clinic->save();
 
                 $connection = $this->registerConnection($clinic);
 

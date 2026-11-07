@@ -43,11 +43,7 @@ class ProvisionamentoClinicaTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tenantsDir.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
-            @unlink($arquivo);
-        }
-
-        @rmdir($this->tenantsDir);
+        $this->apagarPastaDeBancosDeTeste($this->tenantsDir);
 
         parent::tearDown();
     }
@@ -96,9 +92,9 @@ class ProvisionamentoClinicaTest extends TestCase
         $this->assertTrue($admin->fresh()->hasRole('admin'));
 
         // Papéis e permissões semeados: é o que dá ao admin acesso a tudo.
-        $this->assertTenantDatabaseCount('roles', 6);
+        $this->assertTenantDatabaseCount('roles', 7);
         $this->assertEqualsCanonicalizing(
-            ['admin', 'auxiliar', 'estoque', 'financeiro', 'dentista', 'recepcao'],
+            ['admin', 'auxiliar', 'estoque', 'financeiro', 'dentista', 'fisioterapeuta', 'recepcao'],
             DB::connection('tenant')->table('roles')->pluck('name')->all(),
         );
         $totalPermissoes = DB::connection('tenant')->table('permissions')->count();
@@ -317,7 +313,7 @@ class ProvisionamentoClinicaTest extends TestCase
     /**
      * @return array{clinic: Clinic, user: User, connection: TenantConnection, subscription: Subscription, password: string}
      */
-protected function provisionar(
+    protected function provisionar(
         string $nome = 'Clínica Aurora',
         string $email = 'aurora@teste.test',
         ?Plan $plano = null,

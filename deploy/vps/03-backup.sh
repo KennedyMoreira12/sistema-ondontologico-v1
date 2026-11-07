@@ -21,6 +21,7 @@ BANCO_CENTRAL="${BANCO_CENTRAL:-saas_central}"
 USUARIO_BANCO="${USUARIO_BANCO:-saas}"
 ROTULO="$(date +%Y%m%d-%H%M%S)"
 ARQUIVO_CRON="${ARQUIVO_CRON:-/etc/cron.d/ljsmartclinic-backup}"
+ARQUIVO_STATUS="${ARQUIVO_STATUS:-}"
 
 log()   { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 aviso() { printf '\033[1;33maviso: %s\033[0m\n' "$*"; }
@@ -38,9 +39,13 @@ if [[ ${1:-} == "instalar" ]]; then
 
     cat > "$ARQUIVO_CRON" <<EOF
 # Backup do LJ SmartClinic: banco central + um dump por clinica + uploads.
+#
+# O log e ACUMULADO (>>) de proposito. Com >, cada noite sobrescreve a anterior
+# e a prova de uma falha fica sem rastro: foi assim que 14 noites de backup
+# vazio desapareceram do log e so apareceram nos arquivos de 20 bytes.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-17 3 * * * root bash $DIRETORIO_APP/deploy/vps/03-backup.sh > /var/log/lj-backup.log 2>&1
+17 3 * * * root bash $DIRETORIO_APP/deploy/vps/03-backup.sh >> /var/log/lj-backup.log 2>&1
 EOF
     chmod 644 "$ARQUIVO_CRON"
     log "Instalado em $ARQUIVO_CRON (03:17 todo dia, para o log em /var/log/lj-backup.log)"
@@ -65,10 +70,108 @@ fi
 mkdir -p "$DIRETORIO_BACKUP"
 chmod 700 "$DIRETORIO_BACKUP"
 
+[[ -n "$ARQUIVO_STATUS" ]] || ARQUIVO_STATUS="$DIRETORIO_BACKUP/STATUS"
+
+# --- Status da última execução ----------------------------------------------
+#
+# O log do cron é sobrescrito a cada noite. Um arquivo de status é o que
+# sobrevive: quem quiser saber se o backup de ontem deu certo não precisa
+# decifrar log, só ler o STATUS.
+#
+# Formato chave=valor, uma chave por linha: é o que dá para ler no shell e no
+# PowerShell sem parser nenhum.
+
+registrar_status() {
+    local resultado="$1"
+    local detalhe="${2:-}"
+
+    cat > "$ARQUIVO_STATUS" <<EOF
+resultado=$resultado
+rotulo=$ROTULO
+em=$(date -Is)
+detalhe=$detalhe
+EOF
+    chmod 600 "$ARQUIVO_STATUS"
+}
+
+# Qualquer saída inesperada — inclusive o `set -e` disparando no meio de um
+# dump — deixa o status como falha. Sem isto, uma noite que falhou no primeiro
+# comando continua parecendo uma noite bem-sucedida.
+trap 'registrar_status falha "o script parou antes de terminar"' EXIT
+
+registrar_status em_andamento "inicio"
+
+# --- Conferência de um dump ---------------------------------------------------
+#
+# `gzip -t` sozinho NÃO basta: gzip de stream vazio tem 20 bytes e passa no
+# teste. O que separa um backup de um arquivo vazio é o CONTEÚDO.
+#
+# Esta conferência é o que teria pego as 14 noites de backup vazio.
+
+verificar_dump() {
+    local arquivo="$1"
+    local descricao="$2"
+    local solto
+    solto="$(mktemp)"
+
+    if ! gzip -dc "$arquivo" > "$solto" 2>/dev/null; then
+        rm -f "$solto"
+        erro "DUMP CORROMPIDO (gzip ilegivel): $descricao"
+    fi
+
+    local tamanho
+    tamanho="$(wc -c < "$solto")"
+
+    if [[ "$tamanho" -lt 1000 ]]; then
+        rm -f "$solto"
+        erro "DUMP VAZIO: $descricao tem $tamanho byte(s) descomprimidos. O dump falhou."
+    fi
+
+    # A assinatura do dump vem no cabecalho. Sem ela, o arquivo tem bytes mas
+    # nao e um dump.
+    if [[ "$arquivo" == *.sql.gz ]] && ! grep -qi "dump 10" "$solto"; then
+        rm -f "$solto"
+        erro "DUMP SEM ASSINATURA: $descricao nao parece um dump do MariaDB."
+    fi
+
+    rm -f "$solto"
+}
+
+# --- Dump de um banco --------------------------------------------------------
+#
+# O dump vai para um arquivo temporario e só recebe o nome final depois de
+# conferido.
+#
+# Antes, ele era escrito direto no nome final:
+# `mysqldump ... | gzip > central-AAAAMMDD-HHMMSS.sql.gz`. Quando o mysqldump
+# falhava (senha errada no ~/.my.cnf), o gzip recebia um stream vazio e
+# escrevia 20 bytes — que passam no `gzip -t` e parecem um backup bom.
+# Aconteceu 14 noites seguidas, e o script nem chegava na etapa de verificação
+# porque o `set -e` matava o processo no primeiro comando.
+
+dump_banco() {
+    local banco="$1"
+    local destino="$2"
+    local temporario="${destino}.parcial"
+    local erro_dump
+    erro_dump="$(mktemp)"
+
+    if ! mysqldump --single-transaction --quick --routines --triggers \
+        "$banco" 2>"$erro_dump" | gzip > "$temporario"; then
+        rm -f "$temporario"
+        erro "FALHA no dump de $banco: $(tr '\n' ' ' < "$erro_dump"). Arquivo parcial descartado."
+    fi
+
+    rm -f "$erro_dump"
+
+    verificar_dump "$temporario" "$banco"
+
+    mv "$temporario" "$destino"
+}
+
 # --- Banco central ----------------------------------------------------------
 log "Dump do banco central ($BANCO_CENTRAL)"
-mysqldump --single-transaction --quick --routines --triggers \
-    "$BANCO_CENTRAL" | gzip > "$DIRETORIO_BACKUP/central-$ROTULO.sql.gz"
+dump_banco "$BANCO_CENTRAL" "$DIRETORIO_BACKUP/central-$ROTULO.sql.gz"
 
 # --- Um dump por clínica ----------------------------------------------------
 #
@@ -93,8 +196,7 @@ for banco in "${BANCOS[@]}"; do
         continue
     fi
 
-    mysqldump --single-transaction --quick --routines --triggers \
-        "$banco" | gzip > "$DIRETORIO_BACKUP/$banco-$ROTULO.sql.gz"
+    dump_banco "$banco" "$DIRETORIO_BACKUP/$banco-$ROTULO.sql.gz"
     total=$(( total + 1 ))
 done
 
@@ -105,10 +207,28 @@ log "$total banco(s) de clínica + banco central"
 # Exames e fotos do paciente não estão no MySQL. Se a clínica usa upload, o
 # backup do banco sem o storage é um backup incompleto e ninguém percebe até
 # precisar.
+#
+# O tar também vai por arquivo temporário e só entra no lugar depois de testado:
+# um tar truncado é um backup incompleto que parece inteiro.
 log "Backup dos uploads"
-tar -czf "$DIRETORIO_BACKUP/uploads-$ROTULO.tar.gz" \
-    -C "$DIRETORIO_APP" storage/app 2>/dev/null \
-    || printf '\033[1;33maviso: storage/app vazio ou ausente\033[0m\n'
+ARQUIVO_UPLOADS="$DIRETORIO_BACKUP/uploads-$ROTULO.tar.gz"
+
+if [[ ! -d "$DIRETORIO_APP/storage/app" ]]; then
+    aviso "storage/app ausente: o backup segue sem os uploads."
+    rm -f "$ARQUIVO_UPLOADS"
+else
+    if ! tar -czf "$ARQUIVO_UPLOADS.parcial" -C "$DIRETORIO_APP" storage/app; then
+        rm -f "$ARQUIVO_UPLOADS.parcial"
+        erro "FALHA no backup dos uploads (storage/app)."
+    fi
+
+    if ! tar -tzf "$ARQUIVO_UPLOADS.parcial" >/dev/null 2>&1; then
+        rm -f "$ARQUIVO_UPLOADS.parcial"
+        erro "TAR CORROMPIDO: o backup dos uploads não pode ser lido."
+    fi
+
+    mv "$ARQUIVO_UPLOADS.parcial" "$ARQUIVO_UPLOADS"
+fi
 
 # --- Retenção ---------------------------------------------------------------
 log "Removendo dumps com mais de $DIAS_RETENCAO dias"
@@ -119,14 +239,22 @@ find "$DIRETORIO_BACKUP" -name '*.tar.gz' -mtime "+$DIAS_RETENCAO" -delete
 #
 # Um dump corrompido que ninguém restaurou não é backup. Verificar o gzip agora
 # custa um segundo e pega disco cheio no meio da noite.
+#
+# A conferência aqui é a segunda passagem: cada dump já foi verificado quando
+# foi criado. Ela pega o que o `gzip -t` não pega — um dump de 20 bytes passa
+# no `gzip -t` e não tem um byte de dado.
 log "Verificando integridade dos arquivos"
 for arquivo in "$DIRETORIO_BACKUP"/*"$ROTULO"*; do
     [[ -f $arquivo ]] || continue
     gzip -t "$arquivo" || erro "DUMP CORROMPIDO: $arquivo"
+    verificar_dump "$arquivo" "$(basename "$arquivo")"
 done
 log "Integridade OK"
 
 log "Total ocupado: $(du -sh "$DIRETORIO_BACKUP" | cut -f1)"
+
+registrar_status ok "backup completo"
+trap - EXIT
 
 # ============================================================================
 # RESTAURAÇÃO — leia isto ANTES do primeiro cliente
@@ -152,8 +280,10 @@ log "Total ocupado: $(du -sh "$DIRETORIO_BACKUP" | cut -f1)"
 cat <<EOF
 
 Backup concluído em $DIRETORIO_BACKUP.
+Status: $ARQUIVO_STATUS (resultado=ok, rotulo=$ROTULO).
 
 RECOMENDAÇÃO: este backup está na mesma máquina que ele protege. Se a VPS for
 perdida, o backup vai junto. Copie para fora e teste a restauração.
+O script deploy/externo/backup-externo.ps1 faz essa cópia e confere o hash.
 
 EOF

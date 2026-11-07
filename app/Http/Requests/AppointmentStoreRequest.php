@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Appointment;
-use App\Models\AppointmentStatus;
+use App\Services\Agenda\AgendaService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -27,37 +27,51 @@ class AppointmentStoreRequest extends FormRequest
             'hora_inicio' => ['required', 'date_format:H:i'],
             'duracao' => ['required', 'integer', 'in:15,30,45,60,90,120'],
             'titulo' => ['nullable', 'string', 'max:255'],
+            'area' => ['nullable', 'string', 'max:80'],
+            'servico' => ['nullable', 'string', 'max:120'],
+            'valor' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'observacao' => ['nullable', 'string', 'max:1000'],
             'retorno' => ['nullable', 'boolean'],
+            'idempotency_key' => ['nullable', 'string', 'max:64'],
         ];
     }
 
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function (Validator $validator) {
+        $validator->after(function (Validator $validator): void {
             $inicio = $this->date('dia')->setTimeFromTimeString($this->string('hora_inicio'));
             $fim = $inicio->copy()->addMinutes((int) $this->integer('duracao'));
 
-            $cancelado = AppointmentStatus::where('name', 'cancelado')->value('id');
+            /*
+             * Um reenvio do mesmo formulário chega com a mesma chave e o
+             * horário já está ocupado pela consulta que o primeiro envio criou.
+             * Sem ignorar essa consulta, o retry morreria como "horário
+             * ocupado" em vez de devolver o agendamento já existente.
+             */
+            $chave = $this->input('idempotency_key');
+            $jaCriada = is_string($chave) && $chave !== ''
+                ? Appointment::query()->where('idempotency_key', $chave)->first()
+                : null;
 
-            $conflito = Appointment::where('profissional_id', $this->integer('profissional_id'))
-                ->where('appointment_status_id', '!=', $cancelado)
-                ->where('fim', '>', $inicio)
-                ->where('inicio', '<', $fim)
-                ->exists();
+            $conflitos = app(AgendaService::class)->conflitos(
+                $inicio,
+                $fim,
+                $this->integer('profissional_id'),
+                $this->integer('paciente_id'),
+                $this->integer('room_id') ?: null,
+                $jaCriada,
+            );
 
-            $pacienteOcupado = Appointment::where('paciente_id', $this->integer('paciente_id'))
-                ->where('appointment_status_id', '!=', $cancelado)
-                ->where('fim', '>', $inicio)
-                ->where('inicio', '<', $fim)
-                ->exists();
+            foreach ($conflitos as $campo => $mensagens) {
+                $chave = match ($campo) {
+                    'profissional' => 'hora_inicio',
+                    'sala' => 'room_id',
+                    default => 'dia',
+                };
 
-            if ($conflito) {
-                $validator->errors()->add('hora_inicio', 'O profissional já possui uma consulta neste horário.');
-            }
-
-            if ($pacienteOcupado) {
-                $validator->errors()->add('dia', 'O paciente já possui uma consulta neste horário.');
+                foreach ($mensagens as $mensagem) {
+                    $validator->errors()->add($chave, $mensagem);
+                }
             }
         });
     }

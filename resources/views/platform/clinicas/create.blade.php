@@ -48,6 +48,32 @@
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
+                <h2 class="h6 mb-3">Perfil de atendimento</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="vertical" class="form-label">Vertical</label>
+                        <select id="vertical" class="form-select @error('vertical') is-invalid @enderror" name="vertical">
+                            @foreach (\App\Services\Tenant\VerticalManager::VERTICAIS as $opcao)
+                                <option value="{{ $opcao }}" @selected(old('vertical', 'odontologia') === $opcao)>
+                                    {{ $opcao === 'odontologia' ? 'Odontologia' : 'Fisioterapia' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('vertical')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            A vertical decide quais módulos a clínica enxerga: odontologia abre o
+                            odontograma, fisioterapia abre avaliação, evolução por sessão e pacotes.
+                            Nada é apagado do banco — a clínica pode mudar de vertical sem perder
+                            histórico.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
                 <h2 class="h6 mb-3">WhatsApp</h2>
 
                 <div class="row g-3">

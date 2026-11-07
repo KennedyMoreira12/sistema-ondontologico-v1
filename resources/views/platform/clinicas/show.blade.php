@@ -21,7 +21,12 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 class="h4 mb-0">{{ $clinica->name }}</h1>
+            <h1 class="h4 mb-0">
+                {{ $clinica->name }}
+                <span class="badge bg-light text-dark border align-middle">
+                    {{ ($clinica->vertical ?? 'odontologia') === 'fisioterapia' ? 'Fisioterapia' : 'Odontologia' }}
+                </span>
+            </h1>
             <p class="text-muted small mb-0">
                 {{ $clinica->email }}
                 @if ($clinica->document) — {{ $clinica->document }} @endif

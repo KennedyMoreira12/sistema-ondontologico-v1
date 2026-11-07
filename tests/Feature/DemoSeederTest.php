@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Services\Tenant\TenantDatabaseManager;
 use App\Services\Tenant\TenantManager;
 use App\Services\Tenant\TenantProvisioner;
+use Database\Seeders\tenant\DemoDaianeSeeder;
 use Database\Seeders\tenant\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
@@ -63,11 +64,7 @@ class DemoSeederTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tenantsDir.DIRECTORY_SEPARATOR.'*') ?: [] as $arquivo) {
-            @unlink($arquivo);
-        }
-
-        @rmdir($this->tenantsDir);
+        $this->apagarPastaDeBancosDeTeste($this->tenantsDir);
 
         parent::tearDown();
     }
@@ -85,7 +82,7 @@ class DemoSeederTest extends TestCase
 
         // O seeder não pode deixar a clínica pela metade: oROLL de agenda precisa
         // ter quem atenda e onde atender.
-        $this->assertSame(6, Role::count());
+        $this->assertSame(7, Role::count());
         $this->assertGreaterThan(0, $this->contabilidade('rooms'));
     }
 
@@ -184,7 +181,41 @@ class DemoSeederTest extends TestCase
         $this->conectar($this->clinica());
 
         $this->assertSame(0, $this->contabilidade('pacientes'));
-        $this->assertSame(6, Role::count(), 'Os papéis e permissões devem continuar sendo semeados.');
+        $this->assertSame(7, Role::count(), 'Os papéis e permissões devem continuar sendo semeados.');
+    }
+
+    /**
+     * A demo da Daiane cresce a partir da demo de fisioterapia e usa datas
+     * relativas a "hoje". Sem a guarda de reexecução, rodar o comando de novo
+     * duplicaria agenda, consumo de sessão e baixas de contas a pagar.
+     */
+    public function test_demo_daiane_nao_duplica_na_segunda_execucao(): void
+    {
+        (new DemoDaianeSeeder)->run();
+
+        $tabelas = [
+            'pacientes', 'appointments', 'payments', 'pacotes_sessao',
+            'consumo_sessao', 'suppliers', 'accounts_payable',
+            'accounts_payable_pagamentos', 'accounts_receivable',
+        ];
+
+        $antes = [];
+
+        foreach ($tabelas as $tabela) {
+            $antes[$tabela] = $this->contabilidade($tabela);
+
+            $this->assertGreaterThan(0, $antes[$tabela], "A demo da Daiane não criou [{$tabela}].");
+        }
+
+        (new DemoDaianeSeeder)->run();
+
+        foreach ($tabelas as $tabela) {
+            $this->assertSame(
+                $antes[$tabela],
+                $this->contabilidade($tabela),
+                "A tabela [{$tabela}] cresceu na segunda execução da demo da Daiane.",
+            );
+        }
     }
 
     /**

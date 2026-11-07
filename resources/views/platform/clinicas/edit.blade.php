@@ -99,6 +99,21 @@
 
                 <div class="row g-3">
                     <div class="col-md-4">
+                        <label for="vertical" class="form-label">Vertical</label>
+                        <select id="vertical" class="form-select @error('vertical') is-invalid @enderror" name="vertical">
+                            @foreach (\App\Services\Tenant\VerticalManager::VERTICAIS as $opcao)
+                                <option value="{{ $opcao }}" @selected(old('vertical', $clinica->vertical ?? 'odontologia') === $opcao)>
+                                    {{ $opcao === 'odontologia' ? 'Odontologia' : 'Fisioterapia' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('vertical')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">
+                            Define quais módulos a clínica enxerga. Trocar a vertical não apaga
+                            nada do banco da clínica.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         <label for="status" class="form-label">Estado</label>
                         <select id="status" class="form-select" name="status">
                             @foreach ($estados as $chave => $rotulo)

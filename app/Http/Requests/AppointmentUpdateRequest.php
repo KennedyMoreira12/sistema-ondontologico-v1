@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Appointment;
+use App\Services\Agenda\AgendaService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -28,6 +28,9 @@ class AppointmentUpdateRequest extends FormRequest
             'duracao' => ['required', 'integer', 'in:15,30,45,60,90,120'],
             'appointment_status_id' => ['required', Rule::exists('tenant.appointment_statuses', 'id')],
             'titulo' => ['nullable', 'string', 'max:255'],
+            'area' => ['nullable', 'string', 'max:80'],
+            'servico' => ['nullable', 'string', 'max:120'],
+            'valor' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'observacao' => ['nullable', 'string', 'max:1000'],
             'retorno' => ['nullable', 'boolean'],
         ];
@@ -35,30 +38,29 @@ class AppointmentUpdateRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function (Validator $validator) {
+        $validator->after(function (Validator $validator): void {
             $inicio = $this->date('dia')->setTimeFromTimeString($this->string('hora_inicio'));
             $fim = $inicio->copy()->addMinutes((int) $this->integer('duracao'));
 
-            $conflito = Appointment::where('profissional_id', $this->integer('profissional_id'))
-                ->where('id', '!=', $this->consulta->id)
-                ->where('appointment_status_id', '!=', 5)
-                ->where('fim', '>', $inicio)
-                ->where('inicio', '<', $fim)
-                ->exists();
+            $conflitos = app(AgendaService::class)->conflitos(
+                $inicio,
+                $fim,
+                $this->integer('profissional_id'),
+                $this->integer('paciente_id'),
+                $this->integer('room_id') ?: null,
+                $this->route('consulta'),
+            );
 
-            $pacienteOcupado = Appointment::where('paciente_id', $this->integer('paciente_id'))
-                ->where('id', '!=', $this->consulta->id)
-                ->where('appointment_status_id', '!=', 5)
-                ->where('fim', '>', $inicio)
-                ->where('inicio', '<', $fim)
-                ->exists();
+            foreach ($conflitos as $campo => $mensagens) {
+                $chave = match ($campo) {
+                    'profissional' => 'hora_inicio',
+                    'sala' => 'room_id',
+                    default => 'dia',
+                };
 
-            if ($conflito) {
-                $validator->errors()->add('hora_inicio', 'O profissional já possui uma consulta neste horário.');
-            }
-
-            if ($pacienteOcupado) {
-                $validator->errors()->add('dia', 'O paciente já possui uma consulta neste horário.');
+                foreach ($mensagens as $mensagem) {
+                    $validator->errors()->add($chave, $mensagem);
+                }
             }
         });
     }

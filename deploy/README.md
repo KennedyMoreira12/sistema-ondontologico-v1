@@ -20,6 +20,7 @@ automaticamente. Não há PPA involved: em Ubuntu novo a PPA do Ondrej atrasa e 
 | 5 | `certbot --nginx` | uma vez, depois de funcionar em HTTP |
 | 6 | `03-backup.sh` | uma vez, e testar a restauração |
 | 7 | `git pull` + `migrate` | a cada deploy |
+| 8 | `externo/backup-externo.ps1` | uma vez, para o backup não morar só na VPS |
 
 ## O que não tem como automatizar
 
@@ -51,6 +52,45 @@ clínico. `03-backup.sh` varre `tenant_connections` e faz um dump por clínica.
 **O cookie seguro e o SSL andam juntos.** `SESSION_SECURE_COOKIE=true` antes do
 certbot impede o login. O usuário não entra e não há mensagem de erro — o cookie
 simplesmente não volta. Instale o certbot primeiro.
+
+## Backup fora da VPS
+
+O `03-backup.sh` protege contra banco corrompido, migration errada e
+`DROP DATABASE` acidental. Ele **não** protege contra a perda da VPS: o dump
+fica na mesma máquina que ele protege, e o próprio script avisa isso no fim da
+execução.
+
+`externo/backup-externo.ps1` fecha essa janela. Ele roda na sua máquina, puxa a
+rotação mais recente para o destino removível (o pendrive), confere o SHA-256 de
+cada arquivo contra o hash calculado no servidor, e só depois poda as cópias
+antigas. O passo a passo, o agendamento no Windows e a restauração estão em
+[`externo/README.md`](externo/README.md).
+
+Vale rodar o teste de restauração uma vez a partir dessa cópia: ela percorre
+um caminho diferente (ssh, scp, pendrive) do que o `03-backup.sh` percorre, e um
+backup nunca restaurado é um backup que só existe na teoria.
+
+## O `STATUS` do backup
+
+O `03-backup.sh` grava o resultado da última execução em
+`/var/backups/ljsmartclinic/STATUS`:
+
+```
+resultado=ok
+rotulo=20261021-031701
+em=2026-10-21T03:17:05-03:00
+detalhe=backup completo
+```
+
+O log do cron é sobrescrito a cada noite, então o `STATUS` é o que sobrevive.
+Para conferir se o backup de ontem deu certo:
+
+```bash
+ssh root@179.236.238.61 "cat /var/backups/ljsmartclinic/STATUS"
+```
+
+`resultado=falha` significa que a última noite **não** produziu backup — e
+esperar pela próxima cópia seria esperar por uma cópia de hoje à noite.
 
 ## Depois de cada mudança
 
