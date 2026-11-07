@@ -117,8 +117,8 @@ Tabelas confirmadas: `accounts_payable`, `accounts_payable_pagamentos`,
 
 | Verificação | Resultado |
 | --- | --- |
-| `HEAD` da VPS | `5548d87` em `release/daiane-vps-20261107` |
-| Árvore | apenas 49 arquivos não versionados de backup/lixo preservados |
+| `HEAD` da VPS | `8f02a83` em `release/daiane-vps-20261107` (código em `5548d87` + este relatório) |
+| Árvore | 25 entradas não versionadas (49 arquivos com `-uall`), todas backups antigos preservados |
 | `.env` | SHA-256 idêntico ao backup (`2ec83510...`) |
 | `https://.../login` | 200 |
 | `/up` | 200 |
@@ -192,3 +192,27 @@ gunzip -c /var/backups/ljsmartclinic/release-daiane-20261107_013324/saas_central
 - Os 49 arquivos não versionados (backups antigos de `ProspectController`,
   `backup_antes_remocao/`, `create|store`, `.scss.backup*`, etc.) continuam no
   disco, intocados.
+
+## 9. Auditoria final pós-publicação (07/11/2026)
+
+Executada diretamente na VPS depois do deploy, com a release já ativa:
+
+| Verificação | Resultado |
+| --- | --- |
+| Branch/`HEAD` ativos | `release/daiane-vps-20261107` / `8f02a83` |
+| `php artisan about` | `production`, debug `OFF`, cache `database`, fila `sync`, PHP 8.5.4, Laravel 13.33.0 |
+| `queue:failed` | nenhum job falho |
+| `schedule:list` | `fiscal:sincronizar` (a cada 30 min) e `whatsapp:outbox:recover` (a cada minuto) registrados |
+| `.env` | SHA-256 `2ec83510...` inalterado |
+| `https://.../login` | 200 |
+| `/` | 302 para `/login` |
+| Erros após a publicação | nenhum: `laravel.log` não recebeu escrita desde 04/11; filtro por `production.ERROR/CRITICAL/ALERT/EMERGENCY` vazio |
+| Notas fiscais | `clinic_000001`: 1 nota **mock/homologação de 27/10**, já cancelada (pré-existente); `clinic_000005`: 0. Nenhuma nota emitida após o deploy |
+| WhatsApp outbox | 0 registros em ambas as clínicas (nenhum envio real) |
+| Agendamentos | `clinic_000001`: 0; `clinic_000005`: 1.362; nenhum criado em 07/11 |
+| Isolamento de dados | mantido (496 e 767 pacientes, bancos separados) |
+| Árvore de trabalho | 25 entradas não versionadas / 49 arquivos, apenas backups antigos |
+
+Conclusão: a release está ativa, sem erros novos, sem jobs falhos, sem emissão
+fiscal e sem envio de WhatsApp. O rollback continua disponível conforme a
+seção 7.
