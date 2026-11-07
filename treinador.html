@@ -93,12 +93,125 @@
 
   /* ===== EXPLICAÇÕES INTERATIVAS ===== */
   #dicaExpli{position:fixed;z-index:98;max-width:330px;background:#083c4a;color:#fff;padding:10px 12px;border-radius:9px;font-size:.82rem;line-height:1.45;box-shadow:0 8px 20px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .12s}
-  #tourCaixa{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff8e8;border:2px solid #f0c24b;border-radius:14px;padding:16px 18px;box-shadow:0 14px 34px rgba(0,0,0,.28);z-index:120;font-size:.9rem}
+  #tourCaixa{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff8e8;border:2px solid #f0c24b;border-radius:14px;padding:16px 18px;box-shadow:0 14px 34px rgba(0,0,0,.28);z-index:150;font-size:.9rem}
+  #tourDim{position:fixed;inset:0;background:rgba(7,20,30,.55);z-index:80;display:none;pointer-events:none;transition:background .2s ease}
   #tourCaixa .cont{display:flex;gap:10px;align-items:flex-start}
   #tourCaixa .num{background:var(--amarelo);color:#5f4300;border-radius:999px;padding:3px 10px;font-weight:800;font-size:.75rem;white-space:nowrap;cursor:pointer}
   .btn-ghost{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer}
   .btn-ghost:hover{background:rgba(255,255,255,.14)}
   .expli-rodape{font-size:.8rem;color:var(--mouse);border-top:1px dashed var(--borda);margin-top:12px;padding-top:8px}
+
+  /* ===== NOVO TEMA (visual premium) ===== */
+  html{scroll-behavior:smooth}
+  body{background:linear-gradient(180deg,#eef5f7,#e7f1f4);color:#16303c}
+  .layout{gap:0}
+  .sidebar{background:linear-gradient(180deg,#0c1f2c 0%,#0d5e6d 120%);border-right:1px solid rgba(255,255,255,.05);box-shadow:2px 0 18px rgba(8,25,35,.18)}
+  .sidebar .brand{padding:20px 16px;gap:12px}
+  .sidebar .brand .dente{font-size:1.15rem;background:linear-gradient(135deg,#0ca678,#38d9a9);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(12,166,120,.4)}
+  .nav-titulo{margin-top:14px}
+  .nav-item{border-radius:10px;margin:2px 8px;padding:9px 12px;transition:background .15s,transform .15s;font-weight:500}
+  .nav-item:hover{background:rgba(255,255,255,.09);transform:translateX(3px)}
+  .nav-item.ativo{background:linear-gradient(90deg,#0ca678,#12b886);border-left:none;color:#fff;font-weight:700;box-shadow:0 6px 16px rgba(18,184,134,.35)}
+  .topbar{background:rgba(255,255,255,.85);backdrop-filter:blur(10px);box-shadow:0 1px 0 rgba(20,60,80,.06)}
+  .topbar h1{font-size:1.18rem;letter-spacing:-.01em}
+  .area-treino{background:linear-gradient(135deg,#12b886,#0ca678);color:#fff;border:none;box-shadow:0 4px 12px rgba(18,184,134,.35)}
+  .usuario{background:#f2f7f9;border-color:#dbe8ee}
+  .page{animation:fadeUp .35s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .painel-treino{background:linear-gradient(135deg,#fffaf0,#fff3d6);border-color:#f4d78e;box-shadow:0 6px 18px rgba(245,159,0,.12)}
+  .dica-treino{border-left:4px solid #74c0fc;background:#f0f8ff}
+  .card-kpi{position:relative;overflow:hidden;border:none;border-radius:16px;box-shadow:0 8px 24px rgba(20,60,80,.07);transition:transform .15s ease,box-shadow .15s ease}
+  .card-kpi:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(20,60,80,.12)}
+  .card-kpi::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,var(--teal),#69db7c)}
+  .card-kpi .v{background:linear-gradient(120deg,#0b3f52,#0ca678);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tabela-wrap{border-radius:16px;border-color:#e2edf2;box-shadow:0 8px 24px rgba(20,60,80,.06)}
+  th{background:#0ca6780d;color:#2f6f7e;font-weight:700}
+  tr:hover td{background:#f2fbf8}
+  .btn{border-radius:10px;box-shadow:0 4px 12px rgba(11,114,133,.18);transition:transform .12s,box-shadow .12s,filter .12s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(11,114,133,.26)}
+  .btn:active{transform:scale(.97)}
+  .btn.teal{background:linear-gradient(135deg,#0ca678,#12b886)}
+  .btn.verde{background:linear-gradient(135deg,#2f9e44,#37b24d)}
+  .btn.vermelho{background:linear-gradient(135deg,#e03131,#f03e3e)}
+  .campo{border-radius:10px;background:#fff}
+  .badge{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);letter-spacing:.02em}
+  .modal-bg{backdrop-filter:blur(5px);background:rgba(9,24,33,.55)}
+  .modal{border-radius:18px;animation:popIn .22s ease;box-shadow:0 24px 60px rgba(5,20,30,.35)}
+  @keyframes popIn{from{transform:scale(.94) translateY(12px);opacity:0}}
+  .erro{background:#fff1f0;border-color:#ffbfb5}
+  .odonto{background:linear-gradient(180deg,#f4fbf9,#e9f6f1);border:1px dashed #9cd8ca;border-radius:18px;padding:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.03)}
+  .dente{background:linear-gradient(145deg,#ffffff,#edf4f6);border:2px solid #cfe0e6;box-shadow:0 3px 8px rgba(0,0,0,.08);font-weight:700;color:#33576a;transition:transform .12s,box-shadow .12s}
+  .dente:hover{transform:scale(1.18);box-shadow:0 10px 20px rgba(0,0,0,.2);border-color:var(--teal)}
+  .dente.cariado{background:linear-gradient(145deg,#f25,#e03131)}
+  .dente.restaurado{background:linear-gradient(145deg,#1d9fc4,#0b7285)}
+  .dente.coroa{background:linear-gradient(145deg,#ff922b,#f76707)}
+  .dente.canal{background:linear-gradient(145deg,#ffd43b,#f59f00)}
+  .btn-como-funciona{background:linear-gradient(90deg,#12b886,#0ca678);border:none}
+  .btn-ghost{border:none;padding:8px 14px;border-radius:9px}
+  .btn-ghost:hover{filter:brightness(1.05);transform:none}
+  .btn-tour{background:linear-gradient(90deg,#4dabf7,#3d97e8);border:none}
+  #dicaExpli{background:linear-gradient(135deg,#0c2535,#0b5e6e);border:1px solid rgba(255,255,255,.15);border-radius:10px;box-shadow:0 12px 26px rgba(0,0,0,.35)}
+  #tourCaixa{border-color:#f0c24b;border-radius:16px}
+
+  /* ===== BUSCA, PROGRESSO, DESAFIOS E QUIZ ===== */
+  .busca-wrap{margin:12px 10px 2px}
+  #buscaMod{width:100%;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;outline:none;transition:.15s}
+  #buscaMod::placeholder{color:rgba(255,255,255,.45)}
+  #buscaMod:focus{border-color:#38d9a9;background:rgba(255,255,255,.16)}
+  .busca-dica{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.5);font-size:.7rem;padding:4px 14px 8px}
+  .busca-dica b{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:1px 7px;font-size:.68rem}
+  .prog-wrap{margin:0 10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
+  .prog-topo{display:flex;justify-content:space-between;align-items:center;color:#fff;font-size:.78rem;font-weight:700;margin-bottom:6px}
+  .prog-topo .zera{background:none;border:none;color:rgba(255,255,255,.55);font-size:.68rem;cursor:pointer;text-decoration:underline;padding:0}
+  .prog-barra{height:8px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}
+  .prog-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#38d9a9,#4dabf7);border-radius:999px;transition:width .4s ease}
+  .nav-item{position:relative}
+  .nav-item .ok{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#38d9a9;font-size:.9rem;font-weight:800;opacity:0;transition:opacity .2s}
+  .nav-item.feito .ok{opacity:1}
+  .nav-item.foco{outline:2px solid #38d9a9;outline-offset:-2px;background:rgba(255,255,255,.12)}
+  .nav-item.escondido{display:none}
+  .btn-quiz{background:linear-gradient(90deg,#f59f00,#fbbf24);border:none;padding:8px 14px;border-radius:9px;color:#4a2e00;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(245,159,0,.35)}
+  .btn-quiz:hover{filter:brightness(1.06)}
+  .painel-desafios{background:linear-gradient(135deg,#f4f8ff,#ecf3ff);border:1px solid #cfe0ff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.85rem}
+  .painel-desafios .tit{font-weight:800;margin-bottom:6px;color:#274a8c}
+  .painel-desafios ul{list-style:none}
+  .painel-desafios li{display:flex;align-items:center;gap:8px;padding:3px 0;color:#3a4a63}
+  .painel-desafios li .ch{width:18px;height:18px;border-radius:6px;border:1px solid #b7c9e8;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;background:#fff;flex:none}
+  .painel-desafios li.feito{color:#19794f;text-decoration:line-through}
+  .painel-desafios li.feito .ch{background:#37b24d;border-color:#37b24d;color:#fff}
+  .quiz-opcao{display:block;width:100%;text-align:left;margin-top:8px;padding:11px 14px;border-radius:10px;border:1px solid #cfdfef;background:#fff;font-size:.9rem;cursor:pointer;transition:.12s}
+  .quiz-opcao:hover:not([disabled]){border-color:#0ca678;background:#f0fbf8}
+  .quiz-opcao.certo{background:#e6f9ef;border-color:#37b24d;color:#186534;font-weight:700}
+  .quiz-opcao.errado{background:#fff1f0;border-color:#e03131;color:#a3260f}
+  .quiz-fb{font-size:.9rem;margin-top:12px;font-weight:700}
+
+  /* ===== MODO APRESENTAÇÃO (slides) ===== */
+  .btn-apresenta{background:linear-gradient(135deg,#7048e8,#8466f0);border:none;color:#fff;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(112,72,232,.35);display:inline-flex;align-items:center;gap:6px}
+  .btn-apresenta:hover{filter:brightness(1.06)}
+  #slides{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:radial-gradient(1200px 700px at 20% 10%,#0d5e6d,transparent),radial-gradient(900px 600px at 85% 15%,#0ca678,transparent),linear-gradient(160deg,#0a1c28,#0c3f52);color:#fff}
+  #slides.aberto{display:flex}
+  .slides-deck{width:min(880px,93vw);max-height:86vh;display:flex;flex-direction:column}
+  .slides-topo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .slides-topo .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 14px;font-size:.78rem;font-weight:600}
+  .slides-progresso{flex:1;height:6px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden}
+  .slides-progresso i{display:block;height:100%;background:linear-gradient(90deg,#38d9a9,#4dabf7);border-radius:999px;transition:width .3s ease}
+  .slides-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);border-radius:22px;padding:42px 46px;animation:slideIn .45s ease;box-shadow:0 30px 70px rgba(0,0,0,.4);overflow:auto}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  .slides-icon{width:74px;height:74px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2.3rem;background:rgba(12,166,120,.22);border:1px solid rgba(56,217,169,.4);margin-bottom:18px}
+  .slides-card h2{font-size:1.9rem;margin-bottom:6px;letter-spacing:-.01em}
+  .slides-card .modulo-chip{display:inline-block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:#8ae7c6;margin-bottom:16px;font-weight:700}
+  .slides-card p{font-size:1.05rem;line-height:1.7;color:#e6f4f0}
+  .slides-card ul{list-style:none;margin-top:8px}
+  .slides-card li{font-size:1.02rem;line-height:1.6;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.14);display:flex;gap:10px}
+  .slides-card li::before{content:"✦";color:#38d9a9}
+  .slides-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:52px;height:52px;border-radius:50%;font-size:1.8rem;cursor:pointer;transition:background .15s,transform .15s}
+  .slides-nav:hover{background:rgba(255,255,255,.24)}
+  .slides-nav.prev{left:22px}
+  .slides-nav.next{right:22px}
+  .slides-fecha{position:fixed;top:20px;right:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;width:44px;height:44px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:5}
+  .slides-fecha:hover{background:rgba(255,255,255,.25)}
+  .slides-setas-hint{display:flex;justify-content:center;gap:10px;margin-top:18px;font-size:.8rem;color:rgba(255,255,255,.6)}
+  .slides-setas-hint span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 10px}
 </style>
 </head>
 <body>
@@ -106,6 +219,12 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand"><span class="dente">🦷</span> <span>Clínica Sorriso</span></div>
+    <div class="busca-wrap"><input id="buscaMod" placeholder="🔎 Buscar módulo..."></div>
+    <div class="busca-dica"><span>Pressione</span><b>/</b><span>ou</span><b>Ctrl K</b><span>para buscar · <b>↑↓→</b> navega · <b>Enter</b> abre</span></div>
+    <div class="prog-wrap">
+      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/16</b></span></div>
+      <div class="prog-barra"><i id="progBarra"></i></div>
+    </div>
     <nav>
       <div class="nav-titulo">Principal</div>
       <button class="nav-item" data-mod="dashboard"><span class="ico">📊</span>Dashboard</button>
@@ -134,6 +253,7 @@
     <div class="topbar">
       <h1 id="tituloPagina">Dashboard</h1>
       <div class="acao">
+        <button class="btn-apresenta" onclick="abrirSlides()">▶ Apresentação</button>
         <span class="area-treino">🎓 Modo treinamento</span>
         <span class="usuario">👤 Administrador</span>
       </div>
@@ -145,6 +265,22 @@
 <!-- MODAL GENÉRICO -->
 <div class="modal-bg" id="modalBg">
   <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- MODO APRESENTAÇÃO -->
+<div id="slides">
+  <button class="slides-fecha" onclick="fecharSlides()" title="Sair da apresentação (Esc)">✕</button>
+  <button class="slides-nav prev" onclick="slideVai(-1)" title="Anterior (←)">‹</button>
+  <button class="slides-nav next" onclick="slideVai(1)" title="Próximo (→)">›</button>
+  <div class="slides-deck">
+    <div class="slides-topo">
+      <span class="chip" id="slideModChip">Dashboard</span>
+      <div class="slides-progresso"><i id="slideBarra"></i></div>
+      <span class="chip" id="slideContador">1 / 3</span>
+    </div>
+    <div class="slides-card" id="slideCard"></div>
+    <div class="slides-setas-hint"><span>← anterior</span><span>→ próximo</span><span>esc sair</span></div>
+  </div>
 </div>
 
 <script>
@@ -232,8 +368,10 @@ function cabecalho(mod, titulo, extra=''){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0b7285;border-radius:10px;padding:8px 12px;margin-bottom:12px">
     <button class="btn-como-funciona btn-ghost" data-mod="${mod}">❓ Como funciona este módulo</button>
     <button class="btn-tour btn-ghost" data-mod="${mod}">▶ Visita guiada</button>
+    <button class="btn-quiz" onclick="abrirQuiz('${mod}')">🎯 Quiz de fixação</button>
     <span style="color:#eafff7;font-size:.8rem">🖱️ Passe o mouse sobre os elementos para ler explicações — clique para ampliar.</span>
   </div>
+  ${barraDesafios(mod)}
   <div class="painel-treino">🎓 <b>Treine nesta tela:</b><div class="passos">${treinoInfo[mod]||''}</div></div>
   <div class="dica-treino">💡 <b>Abrir no sistema real:</b> <a target="_blank" href="${realLink(mod)}">${titulo}</a> (faça login como admin@sco.com / admin123).</div>${extra}`;
 }
@@ -280,11 +418,12 @@ function pacientesRows(lista,filtro){
   const listaF = lista.filter(p => !f || p.n.toLowerCase().includes(f) || (p.cpf||'').includes(f));
   if(!listaF.length) return `<tr><td colspan="7"><div class="aviso">Nenhum paciente encontrado para "${filtro}".</div></td></tr>`;
   return listaF.map(p=>`<tr>
-    <td><button class="btn-link" onclick="mostrar('pacientes_ficha')">${p.n}</button></td>
+    <td><button class="btn-link" onclick="abrirFicha()">${p.n}</button></td>
     <td>${p.cpf}</td><td>${p.cel}</td><td>${p.cons}</td><td>${p.orc}</td>
     <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#dc3545">Inativo</span>'}</td>
-    <td><button class="btn gray fino" onclick="mostrar('pacientes_ficha')">Abrir ficha</button></td></tr>`).join('');
+    <td><button class="btn gray fino" onclick="abrirFicha()">Abrir ficha</button></td></tr>`).join('');
 }
+function abrirFicha(){ fez('abrir_ficha'); mostrar('pacientes_ficha'); }
 function novoPacienteForm(){
   return `<h3>📝 Novo paciente</h3>
   <div class="form-grid">
@@ -304,6 +443,7 @@ function salvarNovoPaciente(){
   if(!nome){ alert('Informe o nome do paciente.'); return; }
   if(cpf && estado.pacientes.some(p=>p.cpf===cpf)){ $('#np_erro').style.display='block'; return; }
   estado.pacientes.push({id:estado.pacientes.length+1,n:nome,cpf:cpf||'—',cel:cel||'—',st:$('#np_st').value,cons:0,orc:0});
+  fez('paciente_criado');
   fecharModal(); mostrar('pacientes'); flash(`Paciente "${nome}" cadastrado com sucesso ✓`);
 }
 let pastaPac = 0;
@@ -359,7 +499,7 @@ function evolucaoForm(){
 }
 function salvarEvolucao(){
   const t=$('#ev_conteudo').value.trim(); if(!t){ alert('Preencha o conteúdo.'); return; }
-  evolucoes.unshift({tipo:$('#ev_tipo').value,d:t}); fecharModal(); flash('Evolução registrada no prontuário ✓');
+  evolucoes.unshift({tipo:$('#ev_tipo').value,d:t}); fez('evolucao'); fecharModal(); flash('Evolução registrada no prontuário ✓');
 }
 function alertaForm(){
   return `<h3>⚠️ Novo alerta clínico</h3>
@@ -372,7 +512,7 @@ function alertaForm(){
 }
 function salvarAlerta(){
   const t=$('#al_title').value.trim(); if(!t){alert('Informe o título do alerta.');return;}
-  fecharModal(); flash(`Alerta "${t}" registrado ✓`);
+  fez('alerta'); fecharModal(); flash(`Alerta "${t}" registrado ✓`);
 }
 
 function pagAgenda(){
@@ -415,7 +555,7 @@ function agendarForm(h='09:00'){
 }
 function salvarAgendamento(){
   estado.consultas.push({h:$('#ag_hora').value||'09:00',pac:$('#ag_pac').value,pro:'Dr. João',sala:'Sala 1',st:'Agendado',dur:30,ret:false});
-  fecharModal(); mostrar('agenda'); flash('Consulta agendada com sucesso ✓');
+  fez('agendar'); fecharModal(); mostrar('agenda'); flash('Consulta agendada com sucesso ✓');
 }
 
 const condOrder=['cariado','restaurado','coroa','canal','ausente'];
@@ -456,11 +596,13 @@ function aplicarIng(n,c){
   if(c!=='higido') el.classList.add(c);
   el.style.borderColor = c==='higido' ? '#b8c4cc' : 'rgba(0,0,0,.35)';
   ultimoDente=n;
+  if(c!=='higido') fez('dente_marcado');
   $('#condAtual').textContent = `Dente ${n} → ${c==='higido'?'Hígido (sadio)':condLabel[c]}`;
 }
 function aplicarCond(c){ if(ultimoDente!==null) aplicarIng(ultimoDente,c); }
 
 function totalPlano(){ const v=estado.plano.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0); return Math.max(v-estado.plano.desconto,0); }
+function concluirPlano(){ fez('concluir_plano'); flash('Status do plano atualizado para Concluído — todos os itens marcados como executados ✓'); }
 function pagPlanos(){
   const p=estado.plano;
   const total=totalPlano();
@@ -472,7 +614,7 @@ function pagPlanos(){
     <div class="card-kpi"><div class="v">R$ ${total.toFixed(2)}</div><div class="r">Total (soma − desconto R$ ${p.desconto})</div></div>
   </div>
   <div class="toolbar"><button class="btn teal" onclick="abrirModal(planoItemForm())">+ Adicionar procedimento</button>
-    <button class="btn" onclick="flash('Status do plano atualizado para Concluído — todos os itens marcados como executados ✓')">✔ Concluir plano</button></div>
+    <button class="btn" onclick="concluirPlano()">✔ Concluir plano</button></div>
   <div class="tabela-wrap"><table>
     <tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desc.</th><th>Total</th><th>Status</th></tr>
     ${p.itens.map((i,idx)=>`<tr><td>${estado.procedimentos[i.proc-1].nome}</td><td>${i.dente??'—'}</td><td>${i.qtd}</td><td>R$ ${i.uni.toFixed(2)}</td><td>-R$ ${i.desc.toFixed(2)}</td><td><b>R$ ${(i.uni*i.qtd-i.desc).toFixed(2)}</b></td><td>${stBadge('Atendido')}</td></tr>`).join('')||'<tr><td colspan="7">Nenhum item — adicione procedimentos.</td></tr>'}
@@ -494,10 +636,12 @@ function salvarPlanoItem(){
   const idx=parseInt($('#pi_proc').value), qtd=parseInt($('#pi_qtd').value)||1;
   const uni=parseFloat($('#pi_uni').value)||estado.procedimentos[idx-1].val;
   estado.plano.itens.push({proc:idx,n:1,dente:parseInt($('#pi_dente').value)||null,uni,qtd,desc:parseFloat($('#pi_desc').value)||0});
-  fecharModal(); mostrar('planos'); flash(`Procedimento adicionado — total R$ ${totalPlano().toFixed(2)} ✓`);
+  fez('plano_item'); fecharModal(); mostrar('planos'); flash(`Procedimento adicionado — total R$ ${totalPlano().toFixed(2)} ✓`);
 }
 
 function totalOrc(){ return Math.max(estado.orcamento.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0); }
+function emitirOrc(){ flash('Orçamento emitido para o paciente ✓'); }
+function aprovarOrc(){ fez('aprovar_orc'); flash('Orçamento aprovado ✓ — agora gere a conta a receber no Financeiro.'); }
 function pagOrcamentos(){
   const o=estado.orcamento, tot=totalOrc();
   return cabecalho('orcamentos','Orçamentos — '+o.titulo) + `
@@ -508,8 +652,8 @@ function pagOrcamentos(){
     <div class="card-kpi"><div class="v">R$ ${tot.toFixed(2)}</div><div class="r">Total final</div></div>
   </div>
   <div class="toolbar"><button class="btn teal" onclick="abrirModal(orcItemForm())">+ Adicionar item</button>
-    <button class="btn" onclick="flash('Orçamento emitido para o paciente ✓')">📤 Emitir</button>
-    <button class="btn verde" onclick="flash('Orçamento aprovado ✓ — agora gere a conta a receber no Financeiro.')">✔ Aprovar</button></div>
+    <button class="btn" onclick="emitirOrc()">📤 Emitir</button>
+    <button class="btn verde" onclick="aprovarOrc()">✔ Aprovar</button></div>
   <div class="tabela-wrap"><table>
     <tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desconto</th><th>Total</th></tr>
     ${o.itens.map(i=>`<tr><td>${estado.procedimentos[i.proc-1].nome}</td><td>${i.dente??'—'}</td><td>${i.qtd}</td><td>R$ ${i.uni.toFixed(2)}</td><td>-R$ ${i.desc.toFixed(2)}</td><td><b>R$ ${(i.uni*i.qtd-i.desc).toFixed(2)}</b></td></tr>`).join('')}
@@ -530,7 +674,7 @@ function orcItemForm(){
 function salvarOrcItem(){
   const idx=parseInt($('#oi_proc').value);
   estado.orcamento.itens.push({proc:idx,n:1,dente:parseInt($('#oi_dente').value)||null,uni:parseFloat($('#oi_uni').value)||estado.procedimentos[idx-1].val,qtd:parseInt($('#oi_qtd').value)||1,desc:parseFloat($('#oi_desc').value)||0});
-  fecharModal(); mostrar('orcamentos'); flash(`Item adicionado — total R$ ${totalOrc().toFixed(2)} ✓`);
+  fez('orc_item'); fecharModal(); mostrar('orcamentos'); flash(`Item adicionado — total R$ ${totalOrc().toFixed(2)} ✓`);
 }
 
 function pagFinanceiro(){
@@ -568,6 +712,7 @@ function salvarPagamento(i){
   if(v>saldo){ $('#pg_msg').innerHTML=`<div class="erro">⛔ Valor informado maior que o saldo devedor (R$ ${saldo.toFixed(2)}). O sistema real bloqueia esta operação.</div>`; return; }
   c.pago=Math.min(c.pago+v,c.valor);
   c.st = c.pago>=c.valor ? 'paga' : 'parcial'; c.forma=$('#pg_forma').value;
+  fez('receber');
   fecharModal(); mostrar('financeiro');
   flash(c.st==='paga'?`Pagamento de R$ ${v.toFixed(2)} (${c.forma}) — conta PAGA ✓`:`Pagamento parcial de R$ ${v.toFixed(2)} — saldo restante R$ ${(saldo-v).toFixed(2)} ✓`);
 }
@@ -586,7 +731,7 @@ function convenioForm(){
   <div class="form-grid"><div class="full"><label>Nome *</label><input id="cv_nome" placeholder="Nome do convênio"></div>
     <div><label>CNPJ</label><input placeholder="00.000.000/0000-00"></div><div><label>Telefone</label><input placeholder="(00) 0000-0000"></div>
     <div><label>E-mail</label><input placeholder="contato@operadora.com"></div><div><label>Responsável</label><input placeholder="Nome"></div></div>
-  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Operadora cadastrada com sucesso ✓')">Salvar</button></div>`;
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar('convenio','Operadora cadastrada com sucesso ✓')">Salvar</button></div>`;
 }
 
 function pagProfissionais(){
@@ -605,7 +750,7 @@ function profissionalForm(){
     <div><label>Tipo</label><select><option>Dentista</option><option>Auxiliar</option><option>Recepcionista</option><option>Outro</option></select></div>
     <div><label>Comissão (%)</label><input type="number" min="0" max="100" value="0"></div>
     <div class="full"><label>Especialidades</label><select><option>Clínica geral</option><option>Endodontia</option><option>Cirurgia</option><option>Ortodontia</option><option>Implantes</option><option>Odontopediatria</option></select></div></div>
-  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Profissional cadastrado com sucesso ✓')">Salvar</button></div>`;
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar('profissional','Profissional cadastrado com sucesso ✓')">Salvar</button></div>`;
 }
 
 function pagProcedimentos(){
@@ -625,7 +770,7 @@ function procedimentoForm(){
     <div><label>Duração (min)</label><input type="number" value="30" min="1"></div>
     <div><label>Valor padrão (R$)</label><input type="number" step="0.01"></div>
     <div class="full"><label>Descrição</label><textarea rows="2"></textarea></div></div>
-  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Procedimento cadastrado com sucesso ✓')">Salvar</button></div>`;
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar('procedimento','Procedimento cadastrado com sucesso ✓')">Salvar</button></div>`;
 }
 
 function pagEstoque(){
@@ -667,6 +812,7 @@ function salvarMov(i,tipo){
   estado.estoqueHistorico.unshift({dt:'24/09',p:p.n,t:tipo,q});
   const ficouBaixo = p.est<=p.min;
   p.st_baixo = ficouBaixo;
+  fez(tipo==='entrada'?'entrada':'saida');
   fecharModal(); mostrar('estoque');
   flash(`Movimentação registrada: ${antes} → ${p.est}${ficouBaixo?' — ⚠️ agora está abaixo do mínimo!':''} ✓`);
 }
@@ -687,16 +833,16 @@ function contratoForm(){
     <div><label>Status</label><select><option>Pendente</option><option>Assinado</option><option>Cancelado</option></select></div>
     <div><label>Assinado em</label><input type="date"></div>
     <div class="full"><label>Conteúdo</label><textarea rows="5">Eu, paciente, declaro que fui informado(a) sobre o tratamento proposto...</textarea></div></div>
-  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();flash('Contrato cadastrado com sucesso ✓')">Salvar</button></div>`;
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar('contrato','Contrato cadastrado com sucesso ✓')">Salvar</button></div>`;
 }
 
 function mReais(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
 function pagRelatorios(){
   const r=estado.rel;
   return cabecalho('relatorios','Relatórios') + `
-  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01">
-    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-24">
-    <button class="btn" onclick="flash('Relatório recalculado para o período selecionado ✓')">Filtrar</button></div>
+  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01" onchange="fez('relatorio_periodo')">
+    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-24" onchange="fez('relatorio_periodo')">
+    <button class="btn" onclick="fez('relatorio_periodo');flash('Relatório recalculado para o período selecionado ✓')">Filtrar</button></div>
   <div class="cards">
     <div class="card-kpi"><div class="v">${mReais(r.recebido)}</div><div class="r">📈 Recebido no período</div></div>
     <div class="card-kpi"><div class="v">${mReais(r.emAberto)}</div><div class="r">Em aberto</div></div>
@@ -745,8 +891,8 @@ function pagAdmin(){
 function pagAuditoria(){
   return cabecalho('auditoria','Auditoria') + `
   <div class="dica-treino">🔍 Cada operação (criar, atualizar, excluir, marcar_dente, registrar_pagamento...) fica no log com <b>usuário</b>, <b>tabela</b>, <b>registro</b>, <b>IP</b> e valores <b>antes/depois</b>.</div>
-  <div class="toolbar"><select class="campo"><option>Todas as ações</option><option>criar</option><option>atualizar</option><option>excluir</option><option>marcar_dente</option><option>registrar_pagamento</option></select>
-    <select class="campo"><option>Todas as tabelas</option><option>pacientes</option><option>appointments</option><option>payments</option><option>odontogram_teeth</option></select></div>
+  <div class="toolbar"><select class="campo" onchange="fez('aud_filtro')"><option>Todas as ações</option><option>criar</option><option>atualizar</option><option>excluir</option><option>marcar_dente</option><option>registrar_pagamento</option></select>
+    <select class="campo" onchange="fez('aud_filtro')"><option>Todas as tabelas</option><option>pacientes</option><option>appointments</option><option>payments</option><option>odontogram_teeth</option></select></div>
   <div class="tabela-wrap"><table>
     <tr><th>Usuário</th><th>Ação</th><th>Tabela</th><th>Registro</th><th>Quando</th><th>IP</th></tr>
     ${estado.auditoria.map(a=>`<tr><td>${a.quem}</td><td><b>${a.acao}</b></td><td>${a.tabela}</td><td>${a.id}</td><td>${a.quando}</td><td>${a.ip}</td></tr>`).join('')}
@@ -758,6 +904,256 @@ const flashBox=document.createElement('div');
 flashBox.style.cssText='position:fixed;top:70px;right:22px;background:#0b7285;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:99;font-size:.9rem;font-weight:600;max-width:360px;transition:.25s;opacity:0;pointer-events:none;';
 document.body.appendChild(flashBox);
 function flash(msg){ flashBox.textContent='✓ '+msg; flashBox.style.opacity=1; setTimeout(()=>flashBox.style.opacity=0,3200); }
+
+/* ===== PROGRESSO, DESAFIOS E QUIZ ===== */
+const CHAVES_MOD = {dashboard:['tour_dashboard'],pacientes:['paciente_criado','abrir_ficha'],prontuario:['evolucao','alerta'],agenda:['agendar'],odontograma:['dente_marcado'],planos:['plano_item','concluir_plano'],orcamentos:['orc_item','aprovar_orc'],financeiro:['receber'],convenios:['convenio'],profissionais:['profissional'],procedimentos:['procedimento'],estoque:['entrada','saida'],contratos:['contrato'],relatorios:['relatorio_periodo'],admin:['admin_visitado'],auditoria:['aud_filtro']};
+const DESAFIOS = {
+  dashboard:[{k:'tour_dashboard',t:'Assista à Visita guiada até o fim (no último passo, clique em Encerrar)'}],
+  pacientes:[{k:'paciente_criado',t:'Cadastre um novo paciente (botão "+ Novo paciente")'},{k:'abrir_ficha',t:'Abra a ficha/prontuário de um paciente'}],
+  prontuario:[{k:'evolucao',t:'Registre uma evolução clínica'},{k:'alerta',t:'Adicione um alerta clínico'}],
+  agenda:[{k:'agendar',t:'Agende uma consulta'}],
+  odontograma:[{k:'dente_marcado',t:'Marque um dente com alguma condição (cariado, restaurado...)'}],
+  planos:[{k:'plano_item',t:'Adicione um procedimento ao plano'},{k:'concluir_plano',t:'Conclua o plano de tratamento'}],
+  orcamentos:[{k:'orc_item',t:'Adicione um item ao orçamento'},{k:'aprovar_orc',t:'Aprove o orçamento (botão verde)'}],
+  financeiro:[{k:'receber',t:'Registre um recebimento (parcial ou total)'}],
+  convenios:[{k:'convenio',t:'Cadastre uma operadora'}],
+  profissionais:[{k:'profissional',t:'Cadastre um profissional'}],
+  procedimentos:[{k:'procedimento',t:'Cadastre um procedimento'}],
+  estoque:[{k:'entrada',t:'Registre uma entrada de material'},{k:'saida',t:'Registre uma saída de material'}],
+  contratos:[{k:'contrato',t:'Cadastre um contrato'}],
+  relatorios:[{k:'relatorio_periodo',t:'Use o período De/Até e clique em Filtrar'}],
+  admin:[{k:'admin_visitado',t:'Explore a Administração (usuários, perfis, clínica)'}],
+  auditoria:[{k:'aud_filtro',t:'Use os filtros de ação e de tabela'}],
+};
+const QUIZ = {
+  dashboard:[
+    {q:'O que o Dashboard NÃO mostra?',o:['Consultas de hoje','Total de pacientes','Contas a receber em aberto','Histórico de prescrições'],c:3},
+    {q:'Por que um cartão indicador pode NÃO aparecer para um usuário?',o:['Erro do sistema','Falta de permissão (Gate) do módulo','Cartão é só visual','É feriado'],c:1},
+    {q:'Os totais do Dashboard vêm de...',o:['Valores digitados à mão','Consulta REAL no banco de dados','Planilha de Excel','Relatório antigo'],c:1},
+    {q:'O alerta de estoque baixo aparece quando...',o:['O produto acaba','Saldo ≤ estoque mínimo','O fornecedor atrasa','Todo dia às 8h'],c:1},
+  ],
+  pacientes:[
+    {q:'Qual campo é OBRIGATÓRIO no cadastro de paciente?',o:['CPF','Nome','Telefone','E-mail'],c:1},
+    {q:'O que acontece ao cadastrar um CPF já existente?',o:['Substitui o antigo','Bloqueia — CPF é único','Cria outro no mesmo momento','Ignora em silêncio'],c:1},
+    {q:'Ao "excluir" um paciente, o sistema:',o:['Apaga tudo do banco','Não permite excluir','Marca como inativo (soft delete) preservando o histórico','Move para a lixeira do Windows'],c:2},
+    {q:'A busca de pacientes também alimenta:',o:['Envio de SMS','API do WhatsApp','Boleto','Receituário'],c:1},
+  ],
+  prontuario:[
+    {q:'Quem vira o AUTOR da evolução clínica automaticamente?',o:['A recepção','O profissional logado','O administrador','O paciente'],c:1},
+    {q:'O formato da anamnese no sistema é:',o:['"pergunta: resposta"','Markdown','JSON','Somente texto solto'],c:0},
+    {q:'Desativar um ALERTA clínico:',o:['Apaga o registro','Esconde sem apagar','Bloqueia o paciente','Envia um e-mail de aviso'],c:1},
+    {q:'Uma prescrição pode ter:',o:['Só 1 medicamento','No máximo 2','Vários medicamentos (dose, frequência, duração)','Nenhum medicamento'],c:2},
+  ],
+  agenda:[
+    {q:'A grade da agenda cobre o horário:',o:['8h às 18h','7h às 21h','9h às 17h','Sem horário fixo'],c:1},
+    {q:'O que a DURAÇÃO do procedimento define?',o:['O preço','O fim da consulta na agenda','A sala obrigatória','O profissional'],c:1},
+    {q:'A lista de espera é ordenada por:',o:['Ordem alfabética','Prioridade','Data de nascimento','CRO'],c:1},
+    {q:'Qual NÃO é um status de consulta?',o:['Agendado','Confirmado','Em atendimento','Descartado'],c:3},
+  ],
+  odontograma:[
+    {q:'Quais dentes formam o diagrama?',o:['Todos de 1 a 32','18–11 · 21–28 · 48–41 · 31–38','Apenas 8 dentes','Só os molares'],c:1},
+    {q:'Qual NÃO é uma condição de dente?',o:['Cariado','Restaurado','Coroa','Rachado'],c:3},
+    {q:'Remover a marca devolve o dente a:',o:['Hígido','Ausente','Canal','Cariado'],c:0},
+    {q:'No sistema real, cada marca no odontograma:',o:['Não é auditável','Guarda o profissional responsável e gera auditoria','Some ao atualizar','Não tem proprietário'],c:1},
+  ],
+  planos:[
+    {q:'O TOTAL do plano é:',o:['Digitado à mão','Recalculado automaticamente (soma − desconto)','Fixado pelo administrador','Uma média das consultas'],c:1},
+    {q:'O valor unitário do item vem sugerido do:',o:['Orçamento anterior','Valor padrão do procedimento','Tabela SUS','Total do plano'],c:1},
+    {q:'Ao marcar o plano como CONCLUÍDO, o sistema:',o:['Não faz nada','Executa todos os itens pendentes','Apaga o plano','Zera o desconto'],c:1},
+    {q:'Os itens do plano podem ser marcados como:',o:['executado / planejado','ativo / inativo','aberto / fechado','rascunho / final'],c:0},
+  ],
+  orcamentos:[
+    {q:'O fluxo de status do orçamento é:',o:['Novo → Pago → Fechado','Rascunho → Emitido → Aprovado → Recusado/Cancelado','Aberto → Fechado','Planejado → Feito'],c:1},
+    {q:'O orçamento APROVADO gera o quê?',o:['Odontograma','A base para a conta a receber no Financeiro','Um alerta','Um contrato'],c:1},
+    {q:'Subtotal é:',o:['Total menos desconto','A soma dos itens (sem desconto)','O valor aprovado','O KPI do dashboard'],c:1},
+    {q:'A validade do orçamento serve para:',o:['Auditoria','Definir o prazo da proposta','Agendar','Controlar estoque'],c:1},
+  ],
+  financeiro:[
+    {q:'A listagem ordena as contas por:',o:['Ordem alfabética','Prioridade: abertas → parciais → pagas','Data de criação','Valor maior primeiro'],c:1},
+    {q:'Receber valor acima do saldo devedor:',o:['É permitido','É bloqueado com mensagem','Vira crédito do paciente','Cancela a conta'],c:1},
+    {q:'Um pagamento parcial muda a conta para:',o:['Paga','Parcial','Aberta','Cancelada'],c:1},
+    {q:'Qual NÃO é forma de pagamento?',o:['PIX','Cartão de crédito','Convênio','Bitcoin'],c:3},
+  ],
+  convenios:[
+    {q:'O módulo Convênios cadastra:',o:['Planos do SUS','Operadoras de plano odontológico','Pacientes','Procedimentos'],c:1},
+    {q:'Cada operadora pode ter:',o:['1 plano fixo','Planos vinculados','Até 3 planos','Nenhum plano'],c:1},
+    {q:'A busca de convênio filtra por:',o:['Nome/CNPJ e status','CRO','Data','Valor'],c:0},
+    {q:'Convênios também aparecem em:',o:['Só nos relatórios','Recebimentos (forma "Convênio")','Odontograma','Agenda'],c:1},
+  ],
+  profissionais:[
+    {q:'Qual campo NÃO pertence ao profissional?',o:['CRO','Especialidades','Comissão %','Estoque atual'],c:3},
+    {q:'Profissionais ativos também aparecem na:',o:['API do WhatsApp','Impressora','Portaria','Nota fiscal'],c:0},
+    {q:'Tipos de profissional:',o:['Dentista, Auxiliar, Recepção','Só Dentista','Técnico e Estagiário','Enfermeiro e Médico'],c:0},
+    {q:'A comissão % é usada para:',o:['Definir a agenda','Cálculo de comissão (financeiro)','Auditoria','Estoque'],c:1},
+  ],
+  procedimentos:[
+    {q:'O código do procedimento é:',o:['Opcional','Único — duplicidade bloqueada','Sempre numérico','Definido pelo SUS'],c:1},
+    {q:'A DURAÇÃO do procedimento define:',o:['O preço','O fim da consulta na agenda','O CRO','A sala'],c:1},
+    {q:'O valor padrão é usado:',o:['Só no estoque','Como sugestão em planos e orçamentos','Somente na impressão','Na auditoria'],c:1},
+    {q:'Qual NÃO é categoria de procedimento?',o:['Endodontia','Prótese','Odontopediatria','Marketing'],c:3},
+  ],
+  estoque:[
+    {q:'O produto fica em "estoque baixo" quando:',o:['Saldo ≤ estoque mínimo','Acaba o lote','Passa da validade','O custo zera'],c:0},
+    {q:'Uma saída maior que o saldo atual:',o:['É permitida','É bloqueada pelo sistema','Vira entrada','Desconta do mínimo'],c:1},
+    {q:'Cada movimentação grava:',o:['Só a data','Saldo anterior/posterior, usuário e custo','Apenas o custo','O CRO'],c:1},
+    {q:'Uma ENTRADA normalmente representa:',o:['Uso clínico','Compra ao fornecedor','Perda','Ajuste de preço'],c:1},
+  ],
+  contratos:[
+    {q:'Qual NÃO é status de contrato?',o:['Pendente','Assinado','Cancelado','Enviado'],c:3},
+    {q:'O conteúdo do contrato é:',o:['Texto livre por tipo','Fixado pelo sistema','Só imagem','Só PDF'],c:0},
+    {q:'Os contratos ficam vinculados a:',o:['Procedimento','Paciente','Profissional','Clínica'],c:1},
+    {q:'Ao assinar, o sistema registra:',o:['O IP','A data de assinatura','O custo','O dente'],c:1},
+  ],
+  relatorios:[
+    {q:'O período padrão do relatório é:',o:['O mês vigente','O ano todo','A semana atual','Sempre manual'],c:0},
+    {q:'O resumo financeiro mostra:',o:['Entradas/saídas de estoque','A receber, em aberto, pago e recebido no período','Somente despesas','Faltas'],c:1},
+    {q:'No resumo da agenda aparecem:',o:['Atendidas, canceladas e faltas','Leads','Retornos','Valores cobrados'],c:0},
+    {q:'O relatório também cobre:',o:['Odontograma','Estoque (produtos, baixos, entradas/saídas)','Convênios','Contratos'],c:1},
+  ],
+  admin:[
+    {q:'RBAC significa:',o:['Controle de acesso por perfil + permissões','Firewall','Criptografia de senha','Backup automático'],c:0},
+    {q:'Mudar a permissão de um perfil:',o:['Vale para um único usuário','Vale para todos os usuários do perfil','Apaga o perfil','Não tem efeito'],c:1},
+    {q:'O sistema impede:',o:['Criar usuário','Deletar o próprio usuário','Trocar a senha','Ver a auditoria'],c:1},
+    {q:'Os dados da Clínica alimentam:',o:['Somente relatórios','Telas e a API do WhatsApp','Odontograma','Estoque'],c:1},
+  ],
+  auditoria:[
+    {q:'Cada ação importante registra:',o:['Só quem fez','Usuário, ação, tabela, registro, quando e IP (com antes/depois)','Somente a data','O custo'],c:1},
+    {q:'Qual tabela NÃO costuma aparecer na auditoria?',o:['pacientes','payments','odontogram_teeth','comissões'],c:3},
+    {q:'O IP registrado serve para:',o:['Fazer login','Rastrear de onde a ação veio','Acelerar o sistema','Fazer backup'],c:1},
+    {q:'Qual ação pode estar no log?',o:['marcar_dente','limpar_cache','trocar_skin','apagar_logs'],c:0},
+  ],
+};
+const LS='scoTreinoV2';
+let prog={feito:{},quiz:{}};
+try{ const s=localStorage.getItem(LS); if(s){ const o=JSON.parse(s); prog.feito=o.feito||{}; prog.quiz=o.quiz||{}; } }catch(e){}
+function salvarProg(){ try{ localStorage.setItem(LS,JSON.stringify(prog)); }catch(e){} }
+function zerarProgresso(){
+  if(!confirm('Apagar TODO o progresso, quizes e desafios?')) return;
+  prog={feito:{},quiz:{}}; salvarProg(); atualizarProgresso(); flash('Progresso zerado — comece de novo!');
+}
+function fez(k){
+  if(prog.feito[k]) return;
+  prog.feito[k]=true; salvarProg(); atualizarProgresso();
+}
+function moduloConcluido(m){
+  const chaves=CHAVES_MOD[m]||[];
+  const todos=chaves.every(k=>prog.feito[k]);
+  const quizOk=(prog.quiz[m]||0)>=70;
+  return todos && quizOk;
+}
+function atualizarProgresso(){
+  const total=ordemModulos.length;
+  const completos=ordemModulos.filter(m=>moduloConcluido(m)).length;
+  const bar=document.getElementById('progBarra'), num=document.getElementById('progNum');
+  if(bar) bar.style.width=(completos/total*100).toFixed(1)+'%';
+  if(num) num.textContent=completos+'/'+total;
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.classList.toggle('feito', moduloConcluido(b.dataset.mod));
+    if(!b.querySelector('.ok')) b.insertAdjacentHTML('beforeend','<span class="ok">✓</span>');
+  });
+}
+function barraDesafios(mod){
+  const ds=DESAFIOS[mod]||[];
+  if(!ds.length) return '';
+  const feitos=ds.filter(d=>prog.feito[d.k]).length;
+  return `<div class="painel-desafios"><div class="tit">🎯 Desafios deste módulo — ${feitos}/${ds.length}${feitos===ds.length?' ✔ completo':''}</div>
+    <ul>${ds.map(d=>`<li class="${prog.feito[d.k]?'feito':''}"><span class="ch">${prog.feito[d.k]?'✓':''}</span>${d.t}</li>`).join('')}</ul></div>`;
+}
+function registrar(tipo,msg){ fez(tipo); fecharModal(); flash(msg); }
+
+/* ---- QUIZ ---- */
+let quizState=null;
+function abrirQuiz(mod){
+  const q=QUIZ[mod]; if(!q){ flash('Quiz ainda não disponível para este módulo.'); return; }
+  quizState={mod,q,i:0,acertos:0,escolheu:false};
+  pintarQuiz();
+}
+function pintarQuiz(){
+  const s=quizState, qu=s.q[s.i];
+  abrirModal(`<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#5a6a72;margin-bottom:8px"><b>🎯 Quiz — ${titulos[s.mod]}</b><b>Pergunta ${s.i+1}/${s.q.length}</b></div>
+    <h3 style="font-size:1.05rem;margin-bottom:2px">${qu.q}</h3>
+    <div>${qu.o.map((o,j)=>`<button class="quiz-opcao" onclick="quizResponder(${j})">${String.fromCharCode(65+j)}) ${o}</button>`).join('')}</div>
+    <div id="quizFb"></div>
+    <div class="acoes"><button class="btn gray" onclick="fecharQuiz()">Sair do quiz</button>
+    <button class="btn teal" id="quizProx" style="display:none" onclick="quizProximo()">Próxima →</button></div>`);
+}
+function quizResponder(j){
+  if(quizState.escolheu) return;
+  quizState.escolheu=true;
+  const qu=quizState.q[quizState.i], certo=j===qu.c;
+  if(certo) quizState.acertos++;
+  document.querySelectorAll('.quiz-opcao').forEach((b,k)=>{
+    if(k===qu.c) b.classList.add('certo');
+    else if(k===j) b.classList.add('errado');
+    b.disabled=true;
+  });
+  const ultima=quizState.i===quizState.q.length-1;
+  $('#quizFb').innerHTML=`<div class="quiz-fb" style="color:${certo?'#2b8a3e':'#e03131'}">${certo?'✔ Correto!':'✘ Não foi dessa vez.'} ${certo?'':'A resposta certa é a destacada em verde.'}</div>`;
+  $('#quizProx').style.display='';
+  $('#quizProx').textContent=ultima?'Ver resultado':'Próxima →';
+}
+function quizProximo(){
+  if(quizState.i<quizState.q.length-1){ quizState.i++; quizState.escolheu=false; pintarQuiz(); return; }
+  quizResultado();
+}
+function quizResultado(){
+  const s=quizState;
+  const pct=Math.round(s.acertos/s.q.length*100), aprov=pct>=70;
+  if(pct>(prog.quiz[s.mod]||0)){ prog.quiz[s.mod]=pct; salvarProg(); atualizarProgresso(); }
+  const faltam=CHAVES_MOD[s.mod].filter(k=>!prog.feito[k]);
+  const ok=aprov && !faltam.length;
+  abrirModal(`<h3>🏆 Resultado — ${titulos[s.mod]}</h3>
+    <div class="cards" style="margin:12px 0">
+      <div class="card-kpi"><div class="v">${s.acertos}/${s.q.length}</div><div class="r">Acertos</div></div>
+      <div class="card-kpi"><div class="v" style="color:${aprov?'#2b8a3e':'#e03131'}">${pct}%</div><div class="r">${aprov?'✔ Aprovado':'Meta: 70%'}</div></div>
+    </div>
+    ${ok?'<div class="dica-treino" style="border-left-color:#37b24d;background:#f0fbf6"><b>🎉 Módulo concluído!</b> Quiz + desafios completos — o ✓ já aparece no menu lateral e o progresso subiu.</div>'
+      :!aprov?'<div class="dica-treino">📚 Aproveitamento abaixo de 70%. Assista à Visita guiada ☝ e tente o quiz de novo (a nota não cai).</div>'
+      :`<div class="dica-treino">⏳ Falta concluir: <b>${faltam.map(k=>{const d=(DESAFIOS[s.mod]||[]).find(x=>x.k===k);return d?d.t:'(desafio)';}).join(' · ')}</b></div>`}
+    <div class="expli-rodape">Sua melhor nota por módulo fica salva. Refaça quando quiser — só conta a maior.</div>
+    <div class="acoes"><button class="btn gray" onclick="fecharModal()">Fechar</button>
+      ${aprov?`<button class="btn teal" onclick="fecharModal();irProximoModulo('${s.mod}')">Próximo módulo ▶</button>`
+             :`<button class="btn teal" onclick="fecharModal();iniciarTour('${s.mod}')">Revisar com Visita guiada</button>`}</div>`);
+  quizState=null;
+}
+function fecharQuiz(){ quizState=null; fecharModal(); }
+function irProximoModulo(m){
+  const i=ordemModulos.indexOf(m);
+  const prox=ordemModulos[(i+1)%ordemModulos.length]||ordemModulos[0];
+  mostrar(prox); flash('Avançou para '+titulos[prox]+' — prossiga no treinamento.');
+}
+
+/* ---- BUSCA DE MÓDULOS + TECLADO ---- */
+const buscaEl=$('#buscaMod');
+let buscaLista=[], buscaAtual=-1;
+function filtrarBusca(){
+  const box=buscaEl.value.trim().toLowerCase();
+  const itens=Array.from(document.querySelectorAll('.nav-item'));
+  itens.forEach(b=>{ b.classList.remove('escondido'); b.classList.remove('foco'); });
+  if(!box){ buscaLista=[]; buscaAtual=-1; return; }
+  buscaLista=itens.filter(b=>(titulos[b.dataset.mod]||'').toLowerCase().includes(box)||b.textContent.toLowerCase().includes(box)||(expNav[b.dataset.mod]||'').toLowerCase().includes(box));
+  itens.forEach(b=>b.classList.toggle('escondido',!buscaLista.includes(b)));
+  buscaAtual=buscaLista.length?0:-1;
+  destacarBusca();
+}
+function destacarBusca(){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('foco'));
+  if(buscaAtual>=0 && buscaLista[buscaAtual]) buscaLista[buscaAtual].classList.add('foco');
+}
+buscaEl.addEventListener('input',filtrarBusca);
+buscaEl.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){ e.preventDefault(); if(buscaLista.length){ buscaAtual=(buscaAtual+1)%buscaLista.length; destacarBusca(); } }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); if(buscaLista.length){ buscaAtual=(buscaAtual-1+buscaLista.length)%buscaLista.length; destacarBusca(); } }
+  else if(e.key==='Enter'){ if(buscaAtual>=0&&buscaLista[buscaAtual]){ const m=buscaLista[buscaAtual].dataset.mod; buscarFechar(); mostrar(m); } }
+  else if(e.key==='Escape'){ buscarFechar(); }
+});
+function buscarFechar(){ buscaEl.value=''; buscaEl.blur(); filtrarBusca(); }
+document.addEventListener('keydown',e=>{
+  const t=document.activeElement;
+  const digitando=t && (['INPUT','TEXTAREA','SELECT'].includes(t.tagName)||t.isContentEditable);
+  if(digitando) return;
+  if(e.key==='/'||((e.key==='k'||e.key==='K')&&(e.ctrlKey||e.metaKey))){ e.preventDefault(); buscaEl.focus(); buscaEl.select(); }
+});
 
 /* ===== EXPLICAÇÕES INTERATIVAS ===== */
 const EXP_MSG = {
@@ -920,43 +1316,128 @@ const tourCaixa=document.createElement('div');
 tourCaixa.id='tourCaixa';
 tourCaixa.style.display='none';
 document.body.appendChild(tourCaixa);
+const tourDim=document.createElement('div');
+tourDim.id='tourDim';
+document.body.appendChild(tourDim);
 let tourState=null;
-function iniciarTour(){
-  const alvos=Array.from(document.querySelectorAll('#page [data-explicacao]')).filter(el=>el.offsetParent!==null);
-  if(!alvos.length){ flash('Esta tela não tem passos guiados.'); return; }
-  tourState={lista:alvos,i:0};
+function iniciarTour(mod){
+  tourState={mod:(mod||location.hash.replace('#','')||'dashboard'),i:0};
+  montarLista();
   pintarTour();
 }
-function turDim(){
-  const page=$('#page'), alvo=tourState.lista[tourState.i];
-  const caminho=[]; let x=alvo;
-  while(x && x!==page){ caminho.push(x); x=x.parentElement; }
-  Array.from(page.querySelectorAll('*')).forEach(n=>{
-    if(caminho.includes(n) || n===alvo) n.style.opacity='1';
-    else if(n.closest('script')) return;
-    else n.style.opacity='.18';
-  });
+function montarLista(){
+  tourState.lista=Array.from(document.querySelectorAll('#page [data-explicacao]')).filter(el=>el.offsetParent!==null);
 }
 function pintarTour(){
-  const t=tourState, el=t.lista[t.i];
+  const t=tourState;
+  if(!t.lista.length){ flash('Esta tela não tem passos guiados.'); fecharTour(); return; }
+  if(t.i>=t.lista.length) t.i=t.lista.length-1;
+  const el=t.lista[t.i];
   turDim();
-  el.style.outline='3px solid #f59f00'; el.style.outlineOffset='3px'; el.style.transform='scale(1.02)';
+  const pos=getComputedStyle(el).position;
+  if(pos==='static') el.style.position='relative';
+  el.style.zIndex='100';
+  el.style.outline='3px solid #f59f00'; el.style.outlineOffset='3px';
+  el.style.boxShadow='0 0 0 9999px rgba(7,20,30,.45), 0 10px 30px rgba(0,0,0,.35)';
   el.scrollIntoView({behavior:'smooth', block:'center'});
   tourCaixa.style.display='block';
+  const ultimo=t.i===t.lista.length-1;
   tourCaixa.innerHTML=`<div class="cont"><span class="num">PASSO ${t.i+1}/${t.lista.length}</span>
     <div style="flex:1"><p style="font-size:.9rem">${el.dataset.explicacao}</p>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <button class="btn gray fino" ${t.i===0?'disabled':''} onclick="tourAnt()">← Anterior</button>
-      <button class="btn fino" ${t.i===t.lista.length-1?'disabled':''} onclick="tourProx()">Próximo →</button>
-      <button class="btn teal fino" onclick="fecharTour()">Encerrar ${t.i===t.lista.length-1?'✓':''}</button>
+      <button class="btn fino" ${ultimo?'disabled':''} onclick="tourProx()">Próximo →</button>
+      <button class="btn teal fino" ${ultimo?'style="display:inline-flex;gap:4px"':''} onclick="tourProximoModulo()">${ultimo?'⏭ Concluído — ir p/ próximo módulo':'⏭ Pular p/ próximo módulo'}</button>
+      <button class="btn gray fino" onclick="fecharTour(true)">Encerrar</button>
     </div></div></div>`;
+}
+function turDim(){
+  const page=$('#page'), alvo=tourState.lista[tourState.i];
+  tourDim.style.display='block';
+  const caminho=[]; let x=alvo;
+  while(x && x!==page){ caminho.push(x); x=x.parentElement; }
+  Array.from(page.querySelectorAll('*')).forEach(n=>{
+    n.style.opacity='';
+    if(caminho.includes(n) || n===alvo){ n.style.position='relative'; n.style.zIndex='100'; }
+    else n.style.zIndex='';
+  });
 }
 function tourAnt(){ if(tourState && tourState.i>0){ tourState.i--; pintarTour(); } }
 function tourProx(){ if(tourState && tourState.i<tourState.lista.length-1){ tourState.i++; pintarTour(); } }
-function fecharTour(){
-  document.querySelectorAll('#page *').forEach(n=>{ n.style.opacity=''; n.style.outline=''; n.style.transform=''; });
-  tourCaixa.style.display='none'; tourState=null;
+function tourProximoModulo(){
+  const atual=tourState.mod;
+  const i=ordemModulos.indexOf(atual);
+  const prox=ordemModulos[(i+1)%ordemModulos.length]||ordemModulos[0];
+  fecharTour();
+  mostrar(prox);
+  iniciarTour(prox);
+  flash('Avançou para '+titulos[prox]+' — pesquise e treine.');
 }
+function fecharTour(credito){
+  if(credito && tourState && tourState.mod && tourState.lista && tourState.i===tourState.lista.length-1){
+    fez('tour_'+tourState.mod);
+  }
+  document.querySelectorAll('#page *').forEach(n=>{ n.style.opacity=''; n.style.outline=''; n.style.boxShadow=''; n.style.zIndex=''; n.style.position=''; });
+  tourCaixa.style.display='none'; tourDim.style.display='none'; tourState=null;
+}
+
+/* ===== MODO APRESENTAÇÃO ===== */
+const ordemModulos=['dashboard','pacientes','prontuario','agenda','odontograma','planos','orcamentos','financeiro','convenios','profissionais','procedimentos','estoque','contratos','relatorios','admin','auditoria'];
+const iconesMod={dashboard:'🏠',pacientes:'🧑‍⚕️',prontuario:'📋',agenda:'📅',odontograma:'🦷',planos:'🧩',orcamentos:'💼',financeiro:'💰',convenios:'🤝',profissionais:'👩‍⚕️',procedimentos:'🧰',estoque:'📦',contratos:'📜',relatorios:'📊',admin:'🧰',auditoria:'🔍'};
+function passosLista(mod){
+  return Array.from((treinoInfo[mod]||'').matchAll(/<li>(.*?)<\/li>/g)).map(m=>m[1]);
+}
+function montarDeck(){
+  const deck=[];
+  ordemModulos.forEach(mod=>{
+    const passos=passosLista(mod);
+    deck.push({mod,titulo:titulos[mod],icon:iconesMod[mod],tipo:'Capa do módulo',corpo:`<p style="font-size:1.25rem;font-weight:600">${expNav[mod]||''}</p>`});
+    deck.push({mod,titulo:'Como funciona',icon:'❓',tipo:titulos[mod],corpo:`<p>${EXP_MSG[mod]||''}</p>`});
+    if(passos.length) deck.push({mod,titulo:'Na prática',icon:'🎯',tipo:titulos[mod],itens:passos});
+  });
+  return deck;
+}
+const deckSlides=montarDeck();
+let slideI=0;
+function abrirSlides(){
+  const modAtual=(location.hash||'#dashboard').replace('#','');
+  const i0=deckSlides.findIndex(s=>s.mod===modAtual);
+  slideI=i0>=0?i0:0;
+  renderSlide();
+  document.getElementById('slides').classList.add('aberto');
+  document.body.style.overflow='hidden';
+}
+function fecharSlides(){
+  document.getElementById('slides').classList.remove('aberto');
+  document.body.style.overflow='';
+}
+function slideVai(n){
+  slideI=(slideI+n+deckSlides.length)%deckSlides.length;
+  renderSlide();
+}
+function renderSlide(){
+  const s=deckSlides[slideI], card=document.getElementById('slideCard');
+  document.getElementById('slideModChip').textContent=iconesMod[s.mod]+' '+titulos[s.mod];
+  document.getElementById('slideContador').textContent=(slideI+1)+' / '+deckSlides.length;
+  document.getElementById('slideBarra').style.width=((slideI+1)/deckSlides.length*100)+'%';
+  const lista=s.itens?`<ul>${s.itens.map(i=>`<li>${i}</li>`).join('')}</ul>`:'';
+  const corpo=s.corpo||'';
+  const html=`<div class="slides-icon">${s.icon}</div>
+    <span class="modulo-chip">${s.titulo}</span>
+    <h2>${s.tipo}</h2>
+    ${corpo}
+    ${lista}`;
+  card.style.animation='none'; void card.offsetWidth;
+  card.style.animation='slideIn .45s ease';
+  card.innerHTML=html;
+  card.scrollTop=0;
+}
+document.addEventListener('keydown', e=>{
+  if(!document.getElementById('slides').classList.contains('aberto')) return;
+  if(e.key==='ArrowRight') slideVai(1);
+  else if(e.key==='ArrowLeft') slideVai(-1);
+  else if(e.key==='Escape') fecharSlides();
+});
 
 /* ===== ROTEAMENTO ===== */
 function mostrar(mod){
@@ -966,6 +1447,8 @@ function mostrar(mod){
   const paginas={dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,agenda:pagAgenda,odontograma:pagOdontograma,planos:pagPlanos,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,admin:pagAdmin,auditoria:pagAuditoria};
   $('#page').innerHTML = (paginas[mod]||pagDashboard).call();
   anotar(mod);
+  if(mod==='admin' && !prog.feito.admin_visitado) fez('admin_visitado');
+  atualizarProgresso();
   if(mod==='pacientes'){
     const input=$('#buscaPac'); if(input) input.oninput=()=>{ $('#corpoPac').innerHTML=pacientesRows(estado.pacientes,input.value); };
   }

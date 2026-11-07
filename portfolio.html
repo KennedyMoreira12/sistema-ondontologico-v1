@@ -19,23 +19,83 @@
     --sombra: 0 10px 30px rgba(20, 60, 80, .10);
   }
 
+  :root {
+    --azul: #0b7285;
+    --azul-escuro: #0c5e6e;
+    --teal: #0ca678;
+    --verde: #2b8a3e;
+    --amarelo: #f59f00;
+    --roxo: #7048e8;
+    --cinza-bg: #f4f7f9;
+    --cinza-texto: #5a6a72;
+    --texto: #1d2b33;
+    --borda: #e3ebf0;
+    --sombra: 0 10px 30px rgba(20, 60, 80, .10);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
 
   body {
     font-family: "Segoe UI", Roboto, Arial, sans-serif;
     color: var(--texto);
-    background: var(--cinza-bg);
+    background: linear-gradient(180deg, #eef5f7 0%, var(--cinza-bg) 320px);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
 
   .container { width: min(1120px, 92%); margin: 0 auto; }
 
-  header.hero {
-    background: linear-gradient(135deg, var(--azul-escuro), var(--teal));
-    color: #fff;
-    padding: 72px 0 56px;
-    text-align: center;
+  /* NAV FIXA */
+  .nav-top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255, 255, 255, .85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--borda);
+    box-shadow: 0 2px 14px rgba(20, 60, 80, .06);
   }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--texto); font-weight: 800; }
+  .nav-logo .logo-chip {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--azul), var(--teal));
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1rem; box-shadow: 0 4px 12px rgba(11, 114, 133, .35);
+  }
+  .nav-logo span { color: var(--cinza-texto); font-weight: 600; font-size: .88rem; }
+  .nav-links { display: flex; align-items: center; gap: 20px; }
+  .nav-links a { text-decoration: none; color: var(--cinza-texto); font-size: .9rem; font-weight: 600; transition: color .15s; }
+  .nav-links a:hover { color: var(--teal); }
+  .nav-links a.cta {
+    background: linear-gradient(135deg, var(--teal), var(--azul));
+    color: #fff; padding: 8px 16px; border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(18, 184, 134, .3);
+  }
+  .nav-links a.cta:hover { filter: brightness(1.08); }
+  @media (max-width: 760px) { .nav-links a:not(.cta) { display: none; } }
+
+  header.hero {
+    position: relative;
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, #0ca678 100%);
+    color: #fff;
+    padding: 84px 0 72px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  header.hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35) 50%, transparent 51%),
+      radial-gradient(1px 1px at 65% 20%, rgba(255,255,255,.25) 50%, transparent 51%),
+      radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,.2) 50%, transparent 51%),
+      radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.3) 50%, transparent 51%);
+    background-size: 180px 180px, 220px 220px, 260px 260px, 200px 200px;
+  }
+
+  .hero .container { position: relative; z-index: 1; }
 
   .hero .badge {
     display: inline-block;
@@ -69,25 +129,26 @@
     font-weight: 600;
   }
 
-  section { padding: 60px 0; }
+  section { padding: 64px 0; }
 
   section h2 {
-    font-size: 1.7rem;
+    font-size: 1.75rem;
     margin-bottom: 8px;
     position: relative;
+    display: inline-block;
     padding-bottom: 12px;
   }
 
   section h2::after {
     content: "";
     display: block;
-    width: 56px;
+    width: 58px;
     height: 4px;
     border-radius: 2px;
-    background: var(--teal);
+    background: linear-gradient(90deg, var(--teal), var(--azul));
   }
 
-  section .lead { color: var(--cinza-texto); margin-bottom: 30px; }
+  section .lead { color: var(--cinza-texto); margin-bottom: 32px; max-width: 620px; }
 
   /* Cards de módulos */
   .grid {
@@ -97,26 +158,39 @@
   }
 
   .card {
+    position: relative;
+    overflow: hidden;
     background: #fff;
     border: 1px solid var(--borda);
-    border-radius: 14px;
-    padding: 22px;
+    border-radius: 16px;
+    padding: 24px 22px;
     box-shadow: var(--sombra);
-    transition: transform .18s ease, box-shadow .18s ease;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
 
-  .card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(20, 60, 80, .16); }
+  .card::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--azul));
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+
+  .card:hover { transform: translateY(-6px); box-shadow: 0 20px 44px rgba(20, 60, 80, .16); border-color: #cfe0e6; }
+  .card:hover::before { opacity: 1; }
 
   .card .icone {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     color: #fff;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 14px rgba(20, 60, 80, .18);
   }
 
   .card h3 { font-size: 1.08rem; margin-bottom: 6px; }
@@ -179,6 +253,39 @@
 
   .fluxo .seta { color: var(--teal); font-size: 1.6rem; font-weight: 700; }
 
+  /* Polish: perfis, numeros, stack, fluxo */
+  .perfil, .numero, .stack .item { transition: transform .18s ease, box-shadow .18s ease; box-shadow: var(--sombra); }
+  .perfil:hover, .numero:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(20, 60, 80, .14); }
+  .stack .item:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(20, 60, 80, .13); }
+  .fluxo .etapa .num { background: linear-gradient(135deg, var(--teal), var(--azul)); box-shadow: 0 4px 12px rgba(12, 166, 120, .35); }
+
+  /* Animação de revelação */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visivel { opacity: 1; transform: none; }
+
+  /* CTA antes do rodapé */
+  .cta-bloco { text-align: center; background: #fff; border: 1px solid var(--borda); border-radius: 20px; padding: 44px 28px; box-shadow: var(--sombra); position: relative; overflow: hidden; }
+  .cta-bloco::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(12,166,120,.14), transparent 70%); }
+  .cta-bloco h3 { font-size: 1.5rem; margin-bottom: 8px; }
+  .cta-bloco p { color: var(--cinza-texto); max-width: 520px; margin: 0 auto 22px; }
+  .cta-bloco .botoes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-cta {
+    display: inline-block; text-decoration: none; font-weight: 700; border-radius: 12px;
+    padding: 12px 22px; color: #fff; background: linear-gradient(135deg, var(--teal), var(--azul));
+    box-shadow: 0 8px 20px rgba(18, 184, 134, .32); transition: transform .15s ease, filter .15s ease;
+  }
+  .btn-cta:hover { transform: translateY(-2px); filter: brightness(1.07); }
+  .btn-cta.sec { background: #fff; color: var(--azul-escuro); border: 2px solid var(--teal); box-shadow: none; }
+
+  /* Botão voltar ao topo */
+  #topo-btn {
+    position: fixed; right: 20px; bottom: 20px; z-index: 60;
+    width: 46px; height: 46px; border: none; border-radius: 50%; cursor: pointer;
+    background: linear-gradient(135deg, var(--azul), var(--teal)); color: #fff; font-size: 1.1rem;
+    box-shadow: 0 8px 20px rgba(11, 114, 133, .35); opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  #topo-btn.visivel { opacity: 1; pointer-events: auto; }
+
   /* Perfis */
   .perfis { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; min-height: 0; }
 
@@ -213,12 +320,17 @@
   .stack .item p { font-size: .88rem; color: var(--cinza-texto); }
 
   footer {
-    background: var(--azul-escuro);
+    position: relative;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--azul-escuro), #0a3b49);
     color: rgba(255, 255, 255, .85);
     text-align: center;
-    padding: 34px 0;
+    padding: 40px 0;
     font-size: .9rem;
   }
+  footer .footer-marca { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  footer a { color: #7dd7c4; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 
   @media (max-width: 640px) {
     .hero h1 { font-size: 1.9rem; }
@@ -226,7 +338,22 @@
   }
 </style>
 </head>
-<body>
+<body id="topo">
+
+<!-- NAV FIXA -->
+<nav class="nav-top">
+  <div class="container nav-in">
+    <a class="nav-logo" href="#topo"><span class="logo-chip">🦷</span> SCO <span>| Sistema Odontológico</span></a>
+    <div class="nav-links">
+      <a href="#numeros">Números</a>
+      <a href="#fluxo">Fluxo</a>
+      <a href="#modulos">Módulos</a>
+      <a href="#perfis">Perfis</a>
+      <a href="#tecnologias">Tecnologias</a>
+      <a href="#demo" class="cta">Ver demonstração</a>
+    </div>
+  </div>
+</nav>
 
 <!-- HERO -->
 <header class="hero">
@@ -250,7 +377,7 @@
 </header>
 
 <!-- NÚMEROS -->
-<section>
+<section id="numeros">
   <div class="container">
     <h2>O sistema em números</h2>
     <p class="lead">Estrutura que sustenta toda a operação clínica e administrativa.</p>
@@ -266,7 +393,7 @@
 </section>
 
 <!-- COMO FUNCIONA -->
-<section>
+<section id="fluxo">
   <div class="container">
     <h2>Como o sistema funciona</h2>
     <p class="lead">O ciclo de atendimento guia toda a operação da clínica.</p>
@@ -287,7 +414,7 @@
 </section>
 
 <!-- MÓDULOS -->
-<section>
+<section id="modulos">
   <div class="container">
     <h2>Módulos do sistema</h2>
     <p class="lead">Cada área cobre uma etapa do atendimento e da gestão.</p>
@@ -416,7 +543,7 @@
 </section>
 
 <!-- PERFIS -->
-<section>
+<section id="perfis">
   <div class="container">
     <h2>Perfis de acesso</h2>
     <p class="lead">Cada papel enxerga apenas o que precisa — segurança por permissão granular.</p>
@@ -478,7 +605,7 @@
 </section>
 
 <!-- TECNOLOGIAS -->
-<section>
+<section id="tecnologias">
   <div class="container">
     <h2>Tecnologias</h2>
     <p class="lead">Base técnica moderna e organizada.</p>
@@ -494,16 +621,19 @@
 
 <!-- DEMO -->
 <style>
-  .demo-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--borda); border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); }
-  .demo-table th, .demo-table td { text-align: left; padding: 12px 18px; font-size: .9rem; }
-  .demo-table thead { background: var(--azul-escuro); color: #fff; }
+  .demo-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; box-shadow: var(--sombra); }
+  .demo-table th, .demo-table td { text-align: left; padding: 14px 20px; font-size: .9rem; }
+  .demo-table thead { background: linear-gradient(135deg, var(--azul-escuro), var(--teal)); color: #fff; }
   .demo-table thead th { font-weight: 600; }
+  .demo-table tbody tr { transition: background .12s ease; }
+  .demo-table tbody tr:hover { background: #eefaf7; }
   .demo-table tbody tr:nth-child(even) { background: var(--cinza-bg); }
+  .demo-table tbody tr:nth-child(even):hover { background: #eefaf7; }
   .demo-table code { background: rgba(20,60,80,.08); padding: 2px 8px; border-radius: 6px; font-size: .85rem; }
   .demo-note { margin-top: 16px; font-size: .88rem; color: var(--cinza-texto); }
   .demo-note code { background: rgba(20,60,80,.08); padding: 2px 6px; border-radius: 6px; }
 </style>
-<section>
+<section id="demo">
   <div class="container">
     <h2>Ambiente de demonstração</h2>
     <p class="lead">Acessos de exemplo para navegar por cada perfil do sistema.</p>
@@ -526,12 +656,42 @@
   </div>
 </section>
 
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-bloco reveal">
+      <h3>Quer ver o sistema funcionando?</h3>
+      <p>
+        Acesse o treinador interativo — é o mesmo sistema em um ambiente didático, com
+        <b>visita guiada</b> e <b>modo apresentação</b> explicando cada módulo.
+      </p>
+      <div class="botoes">
+        <a class="btn-cta" href="treinador.html" target="_blank">▶ Abrir treinador interativo</a>
+        <a class="btn-cta sec" href="#demo">Ver acessos de teste</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="container">
-    SCO · Sistema de Gestão Odontológica — projeto de portfólio.
-    <br>Desenvolvido com Laravel, Blade e Bootstrap.
+    <div class="footer-marca">🦷 SCO · Sistema de Gestão Odontológica</div>
+    Projeto de portfólio — desenvolvido com Laravel, Blade e Bootstrap.
+    <br>Problemas com o treinador? Veja o <a href="MANUAL-DE-TREINAMENTO.md">manual de treinamento</a>.
   </div>
 </footer>
+
+<button id="topo-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">↑</button>
+
+<script>
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visivel'); io.unobserve(en.target); } });
+  }, { threshold: .12 });
+  document.querySelectorAll('.card, .numero, .perfil, .stack .item, .fluxo .etapa, .cta-bloco').forEach(el => { el.classList.add('reveal'); io.observe(el); });
+  window.addEventListener('scroll', () => {
+    document.getElementById('topo-btn').classList.toggle('visivel', window.scrollY > 420);
+  }, { passive: true });
+</script>
 
 </body>
 </html>

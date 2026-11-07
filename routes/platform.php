@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 /**
  * Painel da empresa (a sua equipe): clínicas, planos, assinaturas e auditoria.
  *
- * Fica em arquivo separado e NAO carrega o middleware 	enant: quem opera a
+ * Fica em arquivo separado e NAO carrega o middleware `tenant`: quem opera a
  * plataforma não pertence a nenhuma clínica, e conectar no banco de um paciente
  * aqui seria exatamente o vazamento que o ResolveTenant existe para impedir.
  */

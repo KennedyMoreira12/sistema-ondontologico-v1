@@ -66,6 +66,18 @@
                             <label for="editTitulo" class="form-label">Título</label>
                             <input type="text" id="editTitulo" name="titulo" class="form-control">
                         </div>
+                        <div class="col-md-4">
+                            <label for="editServico" class="form-label">Serviço</label>
+                            <input type="text" id="editServico" name="servico" class="form-control" list="servicosComuns" placeholder="Pilates, laser, massagem...">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editArea" class="form-label">Área</label>
+                            <input type="text" id="editArea" name="area" class="form-control" list="areasTratamento" placeholder="Ex.: AXILA">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="editValor" class="form-label">Valor</label>
+                            <input type="number" step="0.01" min="0" id="editValor" name="valor" class="form-control">
+                        </div>
                         <div class="col-12">
                             <label for="editObservacao" class="form-label">Observação</label>
                             <textarea id="editObservacao" name="observacao" rows="2" class="form-control"></textarea>

@@ -8,19 +8,24 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\Api\EvolutionQrController;
+use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\ContaPagarController;
 use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\ModuloPlanejadoController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PacienteDuplicataController;
 use App\Http\Controllers\PacienteImportacaoController;
 use App\Http\Controllers\PacoteSessaoController;
+use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\PrescricaoController;
 use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
@@ -64,17 +69,52 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::prefix('agenda')->name('agenda.')->group(function () {
         Route::get('/', [AgendaController::class, 'index'])->name('index');
+        Route::get('/dia', [AgendaController::class, 'dia'])->name('dia');
+        Route::get('/mes', [AgendaController::class, 'mes'])->name('mes');
+        Route::get('/disponiveis', [AgendaController::class, 'disponiveis'])->name('disponiveis');
         Route::post('/', [AgendaController::class, 'store'])->name('store');
         Route::put('/{consulta}', [AgendaController::class, 'update'])->name('update');
+        Route::patch('/{consulta}/reagendar', [AgendaController::class, 'reagendar'])->name('reagendar');
+        Route::post('/{consulta}/presenca', [AgendaController::class, 'presenca'])->name('presenca');
         Route::delete('/{consulta}', [AgendaController::class, 'destroy'])->name('destroy');
         Route::post('/lista-espera', [AgendaController::class, 'storeWaiting'])->name('waiting.store');
         Route::patch('/lista-espera/{waiting}', [AgendaController::class, 'updateWaiting'])->name('waiting.update');
         Route::delete('/lista-espera/{waiting}', [AgendaController::class, 'destroyWaiting'])->name('waiting.destroy');
     });
 
+    Route::prefix('atendimentos')->name('atendimentos.')->group(function () {
+        Route::get('/', [AtendimentoController::class, 'index'])->name('index');
+        Route::post('/{consulta}/consumir', [AtendimentoController::class, 'consumir'])->name('consumir');
+    });
+
     Route::prefix('financeiro')->name('financeiro.')->group(function () {
         Route::get('/', [FinanceiroController::class, 'index'])->name('index');
         Route::post('/{conta}/pagamentos', [FinanceiroController::class, 'receive'])->name('receive');
+        Route::get('/fluxo-caixa', [FinanceiroController::class, 'fluxoCaixa'])->name('fluxo-caixa');
+
+        Route::get('/pagamentos', [PagamentoController::class, 'index'])->name('pagamentos.index');
+        Route::post('/pagamentos', [PagamentoController::class, 'store'])->name('pagamentos.store');
+        Route::get('/pagamentos/{pagamento}/revisar', [PagamentoController::class, 'revisar'])->name('pagamentos.revisar');
+        Route::post('/pagamentos/{pagamento}/vincular', [PagamentoController::class, 'vincular'])->name('pagamentos.vincular');
+        Route::delete('/pagamentos/{pagamento}/vincular', [PagamentoController::class, 'desvincular'])->name('pagamentos.desvincular');
+
+        Route::get('/duplicatas', [PacienteDuplicataController::class, 'index'])->name('duplicatas.index');
+
+        Route::get('/contas-pagar', [ContaPagarController::class, 'index'])->name('contas-pagar.index');
+        Route::get('/contas-pagar/create', [ContaPagarController::class, 'create'])->name('contas-pagar.create');
+        Route::post('/contas-pagar', [ContaPagarController::class, 'store'])->name('contas-pagar.store');
+        Route::get('/contas-pagar/{conta}', [ContaPagarController::class, 'show'])->name('contas-pagar.show');
+        Route::get('/contas-pagar/{conta}/edit', [ContaPagarController::class, 'edit'])->name('contas-pagar.edit');
+        Route::put('/contas-pagar/{conta}', [ContaPagarController::class, 'update'])->name('contas-pagar.update');
+        Route::patch('/contas-pagar/{conta}/cancelar', [ContaPagarController::class, 'cancelar'])->name('contas-pagar.cancelar');
+        Route::post('/contas-pagar/{conta}/baixas', [ContaPagarController::class, 'baixar'])->name('contas-pagar.baixar');
+
+        Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
+        Route::get('/fornecedores/create', [FornecedorController::class, 'create'])->name('fornecedores.create');
+        Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
+        Route::get('/fornecedores/{fornecedor}/edit', [FornecedorController::class, 'edit'])->name('fornecedores.edit');
+        Route::put('/fornecedores/{fornecedor}', [FornecedorController::class, 'update'])->name('fornecedores.update');
+        Route::delete('/fornecedores/{fornecedor}', [FornecedorController::class, 'destroy'])->name('fornecedores.destroy');
     });
 
     Route::prefix('convenios')->name('convenios.')->group(function () {
@@ -141,6 +181,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::prefix('relatorios')->name('relatorios.')->group(function () {
         Route::get('/', [RelatorioController::class, 'index'])->name('index');
+        Route::get('/receitas', [RelatorioController::class, 'receitasMensais'])->name('receitas');
+        Route::get('/presenca-faltas', [RelatorioController::class, 'presencaFaltas'])->name('presenca-faltas');
+        Route::get('/pacotes', [RelatorioController::class, 'pacotesSessoes'])->name('pacotes');
+        Route::get('/exportar/{tipo}', [RelatorioController::class, 'exportarCsv'])->name('exportar');
     });
 
     Route::prefix('pacientes')->name('pacientes.')->group(function () {
@@ -163,6 +207,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::put('/{paciente}', [PacienteController::class, 'update'])->name('update');
         Route::delete('/{paciente}', [PacienteController::class, 'destroy'])->name('destroy');
         Route::get('/{paciente}/prontuario', [PacienteController::class, 'prontuario'])->name('prontuario');
+        Route::get('/{paciente}/historico', [AtendimentoController::class, 'historico'])->name('historico');
         Route::post('/{paciente}/evolucoes', [PacienteController::class, 'storeEvolucao'])->name('evolucoes.store');
         Route::post('/{paciente}/anamneses', [PacienteController::class, 'storeAnamnese'])->name('anamneses.store');
         Route::post('/{paciente}/alertas', [PacienteController::class, 'storeAlerta'])->name('alertas.store');

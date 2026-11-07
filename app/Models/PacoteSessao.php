@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * pode estar aberta em dois computadores ao mesmo tempo.
  */
 #[Fillable([
-    'paciente_id', 'profissional_id', 'nome',
+    'paciente_id', 'profissional_id', 'nome', 'servico',
     'total_sessoes', 'sessoes_usadas', 'valor_sessao', 'valor_total',
     'status', 'validade_em',
 ])]
@@ -76,8 +77,40 @@ class PacoteSessao extends TenantModel
         return max(0, $this->total_sessoes - $this->sessoes_usadas);
     }
 
+    /**
+     * Nome usado pelo restante da aplicação: o saldo é "restantes".
+     */
+    public function restantes(): int
+    {
+        return $this->saldo();
+    }
+
+    public function consumidas(): int
+    {
+        return min($this->total_sessoes, $this->sessoes_usadas);
+    }
+
+    public function percentualUsado(): float
+    {
+        if ($this->total_sessoes <= 0) {
+            return 0.0;
+        }
+
+        return round(min(100, ($this->sessoes_usadas / $this->total_sessoes) * 100), 1);
+    }
+
     public function estaAtivo(): bool
     {
-        return $this->status === self::ATIVO && $this->saldo() > 0;
+        return $this->status === self::ATIVO
+            && $this->saldo() > 0
+            && ($this->validade_em === null || $this->validade_em->isFuture() || $this->validade_em->isToday());
+    }
+
+    /**
+     * Pacotes que ainda podem ser usados pela clínica.
+     */
+    public function scopeAtivos(Builder $query): Builder
+    {
+        return $query->where('status', self::ATIVO)->whereColumn('sessoes_usadas', '<', 'total_sessoes');
     }
 }

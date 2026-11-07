@@ -274,7 +274,7 @@ class SocialPostPanelImageTest extends TestCase
         $this->assertEmpty(Storage::disk('public')->allFiles());
     }
 
-    public function test_criacao_com_arquivo_armazena_url_sem_chamar_webhook(): void
+    public function test_criacao_com_arquivo_armazena_imagem_no_rascunho(): void
     {
         Http::fake();
 
@@ -283,22 +283,23 @@ class SocialPostPanelImageTest extends TestCase
         $resposta = $this->actingAs($user)
             ->post(route('social.store'), [
                 'titulo' => 'Clareamento dental',
-                'objetivo' => 'Atrair novos pacientes',
-                'publico' => 'Adultos',
-                'tipo' => 'promocional',
                 'platforms' => ['instagram'],
                 'image' => $this->imagem('png'),
             ]);
 
-        $post = SocialPost::query()->latest('id')->firstOrFail();
+        $post = SocialPost::firstOrFail();
 
-        $resposta->assertRedirect(route('social.show', $post));
+        $resposta
+            ->assertRedirect(route('social.show', $post))
+            ->assertSessionHas('success');
 
-        $this->assertNotNull($post->image_url);
-        $this->assertStringStartsWith('https://social.test/storage/social/', (string) $post->image_url);
+        $this->assertMatchesRegularExpression(
+            '#^https://social\.test/storage/social/\d{4}/\d{2}/[0-9a-f-]{36}\.png$#',
+            $post->image_url
+        );
 
-        // O rascunho do painel nao fala com n8n nem com a Meta: a publicacao
-        // acontece depois, na acao "publicar".
+        // O fluxo manual cria o rascunho; a publicação em si é uma ação
+        // posterior e explícita, então nenhum webhook é chamado agora.
         Http::assertNothingSent();
     }
 }

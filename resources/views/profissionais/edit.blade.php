@@ -43,6 +43,17 @@
                         <input type="text" id="conselho_regional" name="conselho_regional" class="form-control @error('conselho_regional') is-invalid @enderror" value="{{ old('conselho_regional', $profissional->conselho_regional) }}" maxlength="20" placeholder="Ex.: CREFITO-1">
                         @error('conselho_regional')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                    <div class="col-md-3">
+                        <label for="registro_profissional" class="form-label">Registro profissional</label>
+                        <input type="text" id="registro_profissional" name="registro_profissional" class="form-control @error('registro_profissional') is-invalid @enderror" value="{{ old('registro_profissional', $profissional->registro_profissional) }}" maxlength="50">
+                        <div class="form-text">CREFITO na fisioterapia.</div>
+                        @error('registro_profissional')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label for="conselho_regional" class="form-label">Conselho regional</label>
+                        <input type="text" id="conselho_regional" name="conselho_regional" class="form-control @error('conselho_regional') is-invalid @enderror" value="{{ old('conselho_regional', $profissional->conselho_regional) }}" maxlength="20" placeholder="Ex.: CREFITO-1">
+                        @error('conselho_regional')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                     <div class="col-md-4">
                         <label for="tipo" class="form-label">Tipo *</label>
                         <select id="tipo" name="tipo" class="form-select @error('tipo') is-invalid @enderror" required>

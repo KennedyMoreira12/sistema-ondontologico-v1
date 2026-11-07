@@ -126,8 +126,9 @@ class PacienteController extends Controller
 
         $evolucoes = $paciente->evolucoes()->with('profissional')->latest()->paginate(20);
         $alertas = $paciente->alertas()->get();
+        $dentistas = Professional::where('tipo', 'dentista')->orderBy('nome')->get();
 
-        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas'));
+        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas'));
     }
 
     public function storeEvolucao(ClinicalNoteStoreRequest $request, Paciente $paciente): RedirectResponse

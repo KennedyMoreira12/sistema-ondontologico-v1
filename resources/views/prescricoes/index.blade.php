@@ -20,6 +20,11 @@
                 <p class="text-muted small mb-0">Receituário clínico do paciente</p>
             </div>
         </div>
+        @if (vertical_permite('odontograma'))
+            <a href="{{ route('pacientes.odontograma.index', $paciente) }}" class="btn btn-outline-primary">
+                <i class="bi bi-grid-3x3-gap me-1"></i>Odontograma
+            </a>
+        @endif
     </div>
 
     <div class="row g-4 no-print">

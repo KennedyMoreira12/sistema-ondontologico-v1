@@ -38,24 +38,6 @@ class MigrationsFisioterapiaTest extends TestCase
         'consumo_sessao',
     ];
 
-    /**
-     * Arquivos de migration que a Fase C acrescenta ao banco da clinica.
-     *
-     * O rollback tem de ser feito POR ARQUIVO (`--path`), e nao por `--step`:
-     * entre o bloco de fisioterapia e o topo da fila existem outras migrations
-     * (fiscal, WhatsApp, indice) que sao revertidas antes por ordem de nome.
-     * Reverter por contagem levaria junto o que nao e da fisioterapia.
-     *
-     * @var list<string>
-     */
-    protected const MIGRACOES_FISIOTERAPIA = [
-        '2026_10_21_000002_add_registro_profissional_to_professionals_table.php',
-        '2026_10_21_000003_create_avaliacoes_table.php',
-        '2026_10_21_000004_create_evolucoes_sessao_table.php',
-        '2026_10_21_000005_create_pacotes_sessao_table.php',
-        '2026_10_21_000006_create_consumo_sessao_table.php',
-    ];
-
     protected string $scratchPath;
 
     protected array $configAnterior;
@@ -117,7 +99,7 @@ class MigrationsFisioterapiaTest extends TestCase
     {
         $this->rodarMigrationsTenant();
 
-        $this->rodarMigrationsTenant('migrate:rollback', ['--path' => $this->caminhosMigrationsFisioterapia()]);
+        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => $this->passosParaDesfazerFaseC()]);
 
         foreach (self::TABELAS_NOVAS as $tabela) {
             $this->assertFalse(
@@ -139,7 +121,7 @@ class MigrationsFisioterapiaTest extends TestCase
     public function test_refazer_a_subida_depois_da_descida_deixa_o_banco_no_ponto(): void
     {
         $this->rodarMigrationsTenant();
-        $this->rodarMigrationsTenant('migrate:rollback', ['--path' => $this->caminhosMigrationsFisioterapia()]);
+        $this->rodarMigrationsTenant('migrate:rollback', ['--step' => $this->passosParaDesfazerFaseC()]);
         $this->rodarMigrationsTenant();
 
         foreach (self::TABELAS_NOVAS as $tabela) {
@@ -168,16 +150,27 @@ class MigrationsFisioterapiaTest extends TestCase
     }
 
     /**
-     * Caminhos absolutos apenas das migrations de fisioterapia.
+     * Quantas migrations precisam ser desfeitas para chegar ao ponto anterior
+     * à Fase C.
      *
-     * @return list<string>
+     * O número é calculado pela ordem real das migrations já executadas, e não
+     * fixado em código: migrations novas (como as do financeiro) não podem
+     * fazer este teste deixar de exercitar a descida da fisioterapia.
      */
-    protected function caminhosMigrationsFisioterapia(): array
+    private function passosParaDesfazerFaseC(): int
     {
-        return array_map(
-            fn (string $arquivo): string => database_path('migrations/tenant/'.$arquivo),
-            self::MIGRACOES_FISIOTERAPIA
+        $migracoes = DB::connection('tenant')
+            ->table('migrations')
+            ->orderByDesc('id')
+            ->pluck('migration');
+
+        $posicao = $migracoes->search(
+            fn (string $nome): bool => str_contains($nome, '2026_10_21_000002_add_registro_profissional')
         );
+
+        $this->assertNotFalse($posicao, 'A migration inicial da Fase C precisa estar registrada.');
+
+        return $posicao + 1;
     }
 
     /**

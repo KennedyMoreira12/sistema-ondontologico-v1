@@ -197,8 +197,6 @@ button:focus-visible,
     z-index: 1040;
     transition: margin-left 0.3s ease;
     overflow-y: auto;
-    overflow-x: hidden;
-    contain: content;
 
     .sidebar-brand {
         display: flex;
@@ -327,7 +325,6 @@ button:focus-visible,
    ÁREA PRINCIPAL
    ========================================================================== */
 .sco-main {
-    min-width: 0;
     flex: 1;
     margin-left: $sidebar-width;
     display: flex;

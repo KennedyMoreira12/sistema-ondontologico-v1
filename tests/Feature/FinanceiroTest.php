@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AccountsReceivable;
 use App\Models\Paciente;
+use App\Models\Payment;
 use App\Models\PaymentMethod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\UsesTestTenant;
@@ -91,6 +92,58 @@ class FinanceiroTest extends TestCase
             'accounts_receivable_id' => $conta->id,
             'valor' => 300,
         ]);
+    }
+
+    public function test_total_em_aberto_desconta_pagamento_parcial(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.view');
+
+        $paciente = Paciente::create([
+            'nome' => 'Paciente Parcial',
+            'status' => 'ativo',
+        ]);
+
+        AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'vencimento' => '2026-11-01',
+            'valor' => 800,
+            'valor_pago' => 300,
+            'status' => 'parcial',
+        ]);
+
+        $total = $this->actingAs($user)
+            ->get(route('financeiro.index'))
+            ->assertOk()
+            ->viewData('totalAberto');
+
+        $this->assertSame(500.0, round((float) $total, 2));
+    }
+
+    public function test_fluxo_de_caixa_normaliza_periodo_invertido(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.view');
+
+        $paciente = Paciente::create([
+            'nome' => 'Paciente Fluxo',
+            'status' => 'ativo',
+        ]);
+
+        Payment::create([
+            'paciente_id' => $paciente->id,
+            'data' => today()->toDateString(),
+            'valor' => 77,
+            'servico' => 'Pilates',
+        ]);
+
+        $total = $this->actingAs($user)
+            ->get(route('financeiro.fluxo-caixa', [
+                'de' => today()->addDay()->toDateString(),
+                'ate' => today()->subDay()->toDateString(),
+            ]))
+            ->assertOk()
+            ->viewData('totalRecebido');
+
+        $this->assertSame(77.0, round((float) $total, 2));
     }
 
     public function test_rejeita_pagamento_maior_que_saldo(): void

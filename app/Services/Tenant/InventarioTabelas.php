@@ -61,6 +61,8 @@ class InventarioTabelas
      * @var list<string>
      */
     public const TABELAS_COMUNS = [
+        'accounts_payable',
+        'accounts_payable_pagamentos',
         'accounts_receivable',
         'anamneses',
         'appointment_statuses',
@@ -72,6 +74,7 @@ class InventarioTabelas
         'clinic_settings',
         'clinical_notes',
         'contracts',
+        'financeiro_categorias',
         'fiscal_companies',
         'installments',
         'insurance_companies',

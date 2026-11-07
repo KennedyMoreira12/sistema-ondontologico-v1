@@ -540,8 +540,8 @@ class DemoFisioterapiaSeeder extends Seeder
         );
         $diaMaria = now()->subDays(5)->startOfDay();
         Payment::firstOrCreate(
-            ['accounts_receivable_id' => $contaMaria->id, 'data' => $diaMaria, 'valor' => 750.00],
-            ['payment_method_id' => $pix->id, 'user_id' => $this->userFinanceiro->id, 'observacoes' => 'Entrada do pacote de fisioterapia']
+            ['accounts_receivable_id' => $contaMaria->id, 'valor' => 750.00, 'observacoes' => 'Entrada do pacote de fisioterapia'],
+            ['payment_method_id' => $pix->id, 'data' => $diaMaria, 'user_id' => $this->userFinanceiro->id]
         );
 
         $orcJoao = Budget::firstOrCreate(
@@ -569,8 +569,8 @@ class DemoFisioterapiaSeeder extends Seeder
         );
         $diaJoao = now()->subDays(8)->startOfDay();
         Payment::firstOrCreate(
-            ['accounts_receivable_id' => $contaJoao->id, 'data' => $diaJoao, 'valor' => 1920.00],
-            ['payment_method_id' => $dinheiro->id, 'user_id' => $this->userFinanceiro->id, 'observacoes' => 'Pagamento integral do pacote']
+            ['accounts_receivable_id' => $contaJoao->id, 'valor' => 1920.00, 'observacoes' => 'Pagamento integral do pacote'],
+            ['payment_method_id' => $dinheiro->id, 'data' => $diaJoao, 'user_id' => $this->userFinanceiro->id]
         );
     }
 

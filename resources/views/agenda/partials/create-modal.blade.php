@@ -2,6 +2,7 @@
     <div class="modal-dialog modal-lg">
         <form method="POST" action="{{ route('agenda.store') }}">
             @csrf
+            <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', (string) \Illuminate\Support\Str::uuid()) }}">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Novo agendamento</h5>
@@ -38,10 +39,32 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label for="titulo" class="form-label">Título</label>
                             <input type="text" id="titulo" name="titulo" value="{{ old('titulo') }}" class="form-control" placeholder="Ex.: Consulta inicial, Limpeza...">
                         </div>
+                        <div class="col-md-4">
+                            <label for="servico" class="form-label">Serviço</label>
+                            <input type="text" id="servico" name="servico" value="{{ old('servico') }}" class="form-control" list="servicosComuns" placeholder="Pilates, laser, massagem...">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="area" class="form-label">Área</label>
+                            <input type="text" id="area" name="area" value="{{ old('area') }}" class="form-control" list="areasTratamento" placeholder="Ex.: AXILA">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="valor" class="form-label">Valor</label>
+                            <input type="number" step="0.01" min="0" id="valor" name="valor" value="{{ old('valor') }}" class="form-control" placeholder="0,00">
+                        </div>
+                        <datalist id="servicosComuns">
+                            @foreach (['Pilates', 'Fisioterapia', 'Massagem', 'Depilação a laser', 'Limpeza de pele', 'Design de sobrancelha'] as $servico)
+                                <option value="{{ $servico }}"></option>
+                            @endforeach
+                        </datalist>
+                        <datalist id="areasTratamento">
+                            @foreach (['AXILA', 'VIRILHA', 'ABDÔMEN', 'COXA', 'BRAÇO', 'ROSTO', 'COSTAS', 'PERNA'] as $area)
+                                <option value="{{ $area }}"></option>
+                            @endforeach
+                        </datalist>
                         <div class="col-md-4">
                             <label for="dia" class="form-label">Data *</label>
                             <input type="date" id="dia" name="dia" value="{{ old('dia', request('data', today()->toDateString())) }}" class="form-control @error('dia') is-invalid @enderror" required>
