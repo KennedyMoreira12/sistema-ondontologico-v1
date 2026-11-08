@@ -59,6 +59,7 @@ class FinanceiroController extends Controller
             $pagamento = $this->recebimentos->receber($conta, [
                 'valor' => $request->input('valor'),
                 'payment_method_id' => $request->integer('payment_method_id'),
+                'insurance_plan_id' => $request->filled('insurance_plan_id') ? $request->integer('insurance_plan_id') : null,
                 'data' => $request->filled('data') ? $request->date('data') : now(),
                 'observacoes' => $request->filled('observacoes') ? $request->string('observacoes')->toString() : null,
             ]);

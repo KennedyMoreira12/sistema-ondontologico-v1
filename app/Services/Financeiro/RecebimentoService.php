@@ -55,6 +55,7 @@ class RecebimentoService
                 'payment_method_id' => $dados['payment_method_id'],
                 'user_id' => $dados['user_id'] ?? auth()->id(),
                 'servico' => $dados['servico'] ?? $travada->servico,
+                'insurance_plan_id' => $dados['insurance_plan_id'] ?? null,
                 'origem' => 'manual',
                 'data' => $dados['data'] ?? today(),
                 'valor' => $valor,
