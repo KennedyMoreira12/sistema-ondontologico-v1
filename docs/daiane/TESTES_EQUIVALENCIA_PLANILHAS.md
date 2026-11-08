@@ -1,6 +1,6 @@
 # TESTES DE EQUIVALÊNCIA — PLANILHAS DA DAIANE x LJ SMARTCLINIC
 
-Objetivo: criar testes automatizados que comparem resultados das fórmulas originais das planilhas com os cálculos do sistema, usando cópias dos dados (sem alterar a produção). Estes testes são o critério objetivo para classificar um fluxo como **A** na matriz de 137 fluxos.
+Objetivo: criar testes automatizados que comparem resultados das fórmulas originais das planilhas com os cálculos do sistema, usando cópias dos dados (sem alterar a produção). Estes testes são o critério objetivo para classificar um fluxo como **A** na matriz de 127 fluxos.
 
 ---
 
@@ -203,8 +203,8 @@ vendor/bin/phpunit tests/Feature/EquivalenciaPlanilhasDaiane.php
 
 ## 7. Status atual
 
-- Testes de funcionalidade existentes: aprovados (suíte de 714 testes, 0 falhas, 2 risky pré-existentes).
-- **Testes de equivalência planilha x sistema: 44 testes criados e aprovados** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
-- Testes cobrem: agenda, depilação a laser, pilates, fisioterapia/pacotes, contas a pagar, contas a receber, pagamentos, FinanceHelper, relatórios (incluindo aniversariantes), pacientes, desconto, pacotes não-FT, vínculo payment ↔ conta a receber.
+- Testes de funcionalidade existentes: aprovados.
+- **Testes de equivalência planilha x sistema: 53 testes criados e aprovados (206 asserções)** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
+- Testes cobrem: agenda, depilação a laser (incluindo contagem por área), pilates (incluindo lista de presença por paciente), fisioterapia/pacotes (incluindo reposição e fisioterapia domiciliar), contas a pagar (criação, vencimento, status, baixa, baixa parcial, idempotência, categoria e fornecedor), contas a receber, pagamentos, FinanceHelper, relatórios (incluindo aniversariantes), pacientes, desconto, pacotes não-FT, vínculo payment ↔ conta a receber, profissionais externos e post/campanha social.
 
-Quando todos os 137 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente 99 de 137 fluxos são A (72,3%).
+Quando todos os 127 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente 123 de 127 fluxos são A (96,85%); os 4 restantes dependem de decisão da cliente ou de arquivo externo.

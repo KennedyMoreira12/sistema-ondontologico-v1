@@ -1,10 +1,10 @@
 # PLANO DE CORREÇÕES — 100% DE SUBSTITUIÇÃO DAS PLANILHAS DA DAIANE
 
-Este plano lista as correções e implementações necessárias para levar os 77 fluxos não-A (B, C, D, E) da matriz à classificação A. Não inventa regras comerciais: onde a cliente não confirmou a regra, o item fica pendente de decisão e o sistema não é alterado por suposição.
+Este plano lista as correções e implementações necessárias para levar os fluxos não-A (B, C, D, E) da matriz à classificação A. A recontagem confirmou 127 fluxos (não 137); restam 4 não-A. Não inventa regras comerciais: onde a cliente não confirmou a regra, o item fica pendente de decisão e o sistema não é alterado por suposição.
 
 ## Critério de conclusão
 
-Somente fluxos classificados como **A** contam para 100%. O plano será considerado concluído quando todos os 137 fluxos forem A, com testes automatizados aprovados e dados históricos preservados.
+Somente fluxos classificados como **A** contam para 100%. O plano será considerado concluído quando todos os 127 fluxos forem A, com testes automatizados aprovados e dados históricos preservados.
 
 ---
 

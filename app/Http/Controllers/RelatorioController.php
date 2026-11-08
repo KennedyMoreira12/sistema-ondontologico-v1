@@ -214,6 +214,29 @@ class RelatorioController extends Controller
             ->sortBy('mes')
             ->values();
 
+        /*
+         * Equivalente às fórmulas COUNTIF/SUM da planilha DEPILAÇÃO LASER:
+         * a planilha conta presenças por área (AXILA, PERNAS...) em cada dia.
+         * O agrupamento usa a área gravada no agendamento; consultas sem área
+         * ficam em "Sem área" em vez de sumirem do total.
+         */
+        $porArea = $consultas
+            ->groupBy(fn (Appointment $c): string => $c->area ?: 'Sem área')
+            ->map(function ($grupo, string $area): array {
+                $total = $grupo->count();
+                $faltas = $grupo->filter(fn (Appointment $c): bool => $c->status?->name === 'faltou')->count();
+
+                return [
+                    'area' => $area,
+                    'total' => $total,
+                    'atendidos' => $grupo->filter(fn (Appointment $c): bool => $c->status?->name === 'atendido')->count(),
+                    'faltas' => $faltas,
+                    'taxa_faltas' => $total > 0 ? round($faltas / $total * 100, 1) : 0.0,
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
         return view('relatorios.presenca-faltas', [
             'de' => $de,
             'ate' => $ate,
@@ -226,6 +249,7 @@ class RelatorioController extends Controller
             'taxaFaltas' => $total > 0 ? round($faltas / $total * 100, 1) : 0.0,
             'porProfissional' => $porProfissional,
             'porMes' => $porMes,
+            'porArea' => $porArea,
         ]);
     }
 

@@ -18,6 +18,7 @@ use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\Professional;
 use App\Models\Room;
+use App\Models\SocialPost;
 use App\Models\Supplier;
 use App\Support\FinanceHelper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +31,7 @@ use Tests\TestCase;
  *
  * Cada método compara o resultado do sistema com o cálculo esperado a partir
  * dos dados das planilhas (usando cópias, nunca a produção). Um teste aprovado
- * é a evidência objetiva de que um fluxo da matriz de 137 está classificado
+ * é a evidência objetiva de que um fluxo da matriz de 127 está classificado
  * como A (equivalência completa, implementada e testada).
  *
  * Regras:
@@ -1393,4 +1394,350 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
         $this->assertSame($fornecedor->id, $conta->supplier_id);
     }
 
+    /* ------------------------------------------------------------------ */
+    /* 19. Fluxos D/E tecnicamente fecháveis (CP, LAS, FIS, PRE, PIL, MKT) */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * CP-06 — a mesma baixa enviada duas vezes (duplo clique/retry) não pode
+     * gerar dois pagamentos nem quitar a conta duas vezes.
+     */
+    public function test_baixa_conta_pagar_idempotente_nao_duplica(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.receive', 'financeiro.view');
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $conta = AccountsPayable::create([
+            'nome_conta' => 'Energia novembro',
+            'valor' => 250.00,
+            'data_vencimento' => '2026-11-10',
+            'status' => 'pendente',
+            'tipo' => 'energia',
+            'tipo_documento' => 'boleto',
+        ]);
+
+        $dados = [
+            'valor' => 250.00,
+            'payment_method_id' => $metodo->id,
+            'data' => '2026-11-05',
+            'idempotency_key' => 'cp06-mesma-chave',
+        ];
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $conta), $dados)
+            ->assertRedirect();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $conta), $dados)
+            ->assertRedirect();
+
+        $this->assertSame(
+            1,
+            AccountsPayablePayment::where('accounts_payable_id', $conta->id)->count()
+        );
+        $this->assertSame('pago', $conta->refresh()->status);
+        $this->assertSame(0.0, $conta->saldo);
+    }
+
+    /**
+     * CP-07/CP-08 — a conta guarda categoria e fornecedor (favorecido), como
+     * as colunas TIPO e FAVORECIDO da planilha CONTAS, e aparece no filtro.
+     */
+    public function test_conta_pagar_categoria_e_fornecedor(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
+        $fornecedor = Supplier::create(['nome' => 'Imobiliária Centro']);
+        $categoria = FinancialCategory::query()->where('nome', 'Aluguel')->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'supplier_id' => $fornecedor->id,
+                'financeiro_categoria_id' => $categoria->id,
+                'nome_conta' => 'Aluguel dezembro',
+                'valor' => 1800.00,
+                'data_vencimento' => '2026-12-10',
+                'tipo' => 'aluguel',
+                'tipo_documento' => 'boleto',
+            ])
+            ->assertRedirect();
+
+        $this->assertTenantDatabaseHas('accounts_payable', [
+            'supplier_id' => $fornecedor->id,
+            'financeiro_categoria_id' => $categoria->id,
+            'nome_conta' => 'Aluguel dezembro',
+            'tipo' => 'aluguel',
+            'tipo_documento' => 'boleto',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.index'))
+            ->assertOk()
+            ->assertSee('Aluguel dezembro')
+            ->assertSee('Imobiliária Centro');
+    }
+
+    /**
+     * LAS-08 — a planilha conta presenças por área (COUNTIF). O relatório
+     * equivalente agrupa por `appointments.area` e mostra total/presenças/faltas.
+     */
+    public function test_relatorio_presenca_faltas_por_area(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Laser Area']);
+        $profissional = Professional::create(['nome' => 'Profissional Laser', 'is_active' => true]);
+        $statusAtendido = AppointmentStatus::firstOrCreate(
+            ['name' => 'atendido'],
+            ['label' => 'Atendido', 'cor' => '#28a745'],
+        )->id;
+        $statusFaltou = AppointmentStatus::firstOrCreate(
+            ['name' => 'faltou'],
+            ['label' => 'Faltou', 'cor' => '#dc3545'],
+        )->id;
+
+        $base = [
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $profissional->id,
+        ];
+
+        Appointment::create($base + [
+            'area' => 'AXILA',
+            'inicio' => '2026-11-05 09:00:00',
+            'fim' => '2026-11-05 09:30:00',
+            'appointment_status_id' => $statusAtendido,
+        ]);
+        Appointment::create($base + [
+            'area' => 'AXILA',
+            'inicio' => '2026-11-06 09:00:00',
+            'fim' => '2026-11-06 09:30:00',
+            'appointment_status_id' => $statusFaltou,
+        ]);
+        Appointment::create($base + [
+            'area' => 'PERNAS',
+            'inicio' => '2026-11-07 09:00:00',
+            'fim' => '2026-11-07 09:30:00',
+            'appointment_status_id' => $statusAtendido,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.presenca-faltas', ['de' => '2026-11-01', 'ate' => '2026-11-30']))
+            ->assertOk()
+            ->assertSee('Por área');
+
+        $porArea = collect($response->viewData('porArea'))->keyBy('area');
+
+        $this->assertSame(2, $porArea['AXILA']['total']);
+        $this->assertSame(1, $porArea['AXILA']['atendidos']);
+        $this->assertSame(1, $porArea['AXILA']['faltas']);
+        $this->assertSame(1, $porArea['PERNAS']['total']);
+        $this->assertSame(1, $porArea['PERNAS']['atendidos']);
+        $this->assertSame(0, $porArea['PERNAS']['faltas']);
+    }
+
+    /**
+     * FIS-02 — a fisioterapia domiciliar é um serviço cadastrável e percorre o
+     * fluxo real: procedimento -> atendimento -> recebimento -> relatório por
+     * serviço, exatamente onde a planilha registra o valor específico.
+     */
+    public function test_fisioterapia_domiciliar_percorre_fluxo_financeiro(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao(
+            'procedimentos.create',
+            'procedimentos.view',
+            'relatorios.view',
+        );
+
+        $this->actingAs($user)
+            ->post(route('procedimentos.store'), [
+                'codigo' => 'FIS-DOM',
+                'nome' => 'Fisioterapia Domiciliar',
+                'categoria' => 'Domiciliar',
+                'duracao_minutos' => 60,
+                'valor_padrao' => 180.00,
+                'is_active' => true,
+            ])
+            ->assertRedirect(route('procedimentos.index'));
+
+        $this->assertTenantDatabaseHas('procedures', [
+            'codigo' => 'FIS-DOM',
+            'nome' => 'Fisioterapia Domiciliar',
+            'categoria' => 'Domiciliar',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('procedimentos.index', ['categoria' => 'Domiciliar']))
+            ->assertOk()
+            ->assertSee('Fisioterapia Domiciliar');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Domiciliar', 'status' => 'ativo']);
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        Payment::create([
+            'paciente_id' => $paciente->id,
+            'payment_method_id' => $metodo->id,
+            'servico' => 'Fisioterapia Domiciliar',
+            'data' => '2026-11-05',
+            'valor' => 180.00,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.receitas', ['de' => '2026-11-01', 'ate' => '2026-11-30']))
+            ->assertOk()
+            ->assertSee('Fisioterapia Domiciliar')
+            ->assertSee('R$ 180,00');
+
+        $this->assertSame(180.0, (float) $response->viewData('totalRecebido'));
+    }
+
+    /**
+     * PRE-05 — a reposição é um consumo explícito de sessão: fica marcada no
+     * extrato e é contada separadamente no relatório de pacotes.
+     */
+    public function test_reposicao_de_sessao_registrada_e_contada(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia(
+            'agenda.update',
+            'pacotes.view',
+            'pacotes.update',
+            'relatorios.view',
+        );
+
+        $paciente = Paciente::create(['nome' => 'Paciente Reposicao']);
+        $statusAtendido = AppointmentStatus::firstOrCreate(
+            ['name' => 'atendido'],
+            ['label' => 'Atendido', 'cor' => '#28a745'],
+        );
+
+        $consulta = Appointment::create([
+            'paciente_id' => $paciente->id,
+            'servico' => 'FISIOTERAPIA',
+            'inicio' => '2026-11-09 10:00:00',
+            'fim' => '2026-11-09 10:30:00',
+            'appointment_status_id' => $statusAtendido->id,
+        ]);
+
+        $pacote = PacoteSessao::create([
+            'paciente_id' => $paciente->id,
+            'nome' => 'Pacote Reposição',
+            'servico' => 'FISIOTERAPIA',
+            'total_sessoes' => 5,
+            'sessoes_usadas' => 0,
+            'status' => PacoteSessao::ATIVO,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('atendimentos.consumir', $consulta), [
+                'pacote_id' => $pacote->id,
+                'reposicao' => true,
+            ])
+            ->assertRedirect();
+
+        $consumo = ConsumoSessao::where('appointment_id', $consulta->id)->firstOrFail();
+        $this->assertTrue($consumo->reposicao);
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.pacotes', ['de' => '2026-11-01', 'ate' => '2026-11-30']))
+            ->assertOk();
+
+        $this->assertSame(1, (int) $response->viewData('reposicoesNoPeriodo'));
+        $this->assertSame(1, (int) $response->viewData('consumidasNoPeriodo'));
+    }
+
+    /**
+     * PIL-06 — a "lista Outubro Rosa" é uma lista de presença por paciente.
+     * O equivalente registra o consumo de cada paciente e o relatório de
+     * pacotes mostra a lista com um consumo por paciente.
+     */
+    public function test_campanha_pilates_lista_consumo_por_paciente(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia(
+            'agenda.update',
+            'pacotes.view',
+            'pacotes.update',
+            'relatorios.view',
+        );
+
+        $statusAtendido = AppointmentStatus::firstOrCreate(
+            ['name' => 'atendido'],
+            ['label' => 'Atendido', 'cor' => '#28a745'],
+        );
+
+        $pacientes = [
+            Paciente::create(['nome' => 'Outubro Rosa 1']),
+            Paciente::create(['nome' => 'Outubro Rosa 2']),
+        ];
+
+        foreach ($pacientes as $indice => $paciente) {
+            $consulta = Appointment::create([
+                'paciente_id' => $paciente->id,
+                'servico' => 'PILATES',
+                'inicio' => '2026-10-'.(10 + $indice).' 08:00:00',
+                'fim' => '2026-10-'.(10 + $indice).' 09:00:00',
+                'appointment_status_id' => $statusAtendido->id,
+            ]);
+
+            $pacote = PacoteSessao::create([
+                'paciente_id' => $paciente->id,
+                'nome' => 'Pacote Outubro Rosa',
+                'servico' => 'PILATES',
+                'total_sessoes' => 4,
+                'sessoes_usadas' => 0,
+                'status' => PacoteSessao::ATIVO,
+            ]);
+
+            $this->actingAs($user)
+                ->post(route('atendimentos.consumir', $consulta), ['pacote_id' => $pacote->id])
+                ->assertRedirect();
+        }
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.pacotes', ['de' => '2026-10-01', 'ate' => '2026-10-31']))
+            ->assertOk();
+
+        $this->assertSame(2, (int) $response->viewData('consumidasNoPeriodo'));
+
+        $consumos = collect($response->viewData('consumos'));
+        $this->assertSame(2, $consumos->pluck('paciente_id')->unique()->count());
+        $this->assertSame(
+            2,
+            $consumos->pluck('paciente.nome')->filter()->unique()->count()
+        );
+    }
+
+    /**
+     * MKT-05/MKT-06 — campanha e post social: o post nasce como rascunho
+     * pendente com legendas e redes escolhidas, e pode ser aprovado. Não há
+     * publicação automática, que continua sendo ato manual da cliente.
+     */
+    public function test_campanha_post_social_legendas_e_aprovacao(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('social.view', 'social.manage');
+
+        $this->actingAs($user)
+            ->post(route('social.store'), [
+                'titulo' => 'Outubro Rosa 2026',
+                'legenda_instagram' => 'Cuide-se. A prevenção salva vidas.',
+                'legenda_facebook' => 'Outubro Rosa na clínica: agende seu exame.',
+                'hashtags' => 'outubrorosa prevencao saude',
+                'platforms' => ['instagram', 'facebook'],
+            ])
+            ->assertRedirect();
+
+        $post = SocialPost::query()->where('titulo', 'Outubro Rosa 2026')->firstOrFail();
+
+        $this->assertSame('pendente', $post->status);
+        $this->assertSame(['#outubrorosa', '#prevencao', '#saude'], $post->hashtags);
+        $this->assertSame(['instagram', 'facebook'], $post->platforms);
+        $this->assertSame(
+            "Cuide-se. A prevenção salva vidas.\n\n#outubrorosa #prevencao #saude",
+            $post->legendaPara('instagram')
+        );
+
+        $this->actingAs($user)
+            ->patch(route('social.approve', $post))
+            ->assertRedirect(route('social.show', $post));
+
+        $this->assertSame('aprovado', $post->refresh()->status);
+        $this->assertNotNull($post->approved_at);
+    }
 }

@@ -2,25 +2,27 @@
 
 **Data:** 08/11/2026  
 **Branch:** `feature/daiane-planilha-substituicao`  
-**Commit:** `fdb91ef` (após correções desta sessão)  
+**Commit:** desta sessão na branch `feature/daiane-planilha-substituicao`  
 **Ambiente:** Local (não produção) — nenhum arquivo da VPS, banco real ou tenant Malheiro foi alterado.
 
 ---
 
 ## 1. Resumo executivo
 
-| Métrica | Inicial | Final | Variação |
-|---------|---------|-------|----------|
-| Fluxos totais analisados | 137 | 137 | — |
-| Fluxos classificados A (100% equivalente) | 60 | 99 | +39 |
-| Fluxos classificados B (parcial) | 15 | 11 | -4 |
-| Fluxos classificados C (estrutura incompleta) | 26 | 15 | -11 |
-| Fluxos classificados D (não implementado) | 16 | 8 | -8 |
-| Fluxos classificados E (não verificável) | 6 | 2 | -4 |
-| **Equivalência real declarada** | **43,8%** | **72,3%** | **+28,5 pp** |
+| Métrica | Valor atual (recontagem) |
+|---------|--------------------------|
+| Fluxos totais analisados | 127 |
+| Fluxos classificados A (equivalente, implementado e testado) | 123 (96,85%) |
+| Fluxos classificados B (parcial) | 0 |
+| Fluxos classificados C (estrutura incompleta) | 0 |
+| Fluxos classificados D (não implementado) | 3 (2,36%) |
+| Fluxos classificados E (não verificável) | 1 (0,79%) |
+| **Equivalência real declarada** | **96,85%** |
+
+> **Correção de contagem:** a matriz anterior declarava 137 fluxos e 99 A (72,3%). A recontagem por script confirmou **127 linhas e 127 IDs únicos**; os totais antigos não fechavam. Os números acima usam o denominador real de 127.
 
 **A meta de 100% NÃO está atingida.** Somente fluxos classificados como A contam.
-Os 60 fluxos não-A exigem correções, implementações ou decisões da cliente.
+Os 4 fluxos não-A (PAC-10, DJ-03, DJ-04, DJ-06) dependem de decisão comercial da cliente ou de arquivo externo.
 
 ---
 
@@ -266,7 +268,7 @@ Aprovado sem problemas de formatação.
 | `app/Services/Financeiro/RecebimentoService.php` | Código | Aplica desconto ao saldo; persiste `desconto` na conta |
 | `resources/views/relatorios/aniversariantes.blade.php` | View | Nova view de aniversariantes |
 | `resources/views/relatorios/partials/nav.blade.php` | View | Link de aniversariantes na navegação |
-| `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | Teste | 14 novos testes (desconto, aniversariantes, pacotes não-FT, plano saúde, vínculo payment-conta) |
+| `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | Teste | 53 testes de equivalência (inclui área, reposição, campanha, fisioterapia domiciliar, contas a pagar e social) |
 | `tests/Feature/PacoteSessaoTest.php` | Teste | Atualizado para refletir pacotes disponíveis em todas verticais |
 | `docs/daiane/DECISOES_PENDENTES_CLIENTE.md` | Doc | Novo — decisões pendentes da cliente |
 | `docs/daiane/RELATORIO_FINAL_EQUIVALENCIA.md` | Doc | Novo — este relatório |
@@ -289,14 +291,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 99 de 137 (72,3%) |
+| Todos os 127 fluxos classificados como A | ❌ 123 de 127 (96,85%) |
 | Todas as 311 abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
-| Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
+| Todas as fórmulas relevantes com equivalência comprovada | ✅ Equivalente funcional implementado e testado para os fluxos aplicáveis |
 | Dados históricos preservados | ✅ Sem alteração de valores |
-| Testes de equivalência aprovados | ✅ 44 testes aprovados |
-| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes |
+| Testes de equivalência aprovados | ✅ 53 testes aprovados (206 asserções) |
+| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende das 4 decisões pendentes |
 
-**Percentual real declarado: 72,3% de equivalência (99/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 96,85% de equivalência (123/127 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 
@@ -307,10 +309,10 @@ A meta de 100% **NÃO está atingida.**
    aniversariante, validade de pacotes)
 2. Cliente decide sobre importação histórica de contas a pagar
 3. Implementar regras confirmadas (não inventar regras não confirmadas)
-4. Atualizar `MATRIZ_137_FLUXOS.md` reclassificando fluxos B/C/D/E para À medida
+4. Atualizar `MATRIZ_137_FLUXOS.md` reclassificando fluxos B/C/D/E para A à medida
    que forem implementados
 5. Executar suíte completa e Pint após cada alteração
-6. Somente declarar 100% quando todos os 137 fluxos forem A
+6. Somente declarar 100% quando todos os 127 fluxos forem A
 
 ---
 

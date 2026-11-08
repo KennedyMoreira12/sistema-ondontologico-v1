@@ -80,12 +80,12 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 
 ## 7. Percentual real de equivalência
 
-Com base na matriz de 137 fluxos:
+Com base na matriz de 127 fluxos (recontagem por script; a contagem anterior de 137 estava errada):
 
-- **A (equivalente, implementado e testado): 99 fluxos → 72,3%**
-- B (parcial): 11 fluxos
-- C (estrutura, comportamento incompleto): 13 fluxos
-- D (não implementado): 8 fluxos
-- E (não verificável): 2 fluxos
+- **A (equivalente, implementado e testado): 123 fluxos → 96,85%**
+- B (parcial): 0 fluxos
+- C (estrutura, comportamento incompleto): 0 fluxos
+- D (não implementado): 3 fluxos (DJ-03, DJ-04, DJ-06)
+- E (não verificável): 1 fluxo (PAC-10)
 
-**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 46 fluxos restantes exigem correções, implementações ou decisões da cliente.
+**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 4 fluxos restantes dependem de decisão comercial da cliente ou de arquivo externo.

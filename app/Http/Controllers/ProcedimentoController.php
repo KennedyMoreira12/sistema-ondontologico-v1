@@ -15,13 +15,14 @@ class ProcedimentoController extends Controller
         $this->authorize('procedimentos.view');
 
         $procedimentos = Procedure::query()
-            ->when($request->filled('busca'), function ($query, $busca) {
+            ->when($request->filled('busca'), function ($query) use ($request) {
+                $busca = $request->string('busca')->toString();
                 $query->where(fn ($q) => $q
                     ->where('nome', 'like', "%{$busca}%")
                     ->orWhere('codigo', 'like', "%{$busca}%"));
             })
-            ->when($request->filled('categoria'), function ($query, $categoria) {
-                $query->where('categoria', $categoria);
+            ->when($request->filled('categoria'), function ($query) use ($request) {
+                $query->where('categoria', $request->string('categoria')->toString());
             })
             ->orderBy('nome')
             ->paginate(15)
