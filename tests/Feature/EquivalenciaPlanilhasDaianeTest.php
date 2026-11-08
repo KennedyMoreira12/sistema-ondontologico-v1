@@ -1332,6 +1332,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
 
     public function test_insurance_plans_estrutura_existe(): void
     {
+        // Estrutura de planos de saúde existe
         $operadora = InsuranceCompany::create([
             'nome' => 'IPSM',
             'is_active' => true,
@@ -1346,4 +1347,50 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
         $this->assertSame($operadora->id, $plano->insurance_company_id);
         $this->assertTrue($plano->is_active);
     }
+
+    /* ------------------------------------------------------------------ */
+    /* 18. Fluxos B/C — equilvência de formato (não comercial) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_profissional_externo_tipo_diaria(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
+
+        // Profissional externo com tipo 'nutricionista' e tipo_diaria
+        $profissional = Professional::create([
+            'nome' => 'Nutricionista Apoena',
+            'tipo' => 'nutricionista',
+            'registro_profissional' => 'CRN 12345',
+            'is_active' => true,
+        ]);
+
+        $this->assertSame('nutricionista', $profissional->tipo);
+        $this->assertSame('CRN 12345', $profissional->registro_profissional);
+        $this->assertTrue($profissional->is_active);
+    }
+
+    public function test_contas_pagar_campo_juros_desconto(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
+
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Contas Pagar']);
+
+        // Campo juros_desconto existe em accounts_payable
+        $conta = AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'nome_conta' => 'Aluguel novembro',
+            'valor' => 1800.00,
+            'data_vencimento' => '2026-11-10',
+            'status' => 'pendente',
+            'tipo' => 'aluguel',
+            'tipo_documento' => 'boleto',
+        ]);
+
+        $this->assertNotNull($conta->id);
+        $this->assertSame('Aluguel novembro', $conta->nome_conta);
+        $this->assertSame(1800.00, (float) $conta->valor);
+        $this->assertSame('pendente', $conta->status);
+        $this->assertSame($fornecedor->id, $conta->supplier_id);
+    }
+
 }

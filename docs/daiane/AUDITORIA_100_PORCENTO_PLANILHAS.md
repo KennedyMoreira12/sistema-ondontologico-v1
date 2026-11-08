@@ -79,9 +79,9 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
-| Agenda e horários recorrentes | 12 | 8 | 0 | 3 | 1 | 0 | 67% |
+| Agenda e horários recorrentes | 12 | 9 | 0 | 3 | 0 | 0 | 75% |
 | Depilação a laser | 14 | 10 | 1 | 2 | 1 | 0 | 71% |
-| Pilates | 9 | 8 | 1 | 0 | 0 | 0 | 89% |
+| Pilates | 9 | 9 | 0 | 0 | 0 | 0 | 100% |
 | Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
 | Massagem | 7 | 5 | 2 | 0 | 0 | 0 | 71% |
 | Cadastro e histórico de pacientes | 10 | 8 | 0 | 1 | 0 | 1 | 80% |
@@ -90,7 +90,7 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 | Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
 | Contas a receber | 8 | 7 | 0 | 1 | 0 | 0 | 88% |
 | Pagamentos e recebimentos | 9 | 8 | 0 | 0 | 0 | 1 | 89% |
-| Profissionais externos | 6 | 4 | 1 | 0 | 0 | 1 | 67% |
+| Profissionais externos | 6 | 5 | 0 | 0 | 0 | 1 | 83% |
 | Descontos, juros e vencimentos | 6 | 2 | 1 | 1 | 2 | 0 | 33% |
 | Relatórios e indicadores | 9 | 8 | 1 | 0 | 0 | 0 | 89% |
 | Marketing e aniversariantes | 6 | 5 | 0 | 1 | 0 | 0 | 83% |

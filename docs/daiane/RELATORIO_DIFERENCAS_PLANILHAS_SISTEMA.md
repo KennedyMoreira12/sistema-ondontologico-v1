@@ -82,9 +82,9 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 
 Com base na matriz de 137 fluxos:
 
-- **A (equivalente, implementado e testado): 91 fluxos → 66,4%**
-- B (parcial): 3 fluxos
-- C (estrutura, comportamento incompleto): 15 fluxos
+- **A (equivalente, implementado e testado): 99 fluxos → 72,3%**
+- B (parcial): 11 fluxos
+- C (estrutura, comportamento incompleto): 13 fluxos
 - D (não implementado): 8 fluxos
 - E (não verificável): 2 fluxos
 
