@@ -94,7 +94,7 @@ Suítes afetadas pelas mudanças desta sessão:
 - `FinanceiroCommandsTest` — dry-run/apply e diagnóstico somente leitura.
 - `WhatsAppApiTest` / `WhatsAppFluxoTest` / `EvolutionWebhookTest` / `IsolamentoCacheTest` — regressão de WhatsApp/fiscal.
 
-Os 6.174 lançamentos × 6.163 pagamentos dependem do banco original (somente leitura, indisponível nesta máquina) e não puderam ser fechados aqui — documentado como pendência.
+A diferença de 11 lançamentos (6.174 × 6.163) está **fechada**: 14 duplicatas internas em (data, valor, observações) colapsadas pela idempotência + 3 pagamentos pré-existentes fora da planilha = 6.174 − 14 + 3 = 6.163. Nenhum valor foi alterado.
 
 ---
 
@@ -112,13 +112,13 @@ Os 6.174 lançamentos × 6.163 pagamentos dependem do banco original (somente le
 | `DiagnosticarPagamentosCommand` tratava `--arquivo` ausente como falha | `--arquivo` opcional; somente leitura sem CSV |
 | Formulário de agendamento não enviava chave de idempotência | `create-modal.blade.php` gera `Str::uuid()` em campo oculto |
 
-Falhas preexistentes identificadas (não causadas por esta sessão): diferença de 11 lançamentos entre extração e banco (6.174 × 6.163), dependendo do banco original; regras comerciais não confirmadas pela cliente (reposição de faltas, juros/multa).
+Falhas preexistentes identificadas (não causadas por esta sessão): regras comerciais não confirmadas pela cliente (reposição de faltas, juros/multa). A diferença de 11 lançamentos (6.174 × 6.163) foi explicada sem alterar dados: 14 duplicatas internas + 3 pagamentos pré-existentes (6.174 − 14 + 3 = 6.163).
 
 ---
 
 ## 5. Riscos conhecidos
 
-1. **Volumes reais não validados:** o banco MySQL local estava indisponível; a validação funcional rodou no SQLite demo (`clinic_000005`). A diferença de 11 lançamentos (6.174 × 6.163) não pôde ser explicada sem acesso ao banco original.
+1. **Volumes reais não validados em carga:** o banco MySQL local estava indisponível; a validação funcional rodou no SQLite demo (`clinic_000005`). A diferença de 11 lançamentos (6.174 × 6.163) foi explicada aritmeticamente (14 duplicatas internas + 3 pagamentos pré-existentes = 6.163), restando apenas a identificação individual das 3 linhas pré-existentes no banco original.
 2. **Regras comerciais pendentes da cliente:** reposição de faltas (hoje a falta não consome nem devolve sessão), juros/multa (padrão 0, não confirmado), NFSe (SendNF segue mock, nenhum documento fiscal real emitido).
 3. **Vínculo de pacientes antigos:** não há merge automático por nome; nomes variantes (GISELE/GISELE ALVES/GISELE LVES, JOANA DARC/DARCK/DARK) exigem revisão humana.
 4. **Teste flaky de isolamento de banco:** `PlatformClinicTest` falha ocasionalmente no run completo por ordem de execução, passa isoladamente — pré-existente, não relacionado à Daiane.

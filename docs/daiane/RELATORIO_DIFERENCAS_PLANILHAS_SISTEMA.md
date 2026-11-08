@@ -59,11 +59,32 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 |------|----------|-------------------------|-----------|
 | Pacientes | 767 (importados) | 767 | Igual. |
 | Agendamentos/appointments | 1.362 | 1.362 (1.314 atendido / 48 faltou) | Igual. 48 registros corrigidos de `atendido` para `faltou`. |
-| Pagamentos | 6.174 lançamentos extraídos | 6.163 registrados | Diferença de 11 lançamentos — investigar se são duplicatas, cabeçalhos ou linhas vazias da planilha. |
+| Pagamentos | 6.174 lançamentos extraídos | 6.163 registrados | Diferença de 11 **explicada**: 14 duplicatas internas colapsadas pela idempotência + 3 pagamentos pré-existentes fora da planilha. |
 | Fornecedores | 94 | 94 | Igual. |
 | Pacotes de sessão | Não contado nas planilhas | 369 | Dados importados na fase 2. |
 
-**Diferença de 11 lançamentos (6.174 vs 6.163):** não é alteração de valores; é contagem de linhas de lançamento. Pode decorrer de linhas de cabeçalho, totais ou linhas vazias contadas como lançamento na extração. Não há evidência de duplicata real. Não se deve forçar igualdade alterando valores.
+**Diferença de 11 lançamentos (6.174 vs 6.163) — fechada:** não é perda nem duplicação no banco. A reextração de `PAGAMENTOS.xlsx` em 08/11/2026 encontrou **6.174 linhas válidas** e **6.160 chaves distintas** em (`data`, `valor`, `observações`), ou seja, **14 duplicatas internas**. O importador idempotente grava uma linha por chave; a base anterior tinha 572 pagamentos, dos quais 569 casaram com a planilha e **3 não têm linha correspondente**. Conta exata: **6.174 − 14 + 3 = 6.163** (572 + 5.591 novos = 6.163). Nenhum valor foi alterado e nenhuma igualdade foi forçada.
+
+As 14 duplicatas internas, com aba e linha de origem:
+
+| # | Chave (data \| valor \| observações) | Ocorrências |
+|---|--------------------------------------|-------------|
+| 1 | 2023-03-31 \| 60,00 \| LEILA FISIOTERAPA 2X1 MASSAGENS PIX | MARCO 2023!205, 206 |
+| 2 | 2022-10-24 \| 60,00 \| ANIBAL MASSAGEM RELAXANTE PIX | OUTUBRO 2022!84, 85 |
+| 3 | 2022-11-04 \| 150,00 \| JANE RADIO COXA/GLUTEO DINHEIRO | NOVEMBRO 2022!18, 19 |
+| 4 | 2022-12-12 \| 100,00 \| JANE RADIO AB CARTÃO DE CRÉDITO | DEZEMBRO 2022!44, 45 |
+| 5 | 2023-02-13 \| 60,00 \| DALILA MASSAGEM RELAXANTE PIX | FEVEREIRO 2023!74, 75 |
+| 6 | 2023-04-01 \| 40,00 \| MYLLA DETOX CARTÃO DE CRÉDITO | ABRIL 2023!10, 11 |
+| 7 | 2023-05-09 \| 100,00 \| CINTYA ZENILDE LIMPEZA DE PELE PIX | MAIO 2023!46, 47 |
+| 8 | 2023-06-14 \| 60,00 \| LARISSA PROMO 2X1 CARTÃO DE CRÉDITO | JUNHO 2023!84, 85 |
+| 9 | 2023-06-16 \| 40,00 \| NEIA PROMO MASSAGEM CARTÃO DE CRÉDITO | JUNHO 2023!97, 98 |
+| 10 | 2023-11-25 \| 60,00 \| GUSTAVO DURAES LIBERAÇÃO MIOFASCIAL PIX | NOVEMBRO 2023!111, 114 |
+| 11 | 2024-12-02 \| 100,00 \| JOAQUIM LIMPEZA DE PELE CARTÃO DE DÉBITO | DEZEMBRO 2024!5, 7 |
+| 12 | 2024-12-20 \| 100,00 \| JERRY PAI LIMPEZA DE PELE CARTÃO DE DÉBITO | DEZEMBRO 2024!120, 124 |
+| 13 | 2025-02-17 \| 10,00 \| FRANCIELE N PIX | FEVEREIRO 2025!41, 49 |
+| 14 | 2025-05-19 \| 200,00 \| PIX RECEBIDO-EXTRATO/CONTA FISICA PIX | MAIO 2025!87, 88 |
+
+Os 3 pagamentos pré-existentes só podem ser individualizados com o banco original (MySQL local indisponível); a contagem está registrada em `comparacao.txt` (569 match / 3 sobra).
 
 ---
 

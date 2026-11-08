@@ -38,7 +38,13 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 | Pacotes de sessão (pacotes_sessao) | 369 |
 | Profissionais | 5 |
 
-**Diferença apurada:** 6.174 lançamentos extraídos vs 6.163 registrados (diferença de 11, não confirmada como duplicata; investigar cabeçalhos/totais/linhas vazias).
+**Diferença apurada (fechada em 08/11/2026):** 6.174 lançamentos extraídos vs 6.163 registrados = 11. A decomposição é exata:
+
+- **14 linhas** são duplicatas internas idênticas em (`data`, `valor`, `observações`) e foram colapsadas pela idempotência do importador. A reextração de `PAGAMENTOS.xlsx` confirmou 6.174 linhas válidas, **6.160 chaves distintas** e **14 grupos repetidos** (ex.: `MARCO 2023!205/206`, `OUTUBRO 2022!84/85`, `MAIO 2025!87/88`).
+- **3 pagamentos** já existiam na base anterior de 572 e não têm linha correspondente na planilha (569 casaram; 3 sobraram).
+- Conta: **6.174 − 14 + 3 = 6.163**. Importação: 572 + 5.591 novos = 6.163.
+
+Nenhum lançamento foi apagado, alterado ou forçado a bater. As 3 linhas pré-existentes não podem ser listadas individualmente sem o banco original (MySQL local indisponível), mas a contagem está registrada em `comparacao.txt` (569 match / 3 sobra).
 
 ### 1.3 Restrições respeitadas
 

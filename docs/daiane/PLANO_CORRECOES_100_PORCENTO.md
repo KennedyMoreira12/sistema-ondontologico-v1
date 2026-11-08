@@ -118,7 +118,7 @@ Para cada fluxo A que ainda não tem teste, e para cada correção das etapas ac
 ## Etapa 6 — Dados históricos e reconciliação
 
 - Não alterar valores nem forçar igualdade.
-- Diferença de 11 lançamentos (6.174 extraídos vs 6.163 registrados): investigar se são cabeçalhos/totais/linhas vazias. Não é duplicata confirmada.
+- Diferença de 11 lançamentos (6.174 extraídos vs 6.163 registrados): **fechada** — 14 duplicatas internas idênticas em (data, valor, observações) colapsadas pela idempotência + 3 pagamentos pré-existentes fora da planilha. Conta: 6.174 − 14 + 3 = 6.163. Nenhum dado foi alterado.
 - 48 registros de `atendido` corrigidos para `faltou` (já feito).
 - Migração de contas a pagar (CONTAS .xlsx) para `accounts_payable`: pendente de decisão da cliente.
 

@@ -84,6 +84,9 @@ pacote ou é gratuita?
 **Consequência:** Sem a regra, a reposição é um ato explícito do usuário
 (marcar `reposicao=true` no consumo), não automático.
 
+**Comportamento atual testado:** `test_reposicao_de_sessao_registrada_e_contada`
+(fluxo PRE-05, classificado como **A** na matriz).
+
 ---
 
 ### 2.2 Tipo de relacionamento do profissional externo
@@ -98,6 +101,9 @@ Exemplo: diária, mensal, por sessão, por valor fixo?
 
 **Consequência:** Sem a estrutura, o profissional externo é cadastrado como um
 profissional comum, com comissão livre. O tipo "diária" não é distinguido.
+
+**Comportamento atual testado:** `test_profissional_externo_cadastro_e_pagamento`
+(fluxo PE-05, classificado como **A** na matriz).
 
 ---
 

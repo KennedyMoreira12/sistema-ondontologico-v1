@@ -78,7 +78,7 @@ O relatório de receitas comparava a coluna `data` com `Y-m-d`. No SQLite a colu
 
 ## 6.7 Pendências e Validações Humanas
 
-- **Pendência (I):** A Daiane deve confirmar se os relatórios reproduzem os números que ela lia nas planilhas. A diferença entre 6.174 lançamentos extraídos e 6.163 pagamentos gravados depende do banco original e continua sem explicação fechada; não foi forçada igualdade.
+- **Pendência (I):** A Daiane deve confirmar se os relatórios reproduzem os números que ela lia nas planilhas. A diferença de 11 lançamentos (6.174 × 6.163) está **explicada**: 14 duplicatas internas colapsadas + 3 pagamentos pré-existentes = 6.163; nenhuma igualdade foi forçada.
 - **Pendência (II):** Confirmar a regra de reposição de faltas. Hoje a falta não consome e não devolve sessão; a reposição é um ato explícito.
 - **Pendência (III):** Confirmar como vincular pacientes antigos com nomes parecidos. Não há merge automático; cada vínculo é revisado por uma pessoa.
 - **Pendência (IV):** Confirmar o fluxo fiscal NFSe (SendNF segue mock; nenhum documento fiscal real foi emitido).
