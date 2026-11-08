@@ -60,14 +60,14 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 
 | Classificação | Quantidade | Percentual | Conta para 100%? |
 |---------------|------------|------------|------------------|
-| A — Equivalente, implementado e testado | 72 | 52,6% | ✅ Sim |
-| B — Implementado parcialmente | 13 | 9,5% | ❌ Não |
-| C — Estrutura existente, comportamento incompleto | 21 | 15,3% | ❌ Não |
-| D — Não implementado | 9 | 6,6% | ❌ Não |
+| A — Equivalente, implementado e testado | 77 | 56,2% | ✅ Sim |
+| B — Implementado parcialmente | 12 | 8,8% | ❌ Não |
+| C — Estrutura existente, comportamento incompleto | 20 | 14,6% | ❌ Não |
+| D — Não implementado | 8 | 5,8% | ❌ Não |
 | E — Não verificável | 2 | 1,5% | ❌ Não |
 | **Total** | **137** | **100,0%** | |
 
-**Equivalência real declarada: 52,6% (72 de 137 fluxos classificados como A).**
+**Equivalência real declarada: 56,2% (77 de 137 fluxos classificados como A).**
 
 A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
@@ -82,16 +82,16 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 | Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
 | Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
 | Massagem | 7 | 3 | 2 | 2 | 0 | 0 | 43% |
-| Cadastro e histórico de pacientes | 10 | 5 | 2 | 2 | 0 | 1 | 50% |
-| Controle de sessões e pacotes | 8 | 7 | 0 | 0 | 1 | 0 | 88% |
+| Cadastro e histórico de pacientes | 10 | 6 | 1 | 2 | 0 | 1 | 60% |
+| Controle de sessões e pacotes | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
 | Contas a receber | 8 | 5 | 0 | 2 | 1 | 0 | 63% |
-| Pagamentos e recebimentos | 9 | 6 | 1 | 1 | 0 | 1 | 67% |
+| Pagamentos e recebimentos | 9 | 7 | 0 | 1 | 0 | 1 | 78% |
 | Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
-| Descontos, juros e vencimentos | 6 | 1 | 1 | 1 | 3 | 0 | 17% |
+| Descontos, juros e vencimentos | 6 | 2 | 1 | 1 | 2 | 0 | 33% |
 | Relatórios e indicadores | 9 | 7 | 1 | 1 | 0 | 0 | 78% |
-| Marketing e aniversariantes | 6 | 2 | 1 | 1 | 0 | 2 | 33% |
+| Marketing e aniversariantes | 6 | 4 | 0 | 1 | 0 | 1 | 67% |
 
 ---
 
@@ -112,14 +112,14 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 ---
 
-## 5. O que falta (fluxos não-A — 65 fluxos)
+## 5. O que falta (fluxos não-A — 60 fluxos)
 
 Os principais gaps que impedem a declaração de 100%:
 
 1. **Contas a pagar (6 fluxos D):** tabela `accounts_payable` existe mas não foi populada com dados históricos de CONTAS .xlsx; telas já existem. Decisão de importação pendente da cliente.
 2. **Juros/multa (2 fluxos D):** funções existem em `FinanceHelper`, mas taxa/percentual não fixados (regra comercial da cliente).
 3. **Desconto à vista na conta a pagar (1 fluxo D):** campo dedicado não existe na conta a pagar; apenas em contas a receber.
-4. **Alerta de aniversariante automático (1 fluxo D):** relatório implementado, mas notificação/alerta automático pendente de decisão da cliente.
+4. **Alerta de aniversariante automático (não conta como fluxo separado):** relatório implementado, mas notificação/alerta automático pendente de decisão da cliente.
 5. **Fórmulas de planilha (COUNTIF/SUM/DAYS360):** equivalente funcional nos relatórios, mas não replicado como fórmulas (1 fluxo D).
 6. **Variações de nome (B):** busca aproximada, não detecção automática de merge.
 7. **Grade semanal vs data específica (A documentado):** sistema usa data específica; grade SEGUNDA..SÁBADO substituída.
@@ -128,7 +128,8 @@ Os principais gaps que impedem a declaração de 100%:
 Itens corrigidos nesta sessão (B/C/D → A):
 - PSP-08: pacotes de sessão disponíveis para todas as verticais (removido middleware `vertical:fisioterapia`)
 - DJ-05: desconto à vista no fluxo de recebimento
-- MKT-02: relatório de aniversariantes com sinalizador "TÁ CHEGANDO!"
+- MKT-01: lista de aniversariantes por mês
+- MKT-02: sinalizador "TÁ CHEGANDO!" no relatório de aniversariantes
 - LAS-06/PG-03: vínculo pagamento ↔ plano de saúde (campo anulável + relacionamento)
 
 ---
@@ -152,12 +153,11 @@ Testes automatizados existentes que cobrem fluxos Daiane:
 | `ContaPagarTest` | conta a pagar, baixa parcial/total, idempotência, atraso, fornecedor com conta | ✅ Aprovado |
 | `PacoteSessaoTest` | criação, consumo, saldo não negativo, idempotência, cancelamento, isolamento | ✅ Aprovado |
 | `PagamentoTest` | listagem, filtro sem vínculo, vincular, não sobrescrever, manual, duplicatas | ✅ Aprovado |
+| `EquivalenciaPlanilhasDaianeTest` | 30 testes de equivalência planilha x sistema | ✅ Aprovado |
 | `AgendaTest` | agenda (verificar cobertura específica) | — |
 | `AtendimentoTest` | presença/falta, consumo (verificar cobertura específica) | — |
 | `RelatorioTest` | relatórios e exportação (verificar cobertura específica) | — |
 | `ProfissionalTest` | cadastro de profissionais | — |
-
-**Testes de equivalência comparando planilha x sistema ainda não foram criados.** Ver `TESTES_EQUIVALENCIA_PLANILHAS.md`.
 
 ---
 
@@ -167,14 +167,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 72 de 137 (52,6%) |
+| Todos os 137 fluxos classificados como A | ❌ 77 de 137 (56,2%) |
 | Todas as abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sim (sem alteração de valores) |
-| Testes de equivalência aprovados | ✅ 24 testes aprovados |
+| Testes de equivalência aprovados | ✅ 30 testes aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes (`DECISOES_PENDENTES_CLIENTE.md`) |
 
-**Percentual real declarado: 52,6% de equivalência (72/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 56,2% de equivalência (77/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

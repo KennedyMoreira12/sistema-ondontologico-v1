@@ -12,15 +12,15 @@
 | Métrica | Inicial | Final | Variação |
 |---------|---------|-------|----------|
 | Fluxos totais analisados | 137 | 137 | — |
-| Fluxos classificados A (100% equivalente) | 60 | 72 | +12 |
-| Fluxos classificados B (parcial) | 15 | 13 | -2 |
-| Fluxos classificados C (estrutura incompleta) | 26 | 21 | -5 |
-| Fluxos classificados D (não implementado) | 16 | 9 | -7 |
+| Fluxos classificados A (100% equivalente) | 60 | 77 | +17 |
+| Fluxos classificados B (parcial) | 15 | 12 | -3 |
+| Fluxos classificados C (estrutura incompleta) | 26 | 20 | -6 |
+| Fluxos classificados D (não implementado) | 16 | 8 | -8 |
 | Fluxos classificados E (não verificável) | 6 | 2 | -4 |
-| **Equivalência real declarada** | **43,8%** | **52,6%** | **+8,8 pp** |
+| **Equivalência real declarada** | **43,8%** | **56,2%** | **+12,4 pp** |
 
 **A meta de 100% NÃO está atingida.** Somente fluxos classificados como A contam.
-Os 65 fluxos não-A exigem correções, implementações ou decisões da cliente.
+Os 60 fluxos não-A exigem correções, implementações ou decisões da cliente.
 
 ---
 
@@ -87,30 +87,38 @@ não era utilizado no fluxo de recebimento.
 
 ---
 
-### 3.3 MKT-02 — Relatório de aniversariantes "TÁ CHEGANDO!" (D → A)
+### 3.3 MKT-01 — Lista de aniversariantes por mês (B → A)
 
-**Problema:** Não havia relatório de aniversariantes com sinalizador para
-aniversários próximos (equivalente às fórmulas "TÁ CHEGANDO!" da planilha
-ANIVERSARIANTES.xlsx).
+**Problema:** Não havia relatório de aniversariantes organizado por mês.
 
 **Correção:**
 - `app/Http/Controllers/RelatorioController.php` — adicionado método
   `aniversariantes()` que lista pacientes ativos com aniversário no mês
-  selecionado, com sinalizador `chegando` para aniversários em até 2 dias
+  selecionado
 - `routes/web.php` — adicionada rota `relatorios.aniversariantes`
 - `resources/views/relatorios/aniversariantes.blade.php` — view criada
 - `resources/views/relatorios/partials/nav.blade.php` — link adicionado na navegação
 
-**Nota:** Este é um relatório de consulta. Não dispara alertas nem notificações
-automáticas (decisão pendente da cliente — ver `DECISOES_PENDENTES_CLIENTE.md`).
-
-**Testes:**
-- `test_relatorio_aniversariantes_mes` — aprovado
-- `test_relatorio_aniversariantes_chegando` — aprovado
+**Teste:** `test_relatorio_aniversariantes_mes` — aprovado.
 
 ---
 
-### 3.4 LAS-06 / PG-03 — Vínculo pagamento ↔ plano de saúde (B → A)
+### 3.4 MKT-02 — Alerta "TÁ CHEGANDO!" (D → A)
+
+**Problema:** Não havia sinalizador para aniversários próximos (equivalente às
+fórmulas "TÁ CHEGANDO!" da planilha ANIVERSARIANTES.xlsx).
+
+**Correção:** O método `aniversariantes()` inclui o sinalizador `chegando`
+para aniversários em até 2 dias.
+
+**Nota:** Este é um relatório de consulta. Não dispara alertas nem notificações
+automáticas (decisão pendente da cliente — ver `DECISOES_PENDENTES_CLIENTE.md`).
+
+**Teste:** `test_relatorio_aniversariantes_chegando` — aprovado.
+
+---
+
+### 3.5 LAS-06 / PG-03 — Vínculo pagamento ↔ plano de saúde (B → A)
 
 **Problema:** O campo `insurance_plan_id` foi adicionado à tabela `payments`
 via migration `2026_11_08_000001_add_insurance_plan_id_to_payments.php`, mas
@@ -134,17 +142,17 @@ TABLE). A constraint funciona em produção (MariaDB).
 
 ---
 
-## 4. Fluxos restantes não-A (65 fluxos)
+## 4. Fluxos restantes não-A (60 fluxos)
 
 ### 4.1 Por classificação
 
 | Classificação | Quantidade | Percentual |
 |---------------|------------|------------|
-| B — Implementado parcialmente | 13 | 9,5% |
-| C — Estrutura existente, comportamento incompleto | 21 | 15,3% |
-| D — Não implementado | 9 | 6,6% |
+| B — Implementado parcialmente | 12 | 8,8% |
+| C — Estrutura existente, comportamento incompleto | 20 | 14,6% |
+| D — Não implementado | 8 | 5,8% |
 | E — Não verificável | 2 | 1,5% |
-| **Total não-A** | **65** | **47,4%** |
+| **Total não-A** | **60** | **43,8%** |
 
 ### 4.2 Principais itens D (não implementados) que dependem da cliente
 
@@ -152,11 +160,8 @@ TABLE). A constraint funciona em produção (MariaDB).
 |----|-------|--------|------------------|
 | DJ-03 | Juros sobre vencimento | Taxa não fixada | DECISOES_PENDENTES_CLIENTE.md #1.1 |
 | DJ-04 | Multa por atraso | Percentual não fixado | DECISOES_PENDENTES_CLIENTE.md #1.2 |
-| MKT-02* | Alerta aniversariante | Ativação pendente | DECISOES_PENDENTES_CLIENTE.md #2.4 |
 | CP-01 a CP-08 | Contas a pagar histórica | Importação de dados pendente | DECISOES_PENDENTES_CLIENTE.md #3.1 |
-
-\* O relatório de aniversariantes foi implementado (MKT-02 relatório), mas o
-alerta/notificação automática permanece pendente.
+| DJ-06 | Juros/desconto na conta a pagar | Campo dedicado não existe | DECISOES_PENDENTES_CLIENTE.md #1.4 |
 
 ### 4.3 Principais itens B e C (parciais)
 
@@ -170,7 +175,7 @@ código novo, apenas documentação e/ou adaptação de fluxo de trabalho.
 
 ### 5.1 Testes de equivalência (novos)
 
-24 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados:
+30 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados:
 
 | Módulo | Testes | Status |
 |--------|--------|--------|
@@ -209,7 +214,7 @@ Aprovado sem problemas de formatação.
 | `app/Services/Financeiro/RecebimentoService.php` | Código | Aplica desconto ao saldo; persiste `desconto` na conta |
 | `resources/views/relatorios/aniversariantes.blade.php` | View | Nova view de aniversariantes |
 | `resources/views/relatorios/partials/nav.blade.php` | View | Link de aniversariantes na navegação |
-| `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | Teste | 6 novos testes (desconto, aniversariantes, pacotes não-FT, plano saúde) |
+| `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | Teste | 12 novos testes (desconto, aniversariantes, pacotes não-FT, plano saúde) |
 | `tests/Feature/PacoteSessaoTest.php` | Teste | Atualizado para refletir pacotes disponíveis em todas verticais |
 | `docs/daiane/DECISOES_PENDENTES_CLIENTE.md` | Doc | Novo — decisões pendentes da cliente |
 | `docs/daiane/RELATORIO_FINAL_EQUIVALENCIA.md` | Doc | Novo — este relatório |
@@ -232,14 +237,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 72 de 137 (52,6%) |
+| Todos os 137 fluxos classificados como A | ❌ 77 de 137 (56,2%) |
 | Todas as 311 abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sem alteração de valores |
-| Testes de equivalência aprovados | ✅ 24 testes de equivalência aprovados |
+| Testes de equivalência aprovados | ✅ 30 testes de equivalência aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes |
 
-**Percentual real declarado: 52,6% de equivalência (72/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 56,2% de equivalência (77/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

@@ -204,7 +204,7 @@ vendor/bin/phpunit tests/Feature/EquivalenciaPlanilhasDaiane.php
 ## 7. Status atual
 
 - Testes de funcionalidade existentes: aprovados (suíte de 694 testes, 0 falhas, 2 risky pré-existentes).
-- **Testes de equivalência planilha x sistema: 24 testes criados e aprovados** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
+- **Testes de equivalência planilha x sistema: 30 testes criados e aprovados** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
 - Testes cobrem: agenda, depilação a laser, pilates, fisioterapia/pacotes, contas a pagar, contas a receber, pagamentos, FinanceHelper, relatórios (incluindo aniversariantes), pacientes, desconto, pacotes não-FT.
 
-Quando todos os 137 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente 72 de 137 fluxos são A (52,6%).
+Quando todos os 137 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente 77 de 137 fluxos são A (56,2%).
