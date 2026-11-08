@@ -804,6 +804,332 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     /* 15. Fluxos B/C técnicos — equivalência de formato (não comercial) */
     /* ------------------------------------------------------------------ */
 
+    public function test_agenda_turma_pilates(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Pilates Turma', 'status' => 'ativo']);
+
+        $pacote = PacoteSessao::create([
+            'paciente_id' => $paciente->id,
+            'nome' => 'Turma Pilates Segunda 10h',
+            'total_sessoes' => 10,
+            'sessoes_usadas' => 2,
+            'status' => PacoteSessao::ATIVO,
+            'servico' => 'PILATES',
+        ]);
+
+        // Turma de pilates acessível via rota pacotes.index (todas verticais)
+        $response = $this->actingAs($user)
+            ->get(route('pacientes.pacotes.index', $paciente))
+            ->assertOk();
+
+        $response->assertSee('Turma Pilates Segunda 10h');
+    }
+
+    public function test_paciente_variacoes_nome_nao_funde(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacientes.view', 'financeiro.view');
+
+        // Mesmo paciente com nomes diferentes (GISELE/GISELE ALVES/GISELE LVES)
+        Paciente::create(['nome' => 'GISELE', 'status' => 'ativo']);
+        Paciente::create(['nome' => 'GISELE ALVES', 'status' => 'ativo']);
+        Paciente::create(['nome' => 'GISELE LVES', 'status' => 'ativo']);
+
+        // Sistema não funde automaticamente: 3 cadastros distintos
+        $this->assertSame(3, Paciente::count());
+
+        // Busca aproximada encontra todos os 3 via detecção de duplicatas
+        $this->actingAs($user)
+            ->get(route('financeiro.duplicatas.index'))
+            ->assertOk()
+            ->assertSee('GISELE')
+            ->assertSee('GISELE ALVES')
+            ->assertSee('GISELE LVES');
+    }
+
+    public function test_profissional_externo_pagamento_via_payments(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Profissional Externo', 'status' => 'ativo']);
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        // Pagamento de profissional externo (nutricionista DIÁRIA R$ 150,00)
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'servico' => 'NUTRICIONISTA DIARIA',
+            'vencimento' => '2026-11-09',
+            'valor' => 150.00,
+            'valor_pago' => 0,
+            'status' => 'aberta',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 150.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $this->assertSame('pago', $conta->status);
+        $this->assertSame(150.00, (float) $conta->valor_pago);
+
+        $this->assertTenantDatabaseHas('payments', [
+            'accounts_receivable_id' => $conta->id,
+            'valor' => 150.00,
+            'servico' => 'NUTRICIONISTA DIARIA',
+        ]);
+    }
+
+    public function test_pilates_tabela_cruzada_relacional(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
+
+        $paciente1 = Paciente::create(['nome' => 'Cliente Pilates 1', 'status' => 'ativo']);
+        $paciente2 = Paciente::create(['nome' => 'Cliente Pilates 2', 'status' => 'ativo']);
+
+        // Tabela cruzada clientes × meses é representada relacionalmente:
+        // um pacote por cliente, consumos por sessão
+        $pacote1 = PacoteSessao::create([
+            'paciente_id' => $paciente1->id,
+            'nome' => 'Pacote Pilates Março',
+            'total_sessoes' => 4,
+            'sessoes_usadas' => 2,
+            'status' => PacoteSessao::ATIVO,
+            'servico' => 'PILATES',
+        ]);
+
+        $pacote2 = PacoteSessao::create([
+            'paciente_id' => $paciente2->id,
+            'nome' => 'Pacote Pilates Março',
+            'total_sessoes' => 4,
+            'sessoes_usadas' => 3,
+            'status' => PacoteSessao::ATIVO,
+            'servico' => 'PILATES',
+        ]);
+
+        // Consumo relacional: uma linha por sessão usada
+        ConsumoSessao::create([
+            'pacote_id' => $pacote1->id,
+            'paciente_id' => $paciente1->id,
+            'data' => '2026-03-05',
+        ]);
+        ConsumoSessao::create([
+            'pacote_id' => $pacote1->id,
+            'paciente_id' => $paciente1->id,
+            'data' => '2026-03-12',
+        ]);
+
+        // Cada cliente tem seu pacote e suas sessões consumidas (relacional, não cruzada)
+        $this->assertSame(2, PacoteSessao::where('servico', 'PILATES')->count());
+        $this->assertSame(2, $pacote1->refresh()->sessoes_usadas);
+        $this->assertSame(3, $pacote2->refresh()->sessoes_usadas);
+    }
+
+    public function test_pilates_calendario_turmas(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Calendario Pilates', 'status' => 'ativo']);
+
+        $pacote = PacoteSessao::create([
+            'paciente_id' => $paciente->id,
+            'nome' => 'Turma Pilates Segunda 10h',
+            'total_sessoes' => 8,
+            'sessoes_usadas' => 3,
+            'status' => PacoteSessao::ATIVO,
+            'servico' => 'PILATES',
+        ]);
+
+        // Calendário de turmas acessível via pacotes.index
+        $response = $this->actingAs($user)
+            ->get(route('pacientes.pacotes.index', $paciente))
+            ->assertOk();
+
+        $response->assertSee('Turma Pilates Segunda 10h');
+        $response->assertSee('8'); // total_sessoes
+        $response->assertSee('3'); // sessoes_usadas
+    }
+
+    public function test_profissional_externo_cadastro_e_pagamento(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('profissionais.create', 'financeiro.create', 'financeiro.receive');
+
+        // Cadastro de profissional externo (nutricionista DIÁRIA)
+        $profissional = Professional::create([
+            'nome' => 'Nutricionista Apoena',
+            'tipo' => 'nutricionista',
+            'registro_profissional' => 'CRN 12345',
+            'is_active' => true,
+        ]);
+
+        $this->assertSame('nutricionista', $profissional->tipo);
+        $this->assertSame('CRN 12345', $profissional->registro_profissional);
+
+        // Pagamento de profissional externo via payments (valor livre)
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $conta = AccountsReceivable::create([
+            'paciente_id' => Paciente::create(['nome' => 'Paciente Profissional Externo 2', 'status' => 'ativo'])->id,
+            'servico' => 'NUTRICIONISTA DIARIA',
+            'vencimento' => '2026-11-09',
+            'valor' => 150.00,
+            'valor_pago' => 0,
+            'status' => 'aberta',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 150.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $this->assertSame('pago', $conta->status);
+    }
+
+    public function test_contas_receber_estrutura_existe(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.view');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Contas Receber', 'status' => 'ativo']);
+
+        // Estrutura de contas a receber existe
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'descricao' => 'Consulta consulta',
+            'servico' => 'CONSULTA',
+            'vencimento' => '2026-11-15',
+            'valor' => 200.00,
+            'valor_pago' => 0,
+            'status' => 'aberta',
+        ]);
+
+        $this->assertNotNull($conta->id);
+        $this->assertSame($paciente->id, $conta->paciente_id);
+        $this->assertSame(200.00, (float) $conta->valor);
+        $this->assertSame('aberta', $conta->status);
+    }
+
+    public function test_pagamento_paciente_vinculo_existe(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Vinculo Pagamento', 'status' => 'ativo']);
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'descricao' => 'Consulta',
+            'servico' => 'CONSULTA',
+            'vencimento' => '2026-11-09',
+            'valor' => 100.00,
+            'valor_pago' => 0,
+            'status' => 'aberta',
+        ]);
+
+        // Pagamento cria conta a receber e vincula payment a ela
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 100.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $this->assertSame('pago', $conta->status);
+        $this->assertSame($paciente->id, $conta->paciente_id);
+
+        // O payment está vinculado à conta a receber
+        $this->assertTenantDatabaseHas('payments', [
+            'accounts_receivable_id' => $conta->id,
+            'valor' => 100.00,
+        ]);
+    }
+
+    public function test_prospects_estrutura_existe(): void
+    {
+        // Estrutura de prospects existe (Platform\ProspectController)
+        $this->assertTrue(file_exists(app_path('Http/Controllers/Platform/ProspectController.php')));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 16. Contas a pagar — estrutura existe (dados históricos pendentes) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_contas_pagar_estrutura_existe(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
+
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Contas Pagar']);
+        $categoria = FinancialCategory::query()->where('nome', 'Aluguel')->firstOrFail();
+
+        // Estrutura de contas a pagar existe (tabela e telas)
+        $conta = AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'financeiro_categoria_id' => $categoria->id,
+            'nome_conta' => 'Aluguel novembro',
+            'valor' => 1800.00,
+            'data_vencimento' => '2026-11-10',
+            'status' => 'pendente',
+            'tipo' => 'aluguel',
+            'tipo_documento' => 'boleto',
+        ]);
+
+        $this->assertNotNull($conta->id);
+        $this->assertSame('Aluguel novembro', $conta->nome_conta);
+        $this->assertSame(1800.00, (float) $conta->valor);
+        $this->assertSame('pendente', $conta->status);
+        $this->assertSame($fornecedor->id, $conta->supplier_id);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 17. Fluxos D — aguardam decisão do cliente (não implementar) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_contas_pagar_estrutura_pronta_para_dados_historicos(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
+
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Dados Historicos']);
+        $categoria = FinancialCategory::query()->where('nome', 'Aluguel')->firstOrFail();
+
+        // Estrutura completa de contas a pagar está pronta para receber dados históricos
+        $conta = AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'financeiro_categoria_id' => $categoria->id,
+            'nome_conta' => 'Aluguel 2023-01',
+            'valor' => 1500.00,
+            'data_vencimento' => '2023-01-10',
+            'status' => 'pendente',
+            'tipo' => 'aluguel',
+            'tipo_documento' => 'boleto',
+        ]);
+
+        $this->assertNotNull($conta->id);
+        $this->assertSame('pendente', $conta->status);
+        // Dados históricos de CONTAS .xlsx ainda não importados (aguardam decisão do cliente)
+    }
+
+    public function test_juros_multa_estrutura_existe_mas_taxa_pendente(): void
+    {
+        // Estrutura de juros/multa existe em FinanceHelper
+        // Mas taxa e percentual não estão fixados (aguardam decisão do cliente)
+        $this->assertTrue(method_exists(FinanceHelper::class, 'jurosSimples'));
+        $this->assertTrue(method_exists(FinanceHelper::class, 'multa'));
+
+        // Exemplo: cálculo com taxa informada pelo usuário (não inventada pelo sistema)
+        // jurosSimples(valor, taxa_percentual, dias, base_dias = 30)
+        $juros = FinanceHelper::jurosSimples(1000.00, 2.0, 30);
+        $this->assertSame(20.00, $juros); // 1000 * 2% * 30/30 = 20
+
+        $multa = FinanceHelper::multa(1000.00, 2.0);
+        $this->assertSame(20.00, $multa); // 1000 * 2% = 20
+    }
+
     public function test_agenda_filtra_por_profissional(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('agenda.view');

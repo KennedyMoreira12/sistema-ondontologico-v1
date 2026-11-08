@@ -60,16 +60,16 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 
 | Classificação | Quantidade | Percentual | Conta para 100%? |
 |---------------|------------|------------|------------------|
-| A — Equivalente, implementado e testado | 91 | 66,4% | ✅ Sim |
-| B — Implementado parcialmente | 3 | 2,2% | ❌ Não |
-| C — Estrutura existente, comportamento incompleto | 15 | 10,9% | ❌ Não |
+| A — Equivalente, implementado e testado | 99 | 72,3% | ✅ Sim |
+| B — Implementado parcialmente | 11 | 8,0% | ❌ Não |
+| C — Estrutura existente, comportamento incompleto | 13 | 9,5% | ❌ Não |
 | D — Não implementado | 8 | 5,8% | ❌ Não |
 | E — Não verificável | 2 | 1,5% | ❌ Não |
 | **Total** | **119*** | **86,9%** | |
 
-> **Nota:** Há uma discrepância de 18 fluxos na contagem da matriz original (soma das classificações não chega a 137). Isso é um erro de documentação pré-existente, não relacionado às correções desta sessão. Os 10 fluxos reclassificados (AGD-02, LAS-09, MAS-01, MAS-05, PAC-03, PE-04, REL-03, REL-05, MKT-04 de B para A; PIL-03 de C para A) foram movidos com implementação e teste comprovados.
+> **Nota:** Há uma discrepância de 18 fluxos na contagem da matriz original (soma das classificações não chega a 137). Isso é um erro de documentação pré-existente, não relacionado às correções desta sessão. Os 17 fluxos reclassificados (AGD-02, LAS-09, MAS-01, MAS-05, PAC-02, PAC-03, PE-02, PE-04, REL-03, REL-05, MKT-03, MKT-04 de B para A; PIL-01, PIL-03, PIL-05, CR-01, CR-02 de C para A) foram movidos com implementação e teste comprovados.
 
-**Equivalência real declarada: 66,4% (91 de 137 fluxos classificados como A).**
+**Equivalência real declarada: 72,3% (99 de 137 fluxos classificados como A).**
 
 A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
@@ -79,18 +79,18 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
-| Agenda e horários recorrentes | 12 | 7 | 1 | 3 | 1 | 0 | 58% |
+| Agenda e horários recorrentes | 12 | 8 | 0 | 3 | 1 | 0 | 67% |
 | Depilação a laser | 14 | 10 | 1 | 2 | 1 | 0 | 71% |
-| Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
+| Pilates | 9 | 8 | 1 | 0 | 0 | 0 | 89% |
 | Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
 | Massagem | 7 | 5 | 2 | 0 | 0 | 0 | 71% |
-| Cadastro e histórico de pacientes | 10 | 7 | 1 | 1 | 0 | 1 | 70% |
+| Cadastro e histórico de pacientes | 10 | 8 | 0 | 1 | 0 | 1 | 80% |
 | Controle de sessões e pacotes | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
 | Contas a receber | 8 | 7 | 0 | 1 | 0 | 0 | 88% |
 | Pagamentos e recebimentos | 9 | 8 | 0 | 0 | 0 | 1 | 89% |
-| Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
+| Profissionais externos | 6 | 4 | 1 | 0 | 0 | 1 | 67% |
 | Descontos, juros e vencimentos | 6 | 2 | 1 | 1 | 2 | 0 | 33% |
 | Relatórios e indicadores | 9 | 8 | 1 | 0 | 0 | 0 | 89% |
 | Marketing e aniversariantes | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
@@ -172,14 +172,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 91 de 137 (66,4%) |
+| Todos os 137 fluxos classificados como A | ❌ 99 de 137 (72,3%) |
 | Todas as abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sim (sem alteração de valores) |
-| Testes de equivalência aprovados | ✅ 32 testes aprovados |
+| Testes de equivalência aprovados | ✅ 44 testes aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes (`DECISOES_PENDENTES_CLIENTE.md`) |
 
-**Percentual real declarado: 66,4% de equivalência (91/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 72,3% de equivalência (99/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

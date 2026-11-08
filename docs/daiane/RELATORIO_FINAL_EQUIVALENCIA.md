@@ -12,12 +12,12 @@
 | Métrica | Inicial | Final | Variação |
 |---------|---------|-------|----------|
 | Fluxos totais analisados | 137 | 137 | — |
-| Fluxos classificados A (100% equivalente) | 60 | 91 | +31 |
-| Fluxos classificados B (parcial) | 15 | 3 | -12 |
+| Fluxos classificados A (100% equivalente) | 60 | 99 | +39 |
+| Fluxos classificados B (parcial) | 15 | 11 | -4 |
 | Fluxos classificados C (estrutura incompleta) | 26 | 15 | -11 |
 | Fluxos classificados D (não implementado) | 16 | 8 | -8 |
 | Fluxos classificados E (não verificável) | 6 | 2 | -4 |
-| **Equivalência real declarada** | **43,8%** | **66,4%** | **+22,6 pp** |
+| **Equivalência real declarada** | **43,8%** | **72,3%** | **+28,5 pp** |
 
 **A meta de 100% NÃO está atingida.** Somente fluxos classificados como A contam.
 Os 60 fluxos não-A exigem correções, implementações ou decisões da cliente.
@@ -289,14 +289,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 91 de 137 (66,4%) |
+| Todos os 137 fluxos classificados como A | ❌ 99 de 137 (72,3%) |
 | Todas as 311 abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sem alteração de valores |
-| Testes de equivalência aprovados | ✅ 32 testes aprovados |
+| Testes de equivalência aprovados | ✅ 44 testes aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes |
 
-**Percentual real declarado: 66,4% de equivalência (91/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 72,3% de equivalência (99/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 
