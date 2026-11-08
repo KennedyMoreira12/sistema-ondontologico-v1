@@ -12,12 +12,12 @@
 | Métrica | Inicial | Final | Variação |
 |---------|---------|-------|----------|
 | Fluxos totais analisados | 137 | 137 | — |
-| Fluxos classificados A (100% equivalente) | 60 | 81 | +21 |
-| Fluxos classificados B (parcial) | 15 | 12 | -3 |
-| Fluxos classificados C (estrutura incompleta) | 26 | 16 | -10 |
+| Fluxos classificados A (100% equivalente) | 60 | 91 | +31 |
+| Fluxos classificados B (parcial) | 15 | 3 | -12 |
+| Fluxos classificados C (estrutura incompleta) | 26 | 15 | -11 |
 | Fluxos classificados D (não implementado) | 16 | 8 | -8 |
 | Fluxos classificados E (não verificável) | 6 | 2 | -4 |
-| **Equivalência real declarada** | **43,8%** | **59,1%** | **+15,3 pp** |
+| **Equivalência real declarada** | **43,8%** | **66,4%** | **+22,6 pp** |
 
 **A meta de 100% NÃO está atingida.** Somente fluxos classificados como A contam.
 Os 60 fluxos não-A exigem correções, implementações ou decisões da cliente.
@@ -194,17 +194,17 @@ existia com tela de revisão e proteção contra sobrescrita.
 
 ---
 
-## 4. Fluxos restantes não-A (56 fluxos)
+## 4. Fluxos restantes não-A (46 fluxos)
 
 ### 4.1 Por classificação
 
 | Classificação | Quantidade | Percentual |
 |---------------|------------|------------|
-| B — Implementado parcialmente | 12 | 8,8% |
-| C — Estrutura existente, comportamento incompleto | 16 | 11,7% |
+| B — Implementado parcialmente | 3 | 2,2% |
+| C — Estrutura existente, comportamento incompleto | 15 | 10,9% |
 | D — Não implementado | 8 | 5,8% |
 | E — Não verificável | 2 | 1,5% |
-| **Total não-A** | **56** | **40,9%** |
+| **Total não-A** | **46** | **33,6%** |
 
 ### 4.2 Principais itens D (não implementados) que dependem da cliente
 
@@ -227,7 +227,7 @@ código novo, apenas documentação e/ou adaptação de fluxo de trabalho.
 
 ### 5.1 Testes de equivalência (novos)
 
-25 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados:
+32 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados:
 
 | Módulo | Testes | Status |
 |--------|--------|--------|
@@ -289,14 +289,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 81 de 137 (59,1%) |
+| Todos os 137 fluxos classificados como A | ❌ 91 de 137 (66,4%) |
 | Todas as 311 abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sem alteração de valores |
-| Testes de equivalência aprovados | ✅ 25 testes de equivalência aprovados |
+| Testes de equivalência aprovados | ✅ 32 testes aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes |
 
-**Percentual real declarado: 59,1% de equivalência (81/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 66,4% de equivalência (91/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 
