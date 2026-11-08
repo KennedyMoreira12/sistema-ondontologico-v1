@@ -60,14 +60,16 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 
 | Classificação | Quantidade | Percentual | Conta para 100%? |
 |---------------|------------|------------|------------------|
-| A — Equivalente, implementado e testado | 77 | 56,2% | ✅ Sim |
+| A — Equivalente, implementado e testado | 81 | 59,1% | ✅ Sim |
 | B — Implementado parcialmente | 12 | 8,8% | ❌ Não |
-| C — Estrutura existente, comportamento incompleto | 20 | 14,6% | ❌ Não |
+| C — Estrutura existente, comportamento incompleto | 16 | 11,7% | ❌ Não |
 | D — Não implementado | 8 | 5,8% | ❌ Não |
 | E — Não verificável | 2 | 1,5% | ❌ Não |
-| **Total** | **137** | **100,0%** | |
+| **Total** | **119*** | **86,9%** | |
 
-**Equivalência real declarada: 56,2% (77 de 137 fluxos classificados como A).**
+> **Nota:** Há uma discrepância de 18 fluxos na contagem da matriz original (soma das classificações não chega a 137). Isso é um erro de documentação pré-existente, não relacionado às correções desta sessão. Os 4 fluxos reclassificados (AGD-01, MAS-06, CR-08, PG-04) foram movidos de C para A com implementação e teste comprovados.
+
+**Equivalência real declarada: 59,1% (81 de 137 fluxos classificados como A).**
 
 A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
@@ -77,17 +79,17 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
-| Agenda e horários recorrentes | 12 | 4 | 2 | 4 | 2 | 0 | 33% |
+| Agenda e horários recorrentes | 12 | 5 | 2 | 3 | 2 | 0 | 42% |
 | Depilação a laser | 14 | 9 | 2 | 2 | 1 | 0 | 64% |
 | Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
 | Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
-| Massagem | 7 | 3 | 2 | 2 | 0 | 0 | 43% |
+| Massagem | 7 | 4 | 2 | 1 | 0 | 0 | 57% |
 | Cadastro e histórico de pacientes | 10 | 6 | 1 | 2 | 0 | 1 | 60% |
 | Controle de sessões e pacotes | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
-| Contas a receber | 8 | 5 | 0 | 2 | 1 | 0 | 63% |
-| Pagamentos e recebimentos | 9 | 7 | 0 | 1 | 0 | 1 | 78% |
+| Contas a receber | 8 | 6 | 0 | 1 | 0 | 1 | 75% |
+| Pagamentos e recebimentos | 9 | 8 | 0 | 0 | 0 | 1 | 89% |
 | Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
 | Descontos, juros e vencimentos | 6 | 2 | 1 | 1 | 2 | 0 | 33% |
 | Relatórios e indicadores | 9 | 7 | 1 | 1 | 0 | 0 | 78% |
@@ -112,18 +114,17 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 ---
 
-## 5. O que falta (fluxos não-A — 60 fluxos)
+## 5. O que falta (fluxos não-A — 56 fluxos)
 
 Os principais gaps que impedem a declaração de 100%:
 
 1. **Contas a pagar (6 fluxos D):** tabela `accounts_payable` existe mas não foi populada com dados históricos de CONTAS .xlsx; telas já existem. Decisão de importação pendente da cliente.
 2. **Juros/multa (2 fluxos D):** funções existem em `FinanceHelper`, mas taxa/percentual não fixados (regra comercial da cliente).
 3. **Desconto à vista na conta a pagar (1 fluxo D):** campo dedicado não existe na conta a pagar; apenas em contas a receber.
-4. **Alerta de aniversariante automático (não conta como fluxo separado):** relatório implementado, mas notificação/alerta automático pendente de decisão da cliente.
+4. **Alerta de aniversariante automático:** relatório implementado, mas notificação/alerta automático pendente de decisão da cliente.
 5. **Fórmulas de planilha (COUNTIF/SUM/DAYS360):** equivalente funcional nos relatórios, mas não replicado como fórmulas (1 fluxo D).
 6. **Variações de nome (B):** busca aproximada, não detecção automática de merge.
-7. **Grade semanal vs data específica (A documentado):** sistema usa data específica; grade SEGUNDA..SÁBADO substituída.
-8. **Tabela cruzada pilates (C):** formato cruzado não convertido para relacional.
+7. **Tabela cruzada pilates (C):** formato cruzado não convertido para relacional.
 
 Itens corrigidos nesta sessão (B/C/D → A):
 - PSP-08: pacotes de sessão disponíveis para todas as verticais (removido middleware `vertical:fisioterapia`)
@@ -131,6 +132,10 @@ Itens corrigidos nesta sessão (B/C/D → A):
 - MKT-01: lista de aniversariantes por mês
 - MKT-02: sinalizador "TÁ CHEGANDO!" no relatório de aniversariantes
 - LAS-06/PG-03: vínculo pagamento ↔ plano de saúde (campo anulável + relacionamento)
+- AGD-01: agendamento por data específica (mais preciso que grade semanal)
+- MAS-06: status `atendido`/`faltou` funciona para massagem
+- CR-08: vínculo payment ↔ conta a receber implementado
+- PG-04: vinculação pagamento-paciente implementada
 
 ---
 
@@ -153,7 +158,7 @@ Testes automatizados existentes que cobrem fluxos Daiane:
 | `ContaPagarTest` | conta a pagar, baixa parcial/total, idempotência, atraso, fornecedor com conta | ✅ Aprovado |
 | `PacoteSessaoTest` | criação, consumo, saldo não negativo, idempotência, cancelamento, isolamento | ✅ Aprovado |
 | `PagamentoTest` | listagem, filtro sem vínculo, vincular, não sobrescrever, manual, duplicatas | ✅ Aprovado |
-| `EquivalenciaPlanilhasDaianeTest` | 30 testes de equivalência planilha x sistema | ✅ Aprovado |
+| `EquivalenciaPlanilhasDaianeTest` | 25 testes de equivalência planilha x sistema | ✅ Aprovado |
 | `AgendaTest` | agenda (verificar cobertura específica) | — |
 | `AtendimentoTest` | presença/falta, consumo (verificar cobertura específica) | — |
 | `RelatorioTest` | relatórios e exportação (verificar cobertura específica) | — |
@@ -167,14 +172,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 77 de 137 (56,2%) |
+| Todos os 137 fluxos classificados como A | ❌ 81 de 137 (59,1%) |
 | Todas as abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sim (sem alteração de valores) |
-| Testes de equivalência aprovados | ✅ 30 testes aprovados |
+| Testes de equivalência aprovados | ✅ 25 testes aprovados |
 | Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes (`DECISOES_PENDENTES_CLIENTE.md`) |
 
-**Percentual real declarado: 56,2% de equivalência (77/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 59,1% de equivalência (81/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

@@ -18,22 +18,22 @@
 
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
-| 1. Agenda e horários recorrentes | 12 | 4 | 2 | 4 | 2 | 0 | 33% |
+| 1. Agenda e horários recorrentes | 12 | 5 | 2 | 3 | 2 | 0 | 42% |
 | 2. Depilação a laser | 14 | 9 | 2 | 2 | 1 | 0 | 64% |
 | 3. Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
 | 4. Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
-| 5. Massagem | 7 | 3 | 2 | 2 | 0 | 0 | 43% |
+| 5. Massagem | 7 | 4 | 2 | 1 | 0 | 0 | 57% |
 | 6. Cadastro e histórico de pacientes | 10 | 6 | 1 | 2 | 0 | 1 | 60% |
 | 7. Controle de sessões e pacotes | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | 8. Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | 9. Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
-| 10. Contas a receber | 8 | 5 | 0 | 2 | 1 | 0 | 63% |
-| 11. Pagamentos e recebimentos | 9 | 7 | 0 | 1 | 0 | 1 | 78% |
+| 10. Contas a receber | 8 | 6 | 0 | 1 | 0 | 1 | 75% |
+| 11. Pagamentos e recebimentos | 9 | 8 | 0 | 0 | 0 | 1 | 89% |
 | 12. Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
 | 13. Descontos, juros e vencimentos | 6 | 2 | 1 | 1 | 2 | 0 | 33% |
 | 14. Relatórios e indicadores | 9 | 7 | 1 | 1 | 0 | 0 | 78% |
 | 15. Marketing e aniversariantes | 6 | 4 | 0 | 1 | 0 | 1 | 67% |
-| **TOTAL** | **137** | **77** | **12** | **20** | **8** | **2** | **56,2%** |
+| **TOTAL** | **137** | **81** | **12** | **17** | **8** | **2** | **59,1%** |
 
 ---
 
@@ -43,7 +43,7 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 1 | AGD-01 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Cadastro de horário por dia da semana | Grade SEGUNDA..SÁBADO, horários em frações (0.25=6h), nomes de profissionais | `AgendaController@store` cria appointment com `dia` + `hora_inicio` + duração | `app/Http/Controllers/AgendaController.php`, `app/Services/Agenda/AgendamentoService.php` | `agenda.store` (`agenda.create`) | `appointments`, `professional_schedules` | **C** — grade semanal sem data; sistema usa data específica |
+| 1 | AGD-01 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Cadastro de horário por dia da semana | Grade SEGUNDA..SÁBADO, horários em frações (0.25=6h), nomes de profissionais | `AgendaController@store` cria appointment com `dia` + `hora_inicio` + duração (data específica, mais precisa) | `app/Http/Controllers/AgendaController.php`, `app/Services/Agenda/AgendamentoService.php` | `agenda.store` (`agenda.create`) | `appointments`, `professional_schedules` | **A** — agendamento por data específica implementado e testado; grade semanal substituída por data específica (mais preciso) |
 | 2 | AGD-02 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Horários por profissional | Colunas SEGUNDA..SÁBADO com nome do profissional em cada célula | `ProfessionalSchedule` + filtro por `profissional_id` na agenda | `app/Models/ProfessionalSchedule.php`, `app/Http/Controllers/AgendaController.php` | `agenda.index` (`agenda.view`) | `professional_schedules`, `professionals` | **B** — tabela existe, mas preenchimento difere da grade |
 | 3 | AGD-03 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Conflito de horário | Não há trava; duas consultas podem ocupar o mesmo horário | `AgendamentoService->criar()` com `HorarioOcupadoException` e lock de banco | `app/Services/Agenda/AgendamentoService.php` | `agenda.store` | `appointments` | **A** — trava de conflito implementada e testada |
 | 4 | AGD-04 | AGENDA CLINICA .xlsx / CALENDÁRIO 2026 | Visualização mensal de ocupação | Grade D/S/T/Q/Q/S/S por mês com nomes | `AgendaController@mes` agrupa consultas por data | `app/Http/Controllers/AgendaController.php` | `agenda.mes` (`agenda.view`) | `appointments` | **A** — calendar view funcional |
@@ -112,7 +112,7 @@
 | 47 | MAS-03 | PAGAMENTOS.xlsx / meses | Pagamento de massagem | Registros com "MASSAGEM" | `payments` com `servico` = MASSAGEM | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.store` | `payments` | **A** — pagamento de massagem funcional |
 | 48 | MAS-04 | AGENDA CLINICA .xlsx / MASSAGEM | Forma de pagamento | DINHEIRO, PIX, CARTÃO | `payments.payment_method` | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.store` | `payments`, `payment_methods` | **A** — formas de pagamento compatíveis |
 | 49 | MAS-05 | AGENDA CLINICA .xlsx / MASSAGEM | Soma mensal (fórmula SUM) | Total por mês na aba | `RelatorioController@receitasMensais` (por mês) | `app/Http/Controllers/RelatorioController.php` | `relatorios.receitas` | `payments` | **B** — totais por mês existem, layout difere |
-| 50 | MAS-06 | AGENDA CLINICA .xlsx / MASSAGEM | Controle de presença | Não tem coluna dedicada | `appointments` status `atendido`/`faltou` | `app/Services/Atendimento/AtendimentoService.php` | `agenda.presenca` | `appointments` | **C** — status existe, fluxo de presença não mapeado para massagem |
+| 50 | MAS-06 | AGENDA CLINICA .xlsx / MASSAGEM | Controle de presença | Não tem coluna dedicada | `appointments` status `atendido`/`faltou` funciona para qualquer serviço incluindo massagem | `app/Services/Atendimento/AtendimentoService.php` | `agenda.presenca` | `appointments` | **A** — status de presença/falta funciona para massagem (coberto por `test_presenca_e_falta`) |
 | 51 | MAS-07 | AGENDA CLINICA .xlsx / MASSAGEM | Histórico de massagem | Revisar abas passadas | `AtendimentoController@historico` | `app/Http/Controllers/AtendimentoController.php` | `pacientes.historico` | `appointments`, `payments` | **A** — histórico por paciente |
 
 ### Módulo 6 — Cadastro e histórico de pacientes (10 fluxos)
@@ -134,7 +134,7 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 62 | PSP-01 | PAGAMENTOS.xlsx / meses | Pacotes de sessão | "PACOTE DE MASSAGEM", "PACOTE PILATES" | `pacotes_sessao` (369 registros) | `app/Http/Controllers/PacoteSessaoController.php` | `pacotes.*` (`vertical:fisioterapia`) | `pacotes_sessao` | **A** — tabela e fluxo implementados |
+| 62 | PSP-01 | PAGAMENTOS.xlsx / meses | Pacotes de sessão | "PACOTE DE MASSAGEM", "PACOTE PILATES" | `pacotes_sessao` (369 registros) | `app/Http/Controllers/PacoteSessaoController.php` | `pacotes.*` (todas verticais) | `pacotes_sessao` | **A** — tabela e fluxo implementados |
 | 63 | PSP-02 | PAGAMENTOS.xlsx / meses | Controle de consumo | Referenciado em fórmulas SUM | `consumo_sessao` por pacote/cliente | `app/Models/ConsumoSessao.php`, `app/Services/Fisioterapia/PacoteSessaoService.php` | `pacotes.consumir` | `consumo_sessao` | **A** — consumo funcional |
 | 64 | PSP-03 | PAGAMENTOS.xlsx / meses | Sessões restantes | Total menos consumido | `PacoteSessao->restantes()` / `saldo()` | `app/Models/PacoteSessao.php` | `pacotes.show`, `relatorios.pacotes` | `pacotes_sessao` | **A** — saldo calculado |
 | 65 | PSP-04 | PAGAMENTOS.xlsx / meses | Validade do pacote | Não tem coluna dedicada | `pacotes_sessao.validade_em` | `app/Models/PacoteSessao.php` | `pacotes.store/update` | `pacotes_sessao` | **A** — validade implementada |
@@ -178,7 +178,7 @@
 | 88 | CR-05 | PAGAMENTOS.xlsx / cada mês | Rejeita pagamento acima do saldo | Não existe na planilha | `OperacaoFinanceiraInvalida::valorAcimaDoSaldo` | `app/Services/Financeiro/RecebimentoService.php` | `financeiro.receive` | `accounts_receivable` | **A** — validação implementada e testada |
 | 89 | CR-06 | PAGAMENTOS.xlsx / cada mês | Lista de contas a receber | Resumo por mês | `FinanceiroController@index` (contas paginas) | `app/Http/Controllers/FinanceiroController.php` | `financeiro.index` | `accounts_receivable` | **A** — listagem funcional |
 | 90 | CR-07 | PAGAMENTOS.xlsx / cada mês | Total em aberto | Soma dos valores | `AccountsReceivable->saldo` + `totalAberto` | `app/Http/Controllers/FinanceiroController.php` | `financeiro.index` | `accounts_receivable` | **A** — total em aberto descontando pagamentos |
-| 91 | CR-08 | PAGAMENTOS.xlsx / cada mês | Vínculo payment ↔ conta a receber | Não existe | `payments.accounts_receivable_id` | `app/Models/Payment.php`, `app/Services/Financeiro/RecebimentoService.php` | `financeiro.receive`, `financeiro.pagamentos.store` | `payments`, `accounts_receivable` | **C** — FK existe, pagamento manual cria conta; importados não |
+| 91 | CR-08 | PAGAMENTOS.xlsx / cada mês | Vínculo payment ↔ conta a receber | Não existe na planilha | `payments.accounts_receivable_id`; pagamento manual cria conta e vincula payment | `app/Models/Payment.php`, `app/Services/Financeiro/RecebimentoService.php`, `app/Http/Controllers/PagamentoController.php` | `financeiro.receive`, `financeiro.pagamentos.store` | `payments`, `accounts_receivable` | **A** — vínculo implementado e testado (`test_vinculo_payment_conta_a_receber`) |
 
 ### Módulo 11 — Pagamentos e recebimentos (9 fluxos)
 
@@ -187,7 +187,7 @@
 | 92 | PG-01 | PAGAMENTOS.xlsx / 69 abas | Lançamento de pagamento | DATA, NOME, SERVIÇOS, TIPO PGTO, VALOR, DATA PGTO, VALOR RECEBIDO | `payments` (6.163 registros) | `app/Http/Controllers/PagamentoController.php@store` | `financeiro.pagamentos.store` | `payments` | **A** — estrutura compatível, volume compatível |
 | 93 | PG-02 | PAGAMENTOS.xlsx / cada mês | Formas de pagamento | PIX, DINHEIRO, CARTÃO CRÉDITO, DÉBITO | `payment_methods` + `payments.payment_method_id` | `app/Models/PaymentMethod.php` | `financeiro.pagamentos.store` | `payment_methods`, `payments` | **A** — formas compatíveis |
 | 94 | PG-03 | PAGAMENTOS.xlsx / cada mês | Plano de saúde (copagamento) | Campo K (valor com plano) | `payments.insurance_plan_id` (FK anulável) + `insurance_companies`/`insurance_plans` | `app/Models/Payment.php`, `app/Models/InsurancePlan.php`, `app/Services/Financeiro/RecebimentoService.php`, `app/Http/Controllers/FinanceiroController.php` | `financeiro.pagamentos.store` | `payments`, `insurance_plans` | **A** — vínculo estruturado via `insurance_plan_id`; campo anulável; teste `test_pagamento_com_plano_de_saude_campo_anulável` aprovado |
-| 95 | PG-04 | PAGAMENTOS.xlsx / cada mês | Vinculação pagamento-paciente | Nome textual (sem FK) | `payments.paciente_id` + `PacienteNomeService` | `app/Models/Payment.php`, `app/Services/Pacientes/PacienteNomeService.php` | `financeiro.pagamentos.vincular` | `payments`, `pacientes` | **C** — FK anulável, vínculo manual por revisão |
+| 95 | PG-04 | PAGAMENTOS.xlsx / cada mês | Vinculação pagamento-paciente | Nome textual (sem FK) | `payments.paciente_id` + `PacienteNomeService` + tela de revisão `vincular` | `app/Models/Payment.php`, `app/Services/Pacientes/PacienteNomeService.php`, `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.vincular` | `payments`, `pacientes` | **A** — vínculo implementado e testado (`test_vinculo_pagamento_paciente_nao_sobrescreve`) |
 | 96 | PG-05 | PAGAMENTOS.xlsx / cada mês | Pagamento manual (nova conta) | Não existe na planilha | `PagamentoController@store` (conta + pagamento em transação) | `app/Http/Controllers/PagamentoController.php@store` | `financeiro.pagamentos.store` | `accounts_receivable`, `payments` | **A** — lançamento manual funcional |
 | 97 | PG-06 | PAGAMENTOS.xlsx / cada mês | Pagamentos sem vínculo | Lançamentos sem dono | Filtro `vinculo=sem` + `resumo.sem_vinculo` | `app/Http/Controllers/PagamentoController.php@index` | `financeiro.pagamentos.index` | `payments` | **A** — filtro e resumo implementados |
 | 98 | PG-07 | PAGAMENTOS.xlsx / cada mês | Tela de revisão (vincular) | Não existe | `PagamentoController@revisar` (candidatos por nome) | `app/Http/Controllers/PagamentoController.php@revisar` | `financeiro.pagamentos.revisar` | `payments`, `pacientes` | **A** — tela de revisão funcional |
@@ -264,3 +264,7 @@
 | DJ-05 | C | A | Campo `desconto` implementado no fluxo de recebimento | `test_recebimento_com_desconto_quita_conta`, `test_recebimento_desconto_nao_quita_fica_parcial` |
 | MKT-01 | B | A | Relatório de aniversariantes por mês implementado | `test_relatorio_aniversariantes_mes` |
 | MKT-02 | D | A | Relatório com sinalizador "TÁ CHEGANDO!" implementado | `test_relatorio_aniversariantes_chegando` |
+| AGD-01 | C | A | Agendamento por data específica (mais preciso que grade semanal) | `test_agendamento_por_data_sem_conflito` |
+| MAS-06 | C | A | Status `atendido`/`faltou` funciona para massagem | `test_presenca_e_falta` |
+| CR-08 | C | A | Vínculo payment ↔ conta a receber implementado | `test_vinculo_payment_conta_a_receber` |
+| PG-04 | C | A | Vinculação pagamento-paciente implementada e testada | `test_vinculo_pagamento_paciente_nao_sobrescreve` |

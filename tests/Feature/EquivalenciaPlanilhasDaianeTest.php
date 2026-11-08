@@ -462,6 +462,36 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     /* 7. Pagamentos e recebimentos */
     /* ------------------------------------------------------------------ */
 
+    public function test_vinculo_payment_conta_a_receber(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Vinculo Conta', 'status' => 'ativo']);
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        // Pagamento manual cria conta a receber e vincula o payment a ela
+        $this->actingAs($user)
+            ->post(route('financeiro.pagamentos.store'), [
+                'paciente_id' => $paciente->id,
+                'descricao' => 'Consulta',
+                'servico' => 'CONSULTA',
+                'valor' => 100.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
+            ])
+            ->assertRedirect(route('financeiro.pagamentos.index'));
+
+        $conta = AccountsReceivable::firstOrFail();
+        $this->assertSame('pago', $conta->status);
+        $this->assertSame(100.0, (float) $conta->valor_pago);
+        $this->assertSame($paciente->id, $conta->paciente_id);
+
+        $this->assertTenantDatabaseHas('payments', [
+            'accounts_receivable_id' => $conta->id,
+            'valor' => 100.00,
+        ]);
+    }
+
     public function test_vinculo_pagamento_paciente_nao_sobrescreve(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('financeiro.update');
