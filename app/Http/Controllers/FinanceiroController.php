@@ -58,6 +58,7 @@ class FinanceiroController extends Controller
         try {
             $pagamento = $this->recebimentos->receber($conta, [
                 'valor' => $request->input('valor'),
+                'desconto' => $request->filled('desconto') ? $request->input('desconto') : null,
                 'payment_method_id' => $request->integer('payment_method_id'),
                 'insurance_plan_id' => $request->filled('insurance_plan_id') ? $request->integer('insurance_plan_id') : null,
                 'data' => $request->filled('data') ? $request->date('data') : now(),

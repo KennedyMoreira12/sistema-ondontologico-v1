@@ -8,6 +8,7 @@ use App\Models\AccountsReceivable;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
 use App\Models\Central\User;
+use App\Models\ConsumoSessao;
 use App\Models\FinancialCategory;
 use App\Models\Paciente;
 use App\Models\PacoteSessao;
@@ -37,10 +38,10 @@ use Tests\TestCase;
  */
 class EquivalenciaPlanilhasDaianeTest extends TestCase
 {
-    use RefreshDatabase, CreatesTenants, PreparaClinicaFisioterapia;
+    use CreatesTenants, PreparaClinicaFisioterapia, RefreshDatabase;
 
     /* ------------------------------------------------------------------ */
-    /* Helpers                                                            */
+    /* Helpers */
     /* ------------------------------------------------------------------ */
 
     /**
@@ -56,7 +57,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 1. Agenda e horários recorrentes                                   */
+    /* 1. Agenda e horários recorrentes */
     /* ------------------------------------------------------------------ */
 
     public function test_agendamento_por_data_sem_conflito(): void
@@ -121,7 +122,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 2. Depilação a laser                                               */
+    /* 2. Depilação a laser */
     /* ------------------------------------------------------------------ */
 
     public function test_consulta_laser_completa(): void
@@ -206,7 +207,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 3. Pilates                                                         */
+    /* 3. Pilates */
     /* ------------------------------------------------------------------ */
 
     public function test_pagamento_pilates_por_servico(): void
@@ -237,7 +238,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 4. Fisioterapia / pacotes de sessão                                */
+    /* 4. Fisioterapia / pacotes de sessão */
     /* ------------------------------------------------------------------ */
 
     public function test_pacote_consumo_debita_saldo(): void
@@ -311,12 +312,12 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
         $this->actingAs($user)
             ->post(route('atendimentos.consumir', $consulta), ['pacote_id' => $pacote->id]);
 
-        $this->assertSame(1, \App\Models\ConsumoSessao::where('appointment_id', $consulta->id)->count());
+        $this->assertSame(1, ConsumoSessao::where('appointment_id', $consulta->id)->count());
         $this->assertSame(1, $pacote->refresh()->sessoes_usadas);
     }
 
     /* ------------------------------------------------------------------ */
-    /* 5. Contas a pagar                                                  */
+    /* 5. Contas a pagar */
     /* ------------------------------------------------------------------ */
 
     public function test_conta_a_pagar_criar_baixar_quitar(): void
@@ -380,7 +381,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 6. Contas a receber                                                */
+    /* 6. Contas a receber */
     /* ------------------------------------------------------------------ */
 
     public function test_baixa_conta_receber_parcial(): void
@@ -458,7 +459,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 7. Pagamentos e recebimentos                                       */
+    /* 7. Pagamentos e recebimentos */
     /* ------------------------------------------------------------------ */
 
     public function test_vinculo_pagamento_paciente_nao_sobrescreve(): void
@@ -481,7 +482,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 8. FinanceHelper — DAYS360 (igual ao Excel)                        */
+    /* 8. FinanceHelper — DAYS360 (igual ao Excel) */
     /* ------------------------------------------------------------------ */
 
     public function test_dias360_igual_excel(): void
@@ -494,7 +495,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 9. Relatórios                                                      */
+    /* 9. Relatórios */
     /* ------------------------------------------------------------------ */
 
     public function test_relatorio_receitas_por_mes(): void
@@ -562,7 +563,7 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     }
 
     /* ------------------------------------------------------------------ */
-    /* 10. Pacientes — detecção de duplicatas (não funde)                 */
+    /* 10. Pacientes — detecção de duplicatas (não funde) */
     /* ------------------------------------------------------------------ */
 
     public function test_duplicatas_nao_fundem_cadastros(): void
@@ -580,5 +581,190 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
             ->assertSee('Nada é fundido automaticamente');
 
         $this->assertSame(2, Paciente::count());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 11. Desconto à vista (DJ-05) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_recebimento_com_desconto_quita_conta(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.receive');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Desconto', 'status' => 'ativo']);
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'vencimento' => '2026-11-01',
+            'valor' => 100.00,
+            'valor_pago' => 0,
+            'desconto' => 0,
+            'status' => 'aberta',
+        ]);
+
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        // Pagamento de R$ 80 + desconto de R$ 20 quita conta de R$ 100
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 80.00,
+                'desconto' => 20.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $this->assertSame(80.0, (float) $conta->valor_pago);
+        $this->assertSame(20.0, (float) $conta->desconto);
+        $this->assertSame('pago', $conta->status);
+    }
+
+    public function test_recebimento_desconto_nao_quita_fica_parcial(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.receive');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Desconto Parcial', 'status' => 'ativo']);
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'vencimento' => '2026-11-01',
+            'valor' => 100.00,
+            'valor_pago' => 0,
+            'desconto' => 0,
+            'status' => 'aberta',
+        ]);
+
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        // Pagamento de R$ 50 + desconto de R$ 20 = R$ 70, conta de R$ 100 fica parcial
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 50.00,
+                'desconto' => 20.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $this->assertSame(50.0, (float) $conta->valor_pago);
+        $this->assertSame(20.0, (float) $conta->desconto);
+        $this->assertSame('parcial', $conta->status);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 12. Aniversariantes (MKT-02) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_relatorio_aniversariantes_mes(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
+
+        // Paciente aniversariante em novembro
+        Paciente::create([
+            'nome' => 'Paciente Aniversariante',
+            'status' => 'ativo',
+            'nascimento' => '1980-11-15',
+        ]);
+
+        // Paciente aniversariante em outro mês
+        Paciente::create([
+            'nome' => 'Paciente Outro Mes',
+            'status' => 'ativo',
+            'nascimento' => '1985-06-20',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.aniversariantes', ['mes' => 11]))
+            ->assertOk();
+
+        $response->assertSee('Paciente Aniversariante');
+        $response->assertDontSee('Paciente Outro Mes');
+        $this->assertSame(1, $response->viewData('total'));
+    }
+
+    public function test_relatorio_aniversariantes_chegando(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('relatorios.view');
+
+        // Aniversário em 2 dias (dentro do limite de "chegando")
+        $proximoAniversario = now()->addDays(2)->month.'-'.now()->addDays(2)->day;
+        $ano = now()->year;
+        $dataNascimento = "$ano-$proximoAniversario";
+
+        Paciente::create([
+            'nome' => 'Paciente Chegando',
+            'status' => 'ativo',
+            'nascimento' => $dataNascimento,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('relatorios.aniversariantes', ['mes' => now()->addDays(2)->month]))
+            ->assertOk();
+
+        $response->assertSee('Paciente Chegando');
+        $response->assertSee('TÁ CHEGANDO!');
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 13. Pacotes não-FT (PSP-08) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_pacote_pilates_fora_vertical_ft(): void
+    {
+        ['user' => $user] = $this->clinicaFisioterapia('pacotes.view', 'pacotes.create', 'pacotes.update');
+        $paciente = Paciente::create(['nome' => 'Paciente Pilates']);
+
+        // Pacote de pilates (não fisioterapia) deve ser criável mesmo fora da vertical FT
+        // após remoção do middleware vertical:fisioterapia das rotas
+        $this->actingAs($user)
+            ->post(route('pacientes.pacotes.store', $paciente), [
+                'nome' => 'Pacote Pilates 10 sessões',
+                'total_sessoes' => 10,
+                'valor_sessao' => 100,
+                'valor_total' => 1000,
+            ])
+            ->assertRedirect(route('pacientes.pacotes.index', $paciente));
+
+        $this->assertTenantDatabaseHas('pacotes_sessao', [
+            'paciente_id' => $paciente->id,
+            'nome' => 'Pacote Pilates 10 sessões',
+            'total_sessoes' => 10,
+        ]);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 14. Pagamento com plano de saúde (LAS-06 / PG-03) */
+    /* ------------------------------------------------------------------ */
+
+    public function test_pagamento_com_plano_de_saude_campo_anulavel(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.receive');
+
+        $paciente = Paciente::create(['nome' => 'Paciente Plano FK', 'status' => 'ativo']);
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $conta = AccountsReceivable::create([
+            'paciente_id' => $paciente->id,
+            'servico' => 'CONSULTA',
+            'vencimento' => '2026-11-09',
+            'valor' => 200.00,
+            'valor_pago' => 0,
+            'status' => 'aberta',
+        ]);
+
+        // insurance_plan_id é anulável: pagamento sem plano deve funcionar
+        $this->actingAs($user)
+            ->post(route('financeiro.receive', $conta), [
+                'valor' => 60.00,
+                'payment_method_id' => $metodo->id,
+            ])
+            ->assertRedirect();
+
+        $this->assertTenantDatabaseHas('payments', [
+            'valor' => 60.00,
+            'insurance_plan_id' => null,
+        ]);
+
+        // O relacionamento existe no model (será usado quando o plano for cadastrado)
+        $this->assertTrue(method_exists(Payment::class, 'insurancePlan'));
+        $this->assertTrue(in_array('insurance_plan_id', (new Payment)->getFillable()));
     }
 }

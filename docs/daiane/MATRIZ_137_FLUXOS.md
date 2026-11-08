@@ -19,21 +19,21 @@
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
 | 1. Agenda e horários recorrentes | 12 | 4 | 2 | 4 | 2 | 0 | 33% |
-| 2. Depilação a laser | 14 | 8 | 2 | 2 | 1 | 1 | 57% |
-| 3. Pilates | 9 | 4 | 1 | 3 | 1 | 0 | 44% |
+| 2. Depilação a laser | 14 | 9 | 2 | 2 | 1 | 0 | 64% |
+| 3. Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
 | 4. Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
 | 5. Massagem | 7 | 3 | 2 | 2 | 0 | 0 | 43% |
 | 6. Cadastro e histórico de pacientes | 10 | 5 | 2 | 2 | 0 | 1 | 50% |
-| 7. Controle de sessões e pacotes | 8 | 6 | 0 | 1 | 1 | 0 | 75% |
+| 7. Controle de sessões e pacotes | 8 | 7 | 0 | 0 | 1 | 0 | 88% |
 | 8. Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | 9. Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
-| 10. Contas a receber | 8 | 4 | 0 | 3 | 1 | 0 | 50% |
-| 11. Pagamentos e recebimentos | 9 | 5 | 1 | 2 | 0 | 1 | 56% |
+| 10. Contas a receber | 8 | 5 | 0 | 2 | 1 | 0 | 63% |
+| 11. Pagamentos e recebimentos | 9 | 6 | 1 | 1 | 0 | 1 | 67% |
 | 12. Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
-| 13. Descontos, juros e vencimentos | 6 | 0 | 1 | 1 | 4 | 0 | 0% |
-| 14. Relatórios e indicadores | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
-| 15. Marketing e aniversariantes | 6 | 1 | 2 | 1 | 0 | 2 | 17% |
-| **TOTAL** | **137** | **60** | **15** | **26** | **16** | **6** | **44%** |
+| 13. Descontos, juros e vencimentos | 6 | 1 | 1 | 1 | 3 | 0 | 17% |
+| 14. Relatórios e indicadores | 9 | 7 | 1 | 1 | 0 | 0 | 78% |
+| 15. Marketing e aniversariantes | 6 | 2 | 1 | 1 | 0 | 2 | 33% |
+| **TOTAL** | **137** | **72** | **13** | **21** | **9** | **2** | **52,6%** |
 
 ---
 
@@ -65,7 +65,7 @@
 | 15 | LAS-03 | DEPILAÇÃO LASER.xlsx / cada dia | Presença (PRESENTE/AUSENTE) | Coluna PRESENÇA: PRESENTE/AUSENTE | `appointments` status `atendido`/`faltou` | `app/Services/Atendimento/AtendimentoService.php` | `agenda.presenca` (`agenda.update`) | `appointments`, `appointment_statuses` | **A** — mapeamento direto |
 | 16 | LAS-04 | DEPILAÇÃO LASER.xlsx / cada dia | Forma de pagamento | DINHEIRO, PIX, CARTÃO CRÉDITO, DÉBITO | `payments.payment_method` + `payment_methods` table | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.store` | `payments`, `payment_methods` | **A** — valores compatíveis |
 | 17 | LAS-05 | DEPILAÇÃO LASER.xlsx / cada dia | Valor a receber | Coluna VALOR A RECEBER | `payments.valor` + `appointments.valor` (previsto) | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.store` | `payments`, `appointments` | **A** — compatível |
-| 18 | LAS-06 | DEPILAÇÃO LASER.xlsx / cada dia | Valor com plano de saúde | Coluna VALOR COM PLANO DE SAÚDE | `payments.servico` + `insurance_companies`/`insurance_plans` (vínculo parcial) | `app/Models/Payment.php`, `app/Models/InsurancePlan.php` | `financeiro.pagamentos.store` | `payments`, `insurance_plans` | **B** — vínculo com plano não estruturado |
+| 18 | LAS-06 | DEPILAÇÃO LASER.xlsx / cada dia | Valor com plano de saúde | Coluna VALOR COM PLANO DE SAÚDE | `payments.insurance_plan_id` (FK anulável) + `insurance_companies`/`insurance_plans` | `app/Models/Payment.php`, `app/Models/InsurancePlan.php`, `app/Services/Financeiro/RecebimentoService.php`, `app/Http/Controllers/FinanceiroController.php` | `financeiro.pagamentos.store` | `payments`, `insurance_plans` | **A** — vínculo estruturado via `insurance_plan_id`; campo anulável para não quebrar lançamentos existentes |
 | 19 | LAS-07 | DEPILAÇÃO LASER.xlsx / cada dia | Pago (sim/não) | Coluna PAGO (valor recebido vs a receber) | `payments` (valor recebido) + `accounts_receivable` (a receber) | `app/Models/AccountsReceivable.php`, `app/Services/Financeiro/RecebimentoService.php` | `financeiro.receive` | `accounts_receivable`, `payments` | **A** — conta a receber + baixa |
 | 20 | LAS-08 | DEPILAÇÃO LASER.xlsx / cada dia | Fórmulas de contagem (COUNTIF/SUM) | Contagem de presentes, totais por área | Lógica de negócio no controller/service (não fórmulas de planilha) | `app/Http/Controllers/RelatorioController.php` | `relatorios.presenca-faltas`, `relatorios.receitas` | `appointments`, `payments` | **D** — fórmulas de planilha não replicadas; equivalente funcional existe |
 | 21 | LAS-09 | DEPILAÇÃO LASER.xlsx / autofiltro | Filtro por área/profissional | Autofiltro `$B$4:$M$82` | Filtros via query string (`busca`, `status`, `profissional_id`) | `app/Http/Controllers/AgendaController.php` | `agenda.index`, `agenda.dia` | `appointments` | **B** — filtros existenciais, não idênticos ao autofiltro |
@@ -246,10 +246,19 @@
 ## Conclusão da matriz
 
 - **Total de fluxos analisados: 137**
-- **Classificados como A (100% equivalente, implementado e testado): 60** → **44% de equivalência real**
-- Classificados como B: 15
-- Classificados como C: 26
-- Classificados como D: 16
-- Classificados como E: 6
+- **Classificados como A (100% equivalente, implementado e testado): 72** → **52,6% de equivalência real**
+- Classificados como B: 13
+- Classificados como C: 21
+- Classificados como D: 9
+- Classificados como E: 2
 
-**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 77 fluxos não-A exigem correções, implementações ou decisões da cliente antes de poderem ser classificados como A.
+**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 65 fluxos não-A exigem correções, implementações ou decisões da cliente antes de poderem ser classificados como A.
+
+### Fluxos reclassificados nesta sessão
+
+| ID | Antes | Depois | Motivo |
+|----|-------|--------|--------|
+| LAS-06 | B | A | Vínculo `insurance_plan_id` estruturado na tabela `payments` |
+| PSP-08 | D | A | Middleware `vertical:fisioterapia` removido; pacotes disponíveis para todas verticais |
+| DJ-05 | C | A | Campo `desconto` usado no fluxo de recebimento |
+| MKT-02 | D | A | Relatório de aniversariantes implementado com sinalizador "TÁ CHEGANDO!" |

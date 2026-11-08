@@ -43,10 +43,17 @@ class RecebimentoService
                 throw OperacaoFinanceiraInvalida::valorInvalido();
             }
 
-            $saldo = round((float) $travada->valor - (float) $travada->valor_pago, 2);
+            $desconto = round((float) ($dados['desconto'] ?? 0), 2);
 
-            if ($valor > $saldo) {
-                throw OperacaoFinanceiraInvalida::valorAcimaDoSaldo($valor, $saldo);
+            if ($desconto < 0) {
+                throw OperacaoFinanceiraInvalida::valorInvalido();
+            }
+
+            $saldoOriginal = round((float) $travada->valor - (float) $travada->valor_pago, 2);
+            $saldoAposDesconto = round($saldoOriginal - $desconto, 2);
+
+            if ($valor > $saldoAposDesconto) {
+                throw OperacaoFinanceiraInvalida::valorAcimaDoSaldo($valor, $saldoAposDesconto);
             }
 
             $pagamento = Payment::create([
@@ -63,10 +70,12 @@ class RecebimentoService
             ]);
 
             $novoPago = round((float) $travada->valor_pago + $valor, 2);
+            $novoDesconto = round((float) $travada->desconto + $desconto, 2);
 
             $travada->forceFill([
                 'valor_pago' => $novoPago,
-                'status' => $novoPago >= round((float) $travada->valor, 2) ? 'pago' : 'parcial',
+                'desconto' => $novoDesconto,
+                'status' => ($novoPago + $novoDesconto) >= round((float) $travada->valor, 2) ? 'pago' : 'parcial',
             ])->save();
 
             return $pagamento;

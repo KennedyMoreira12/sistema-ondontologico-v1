@@ -165,6 +165,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/receitas', [RelatorioController::class, 'receitasMensais'])->name('receitas');
         Route::get('/presenca-faltas', [RelatorioController::class, 'presencaFaltas'])->name('presenca-faltas');
         Route::get('/pacotes', [RelatorioController::class, 'pacotesSessoes'])->name('pacotes');
+        Route::get('/aniversariantes', [RelatorioController::class, 'aniversariantes'])->name('aniversariantes');
         Route::get('/exportar/{tipo}', [RelatorioController::class, 'exportarCsv'])->name('exportar');
     });
 
@@ -227,7 +228,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
          * Pacotes de sessões: o consumo é transacional e nunca deixa o saldo
          * negativo, mesmo com duas atendentes marcando sessão ao mesmo tempo.
          */
-        Route::prefix('{paciente}/pacotes')->name('pacotes.')->middleware('vertical:fisioterapia')->group(function () {
+        Route::prefix('{paciente}/pacotes')->name('pacotes.')->group(function () {
             Route::get('/', [PacoteSessaoController::class, 'index'])->name('index');
             Route::get('/create', [PacoteSessaoController::class, 'create'])->name('create');
             Route::post('/', [PacoteSessaoController::class, 'store'])->name('store');

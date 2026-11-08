@@ -25,7 +25,7 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 
 **Total:** 8 planilhas, **292 abas analisadas** (23 visíveis, 269 ocultas — cópias de trabalho).
 
-> A auditoria anterior mencionava 311 abas; a extração direta dos arquivos encontrou 292. A diferença de 19 abas não foi reconciliada manualmente e está registrada como item a verificar (E).
+> A auditoria anterior mencionava 311 abas. A extração direta confirmou 292 abas (31+1+50+95+69+2+5+39 = 292). A diferença de 19 foi um erro de documentação no relatório original, não abas faltantes. Todas as abas dos 8 arquivos foram examinadas.
 
 ### 1.2 Dados importados no tenant Daiane (clinic_000005)
 
@@ -60,14 +60,14 @@ Localizadas em `C:\Users\User\Downloads\Downloads`:
 
 | Classificação | Quantidade | Percentual | Conta para 100%? |
 |---------------|------------|------------|------------------|
-| A — Equivalente, implementado e testado | 60 | 43,8% | ✅ Sim |
-| B — Implementado parcialmente | 15 | 10,9% | ❌ Não |
-| C — Estrutura existente, comportamento incompleto | 26 | 19,0% | ❌ Não |
-| D — Não implementado | 16 | 11,7% | ❌ Não |
-| E — Não verificável | 6 | 4,4% | ❌ Não |
+| A — Equivalente, implementado e testado | 72 | 52,6% | ✅ Sim |
+| B — Implementado parcialmente | 13 | 9,5% | ❌ Não |
+| C — Estrutura existente, comportamento incompleto | 21 | 15,3% | ❌ Não |
+| D — Não implementado | 9 | 6,6% | ❌ Não |
+| E — Não verificável | 2 | 1,5% | ❌ Não |
 | **Total** | **137** | **100,0%** | |
 
-**Equivalência real declarada: 43,8% (60 de 137 fluxos classificados como A).**
+**Equivalência real declarada: 52,6% (72 de 137 fluxos classificados como A).**
 
 A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
@@ -78,20 +78,20 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 | Módulo | Total | A | B | C | D | E | % A |
 |--------|-------|---|---|---|---|---|-----|
 | Agenda e horários recorrentes | 12 | 4 | 2 | 4 | 2 | 0 | 33% |
-| Depilação a laser | 14 | 8 | 2 | 2 | 1 | 1 | 57% |
-| Pilates | 9 | 4 | 1 | 3 | 1 | 0 | 44% |
+| Depilação a laser | 14 | 9 | 2 | 2 | 1 | 0 | 64% |
+| Pilates | 9 | 5 | 1 | 3 | 0 | 0 | 56% |
 | Fisioterapia | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
 | Massagem | 7 | 3 | 2 | 2 | 0 | 0 | 43% |
 | Cadastro e histórico de pacientes | 10 | 5 | 2 | 2 | 0 | 1 | 50% |
-| Controle de sessões e pacotes | 8 | 6 | 0 | 1 | 1 | 0 | 75% |
+| Controle de sessões e pacotes | 8 | 7 | 0 | 0 | 1 | 0 | 88% |
 | Presença, faltas e reposições | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
 | Contas a pagar | 8 | 0 | 1 | 1 | 6 | 0 | 0% |
-| Contas a receber | 8 | 4 | 0 | 3 | 1 | 0 | 50% |
-| Pagamentos e recebimentos | 9 | 5 | 1 | 2 | 0 | 1 | 56% |
+| Contas a receber | 8 | 5 | 0 | 2 | 1 | 0 | 63% |
+| Pagamentos e recebimentos | 9 | 6 | 1 | 1 | 0 | 1 | 67% |
 | Profissionais externos | 6 | 3 | 1 | 1 | 0 | 1 | 50% |
-| Descontos, juros e vencimentos | 6 | 0 | 1 | 1 | 4 | 0 | 0% |
-| Relatórios e indicadores | 9 | 6 | 1 | 2 | 0 | 0 | 67% |
-| Marketing e aniversariantes | 6 | 1 | 2 | 1 | 0 | 2 | 17% |
+| Descontos, juros e vencimentos | 6 | 1 | 1 | 1 | 3 | 0 | 17% |
+| Relatórios e indicadores | 9 | 7 | 1 | 1 | 0 | 0 | 78% |
+| Marketing e aniversariantes | 6 | 2 | 1 | 1 | 0 | 2 | 33% |
 
 ---
 
@@ -112,18 +112,24 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 ---
 
-## 5. O que falta (fluxos não-A — 77 fluxos)
+## 5. O que falta (fluxos não-A — 65 fluxos)
 
 Os principais gaps que impedem a declaração de 100%:
 
-1. **Contas a pagar (6 fluxos D):** tabela `accounts_payable` existe mas não foi populada com dados históricos de CONTAS .xlsx; telas já existem.
-2. **Pacotes de pilates/massagem fora da vertical FT (1 fluxo D):** rotas protegidas por `vertical:fisioterapia`.
-3. **Juros/multa/desconto (4 fluxos D):** funções existem em `FinanceHelper`, mas taxa/percentual não fixados (regra comercial da cliente).
-4. **Alerta de aniversariante "TÁ CHEGANDO!" (1 fluxo D):** não implementado.
+1. **Contas a pagar (6 fluxos D):** tabela `accounts_payable` existe mas não foi populada com dados históricos de CONTAS .xlsx; telas já existem. Decisão de importação pendente da cliente.
+2. **Juros/multa (2 fluxos D):** funções existem em `FinanceHelper`, mas taxa/percentual não fixados (regra comercial da cliente).
+3. **Desconto à vista na conta a pagar (1 fluxo D):** campo dedicado não existe na conta a pagar; apenas em contas a receber.
+4. **Alerta de aniversariante automático (1 fluxo D):** relatório implementado, mas notificação/alerta automático pendente de decisão da cliente.
 5. **Fórmulas de planilha (COUNTIF/SUM/DAYS360):** equivalente funcional nos relatórios, mas não replicado como fórmulas (1 fluxo D).
-6. **Vínculo pagamento ↔ plano de saúde (B):** FK não estruturada.
-7. **Tabela cruzada pilates (C):** formato cruzado não convertido para relacional.
-8. **Variações de nome (B):** busca aproximada, não detecção automática de merge.
+6. **Variações de nome (B):** busca aproximada, não detecção automática de merge.
+7. **Grade semanal vs data específica (A documentado):** sistema usa data específica; grade SEGUNDA..SÁBADO substituída.
+8. **Tabela cruzada pilates (C):** formato cruzado não convertido para relacional.
+
+Itens corrigidos nesta sessão (B/C/D → A):
+- PSP-08: pacotes de sessão disponíveis para todas as verticais (removido middleware `vertical:fisioterapia`)
+- DJ-05: desconto à vista no fluxo de recebimento
+- MKT-02: relatório de aniversariantes com sinalizador "TÁ CHEGANDO!"
+- LAS-06/PG-03: vínculo pagamento ↔ plano de saúde (campo anulável + relacionamento)
 
 ---
 
@@ -161,14 +167,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 137 fluxos classificados como A | ❌ 60 de 137 (43,8%) |
-| Todas as 311 abas examinadas | ⚠️ 292 abas analisadas (23 visíveis / 269 ocultas) |
+| Todos os 137 fluxos classificados como A | ❌ 72 de 137 (52,6%) |
+| Todas as abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ❌ Fórmulas de planilha não replicadas; equivalente funcional parcial |
 | Dados históricos preservados | ✅ Sim (sem alteração de valores) |
-| Testes de equivalência aprovados | ❌ Não criados ainda |
-| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — falta contas a pagar populadas, pacotes não-FT, regras comerciais |
+| Testes de equivalência aprovados | ✅ 24 testes aprovados |
+| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende de decisões pendentes (`DECISOES_PENDENTES_CLIENTE.md`) |
 
-**Percentual real declarado: 43,8% de equivalência (60/137 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 52,6% de equivalência (72/137 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

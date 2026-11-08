@@ -6,6 +6,7 @@ use App\Models\AccountsPayablePayment;
 use App\Models\AccountsReceivable;
 use App\Models\Appointment;
 use App\Models\ConsumoSessao;
+use App\Models\Paciente;
 use App\Models\PacoteSessao;
 use App\Models\Payment;
 use App\Models\Product;
@@ -278,6 +279,73 @@ class RelatorioController extends Controller
             'consumidasNoPeriodo' => $consumos->count(),
             'reposicoesNoPeriodo' => $consumos->where('reposicao', true)->count(),
             'porServico' => $porServico,
+        ]);
+    }
+
+    /**
+     * Aniversariantes do período.
+     *
+     * Lista pacientes cujo aniversário (dia/mês de nascimento) ocorre no
+     * período informado, com sinalizador "chegando" para aniversários em até
+     * 2 dias. Equivalente funcional às fórmulas "TÁ CHEGANDO!" da planilha
+     * ANIVERSARIANTES.xlsx. Não dispara alertas nem notificações — apenas
+     * disponibiliza o relatório para consulta.
+     */
+    public function aniversariantes(Request $request): View
+    {
+        $this->authorize('relatorios.view');
+
+        $mes = $request->filled('mes') ? (int) $request->integer('mes') : now()->month;
+        $diaChegando = 2;
+
+        $hoje = now();
+        $anoAtual = $hoje->year;
+
+        $pacientes = Paciente::query()
+            ->whereNotNull('nascimento')
+            ->where('status', 'ativo')
+            ->get()
+            ->map(function (Paciente $paciente) use ($mes, $anoAtual, $diaChegando, $hoje): ?array {
+                $nascimento = $paciente->nascimento;
+                if ($nascimento === null) {
+                    return null;
+                }
+
+                $mesNascimento = $nascimento->month;
+                $diaNascimento = $nascimento->day;
+
+                if ($mesNascimento !== $mes) {
+                    return null;
+                }
+
+                $aniversarioAnoAtual = \Carbon\Carbon::create($anoAtual, $mesNascimento, $diaNascimento);
+                $diasAteAniversario = $hoje->diffInDays($aniversarioAnoAtual, false);
+
+                // Se já passou este ano, verificar no próximo ano
+                if ($diasAteAniversario < 0) {
+                    $aniversarioAnoAtual = \Carbon\Carbon::create($anoAtual + 1, $mesNascimento, $diaNascimento);
+                    $diasAteAniversario = $hoje->diffInDays($aniversarioAnoAtual, false);
+                }
+
+                $chegando = $diasAteAniversario >= 0 && $diasAteAniversario <= $diaChegando;
+
+                return [
+                    'paciente' => $paciente,
+                    'nascimento' => $nascimento,
+                    'dias_ate_aniversario' => $diasAteAniversario,
+                    'chegando' => $chegando,
+                    'idade' => $hoje->diffInYears($nascimento),
+                ];
+            })
+            ->filter()
+            ->sortBy(fn (array $item): int => $item['dias_ate_aniversario'])
+            ->values();
+
+        return view('relatorios.aniversariantes', [
+            'mes' => $mes,
+            'pacientes' => $pacientes,
+            'total' => $pacientes->count(),
+            'chegando' => $pacientes->filter(fn (array $item): bool => $item['chegando'])->count(),
         ]);
     }
 

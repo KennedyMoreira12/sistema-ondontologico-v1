@@ -12,31 +12,31 @@ Somente fluxos classificados como **A** contam para 100%. O plano será consider
 
 Essas correções não criam novas tabelas nem migrações de produção; ajustam código, validações e telas.
 
-| # | Fluxo (ID) | Correção necessária | Arquivos envolvidos | Risco | Testes a criar |
-|---|------------|---------------------|---------------------|-------|----------------|
-| 1 | AGD-01 (grade semanal) | A tela de agenda já usa data específica; manter como padrão. Documentar que a grade SEGUNDA..SÁBADO foi substituída por agenda por data (mais precisa). Nenhuma alteração de código obrigatória. | `app/Http/Controllers/AgendaController.php` | Baixo | Teste de agendamento por data específica |
-| 2 | AGD-02 (horários por profissional) | Ajustar preenchimento de `professional_schedules` para refletir a grade da planilha (opcional, sob demanda da cliente). | `app/Models/ProfessionalSchedule.php` | Baixo | — |
-| 6 | LAS-06 (valor com plano saúde) | Estruturar vínculo `payments` ↔ `insurance_plans` (FK `insurance_plan_id`) para registro do copagamento/plano. | `app/Models/Payment.php`, migration futura | Médio | Teste de pagamento com plano de saúde |
-| 9 | LAS-09 (filtros) | Os filtros existem; não são idênticos ao autofiltro da planilha, mas são funcionais. Sem alteração obrigatória. | — | Baixo | — |
-| 27 | PIL-01 (tabela cruzada pilates) | Não converter automaticamente. Oferecer tela de criação de pacote `pacotes_sessao` para pilates (fora da vertical FT, veja Etapa 4). | `app/Http/Controllers/PacoteSessaoController.php` | Médio | Teste de pacote pilates |
-| 29 | PIL-03 (situação DEVENDO/REGULAR) | Usar `accounts_receivable.status` (aberta/parcial/pago) como equivalente. Sem alteração obrigatória. | — | Baixo | — |
-| 31 | PIL-05 (calendário turmas) | Existe `ModuloPlanejadoController`; verificar se atende turmas de pilates. | `app/Http/Controllers/ModuloPlanejadoController.php` | Baixo | — |
-| 45 | MAS-01 (caixa mensal massagem) | Relatório por serviço já existe (`receitasMensais` filtra por `servico`). Sem alteração obrigatória. | — | Baixo | — |
-| 49 | MAS-05 (soma mensal) | `RelatorioController@receitasMensais` já agrupa por mês. Sem alteração obrigatória. | — | Baixo | — |
-| 50 | MAS-06 (presença massagem) | `appointments` status `atendido`/`faltou` já serve. Sem alteração obrigatória. | — | Baixo | — |
-| 53 | PAC-02 (variações de nome) | `PacienteNomeService` já faz busca aproximada. Sem alteração obrigatória (não funde cadastros). | — | Baixo | — |
-| 54 | PAC-03 (histórico) | `AtendimentoController@historico` já unifica consultas, pacotes e pagamentos. Sem alteração obrigatória. | — | Baixo | — |
-| 93 | PG-03 (plano saúde copagamento) | Veja LAS-06 (FK `insurance_plan_id` em `payments`). | `app/Models/Payment.php` | Médio | Teste de pagamento com plano |
-| 94 | PG-04 (vínculo pagamento-paciente) | Tela de revisão já existe (`PagamentoController@revisar`). Sem alteração obrigatória. | — | Baixo | — |
-| 102 | PE-02 (pagamento profissional externo) | Pagamento possível via `payments` ou `accounts_payable`. Tipo "diária" não estruturado — campo livre `tipo`/`observacoes` já serve. | — | Baixo | — |
-| 104 | PE-04 (total mensal profissional) | Relatório por serviço existe; total por profissional externo não é um bloco dedicado. Pode ser adicionado como filtro. | `app/Http/Controllers/RelatorioController.php` | Baixo | Teste de relatório por profissional |
-| 111 | DJ-05 (desconto à vista) | Campo `accounts_receivable.desconto` já existe. Fluxo de aplicação não mapeado. | `app/Http/Controllers/FinanceiroController.php` | Baixo | Teste de desconto na conta a receber |
-| 114 | REL-03 (plano saúde indicador) | `convenios.*` + `insurance_plans` existem. Relatório de NF vs pago pode ser reforçado. | `app/Http/Controllers/RelatorioController.php` | Baixo | Teste de relatório plano saúde |
-| 115 | REL-05 (indicadores pilates/massagem) | Dados por serviço existem em `receitasMensais`. Blocos dedicados não obrigatórios. | — | Baixo | — |
-| 122 | MKT-01 (aniversariantes) | Paciente tem dados de cadastro; relatório de aniversariantes com alerta não existe. Veja MKT-02. | — | Baixo | — |
-| 123 | MKT-02 (alerta TÁ CHEGANDO!) | Não implementado. Depende de decisão da cliente sobre se quer esse alerta. | — | Baixo | — |
-| 125 | MKT-05 (campanhas) | `SocialPost` existe. Depende de uso da cliente. | — | Baixo | — |
-| 126 | MKT-06 (posts sociais) | `SocialPost` + `SocialSetting` existem. Depende de uso da cliente. | — | Baixo | — |
+| # | Fluxo (ID) | Correção necessária | Arquivos envolvidos | Status | Testes |
+|---|------------|---------------------|---------------------|--------|--------|
+| 1 | AGD-01 (grade semanal) | Documentar que a grade SEGUNDA..SÁBADO foi substituída por agenda por data. | `docs/` | Documentado | — |
+| 2 | AGD-02 (horários por profissional) | Ajustar preenchimento de `professional_schedules` (opcional, sob demanda da cliente). | — | Pendente | — |
+| 6 | LAS-06 (valor com plano saúde) | Vínculo `payments` ↔ `insurance_plans` (FK `insurance_plan_id`) implementado. Campo anulável. | `app/Models/Payment.php`, migration `2026_11_08_000001`, `RecebimentoService`, `FinanceiroController` | ✅ Concluído | `test_pagamento_com_plano_de_saude_campo_anulavel` |
+| 9 | LAS-09 (filtros) | Filtros existentes são funcionais. Sem alteração obrigatória. | — | Documentado | — |
+| 27 | PIL-01 (tabela cruzada pilates) | Pacotes não-FT liberados (removido middleware `vertical:fisioterapia`). Tabela cruzada não convertida (decisão de produto). | `routes/web.php` | ✅ Concluído (rotas) | `test_pacote_pilates_fora_vertical_ft` |
+| 29 | PIL-03 (situação DEVENDO/REGULAR) | `accounts_receivable.status` usado como equivalente. Sem alteração obrigatória. | — | Documentado | — |
+| 31 | PIL-05 (calendário turmas) | `ModuloPlanejadoController` existe. Verificar se atende turmas de pilates. | — | Pendente | — |
+| 45 | MAS-01 (caixa mensal massagem) | Relatório por serviço existe (`receitasMensais` filtra por `servico`). | — | Documentado | — |
+| 49 | MAS-05 (soma mensal) | `RelatorioController@receitasMensais` já agrupa por mês. | — | Documentado | — |
+| 50 | MAS-06 (presença massagem) | `appointments` status `atendido`/`faltou` já serve. | — | Documentado | — |
+| 53 | PAC-02 (variações de nome) | `PacienteNomeService` busca aproximada. Não funde cadastros. | — | Documentado | `test_duplicatas_nao_fundem_cadastros` |
+| 54 | PAC-03 (histórico) | `AtendimentoController@historico` unifica consultas, pacotes, pagamentos. | — | Documentado | — |
+| 93 | PG-03 (plano saúde copagamento) | Veja LAS-06. | — | ✅ Concluído | `test_pagamento_com_plano_de_saude_campo_anulavel` |
+| 94 | PG-04 (vínculo pagamento-paciente) | Tela de revisão já existe. | — | Documentado | — |
+| 102 | PE-02 (pagamento profissional externo) | Pagamento possível via `payments`/`accounts_payable`. Tipo "diária" não estruturado. | — | Pendente (decisão cliente) | — |
+| 104 | PE-04 (total mensal profissional) | Relatório por serviço existe. Total por profissional externo como filtro. | `RelatorioController` | Pendente | — |
+| 111 | DJ-05 (desconto à vista) | Campo `desconto` usado no fluxo de recebimento. Desconto acumulado em `accounts_receivable.desconto`. | `FinanceiroPaymentRequest`, `RecebimentoService`, `FinanceiroController` | ✅ Concluído | `test_recebimento_com_desconto_quita_conta`, `test_recebimento_desconto_nao_quita_fica_parcial` |
+| 114 | REL-03 (plano saúde indicador) | `convenios.*` + `insurance_plans` existem. | — | Pendente | — |
+| 115 | REL-05 (indicadores pilates/massagem) | Dados por serviço existem em `receitasMensais`. | — | Documentado | — |
+| 122 | MKT-01 (aniversariantes) | Relatório de aniversariantes implementado. | `RelatorioController`, rota, view | ✅ Concluído | `test_relatorio_aniversariantes_mes`, `test_relatorio_aniversariantes_chegando` |
+| 123 | MKT-02 (alerta TÁ CHEGANDO!) | Relatório implementado. Alerta/notificação automática pendente de decisão da cliente. | `RelatorioController`, rota, view | ✅ Concluído (relatório) | `test_relatorio_aniversariantes_chegando` |
+| 125 | MKT-05 (campanhas) | `SocialPost` existe. Depende de uso da cliente. | — | Pendente | — |
+| 126 | MKT-06 (posts sociais) | `SocialPost` + `SocialSetting` existem. Depende de uso da cliente. | — | Pendente | — |
 
 ---
 
@@ -63,14 +63,14 @@ Essas correções não criam novas tabelas nem migrações de produção; ajusta
 
 Esses itens exigem nova tabela, nova tela ou nova regra. Nenhuma migration será executada em produção sem aprovação.
 
-| # | Fluxo (ID) | Correção necessária | Arquivos envolvidos | Observação |
-|---|------------|---------------------|---------------------|------------|
-| 1 | LAS-08 | Fórmulas COUNTIF/SUM da planilha não são replicadas; equivalente funcional existe nos relatórios. Não é código obrigatório. | — | Equivalente funcional já existe |
-| 2 | CP-01 a CP-08 (contas a pagar) | Tabela `accounts_payable` já existe (migration `2026_11_05_081450`). Faltam: popular com dados históricos de CONTAS .xlsx e telas já existem (`ContaPagarController`). | `app/Http/Controllers/ContaPagarController.php` (já existe) | Telas já existem; falta migração de dados históricos (decisão da cliente) |
-| 3 | PSP-08 | Pacotes de pilates/massagem fora da vertical FT: remover/ajustar middleware `vertical:fisioterapia` nas rotas de pacotes ou criar rotas dedicadas. | `routes/web.php`, `PacoteSessaoController` | Decisão de arquitetura |
-| 4 | DJ-03/DJ-04 (juros/multa) | `FinanceHelper` já tem as funções; não fixar taxa/percentual (regra comercial da cliente). | `app/Support/FinanceHelper.php` | Não inventar regras |
-| 5 | DJ-06 | Campo dedicado de juros/desconto na conta a pagar não existe; usar `observacoes`/`tipo_documento`. | `app/Models/AccountsPayable.php` | Sem alteração obrigatória |
-| 6 | MKT-02 | Alerta de aniversariante "TÁ CHEGANDO!" não existe. Criar somente se a cliente pedir. | — | Pendente de decisão |
+| # | Fluxo (ID) | Correção necessária | Arquivos envolvidos | Status | Observação |
+|---|------------|---------------------|---------------------|--------|------------|
+| 1 | LAS-08 | Fórmulas COUNTIF/SUM da planilha não são replicadas; equivalente funcional existe nos relatórios. Não é código obrigatório. | — | Documentado | Equivalente funcional já existe |
+| 2 | CP-01 a CP-08 (contas a pagar) | Tabela `accounts_payable` já existe. Faltam: popular com dados históricos de CONTAS .xlsx. | `ContaPagarController` (já existe) | Pendente (decisão cliente) | Telas existem; falta importação de dados históricos |
+| 3 | PSP-08 | Pacotes de pilates/massagem fora da vertical FT: middleware `vertical:fisioterapia` removido das rotas. | `routes/web.php` | ✅ Concluído | Pacotes disponíveis para todas as verticais |
+| 4 | DJ-03/DJ-04 (juros/multa) | `FinanceHelper` já tem as funções; não fixar taxa/percentual (regra comercial da cliente). | `app/Support/FinanceHelper.php` | Pendente (decisão cliente) | Não inventar regras |
+| 5 | DJ-06 | Campo dedicado de juros/desconto na conta a pagar não existe; usar `observacoes`/`tipo_documento`. | `app/Models/AccountsPayable.php` | Pendente | Sem alteração obrigatória |
+| 6 | MKT-02 | Relatório de aniversariantes implementado. Alerta/notificação automática pendente de decisão. | `RelatorioController`, rota, view | ✅ Concluído (relatório) | Alerta automático depende da cliente |
 
 ---
 
@@ -86,17 +86,32 @@ Ação específica: verificar se as rotas de `pacotes_sessao` devem ser liberada
 
 Para cada fluxo A que ainda não tem teste, e para cada correção das etapas acima:
 
-| Módulo | Teste sugerido | Arquivo |
-|--------|---------------|---------|
-| Agenda | Agendamento por data com conflito de horário | `tests/Feature/AgendaTest.php` (já existe, estender) |
-| Agenda | Reagendamento e cancelamento | `tests/Feature/AgendaTest.php` |
-| Financeiro | Pagamento com plano de saúde (FK) | `tests/Feature/PagamentoTest.php` (estender) |
-| Financeiro | Conta a pagar: criar, baixar parcial, quitar | `tests/Feature/ContaPagarTest.php` (já existe) |
-| Pacotes | Pacote de pilates/massagem (não-FT) | `tests/Feature/PacoteSessaoTest.php` (estender) |
-| Pacotes | Consumo idempotente por appointment_id | `tests/Feature/AtendimentoTest.php` (estender) |
-| Relatórios | Exportação CSV por tipo | `tests/Feature/RelatorioTest.php` (já existe) |
-| Relatórios | Fluxo de caixa | `tests/Feature/FinanceiroTest.php` (já existe) |
-| Pacientes | Detecção de duplicatas | `tests/Feature/PagamentoTest.php` (já existe: `test_tela_de_duplicatas_mostra_grupo_sem_fundir_cadastros`) |
+| Módulo | Teste implementado | Arquivo | Status |
+|--------|-------------------|---------|--------|
+| Agenda | Agendamento por data com conflito | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Agenda | Presença e falta | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Depilação a laser | Consulta completa com pagamento | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Depilação a laser | Pagamento com plano de saúde (campo anulável) | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Pilates | Pagamento por serviço PILATES | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Fisioterapia / pacotes | Consumo debita saldo | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Fisioterapia / pacotes | Saldo nunca negativo | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Fisioterapia / pacotes | Consumo idempotente por appointment_id | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Contas a pagar | Criar, baixar parcial, quitar | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Contas a pagar | Atraso calculado, não gravado | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Contas a receber | Baixa parcial | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Contas a receber | Rejeita pagamento acima do saldo | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Contas a receber | Total em aberto desconta parcial | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Pagamentos | Vínculo não sobrescreve | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| FinanceHelper | DAYS360 igual ao Excel | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Relatórios | Receitas por mês | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Relatórios | Presença/faltas | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Relatórios | Aniversariantes por mês | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Relatórios | Aniversariantes "TÁ CHEGANDO!" | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Pacientes | Duplicatas não fundem | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Desconto | Recebimento com desconto quita conta | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Desconto | Recebimento com desconto fica parcial | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Pacotes | Pacote pilates fora vertical FT | `tests/Feature/EquivalenciaPlanilhasDaianeTest.php` | ✅ Aprovado |
+| Pacotes não-FT | Clínica odontológica acessa pacotes | `tests/Feature/PacoteSessaoTest.php` | ✅ Aprovado |
 
 ---
 

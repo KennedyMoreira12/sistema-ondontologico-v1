@@ -12,7 +12,7 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 | Tabela cruzada (clientes × meses) | PGTO PILATES.xlsx: clientes em linhas, meses em colunas, valores/presença nas células | `pacotes_sessao` + `consumo_sessao` (modelo relacional: uma linha por pacato, uma linha por consumo) | Não há conversão automática da tabela cruzada para o modelo relacional. |
 | Nome textual sem vínculo | PAGAMENTOS.xlsx: NOME é texto livre (GISELE, GISELE ALVES, GISELE LVES) | `payments.paciente_id` (FK anulável) + `PacienteNomeService` (busca aproximada, não funde) | 6.163 pagamentos importados sem FK; vínculo é decisão humana, nunca automática. |
 | Contas a pagar como fornecedor | CONTAS .xlsx: cada linha é uma conta com vencimento, valor, status | `suppliers` (quem recebe) + `accounts_payable` (conta com vencimento, baixa) — tabela nova criada mas não populada com dados históricos | O sistema tem a tabela correta, mas os dados históricos de CONTAS .xlsx não foram migrados para ela. |
-| Pacotes fora da vertical FT | PGTO PILATES.xlsx: pacotes de pilates/massagem | `pacotes_sessao` existe, mas as rotas são protegidas por `vertical:fisioterapia` | Pacotes de pilates/massagem não podem ser criados/consumidos pelas rotas atuais. |
+| Pacotes fora da vertical FT | PGTO PILATES.xlsx: pacotes de pilates/massagem | `pacotes_sessao` existe, rotas liberadas para todas as verticais (middleware `vertical:fisioterapia` removido) | Pacotes de pilates/massagem podem ser criados/consumidos por clínicas odontológicas. |
 
 ---
 
@@ -23,8 +23,8 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 | DAYS360 | CONTAS .xlsx: `DAYS360(B4,A4)` | `FinanceHelper->dias360()` (base 30/360, mesma convenção do Excel) | Equivalente implementado, mas não exposto na tela. |
 | Juros sobre vencimento | Fórmulas em algumas abas (OUTUBRO 2023+) | `FinanceHelper->jurosSimples()` / `encargos()` (taxa informada pelo usuário) | Regra comercial (taxa %) não fixada; sistema não inventa juros. |
 | Multa | Fórmulas em algumas abas | `FinanceHelper->multa()` | Idem juros. |
-| Desconto à vista | Algumas abas (valor 0.0) | `accounts_receivable.desconto` (campo disponível) | Fluxo de desconto não mapeado explicitamente. |
-| "TÁ CHEGANDO!" (aniversário) | ANIVERSARIANTES.xlsx: `IF(NOW()-DATE(...)>=-2 ...)` | Não implementado | Não há relatório/alerta de aniversariantes com essa lógica. |
+| Desconto à vista | Algumas abas (valor 0.0) | `accounts_receivable.desconto` (campo disponível) + fluxo de recebimento aceita `desconto` informado pelo usuário | Fluxo de desconto implementado: usuário informa valor no recebimento; desconto acumulado na conta; status quita quando valor_pago + desconto >= valor. |
+| "TÁ CHEGANDO!" (aniversário) | ANIVERSARIANTES.xlsx: `IF(NOW()-DATE(...)>=-2 ...)` | Relatório de aniversariantes implementado (`relatorios.aniversariantes`) com sinalizador `chegando` para aniversários em até 2 dias | Relatório de consulta implementado. Alerta/notificação automática pendente de decisão da cliente (ver DECISOES_PENDENTES_CLIENTE.md). |
 | COUNTIF/SUM aninhados | DEPILAÇÃO LASER.xlsx (97 fórmulas em algumas abas) | Relatórios via controller (`RelatorioController`) | Lógica de negócio existe, mas não replicada como fórmulas de planilha. |
 | SUM por mês/coluna | PAGAMENTOS.xlsx, PGTO PILATES.xlsx, CONTAS .xlsx | `RelatorioController` (por mês, por serviço, por pacote) | Totais existem, mas com layout diferente da planilha. |
 
@@ -82,10 +82,10 @@ Este documento lista as diferenças concretas entre o que as 8 planilhas origina
 
 Com base na matriz de 137 fluxos:
 
-- **A (equivalente, implementado e testado): 60 fluxos → 43,8%**
-- B (parcial): 15 fluxos
-- C (estrutura, comportamento incompleto): 26 fluxos
-- D (não implementado): 16 fluxos
-- E (não verificável): 6 fluxos
+- **A (equivalente, implementado e testado): 72 fluxos → 52,6%**
+- B (parcial): 13 fluxos
+- C (estrutura, comportamento incompleto): 21 fluxos
+- D (não implementado): 9 fluxos
+- E (não verificável): 2 fluxos
 
-**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 77 fluxos restantes exigem correções, implementações ou decisões da cliente.
+**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 65 fluxos restantes exigem correções, implementações ou decisões da cliente.
