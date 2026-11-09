@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LJ SmartClinic - Treinamento Clínica Daiane</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c757d;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --info: #17a2b8;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #6c757d 0%, #343a40 100%);
+            --bs-navbar-color: #fff;
+        }
+        .nav-link, .btn-outline-primary {
+            color: #fff !important;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #6c757d;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #6c757d 0%, #343a40 100%);
+            border: none;
+            color: white;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #282c31 100%);
+        }
+        .sidebar-link {
+            color: #6c757d;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .sidebar-link:hover {
+            background: #e9ecef;
+            color: #343a40;
+        }
+        .footer {
+            background: #343a40;
+            color: #fff;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-people me-2"></i> LJ SmartClinic
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarnav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#dashboard"><i class="bi bi-grid me-2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-item" href="#turmas"><i class="bi bi-people me-2"></i> Turmas</a></li>
+                <li class="nav-item"><a class="nav-link" href="#atendimentos"><i class="bi bi-clipboard me-2"></i> Atendimentos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#tratamentos"><i class="bi bi-clipboard2-pulse me-2"></i> Tratamentos</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-5">
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="mb-5">
+        <div class="row">
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-number">1.362</div>
+                    <div class="stat-label">Consultas/Mês</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-number">89</div>
+                    <div class="stat-label">Pacientes Ativos</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Planos Tratamento</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Turmas -->
+    <section id="turmas" class="mb-5">
+        <h2><i class="bi bi-people me-2"></i> Módulo: Turmas</h2>
+        <p>Controle de grades semanais, presença e consumo de sessões de pacote.</p>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Grade Semanal</h5>
+                <ul class="list-group">
+                    <li class="list-group-item">Seg 08:00 - Turma Iniciantes (5/10)</li>
+                    <li class="list-group-item">Ter 10:00 - Turma Intermediária (8/10)</li>
+                    <li class="list-group-item">Qua 14:00 - Turma Avançada (3/10)</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>Status</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-custom w-100">Presença</button>
+                    <button class="btn btn-outline-primary w-100">Falta</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Atendimentos -->
+    <section id="atendimentos" class="mb-5">
+        <h2><i class="bi bi-clipboard me-2"></i> Módulo: Atendimentos</h2>
+        <p>Controle do dia a dia: presença, falta e consumo de sessão do pacote.</p>
+        <p>Status do atendimento: <span class="badge bg-success">Agendado</span> <span class="badge bg-info">Confirmado</span> <span class="badge bg-warning">Em Atendimento</span> <span class="badge bg-danger">Faltou</span></div>
+    </section>
+
+    <!-- Tratamentos -->
+    <section id="tratamentos">
+        <h2><i class="bi bi-clipboard2-pulse me-2"></i> Módulo: Tratamentos</h2>
+        <div class="alert alert-warning">
+            <strong>Funcionalidade planejada — ainda não disponível para uso.</strong>
+            <p>O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.</p>
+        </div>
+        <p>O plano de tratamento do paciente inclui: cadastro de planos, itens/procedimentos, status (rascunho/em andamento/concluído) e histórico de evolução.</p>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <p class="mb-0">LJ SmartClinic · Clínica Daiane · 2026</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
