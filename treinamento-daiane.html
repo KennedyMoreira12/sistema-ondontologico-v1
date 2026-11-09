@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LJ SmartClinic - Treinamento Clínica Daiane</title>
+    <!-- Bootstrap 5 CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fontes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6c757d;
@@ -16,165 +21,1321 @@
             --danger: #dc3545;
             --light: #f8f9fa;
             --dark: #343a40;
+            --blue-clinic: #2c3e50;
+            --orange-clinic: #e67e22;
+            --daiane-blue: #3498db;
+            --daiane-orange: #e67e22;
+            --daiane-green: #27ae60;
+            --daiane-dark: #2c3e50;
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f7fa;
             color: #333;
+            overflow-x: hidden;
         }
-        .navbar {
-            background: linear-gradient(135deg, #6c757d 0%, #343a40 100%);
-            --bs-navbar-color: #fff;
+
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .layout {
+            display: flex;
+            min-height: 100vh;
         }
-        .nav-link, .btn-outline-primary {
-            color: #fff !important;
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: #fff;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
         }
-        .card {
-            border: none;
+
+        .sidebar .brand {
+            display: flex;
+            align-items-center;
+            gap: 12px;
+            padding: 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .brand .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
         }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            transition: transform 0.3s;
+
+        .sidebar .brand .text {
+            font-weight: 600;
+            font-size: 1.1rem;
         }
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #6c757d;
-        }
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
+
+        .sidebar .brand .subtitle {
+            font-size: 0.75rem;
+            opacity: 0.7;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .btn-custom {
-            background: linear-gradient(135deg, #6c757d 0%, #343a40 100%);
+
+        .sidebar nav {
+            padding: 10px 0;
+        }
+
+        .sidebar .nav-title {
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 8px 20px 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            background: none;
             border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: left;
+            border-radius: 8px;
+            margin: 2px 4px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .nav-item.ativo {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-left: 3px solid var(--daiane-orange);
+            font-weight: 500;
+        }
+
+        .nav-item .icon {
+            width: 22px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .nav-item .badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 80;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .topbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar .logo .icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .topbar .logo .text {
+            font-weight: 600;
+            color: var(--daiane-dark);
+        }
+
+        .topbar .title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--daiane-dark);
+        }
+
+        .topbar .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .topbar .user .avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--daiane-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .topbar .user .name {
+            font-weight: 500;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--daiane-dark);
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #666;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
             color: white;
         }
-        .btn-custom:hover {
-            background: linear-gradient(135deg, #5a6268 0%, #282c31 100%);
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
         }
-        .sidebar-link {
-            color: #6c757d;
-            padding: 10px 15px;
-            margin: 5px 0;
-            border-radius: 5px;
-            transition: background 0.3s;
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
         }
-        .sidebar-link:hover {
-            background: #e9ecef;
-            color: #343a40;
+
+        /* ===== DASHBOARD ===== */
+        .dashboard {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
         }
-        .footer {
-            background: #343a40;
-            color: #fff;
-            margin-top: 40px;
+
+        .dashboard .section {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard .section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .dashboard .section h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--daiane-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dashboard .section h2 .icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: white;
+        }
+
+        /* Cards KPI */
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .kpi-card .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--daiane-blue);
+            margin-bottom: 8px;
+        }
+
+        .kpi-card .label {
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modules grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-top: 4px solid var(--daiane-blue);
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-card .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .module-card .info {
+            padding: 20px;
+        }
+
+        .module-card .info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--daiane-dark);
+            margin-bottom: 4px;
+        }
+
+        .module-card .info p {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .module-card .arrow {
+            margin-left: auto;
+            font-size: 0.6rem;
+            color: #999;
+            transition: transform 0.2s;
+        }
+
+        .module-card:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ===== SEARCH ===== */
+        .search-box {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 48px 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--daiane-blue);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+        }
+
+        .search-box input::placeholder {
+            color: #999;
+        }
+
+        .search-box .clear-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        .search-box .clear-btn:hover {
+            color: #333;
+        }
+
+        /* ===== CHECKLIST ===== */
+        .checklist {
+            margin: 16px 0;
+        }
+
+        .checklist h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--daiane-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checklist .item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid var(--daiane-blue);
+            transition: background 0.2s;
+        }
+
+        .checklist .item:hover {
+            background: #f8f9fa;
+        }
+
+        .checklist .item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: var(--daiane-blue);
+        }
+
+        .checklist .item .text {
+            flex: 1;
+            font-size: 0.85rem;
+        }
+
+        .checklist .item .progress {
+            font-size: 0.7rem;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        /* ===== PRESENTATION MODE ===== */
+        .presentation {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            z-index: 9999;
+            display: none;
+        }
+
+        .presentation.active {
+            display: flex;
+        }
+
+        .presentation .deck {
+            position: relative;
+            margin: auto;
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .presentation .slide {
+            min-height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .presentation .slide.active {
+            display: flex;
+        }
+
+        .presentation .slide h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--daiane-dark);
+            margin-bottom: 20px;
+        }
+
+        .presentation .slide p {
+            font-size: 1.2rem;
+            color: #666;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        .presentation .slide .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .presentation .nav-controls {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10000;
+            transition: background 0.2s;
+        }
+
+        .presentation .nav-controls:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .presentation .nav-prev {
+            left: 20px;
+        }
+
+        .presentation .nav-next {
+            right: 20px;
+        }
+
+        .presentation .nav-exit {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 10000;
+        }
+
+        .presentation .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+            width: 0%;
+            z-index: 9999;
+        }
+
+        /* ===== KEYBOARD SHORTCUTS ===== */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            display: none;
+            z-index: 100;
+        }
+
+        .keyboard-hint.active {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .topbar .title {
+                display: none;
+            }
+
+            .kpi-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .presentation .nav-controls {
+                display: none;
+            }
+        }
+
+        @media(max-width:480px) {
+            .sidebar {
+                width: 160px;
+            }
+
+            .kpi-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar .nav-item {
+                padding: 8px 12px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-    <div class="container">
-        <a class="navbar-brand" href="#">
-            <i class="bi bi-people me-2"></i> LJ SmartClinic
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarnav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#dashboard"><i class="bi bi-grid me-2"></i> Dashboard</a></li>
-                <li class="nav-item"><a class="nav-item" href="#turmas"><i class="bi bi-people me-2"></i> Turmas</a></li>
-                <li class="nav-item"><a class="nav-link" href="#atendimentos"><i class="bi bi-clipboard me-2"></i> Atendimentos</a></li>
-                <li class="nav-item"><a class="nav-link" href="#tratamentos"><i class="bi bi-clipboard2-pulse me-2"></i> Tratamentos</a></li>
-            </ul>
-        </div>
+    <!-- Keyboard Hint -->
+    <div class="keyboard-hint" id="keyboardHint">
+        ⌨️ Atalhos: <kbd>Ctrl</k> + <kbd>K</k> = Buscar | <kbd>Flechas</k> = Navegar | <kbd>Enter</k> = Abrir | <kbd>Esc</k> = Sair
     </div>
-</nav>
 
-<main class="container my-5">
-
-    <!-- Dashboard -->
-    <section id="dashboard" class="mb-5">
-        <div class="row">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number">1.362</div>
-                    <div class="stat-label">Consultas/Mês</div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number">89</div>
-                    <div class="stat-label">Pacientes Ativos</div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number">24</div>
-                    <div class="stat-label">Planos Tratamento</div>
-                </div>
-            </div>
+    <!-- Presentation Mode -->
+    <div class="presentation" id="presentation">
+        <div class="deck" id="slideDeck">
+            <!-- Slides serão inseridos pelo JS -->
         </div>
-    </section>
-
-    <!-- Turmas -->
-    <section id="turmas" class="mb-5">
-        <h2><i class="bi bi-people me-2"></i> Módulo: Turmas</h2>
-        <p>Controle de grades semanais, presença e consumo de sessões de pacote.</p>
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Grade Semanal</h5>
-                <ul class="list-group">
-                    <li class="list-group-item">Seg 08:00 - Turma Iniciantes (5/10)</li>
-                    <li class="list-group-item">Ter 10:00 - Turma Intermediária (8/10)</li>
-                    <li class="list-group-item">Qua 14:00 - Turma Avançada (3/10)</li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h5>Status</h5>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-custom w-100">Presença</button>
-                    <button class="btn btn-outline-primary w-100">Falta</button>
-                </div>
-            </div>
+        <div class="nav-controls prev" id="navPrev" onclick="slidePrev()" title="Anterior (←)">
+           ‹
         </div>
-    </section>
-
-    <!-- Atendimentos -->
-    <section id="atendimentos" class="mb-5">
-        <h2><i class="bi bi-clipboard me-2"></i> Módulo: Atendimentos</h2>
-        <p>Controle do dia a dia: presença, falta e consumo de sessão do pacote.</p>
-        <p>Status do atendimento: <span class="badge bg-success">Agendado</span> <span class="badge bg-info">Confirmado</span> <span class="badge bg-warning">Em Atendimento</span> <span class="badge bg-danger">Faltou</span></div>
-    </section>
-
-    <!-- Tratamentos -->
-    <section id="tratamentos">
-        <h2><i class="bi bi-clipboard2-pulse me-2"></i> Módulo: Tratamentos</h2>
-        <div class="alert alert-warning">
-            <strong>Funcionalidade planejada — ainda não disponível para uso.</strong>
-            <p>O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.</p>
+        <div class="nav-controls next" id="navNext" onclick="slideNext()" title="Próximo (→)">
+           ›
         </div>
-        <p>O plano de tratamento do paciente inclui: cadastro de planos, itens/procedimentos, status (rascunho/em andamento/concluído) e histórico de evolução.</p>
-    </section>
-
-</main>
-
-<footer class="footer">
-    <div class="container">
-        <p class="mb-0">LJ SmartClinic · Clínica Daiane · 2026</p>
+        <div class="nav-exit" onclick="fecharApresentacao()" title="Sair da apresentação (Esc)">
+            ✕
+        </div>
+        <div class="progress-bar" id="progressBar"></div>
     </div>
-</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="icon"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="text">LJ SmartClinic</div>
+                <div class="subtitle">Clínica Daiane</div>
+            </div>
+        </div>
+
+        <nav>
+            <div class="nav-title">Principal</div>
+            <button class="nav-item ativo" data-module="dashboard" onclick="navigateTo('dashboard')">
+                <span class="icon"><i class="bi bi-grid"></i></span>
+                Dashboard
+            </button>
+            <button class="nav-item" data-module="turmas" onclick="navigateTo('turmas')">
+                <span class="icon"><i class="bi bi-people"></i></span>
+                Turmas
+            </button>
+            <button class="nav-item" data-module="atendimentos" onclick="navigateTo('atendimentos')">
+                <span class="icon"><i class="bi bi-clipboard"></i></span>
+                Atendimentos
+            </button>
+            <button class="nav-item" data-module="tratamentos" onclick="navigateTo('tratamentos')">
+                <span class="icon"><i class="bi bi-clipboard2-pulse"></i></span>
+                Tratamentos
+            </button>
+            <div class="nav-title">Módulos</div>
+            <button class="nav-item" data-module="pacientes" onclick="navigateTo('pacientes')">
+                <span class="icon"><i class="bi bi-person"></i></span>
+                Pacientes
+            </button>
+            <button class="nav-item" data-module="financeiro" onclick="navigateTo('financeiro')">
+                <span class="icon"><i class="bi bi-cash-coin"></i></span>
+                Financeiro
+            </button>
+            <button class="nav-item" data-module="estoque" onclick="navigateTo('estoque')">
+                <span class="icon"><i class="bi bi-box"></i></span>
+                Estoque
+            </button>
+            <button class="nav-item" data-module="relatorios" onclick="navigateTo('relatorios')">
+                <span class="icon"><i class="bi bi-bar-chart"></i></span>
+                Relatórios
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="topbar">
+            <div class="logo">
+                <div class="icon"><i class="bi bi-people"></i></div>
+                <div class="text">LJ SmartClinic</div>
+            </div>
+            <div class="title" id="pageTitle">Dashboard</div>
+            <div class="user">
+                <div class="avatar">DA</div>
+                <div>
+                    <div class="name">Usuário Daiane</div>
+                    <div style="font-size:0.7rem;opacity:0.7">Clínica Daiane</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboardContent">
+            <!-- Dashboard content will be loaded by JS -->
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box" id="searchBox">
+            <input type="text" id="moduleSearch" placeholder="🔎 Buscar módulo (Ctrl+K)" onkeyup="handleSearch(event)">
+            <button class="clear-btn" onclick="clearSearch()" title="Limpar busca"><i class="bi bi-x"></i></button>
+        </div>
+    </main>
+
+    <!-- JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+        // ===== STATE =====
+        const state = {
+            currentModule: 'dashboard',
+            progress: {},
+            presentedSlide: 0
+        };
+
+        // ===== MODULES DATA =====
+        const modules = {
+            dashboard: {
+                title: 'Dashboard',
+                icon: 'bi-grid',
+                color: '#3498db',
+                content: `
+                    <div class="kpi-cards">
+                        <div class="kpi-card">
+                            <div class="number" data-count="1362">0</div>
+                            <div class="label">Consultas/Mês</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="number" data-count="89">0</div>
+                            <div class="label">Pacientes Ativos</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="number" data-count="24">0</div>
+                            <div class="label">Planos Tratamento</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="number" data-count="12">0</div>
+                            <div class="label">Turmas Ativas</div>
+                        </div>
+                    </div>
+                    <div class="modules-grid">
+                        <div class="module-card" onclick="openModule('turmas')">
+                            <div class="icon"><i class="bi bi-people"></i></div>
+                            <div class="info">
+                                <h3>Módulo Turmas</h3>
+                                <p>Controle de grades semanais, presença e consumo de sessões de pacote.</p>
+                            </div>
+                            <span class="arrow">→</span>
+                        </div>
+                        <div class="module-card" onclick="openModule('atendimentos')">
+                            <div class="icon"><i class="bi bi-clipboard"></i></div>
+                            <div class="info">
+                                <h3>Módulo Atendimentos</h3>
+                                <p>Controle do dia a dia: presença, falta e consumo de sessão do pacote.</p>
+                            </div>
+                            <span class="arrow">→</span>
+                        </div>
+                        <div class="module-card" onclick="openModule('tratamentos')">
+                            <div class="icon"><i class="bi bi-clipboard2-pulse"></i></div>
+                            <div class="info">
+                                <h3>Módulo Tratamentos</h3>
+                                <p>Funcionalidade planejada para vertical fisioterapia. Estrutura existe, tela em adaptação.</p>
+                            </div>
+                            <span class="arrow">→</span>
+                        </div>
+                    </div>
+                    <div class="checklist" id="dashboardChecklist">
+                        <h4>✅ Checklist Rápido</h4>
+                        <div class="item"><input type="checkbox" id="cl1"><span class="text">Verificar agenda do dia</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="cl2"><span class="text">Confirmar presença dos pacientes</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="cl3"><span class="text">Controlar consumo de pacotes</span><span class="progress">0%</span></div>
+                    </div>
+                `
+            },
+            turmas: {
+                title: 'Turmas',
+                icon: 'bi-people',
+                color: '#e67e22',
+                content: `
+                    <h3>Grade Semanal de Turmas</h3>
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <p><strong>Semana de 14/11 a 20/11</strong></p>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 8px 0;">
+                                <span style="width: 80px; display: inline-block;">Seg 08:00</span>
+                                <span>Turma Iniciantes (5/10)</span>
+                            </li>
+                            <li style="margin: 8px 0;">
+                                <span style="width: 80px; display: inline-block;">Ter 10:00</span>
+                                <span>Turma Intermediária (8/10)</span>
+                            </li>
+                            <li style="margin: 8px 0;">
+                                <span style="width: 80px; display: inline-block;">Qua 14:00</span>
+                                <span>Turma Avançada (3/10)</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="checklist">
+                        <h4>✅ Checklist Turmas</h4>
+                        <div class="item"><input type="checkbox" id="t1"><span class="text">Marcar presença Turma Seg 08:00</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="t2"><span class="text">Marcar presença Turma Ter 10:00</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="t3"><span class="text">Verificar vagas disponíveis</span><span class="progress">0%</span></div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                        Permissão necessária: <kbd>turmas.view</kbd>. Concedida via banco de dados para clinic_id=5.
+                    </p>
+                `
+            },
+            atendimentos: {
+                title: 'Atendimentos',
+                icon: 'bi-clipboard',
+                color: '#9b59b6',
+                content: `
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <p><strong>Status do Atendimento</strong></p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span class="badge bg-success">Agendado</span>
+                            <span class="badge bg-info">Confirmado</span>
+                            <span class="badge bg-warning">Em Atendimento</span>
+                            <span class="badge bg-danger">Faltou</span>
+                        </div>
+                    </div>
+                    <div class="checklist">
+                        <h4>✅ Checklist Atendimentos</h4>
+                        <div class="item"><input type="checkbox" id="a1"><span class="text">Registrar presença do paciente</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="a2"><span class="text">Consumir sessão do pacote</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="a3"><span class="text">Verificar status do pacote</span><span class="progress">0%</span></div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                        Atenção: Tela pode ficar vazia sem agendamentos - comportamento normal. Permissão: <kbd>agenda.presenca</kbd>
+                    </p>
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h5>⚠️ Observação Importante</h5>
+                        <p>Se a tela de atendimentos aparecer vazia, verifique se há agendamentos para a data selecionada. O sistema retorna 200 OK mesmo sem consultas agendadas.</p>
+                    </div>
+                `
+            },
+            tratamentos: {
+                title: 'Tratamentos',
+                icon: 'bi-clipboard2-pulse',
+                color: '#9b59b6',
+                content: `
+                    <div class="alert alert-warning">
+                        <strong>Funcionalidade planejada — ainda não disponível para uso.</strong>
+                    </div>
+                    <p>O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.</p>
+                    <div style="margin-top: 20px;">
+                        <h5>✅ O que está disponível:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li>Cadastro de planos de tratamento</li>
+                            <li>Adicionar itens/procedimentos ao plano</li>
+                            <li>Definir status (rascunho/em andamento/concluído)</li>
+                            <li>Registrar histórico de evolução</li>
+                        </ul>
+                        <h5>🟸 O que está planejado:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li>Tela de interface adaptada para fisioterapia</li>
+                            <li>Novos procedimentos específicos de fisioterapia</li>
+                            <li>Relatórios específicos de evolução</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                        Observação: Para odontologia (clínicas 1 e 6), o módulo tem acesso completo. Para fisioterapia (clinic_id=5), comportamento por catálogo: FISIOTERAPIA => PLANEJADO.
+                    </p>
+                `
+            },
+            pacientes: {
+                title: 'Pacientes',
+                icon: 'bi-person',
+                color: '#9b59b6',
+                content: `
+                    <div class="checklist">
+                        <h4>✅ Checklist Pacientes</h4>
+                        <div class="item"><input type="checkbox" id="p1"><span class="text">Buscar paciente pelo nome</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="p2"><span class="text">Visualizar ficha do paciente</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="p3"><span class="text">Cadastro de novo paciente</span><span class="progress">0%</span></div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                        Use a busca (Ctrl+K) para encontrar pacientes rapidamente.
+                    </p>
+                `
+            },
+            financeiro: {
+                title: 'Financeiro',
+                icon: 'bi-cash-coin',
+                color: '#9b59b6',
+                content: `
+                    <div class="checklist">
+                        <h4>✅ Checklist Financeiro</h4>
+                        <div class="item"><input type="checkbox" id="f1"><span class="text">Registrar recebimento</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="f2"><span class="text">Verificar contas a receber</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="f3"><span class="text">Emitir recibo</span><span class="progress">0%</span></div>
+                    </div>
+                `
+            },
+            estoque: {
+                title: 'Estoque',
+                icon: 'bi-box',
+                color: '#9b59b6',
+                content: `
+                    <div class="checklist">
+                        <h4>✅ Checklist Estoque</h4>
+                        <div class="item"><input type="checkbox" id="e1"><span class="text">Registrar entrada de produto</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="e2"><span class="text">Registrar saída de produto</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="e3"><span class="text">Verificar estoque baixo</span><span class="progress">0%</span></div>
+                    </div>
+                `
+            },
+            relatorios: {
+                title: 'Relatórios',
+                icon: 'bi-bar-chart',
+                color: '#9b59b6',
+                content: `
+                    <div class="checklist">
+                        <h4>✅ Checklist Relatórios</h4>
+                        <div class="item"><input type="checkbox" id="r1"><span class="text">Gerar relatório mensal</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="r2"><span class="text">Exportar em PDF/Excel</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="r3"><span class="text">Comparar com período anterior</span><span class="progress">0%</span></div>
+                    </div>
+                `
+            }
+        };
+
+        // ===== INITIALIZE =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check localStorage progress
+            const storedProgress = localStorage.getItem('daiane_training_progress');
+            if (storedProgress) {
+                state.progress = JSON.parse(storedProgress);
+                updateProgressUI();
+            }
+
+            // Setup keyboard shortcuts
+            setupKeyboardShortcuts();
+
+            // Initial navigation
+            navigateTo('dashboard');
+
+            // Update progress percentages
+            updateProgressPercentages();
+        });
+
+        // ===== NAVIGATION =====
+        function navigateTo(moduleName) {
+            state.currentModule = moduleName;
+            state.progress[moduleName] = state.progress[moduleName] || 0;
+
+            // Update sidebar
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('ativo', item.dataset.module === moduleName);
+            });
+
+            // Update main content
+            const module = modules[moduleName];
+            if (module) {
+                document.getElementById('dashboardContent').innerHTML = module.content;
+                document.getElementById('pageTitle').textContent = module.title;
+
+                // Update progress UI
+                updateProgressUI();
+
+                // Update URL hash
+                window.location.hash = moduleName;
+            }
+
+            // Hide keyboard hint after navigation
+            hideKeyboardHint();
+        }
+
+        // ===== SEARCH =====
+        function handleSearch(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const searchBox = document.getElementById('searchBox');
+
+            // Animate search
+            searchBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.15)';
+
+            // Simple highlight effect
+            document.querySelectorAll('.module-card').forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                if (title.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // If search is empty, show all
+            if (event.target.value === '') {
+                setTimeout(() => {
+                    searchBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.15)';
+                }, 300);
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('moduleSearch').value = '';
+            document.getElementById('searchBox').style.boxShadow = '';
+            // Show all modules again
+            document.querySelectorAll('.module-card').forEach(card => {
+                card.style.display = 'block';
+            });
+        }
+
+        // ===== PRESENTATION MODE =====
+        function abrirApresentacao() {
+            const module = modules[state.currentModule];
+            if (!module) return;
+
+            const slides = generateSlides(module.content);
+            document.getElementById('slideDeck').innerHTML = slides;
+            document.getElementById('presentation').classList.add('active');
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Show first slide
+            showSlide(0);
+
+            // Hide sidebar and main content
+            document.getElementById('sidebar').style.display = 'none';
+            document.querySelector('.main').style.display = 'none';
+
+            // Show keyboard hint for presentation
+            showKeyboardHint();
+        }
+
+        function generateSlides(content) {
+            return `
+                <div class="slide active" id="slide0">
+                    <div style="text-align: center; max-width: 600px;">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
+                            <i class="bi"></i>
+                        </div>
+                        <h1>${state.currentModule === 'dashboard' ? 'LJ SmartClinic' : state.currentModule}</h1>
+                        <p style="color: #666; margin-bottom: 30px;">${getSlideTitle()}</p>
+                        <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
+                    </div>
+                </div>
+                <div class="slide" id="slide1">
+                    <div style="text-align: center; max-width: 600px;">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
+                            <i class="bi"></i>
+                        </div>
+                        <h1>${getSlideTitle()}</h1>
+                        <p style="color: #666; margin-bottom: 30px;">${content.substring(0, 200)}...</p>
+                        <div style="display: flex; justify-content: center; gap: 20px;">
+                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
+                            <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide" id="slide2">
+                    <div style="text-align: center; max-width: 600px;">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
+                            <i class="bi"></i>
+                        </div>
+                        <h1>${getSlideTitle()}</h1>
+                        <p style="color: #666; margin-bottom: 30px;">${content.substring(200, 400)}...</p>
+                        <div style="display: flex; justify-content: center; gap: 20px;">
+                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
+                            <button class="btn-primary" onclick="fecharApresentacao()">Sair ✕</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getSlideTitle() {
+            const module = modules[state.currentModule];
+            return module ? module.title : 'Treinamento';
+        }
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.presentation .slide');
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = ((index + 1) / slides.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            state.presentedSlide = index;
+        }
+
+        function proximoSlide() {
+            const slides = document.querySelectorAll('.presentation .slide');
+            const currentIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
+            if (currentIndex < slides.length - 1) {
+                showSlide(currentIndex + 1);
+            }
+        }
+
+        function anteriorSlide() {
+            const slides = document.querySelectorAll('.presentation .slide');
+            const currentIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
+            if (currentIndex > 0) {
+                showSlide(currentIndex - 1);
+            }
+        }
+
+        function fecharApresentacao() {
+            document.getElementById('presentation').classList.remove('active');
+            document.getElementById('sidebar').style.display = 'block';
+            document.querySelector('.main').style.display = 'block';
+            document.getElementById('keyboardHint').style.display = 'block';
+        }
+
+        // ===== PROGRESS TRACKING =====
+        function updateProgress(moduleName, percent) {
+            state.progress[moduleName] = percent;
+            localStorage.setItem('daiane_training_progress', JSON.stringify(state.progress));
+            updateProgressUI();
+        }
+
+        function updateProgressUI() {
+            // Update checklist progress
+            document.querySelectorAll('.checklist .progress').forEach(bar => {
+                const itemText = bar.parentElement.querySelector('.text').textContent;
+                const module = state.currentModule;
+                const progress = state.progress[module] || 0;
+                bar.textContent = `${Math.round(progress)}%`;
+                
+                // Update visual
+                const item = bar.parentElement;
+                if (progress >= 100) {
+                    item.style.borderLeftColor = '#27ae60';
+                    item.querySelector('input').checked = true;
+                } else {
+                    item.style.borderLeftColor = '#3498db';
+                }
+            });
+        }
+
+        function updateProgressPercentages() {
+            // Set initial percentages based on module
+            const initialPercentages = {
+                dashboard: 25,
+                turmas: 10,
+                atendimentos: 15,
+                tratamentos: 5,
+                pacientes: 10,
+                financeiro: 10,
+                estoque: 10,
+                relatorios: 10
+            };
+
+            const percent = initialPercentages[state.currentModule] || 0;
+            updateProgress(state.currentModule, percent);
+        }
+
+        // ===== CHECKLIST =====
+        function toggleChecklistItem(itemElement) {
+            const isChecked = itemElement.querySelector('input').checked;
+            const progressBar = itemElement.querySelector('.progress');
+            const newProgress = isChecked ? 100 : 0;
+            progressBar.textContent = `${newProgress}%`;
+            
+            // Update progress state
+            updateProgress(state.currentModule, newProgress);
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(event) {
+                // Ctrl+K to focus search
+                if (event.ctrlKey && event.key === 'K') {
+                    event.preventDefault();
+                    document.getElementById('moduleSearch').focus();
+                    showKeyboardHint();
+                }
+
+                // Arrow keys for presentation navigation
+                if (document.getElementById('presentation').classList.contains('active')) {
+                    if (event.key === 'ArrowRight' || event.key === 'Enter') {
+                        event.preventDefault();
+                        proximoSlide();
+                    }
+                    if (event.key === 'ArrowLeft') {
+                        event.preventDefault();
+                        anteriorSlide();
+                    }
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        fecharApresentacao();
+                    }
+                }
+
+                // Escape to close modals/hide hint
+                if (event.key === 'Escape') {
+                    hideKeyboardHint();
+                    if (document.getElementById('presentation').classList.contains('active')) {
+                        fecharApresentacao();
+                    }
+                }
+            });
+        }
+
+        function showKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.style.display = 'block';
+            // Auto-hide after 5 seconds
+            setTimeout(hideKeyboardHint, 5000);
+        }
+
+        function hideKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.style.display = 'none';
+        }
+
+        // ===== HASH NAVIGATION =====
+        function handleHashNavigation() {
+            const hash = window.location.hash.substring(1);
+            if (hash && modules[hash]) {
+                navigateTo(hash);
+            }
+        }
+
+        // Initialize hash navigation
+        window.addEventListener('hashchange', handleHashNavigation);
+        handleHashNavigation();
+
+        // ===== EXPORT FUNCTIONS for testing =====
+        window.openModule = openModule;
+        window.navigateTo = navigateTo;
+        window.abrirApresentacao = abrirApresentacao;
+        window.fecharApresentacao = fecharApresentacao;
+        window.proximoSlide = proximoSlide;
+        window.anteriorSlide = anteriorSlide;
+        window.toggleChecklistItem = toggleChecklistItem;
+        window.updateProgress = updateProgress;
+    </script>
 </body>
 </html>
