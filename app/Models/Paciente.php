@@ -6,6 +6,7 @@ use App\Models\Central\Clinic;
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -81,6 +82,24 @@ class Paciente extends TenantModel
     public function pacotesSessao(): HasMany
     {
         return $this->hasMany(PacoteSessao::class);
+    }
+
+    /**
+     * Turmas de Pilates das quais o paciente é aluno.
+     */
+    public function turmas(): BelongsToMany
+    {
+        return $this->belongsToMany(Turma::class, 'turma_pacientes')
+            ->withPivot(['data_inicio', 'data_fim', 'is_active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Presenças do paciente nas turmas.
+     */
+    public function presencasTurmas(): HasMany
+    {
+        return $this->hasMany(TurmaPresenca::class);
     }
 
     public function planosTratamento(): HasMany

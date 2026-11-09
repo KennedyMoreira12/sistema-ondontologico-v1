@@ -53,9 +53,9 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('financeiro.contas-pagar.index') }}" class="row g-2 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="busca" class="form-label">Buscar</label>
-                    <input type="search" id="busca" name="busca" class="form-control" value="{{ request('busca') }}" placeholder="Conta, descrição ou fornecedor...">
+                    <input type="search" id="busca" name="busca" class="form-control" value="{{ request('busca') }}" placeholder="Conta, descrição, fornecedor ou profissional...">
                 </div>
                 <div class="col-md-2">
                     <label for="status" class="form-label">Status</label>
@@ -67,7 +67,7 @@
                         <option value="cancelado" @selected(request('status') === 'cancelado')>Cancelado</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="supplier_id" class="form-label">Fornecedor</label>
                     <select id="supplier_id" name="supplier_id" class="form-select">
                         <option value="">Todos</option>
@@ -76,10 +76,57 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label for="professional_id" class="form-label">Profissional externo</label>
+                    <select id="professional_id" name="professional_id" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach ($profissionais as $profissional)
+                            <option value="{{ $profissional->id }}" @selected(request('professional_id') == $profissional->id)>{{ $profissional->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="mes" class="form-label">Mês do painel</label>
+                    <input type="month" id="mes" name="mes" class="form-control" value="{{ $mesReferencia->format('Y-m') }}">
+                </div>
                 <div class="col-md-1 d-grid">
                     <button class="btn btn-primary"><i class="bi bi-search"></i></button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold"><i class="bi bi-person-badge me-2"></i>Pago a profissionais externos — {{ $mesReferencia->translatedFormat('F \d\e Y') }}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Profissional</th>
+                        <th class="text-center">Baixas</th>
+                        <th class="text-end">Principal</th>
+                        <th class="text-end">Juros</th>
+                        <th class="text-end">Multa</th>
+                        <th class="text-end">Total desembolsado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($totaisPorProfissional as $total)
+                        <tr>
+                            <td>{{ $nomesProfissionais[$total->professional_id] ?? 'Profissional #'.$total->professional_id }}</td>
+                            <td class="text-center">{{ (int) $total->baixas }}</td>
+                            <td class="text-end">R$ {{ number_format((float) $total->total_principal, 2, ',', '.') }}</td>
+                            <td class="text-end">R$ {{ number_format((float) $total->total_juros, 2, ',', '.') }}</td>
+                            <td class="text-end">R$ {{ number_format((float) $total->total_multa, 2, ',', '.') }}</td>
+                            <td class="text-end fw-semibold">R$ {{ number_format((float) $total->total_principal + (float) $total->total_juros + (float) $total->total_multa, 2, ',', '.') }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="text-center text-muted py-3">Nenhuma baixa para profissional externo neste mês.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -89,7 +136,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Conta</th>
-                        <th>Fornecedor</th>
+                        <th>Fornecedor / Profissional</th>
                         <th>Vencimento</th>
                         <th class="text-end">Valor</th>
                         <th class="text-end">Pago</th>
@@ -109,7 +156,12 @@
                                 <div class="fw-semibold">{{ $conta->nome_conta }}</div>
                                 <div class="text-muted small">{{ $conta->categoria?->nome ?? ucfirst($conta->tipo) }}</div>
                             </td>
-                            <td>{{ $conta->supplier?->nome ?? '—' }}</td>
+                            <td>
+                                <div>{{ $conta->supplier?->nome ?? '—' }}</div>
+                                @if ($conta->professional)
+                                    <div class="text-muted small">{{ $conta->professional->nome }}@if ($conta->tipo_remuneracao) · {{ ucfirst(str_replace('_', ' ', $conta->tipo_remuneracao)) }}@endif</div>
+                                @endif
+                            </td>
                             <td>{{ $conta->data_vencimento?->format('d/m/Y') ?? '—' }}</td>
                             <td class="text-end">R$ {{ number_format((float) $conta->valor, 2, ',', '.') }}</td>
                             <td class="text-end">R$ {{ number_format($conta->valor_pago, 2, ',', '.') }}</td>

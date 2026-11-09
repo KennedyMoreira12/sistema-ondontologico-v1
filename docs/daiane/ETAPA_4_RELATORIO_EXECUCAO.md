@@ -76,7 +76,7 @@ Os testes cobrem cadastro e baixa de conta a pagar, baixa acima do saldo, idempo
 ## 4.6 Pendências e Validações Humanas
 - **Pendência (I):** juros, multa e retenção não foram confirmados pela cliente. Categorias são cadastráveis e os padrões de juros/multa são 0.
 - **Pendência (II):** pagamentos importados sem paciente continuam exigindo revisão humana; não há merge automático de nomes.
-- **Pendência (III):** a diferença entre 6.174 lançamentos extraídos e 6.163 pagamentos gravados depende do banco original e continua aberta.
+- **Pendência (III) — resolvida:** a diferença entre 6.174 lançamentos extraídos e 6.163 pagamentos gravados fecha em 6.174 − 14 duplicatas internas + 3 pagamentos pré-existentes = 6.163. Nenhum valor foi alterado.
 - **Validação humana:** a Daiane precisa conferir os totais de contas a pagar e recebimentos contra as planilhas.
 
 ## 4.7 Status

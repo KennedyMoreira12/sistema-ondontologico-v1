@@ -18,16 +18,20 @@ Os volumes atuais confirmados na produção:
 | Pagamentos | 6.163 | Pacotes de sessões | 369 |
 | Consultas/Atendimentos | 1.362 | Contas a pagar | — |
 
-### Investigação 6.174 × 6.163
-A diferença entre os 6.174 lançamentos extraídos e os 6.163 pagamentos gravados é de 11 registros. A conferência foi feita em leitura e **não fechou** a origem exata dessas 11 linhas: isso exige o arquivo/banco original e uma conferência linha a linha que não pode ser feita nesta máquina.
+### Investigação 6.174 × 6.163 (fechada)
+A diferença de 11 registros foi explicada sem alterar dados:
 
-O que se pode afirmar com segurança:
+- **14 duplicatas internas** na própria planilha, idênticas em (`data`, `valor`, `observações`), colapsadas pela idempotência do importador. A reextração de `PAGAMENTOS.xlsx` confirmou 6.174 linhas válidas, **6.160 chaves distintas** e 14 grupos repetidos.
+- **3 pagamentos pré-existentes** na base de 572 que não têm linha correspondente na planilha (569 casaram; 3 sobraram).
+- Conta exata: **6.174 − 14 + 3 = 6.163**; importação: 572 + 5.591 novos = 6.163.
+
+O que se mantém:
 
 - Nenhuma igualdade foi forçada: os 6.163 pagamentos existentes permanecem intactos e continuam somando no caixa.
 - O sistema não apaga nem sobrescreve lançamento antigo para “fazer o número bater”.
 - A revisão de vínculo em `financeiro/pagamentos` mostra os lançamentos sem paciente; qualquer associação é manual.
 
-A explicação definitiva das 11 linhas continua como pendência de conferência com o banco original.
+A identificação individual dos 3 pagamentos pré-existentes depende do banco original (MySQL local indisponível), mas a contagem está registrada em `comparacao.txt`.
 
 ## 2.3 Comandos Utilizados
 

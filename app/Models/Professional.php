@@ -18,13 +18,17 @@ class Professional extends TenantModel
      *
      * `dentista` continua existindo e continua sendo o padrão: a clínica
      * odontológica não muda por causa da vertical de fisioterapia. O
-     * `fisioterapeuta` é um tipo novo, e não uma renomeação.
+     * `fisioterapeuta` é um tipo novo, e não uma renomeação. `nutricionista`
+     * existe porque a planilha PROFISSIONAIS EXTERNOS registra a nutricionista
+     * por diária; o tipo identifica quem é, sem fixar valor nem forma de
+     * remuneração.
      *
      * @var list<string>
      */
     public const TIPOS = [
         'dentista',
         'fisioterapeuta',
+        'nutricionista',
         'auxiliar',
         'recepcionista',
         'outro',

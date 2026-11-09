@@ -222,16 +222,18 @@ class PacoteSessaoTest extends TestCase
         ]);
     }
 
-    public function test_clinica_odontologica_nao_abre_os_pacotes(): void
+    public function test_clinica_odontologica_abre_os_pacotes(): void
     {
         $clinica = $this->clinicaOdontologica();
         $user = $this->usuarioComPermissao($clinica, 'pacotes.view', 'pacotes.create');
 
         $paciente = Paciente::create(['nome' => 'Paciente Odontologia']);
 
+        // Pacotes de sessões estão disponíveis para todas as verticais
+        // (pilates, massagem, odontologia, fisioterapia), não apenas fisioterapia.
         $this->actingAs($user)
             ->get(route('pacientes.pacotes.index', $paciente))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     /**

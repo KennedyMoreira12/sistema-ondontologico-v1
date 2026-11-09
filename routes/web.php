@@ -34,6 +34,7 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialSettingController;
 use App\Http\Controllers\TratamentoPlanoController;
+use App\Http\Controllers\TurmaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardController::class)
@@ -85,6 +86,23 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('atendimentos')->name('atendimentos.')->group(function () {
         Route::get('/', [AtendimentoController::class, 'index'])->name('index');
         Route::post('/{consulta}/consumir', [AtendimentoController::class, 'consumir'])->name('consumir');
+    });
+
+    /*
+     * Turmas de Pilates: a grade semanal e o calendário da planilha PILATES,
+     * com lista de presença por aluno e por data. As permissões são as mesmas
+     * dos pacotes de sessões (`pacotes.*`), já existentes em todos os bancos.
+     */
+    Route::prefix('turmas')->name('turmas.')->group(function () {
+        Route::get('/', [TurmaController::class, 'index'])->name('index');
+        Route::get('/create', [TurmaController::class, 'create'])->name('create');
+        Route::post('/', [TurmaController::class, 'store'])->name('store');
+        Route::get('/{turma}', [TurmaController::class, 'show'])->name('show');
+        Route::put('/{turma}', [TurmaController::class, 'update'])->name('update');
+        Route::delete('/{turma}', [TurmaController::class, 'destroy'])->name('destroy');
+        Route::post('/{turma}/pacientes', [TurmaController::class, 'adicionarPaciente'])->name('pacientes.store');
+        Route::delete('/{turma}/pacientes/{paciente}', [TurmaController::class, 'removerPaciente'])->name('pacientes.destroy');
+        Route::post('/{turma}/presencas', [TurmaController::class, 'registrarPresenca'])->name('presencas.store');
     });
 
     Route::prefix('financeiro')->name('financeiro.')->group(function () {
@@ -184,6 +202,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/receitas', [RelatorioController::class, 'receitasMensais'])->name('receitas');
         Route::get('/presenca-faltas', [RelatorioController::class, 'presencaFaltas'])->name('presenca-faltas');
         Route::get('/pacotes', [RelatorioController::class, 'pacotesSessoes'])->name('pacotes');
+        Route::get('/aniversariantes', [RelatorioController::class, 'aniversariantes'])->name('aniversariantes');
         Route::get('/exportar/{tipo}', [RelatorioController::class, 'exportarCsv'])->name('exportar');
     });
 
@@ -257,7 +276,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
          * Pacotes de sessões: o consumo é transacional e nunca deixa o saldo
          * negativo, mesmo com duas atendentes marcando sessão ao mesmo tempo.
          */
-        Route::prefix('{paciente}/pacotes')->name('pacotes.')->middleware('vertical:fisioterapia')->group(function () {
+        Route::prefix('{paciente}/pacotes')->name('pacotes.')->group(function () {
             Route::get('/', [PacoteSessaoController::class, 'index'])->name('index');
             Route::get('/create', [PacoteSessaoController::class, 'create'])->name('create');
             Route::post('/', [PacoteSessaoController::class, 'store'])->name('store');

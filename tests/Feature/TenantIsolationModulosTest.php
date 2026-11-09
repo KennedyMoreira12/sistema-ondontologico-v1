@@ -14,6 +14,7 @@ use App\Models\Permission;
 use App\Models\Professional;
 use App\Models\Role;
 use App\Models\Room;
+use App\Models\Turma;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesTenants;
 use Tests\TestCase;
@@ -127,6 +128,61 @@ class TenantIsolationModulosTest extends TestCase
     }
 
     /**
+     * AGD-05/PIL-05 — as turmas de Pilates também são isoladas por clínica. A
+     * grade de uma clínica não mostra a turma da outra, e o ID da turma de fora
+     * não é alcançável pela URL (404).
+     */
+    public function test_turmas_de_pilates_nao_vazam_entre_clinicas(): void
+    {
+        ['clinic' => $a] = $this->criarClinica('Clínica A', 'a@clinica.test');
+        $this->conectar($a);
+        $this->semearClinica($a, 'A');
+        $userA = $this->usuarioComPermissoes($a, 'admin.a@clinica.test');
+
+        Turma::create([
+            'nome' => 'Turma A',
+            'servico' => 'PILATES',
+            'dia_semana' => 1,
+            'hora_inicio' => '10:00',
+            'is_active' => true,
+        ]);
+
+        ['clinic' => $b] = $this->criarClinica('Clínica B', 'b@clinica.test');
+        $this->conectar($b);
+        $this->semearClinica($b, 'B');
+
+        Turma::create([
+            'nome' => 'Turma B',
+            'servico' => 'PILATES',
+            'dia_semana' => 2,
+            'hora_inicio' => '09:00',
+            'is_active' => true,
+        ]);
+
+        // Segunda turma da clínica B: recebe um ID que não existe na clínica A.
+        $turmaBExclusiva = Turma::create([
+            'nome' => 'Turma B exclusiva',
+            'servico' => 'PILATES',
+            'dia_semana' => 3,
+            'hora_inicio' => '08:00',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($userA);
+
+        $this->get(route('turmas.index'))
+            ->assertOk()
+            ->assertSee('Turma A')
+            ->assertDontSee('Turma B');
+
+        $this->get(route('turmas.show', $turmaBExclusiva))->assertNotFound();
+
+        // A turma da clínica B continua intacta no banco dela.
+        $this->conectar($b);
+        $this->assertSame('Turma B exclusiva', Turma::findOrFail($turmaBExclusiva->id)->nome);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function semearClinica(Clinic $clinic, string $sufixo): array
@@ -225,7 +281,7 @@ class TenantIsolationModulosTest extends TestCase
 
         foreach ([
             'agenda.view', 'agenda.update', 'financeiro.view', 'financeiro.receive',
-            'relatorios.view', 'pacientes.view',
+            'relatorios.view', 'pacientes.view', 'pacotes.view',
         ] as $permissao) {
             [$module, $action] = explode('.', $permissao, 2);
 

@@ -131,6 +131,36 @@
         </div>
     </div>
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Por área</div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Área</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Presenças</th>
+                        <th class="text-end">Faltas</th>
+                        <th class="text-end">Taxa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($porArea as $linha)
+                        <tr>
+                            <td>{{ $linha['area'] }}</td>
+                            <td class="text-end">{{ $linha['total'] }}</td>
+                            <td class="text-end text-success">{{ $linha['atendidos'] }}</td>
+                            <td class="text-end text-danger">{{ $linha['faltas'] }}</td>
+                            <td class="text-end">{{ number_format($linha['taxa_faltas'], 1, ',', '.') }}%</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center text-muted py-3">Nenhum atendimento no período.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-header bg-white fw-semibold">Atendimentos do período</div>
         <div class="table-responsive">

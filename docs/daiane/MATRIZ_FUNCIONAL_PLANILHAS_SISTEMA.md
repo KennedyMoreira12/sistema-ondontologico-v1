@@ -333,6 +333,8 @@
 | Profissionais externos | PROFISSIONAIS EXTERNOS.xlsx | **B** | Apenas nutricionista APOENA; outros não mapeados |
 
 **Total de fluxos: 137** (em todas as abas e módulos)
+
+> **Correção posterior:** a recontagem por script confirmou **127 fluxos** e 127 IDs únicos. O número 137 era erro de documentação. Os números atuais estão em `MATRIZ_137_FLUXOS.md` (123 A / 3 D / 1 E = 96,85% A).
 - **A (implementado e funcional): ~45 fluxos**
 - **B (parcial): ~40 fluxos**
 - **C (estrutura incompleta): ~30 fluxos**

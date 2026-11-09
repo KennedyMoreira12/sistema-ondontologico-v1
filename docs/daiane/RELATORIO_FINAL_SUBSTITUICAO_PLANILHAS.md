@@ -130,7 +130,7 @@ O `DemoDaianeSeeder` cria 6 pacientes, 19 atendimentos, 3 pagamentos (um deles i
 4. **NFSe:** tabelas e serviços existem, mas o SendNF segue mock e nenhum documento fiscal real foi emitido.
 
 ### Dependem do banco original
-5. **6.174 lançamentos extraídos × 6.163 pagamentos gravados:** a diferença de 11 não foi explicada sem acesso ao banco original. Nenhuma igualdade foi forçada e nenhum lançamento foi apagado.
+5. **6.174 lançamentos extraídos × 6.163 pagamentos gravados — explicado:** 14 duplicatas internas em (data, valor, observações) colapsadas pela idempotência + 3 pagamentos pré-existentes fora da planilha = 6.174 − 14 + 3 = 6.163. Nenhuma igualdade foi forçada e nenhum lançamento foi apagado. A identificação individual das 3 linhas pré-existentes depende do banco original.
 6. **Conferência dos relatórios contra as planilhas:** a Daiane precisa validar os totais de receitas, presença/faltas e pacotes.
 
 ### Validação humana
@@ -170,6 +170,6 @@ Não existe comando de rollback de migrations por tenant neste projeto. O rollba
 
 O sistema cobre os fluxos que a Daiane mantinha em planilhas: agenda por dia/semana/mês, presença e falta, consumo de pacotes, histórico do paciente, pagamentos com revisão de vínculo, contas a pagar, fornecedores, fluxo de caixa e relatórios com exportação CSV. A implementação está coberta por testes e foi exercitada em ambiente demo.
 
-A substituição definitiva depende de três coisas: a cliente confirmar os números e as regras comerciais pendentes, o banco original explicar a diferença de 11 lançamentos e a autorização humana para publicar em produção.
+A substituição definitiva depende de três coisas: a cliente confirmar os números e as regras comerciais pendentes, a identificação individual dos 3 pagamentos pré-existentes que explicam a diferença de 11 lançamentos (já fechada aritmeticamente) e a autorização humana para publicar em produção.
 
 **Status geral:** implementado ✅ | testes ✅ | falhas corrigidas ✅ | pendências documentadas ✅ | publicação pendente de autorização humana.

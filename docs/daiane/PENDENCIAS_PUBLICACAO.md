@@ -24,7 +24,7 @@ Estas pendências dependem da cliente Daiane e não podem ser decididas pela equ
 
 | # | Pendência | Por que depende do banco original / da cliente |
 |---|---|---|
-| 5 | **6.174 lançamentos × 6.163 pagamentos** (diferença de 11) | O banco MySQL local estava indisponível; a diferença não pôde ser explicada sem acesso somente leitura ao banco original. Nenhum lançamento foi apagado nem igualdade forçada. |
+| 5 | **6.174 lançamentos × 6.163 pagamentos** (diferença de 11) — **resolvida** | A diferença fecha aritmeticamente: 14 duplicatas internas em (data, valor, observações) colapsadas pela idempotência + 3 pagamentos pré-existentes fora da planilha = 6.174 − 14 + 3 = 6.163. Reextração confirmou 6.174 linhas / 6.160 chaves distintas. Nenhum lançamento foi apagado ou forçado. |
 | 6 | **Conferência de relatórios contra as planilhas** | Totais de receitas, presença/faltas e pacotes precisam ser validados pela Daiane contra suas planilhas originais. |
 | 7 | **Aplicação do protocolo de nove tarefas** (`ETAPA_6_VALIDACAO.md`) | Requer sessão agendada com a cliente e preenchimento do formulário de validação. |
 
@@ -32,7 +32,7 @@ Estas pendências dependem da cliente Daiane e não podem ser decididas pela equ
 
 ## 3. Riscos se publicado sem resolver as pendências
 
-- Diferença de 11 lançamentos não explicada pode gerar conferência manual longa com a Daiane.
+- A diferença de 11 lançamentos está explicada (14 duplicatas internas + 3 pagamentos pré-existentes), mas a conferência visual das 3 linhas pré-existentes ainda depende do banco original.
 - Regras de reposição de faltas e juros/multa não confirmadas podem exigir retrabalho nas telas de consumo e contas a pagar.
 - Pagamentos importados sem vínculo continuarão aparecendo como "sem dono" até revisão humana.
 - Volumes reais (767 pacientes, 1.362 atendimentos, 6.163 pagamentos, 94 fornecedores, 369 pacotes) não foram validados em carga no SQLite demo.

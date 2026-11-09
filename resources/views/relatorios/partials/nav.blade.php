@@ -20,4 +20,9 @@
             <i class="bi bi-box-seam me-1"></i>Pacotes e sessões
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('relatorios.aniversariantes') ? 'active' : '' }}" href="{{ route('relatorios.aniversariantes') }}">
+            <i class="bi bi-cake me-1"></i>Aniversariantes
+        </a>
+    </li>
 </ul>

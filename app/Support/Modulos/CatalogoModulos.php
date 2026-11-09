@@ -146,6 +146,20 @@ class CatalogoModulos
             ],
             'descricao' => 'Recepção do dia: presença, falta e consumo de sessão do pacote.',
         ],
+        'turmas' => [
+            'titulo' => 'Turmas',
+            'icone' => 'bi-people-fill',
+            'grupo' => self::GRUPO_PRINCIPAL,
+            'tipo' => 'lista',
+            'rota' => 'turmas.index',
+            'padrao' => 'turmas.*',
+            'vertical' => self::COMUM,
+            'situacao' => [
+                self::ODONTOLOGIA => self::DISPONIVEL,
+                self::FISIOTERAPIA => self::DISPONIVEL,
+            ],
+            'descricao' => 'Turmas de Pilates com grade semanal, calendário e lista de presença.',
+        ],
         'prontuario' => [
             'titulo' => 'Prontuário',
             'icone' => 'bi-journal-medical',
