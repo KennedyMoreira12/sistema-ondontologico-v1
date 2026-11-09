@@ -31,6 +31,26 @@
         @error('supplier_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-4">
+        <label for="professional_id" class="form-label">Profissional externo</label>
+        <select id="professional_id" name="professional_id" class="form-select @error('professional_id') is-invalid @enderror">
+            <option value="">Sem profissional</option>
+            @foreach ($profissionais as $profissional)
+                <option value="{{ $profissional->id }}" @selected(old('professional_id', $conta?->professional_id) == $profissional->id)>{{ $profissional->nome }}</option>
+            @endforeach
+        </select>
+        @error('professional_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-4">
+        <label for="tipo_remuneracao" class="form-label">Remuneração</label>
+        <select id="tipo_remuneracao" name="tipo_remuneracao" class="form-select @error('tipo_remuneracao') is-invalid @enderror">
+            <option value="">Não informada</option>
+            @foreach (\App\Models\AccountsPayable::TIPOS_REMUNERACAO as $remuneracao)
+                <option value="{{ $remuneracao }}" @selected(old('tipo_remuneracao', $conta?->tipo_remuneracao) === $remuneracao)>{{ ucfirst(str_replace('_', ' ', $remuneracao)) }}</option>
+            @endforeach
+        </select>
+        @error('tipo_remuneracao')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="col-md-4">
         <label for="financeiro_categoria_id" class="form-label">Categoria</label>
         <select id="financeiro_categoria_id" name="financeiro_categoria_id" class="form-select @error('financeiro_categoria_id') is-invalid @enderror">
             <option value="">Sem categoria</option>

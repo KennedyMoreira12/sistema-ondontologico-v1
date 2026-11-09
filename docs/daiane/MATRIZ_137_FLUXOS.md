@@ -30,10 +30,10 @@
 | 10. Contas a receber | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | 11. Pagamentos e recebimentos | 9 | 9 | 0 | 0 | 0 | 0 | 100% |
 | 12. Profissionais externos | 6 | 6 | 0 | 0 | 0 | 0 | 100% |
-| 13. Descontos, juros e vencimentos | 6 | 3 | 0 | 0 | 3 | 0 | 50% |
+| 13. Descontos, juros e vencimentos | 6 | 5 | 0 | 0 | 1 | 0 | 83% |
 | 14. Relatórios e indicadores | 9 | 9 | 0 | 0 | 0 | 0 | 100% |
-| 15. Marketing e aniversariantes | 6 | 6 | 0 | 0 | 0 | 0 | 100% |
-| **TOTAL** | **127** | **123** | **0** | **0** | **3** | **1** | **96,85%** |
+| 15. Marketing e aniversariantes | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
+| **TOTAL** | **127** | **124** | **0** | **1** | **1** | **1** | **97,64%** |
 
 ---
 
@@ -47,7 +47,7 @@
 | 2 | AGD-02 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Horários por profissional | Colunas SEGUNDA..SÁBADO com nome do profissional em cada célula | `ProfessionalSchedule` + filtro por `profissional_id` na agenda | `app/Models/ProfessionalSchedule.php`, `app/Http/Controllers/AgendaController.php` | `agenda.index` (`agenda.view`) | `professional_schedules`, `professionals` | **A** — filtro por profissional funciona (testado) |
 | 3 | AGD-03 | AGENDA CLINICA .xlsx / AGENDA ANTIGA | Conflito de horário | Não há trava; duas consultas podem ocupar o mesmo horário | `AgendamentoService->criar()` com `HorarioOcupadoException` e lock de banco | `app/Services/Agenda/AgendamentoService.php` | `agenda.store` | `appointments` | **A** — trava de conflito implementada e testada |
 | 4 | AGD-04 | AGENDA CLINICA .xlsx / CALENDÁRIO 2026 | Visualização mensal de ocupação | Grade D/S/T/Q/Q/S/S por mês com nomes | `AgendaController@mes` agrupa consultas por data | `app/Http/Controllers/AgendaController.php` | `agenda.mes` (`agenda.view`) | `appointments` | **A** — calendar view funcional |
-| 5 | AGD-05 | AGENDA CLINICA .xlsx / CALENDÁRIO PILATES | Visualização por turma de pilates | Dias da semana com nomes de alunos | `PacoteSessaoController@index` por paciente + turmas via `ModuloPlanejadoController` | `app/Http/Controllers/PacoteSessaoController.php` | `pacientes.pacotes.index` (`pacotes.view`) | `pacotes_sessao` | **A** — turmas de pilates acessíveis via rota pacotes.index (testado) |
+| 5 | AGD-05 | AGENDA CLINICA .xlsx / CALENDÁRIO PILATES | Visualização por turma de pilates | Dias da semana com nomes de alunos | Entidade `Turma` com dia/horário/profissional, alunos em `turma_pacientes` e presença por data em `turma_presencas` | `app/Http/Controllers/TurmaController.php`, `app/Models/Turma.php`, `app/Models/TurmaPresenca.php` | `turmas.index`, `turmas.show` (`pacotes.view`) | `turmas`, `turma_pacientes`, `turma_presencas` | **A** — grade semanal e calendário reais, com alunos e presença por data (testado em `test_turma_pilates_grade_calendario_e_presenca`) |
 | 6 | AGD-06 | AGENDA CLINICA .xlsx / DAIANE | Lista de espera / retornos | Nomes anotados com "RT 3 MESES" | `WaitingList` (lista de espera) | `app/Http/Controllers/AgendaController.php` | `agenda.waiting.store` (`agenda.create`) | `waiting_lists` | **A** — lista de espera implementada |
 | 7 | AGD-07 | AGENDA CLINICA .xlsx / MASSAGEM | Agenda de massagem por horário | Grade semanal com horários de massagem | `appointments` com `servico` = MASSAGEM + `area` | `app/Http/Controllers/AgendaController.php` | `agenda.store` | `appointments` | **A** — serviço massagem cadastrável na agenda |
 | 8 | AGD-08 | AGENDA CLINICA .xlsx / PILOTES | Agenda de pilates por horário | Grade semanal com horários de aula | `appointments` com `servico` = PILATES | `app/Http/Controllers/AgendaController.php` | `agenda.store` | `appointments` | **A** — serviço pilates cadastrável na agenda |
@@ -79,11 +79,11 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 27 | PIL-01 | PGTO PILATES.xlsx / PAGAMENTOS PILATES 2026 | Controle de presença mensal | Tabela cruzada clientes × meses com PRESENTE/valor | `consumo_sessao` + `pacotes_sessao` (relacional: um pacote por cliente, consumos por sessão) | `app/Models/ConsumoSessao.php`, `app/Models/PacoteSessao.php` | `pacotes.consumir` | `consumo_sessao`, `pacotes_sessao` | **A** — tabela cruzada representada relacionalmente com pacotes e consumos (testado) |
+| 27 | PIL-01 | PGTO PILATES.xlsx / PAGAMENTOS PILATES 2026 | Controle de presença mensal | Tabela cruzada clientes × meses com PRESENTE/valor | Presença por aluno e por data em `turma_presencas` (uma linha por aluno/data), sem apagar datas anteriores | `app/Http/Controllers/TurmaController.php`, `app/Models/TurmaPresenca.php` | `turmas.presencas.store` (`pacotes.update`) | `turma_presencas` | **A** — tabela cruzada representada por presenças por aluno e data (testado em `test_pilates_tabela_cruzada_presencas_por_aluno_e_data`) |
 | 28 | PIL-02 | PGTO PILATES.xlsx / PAGAMENTOS PILATES 2026 | Valores por sessão/mês | R$ 100-200 por sessão por mês | `payments` com `servico` = PILATES | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.store` | `payments` | **A** — valores compatíveis |
 | 29 | PIL-03 | PGTO PILATES.xlsx / PAGAMENTOS PILATES 2026 | Situação (DEVENDO/REGULAR) | Coluna de situação por mês | `accounts_receivable.status` (aberta/parcial/pago) | `app/Models/AccountsReceivable.php` | `financeiro.index` | `accounts_receivable` | **A** — status abertas/parcial/pago existem e são testados |
 | 30 | PIL-04 | AGENDA CLINICA .xlsx / PILOTES | Horários de aula de pilates | Grade semanal com nomes | `appointments` com `servico` = PILATES | `app/Http/Controllers/AgendaController.php` | `agenda.store` | `appointments` | **A** — agendamento de pilates funcional |
-| 31 | PIL-05 | AGENDA CLINICA .xlsx / CALENDÁRIO PILATES | Calendário de turmas | Dias da semana com alunos | `PacoteSessaoController@index` mostra pacotes por paciente | `app/Http/Controllers/PacoteSessaoController.php` | `pacientes.pacotes.index` (`pacotes.view`) | `pacotes_sessao` | **A** — turmas de pilates acessíveis via rota pacotes.index (testado) |
+| 31 | PIL-05 | AGENDA CLINICA .xlsx / CALENDÁRIO PILATES | Calendário de turmas | Dias da semana com alunos | `TurmaController@index` monta o calendário do mês a partir das turmas ativas, com a ocorrência real de cada dia da semana | `app/Http/Controllers/TurmaController.php`, `app/Models/Turma.php` | `turmas.index` (`pacotes.view`) | `turmas` | **A** — calendário respeita o mês e ignora turma encerrada (testado em `test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada`) |
 | 32 | PIL-06 | PGTO PILATES.xlsx / LISTA OUTUBRO ROSA | Controle de campanha | Lista esparsa de presença | `consumo_sessao` por paciente | `app/Models/ConsumoSessao.php` | `pacotes.consumir` | `consumo_sessao` | **A** — lista de presença por paciente via consumo_sessao, implementada e testada |
 | 33 | PIL-07 | PAGAMENTOS.xlsx / meses | Pagamentos de pilates | Registros com "PILATES" | `payments` filtrando `servico` = PILATES | `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.index` | `payments` | **A** — pagamento de pilates funcional |
 | 34 | PIL-08 | PGTO PILATES.xlsx / PAGAMENTOS PILATES 2026 | Fórmulas de totais (SUM por coluna) | SUM(C2:C105) etc. | `RelatorioController@pacotesSessoes` (total por pacote) | `app/Http/Controllers/RelatorioController.php` | `relatorios.pacotes` | `pacotes_sessao`, `consumo_sessao` | **A** — totais por pacote implementados |
@@ -171,7 +171,7 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 84 | CR-01 | PAGAMENTOS.xlsx / cada mês | Tabela de contas a receber | Estrutura em PAGAMENTOS | `accounts_receivable` | `app/Models/AccountsReceivable.php`, `app/Http/Controllers/FinanceiroController.php` | `financeiro.index`, `financeiro.receive` | `accounts_receivable` | **A** — estrutura de contas a receber existe e é testada |
+| 84 | CR-01 | PAGAMENTOS.xlsx / cada mês | Tabela de contas a receber | Estrutura em PAGAMENTOS | `FinanceiroController@index` lista, filtra por paciente/status e calcula o total em aberto descontando o recebido | `app/Models/AccountsReceivable.php`, `app/Http/Controllers/FinanceiroController.php` | `financeiro.index`, `financeiro.receive` | `accounts_receivable` | **A** — listagem e filtro funcionais (testado em `test_contas_receber_listagem_e_filtro_funcional`) |
 | 85 | CR-02 | PAGAMENTOS.xlsx / cada mês | Vínculo com paciente | Apenas NOME textual | `payments.paciente_id` + `accounts_receivable.paciente_id` | `app/Models/Payment.php`, `app/Models/AccountsReceivable.php`, `app/Http/Controllers/PagamentoController.php` | `financeiro.pagamentos.vincular`, `financeiro.receive` | `payments`, `accounts_receivable` | **A** — vínculo pagamento-paciente existe e é testado |
 | 86 | CR-03 | PAGAMENTOS.xlsx / cada mês | Baixa de conta a receber | Valor recebido quita conta | `RecebimentoService->receber()` (transacional, bloqueio) | `app/Services/Financeiro/RecebimentoService.php`, `app/Http/Controllers/FinanceiroController.php@receive` | `financeiro.receive` | `accounts_receivable`, `payments` | **A** — baixa transacional implementada e testada |
 | 87 | CR-04 | PAGAMENTOS.xlsx / cada mês | Pagamento parcial | Valor menor que o da conta | `accounts_receivable.status` = parcial | `app/Models/AccountsReceivable.php`, `app/Services/Financeiro/RecebimentoService.php` | `financeiro.receive` | `accounts_receivable` | **A** — pagamento parcial implementado |
@@ -198,11 +198,11 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 101 | PE-01 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Cadastro de profissional externo | NUTRICIONISTA: APOENA (DIÁRIA) | `professionals` (tipo, registro_profissional) | `app/Http/Controllers/ProfissionalController.php` | `profissionais.*` | `professionals` | **A** — cadastro funcional |
-| 102 | PE-02 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Pagamento de profissional externo | VALOR PAGO por sessão/hora | `payments` com `servico` = NOME PROFISSIONAL (ex: NUTRICIONISTA DIARIA) | `app/Http/Controllers/PagamentoController.php`, `app/Services/Financeiro/RecebimentoService.php` | `financeiro.pagamentos.store`, `financeiro.receive` | `payments` | **A** — pagamento de profissional externo via payments com servico (testado) |
-| 103 | PE-03 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Valor fixo R$ 150,00 por sessão | Valor padrão por profissional | `payments.valor` (campo livre) | `app/Models/Payment.php` | `financeiro.pagamentos.store` | `payments` | **A** — valor livre compatível |
-| 104 | PE-04 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Total mensal por profissional | Coluna TOTAL MENSAL | `RelatorioController@receitasMensais` (por serviço) | `app/Http/Controllers/RelatorioController.php` | `relatorios.receitas` | `payments` | **A** — totais por serviço existem (testados) |
-| 105 | PE-05 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Outros profissionais externos | Apenas nutricionista APOENA registrado | `professionals` + `suppliers` | `app/Models/Professional.php`, `app/Models/Supplier.php` | `profissionais.index`, `financeiro.fornecedores.index` | `professionals`, `suppliers` | **A** — cadastro de profissional externo e pagamento via payments testados |
+| 101 | PE-01 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Cadastro de profissional externo | NUTRICIONISTA: APOENA (DIÁRIA) | `professionals` com tipo `nutricionista` e `registro_profissional`; cadastro pela tela | `app/Http/Controllers/ProfissionalController.php`, `app/Models/Professional.php` | `profissionais.*` | `professionals` | **A** — cadastro pela tela com tipo e registro (testado em `test_profissional_externo_cadastro_e_pagamento`) |
+| 102 | PE-02 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Pagamento de profissional externo | VALOR PAGO por sessão/hora | Conta a pagar com `professional_id` e `tipo_remuneracao`; a baixa registra a saída do caixa (não é conta a receber) | `app/Http/Controllers/ContaPagarController.php`, `app/Services/Financeiro/ContasPagarService.php` | `financeiro.contas-pagar.*` (`financeiro.create/receive`) | `accounts_payable`, `accounts_payable_pagamentos` | **A** — pagamento sai do caixa vinculado ao profissional (testado em `test_profissional_externo_pagamento_sai_do_caixa`) |
+| 103 | PE-03 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Valor fixo R$ 150,00 por sessão | Valor padrão por profissional | `tipo_remuneracao` (diaria/porcentagem/valor_fixo) + valor informado; o sistema não calcula a porcentagem sozinho | `app/Models/AccountsPayable.php`, `app/Services/Financeiro/ContasPagarService.php` | `financeiro.contas-pagar.store` | `accounts_payable` | **A** — modelo e valor informado aceitos; modelo inválido recusado (testado em `test_profissional_externo_tipo_porcentagem`) |
+| 104 | PE-04 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Total mensal por profissional | Coluna TOTAL MENSAL | Painel mensal na listagem de contas a pagar, por data da baixa, separando principal, juros e multa | `app/Http/Controllers/ContaPagarController.php`, `resources/views/financeiro/contas-pagar/index.blade.php` | `financeiro.contas-pagar.index` | `accounts_payable`, `accounts_payable_pagamentos` | **A** — total mensal por profissional separado por encargo (testado em `test_total_mensal_por_profissional_externo`) |
+| 105 | PE-05 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Outros profissionais externos | Apenas nutricionista APOENA registrado | `professionals` + `suppliers`; qualquer profissional externo usa o mesmo cadastro e a mesma conta a pagar | `app/Models/Professional.php`, `app/Models/Supplier.php` | `profissionais.index`, `financeiro.fornecedores.index` | `professionals`, `suppliers` | **A** — cadastro e pagamento do profissional externo, com roteiro de homologação (testado em `test_profissional_externo_cadastro_e_pagamento`) |
 | 106 | PE-06 | PROFISSIONAIS EXTERNOS.xlsx / cada mês | Comissão do profissional | Não tem coluna dedicada | `professionals.comissao` | `app/Models/Professional.php`, `app/Http/Controllers/ProfissionalController.php` | `profissionais.store/update` | `professionals` | **A** — campo comissão implementado |
 
 ### Módulo 13 — Descontos, juros e vencimentos (6 fluxos)
@@ -211,10 +211,10 @@
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
 | 107 | DJ-01 | CONTAS .xlsx / cada mês | Dias vencidos (DAYS360) | `DAYS360(B4,A4)` | `FinanceHelper->dias360()` (base 30/360) | `app/Support/FinanceHelper.php` | — (uso interno) | — | **A** — cálculo DAYS360 replicado |
 | 108 | DJ-02 | CONTAS .xlsx / cada mês | Dias de atraso | Não tem coluna dedicada | `FinanceHelper->diasAtraso()` | `app/Support/FinanceHelper.php` | — (uso interno) | — | **A** — cálculo implementado |
-| 109 | DJ-03 | Várias planilhas | Juros sobre vencimento | Fórmulas em algumas abas OUTUBRO 2023+ | `FinanceHelper->jurosSimples()` / `encargos()` (taxa informada pelo usuário) | `app/Support/FinanceHelper.php` | — (uso interno) | — | **D** — função existe, mas regra comercial (taxa) não fixada; cliente não confirmou |
-| 110 | DJ-04 | Várias planilhas | Multa por atraso | Fórmulas em algumas abas | `FinanceHelper->multa()` (percentual informado) | `app/Support/FinanceHelper.php` | — (uso interno) | — | **D** — função existe, mas regra comercial não fixada |
+| 109 | DJ-03 | Várias planilhas | Juros sobre vencimento | Fórmulas em algumas abas OUTUBRO 2023+ | Juros informados na baixa da conta a pagar (`accounts_payable_pagamentos.juros`), sem taxa fixa; o extrato separa principal de juros | `app/Support/FinanceHelper.php`, `app/Services/Financeiro/ContasPagarService.php` | `financeiro.contas-pagar.baixar` | `accounts_payable_pagamentos` | **A** — juros informados na baixa, sem inventar taxa (testado em `test_baixa_conta_pagar_com_juros_e_multa_informados`) |
+| 110 | DJ-04 | Várias planilhas | Multa por atraso | Fórmulas em algumas abas | Multa informada na baixa da conta a pagar (`accounts_payable_pagamentos.multa`), sem percentual fixo | `app/Support/FinanceHelper.php`, `app/Services/Financeiro/ContasPagarService.php` | `financeiro.contas-pagar.baixar` | `accounts_payable_pagamentos` | **A** — multa informada na baixa, sem inventar percentual (testado em `test_baixa_conta_pagar_com_juros_e_multa_informados`) |
 | 111 | DJ-05 | Várias planilhas | Desconto à vista | Presente em algumas abas (0.0) | Campo `desconto` em `accounts_receivable`; fluxo de recebimento aceita `desconto` informado pelo usuário; desconto acumulado na conta; status quita quando `valor_pago + desconto >= valor` | `app/Http/Requests/FinanceiroPaymentRequest.php`, `app/Services/Financeiro/RecebimentoService.php`, `app/Http/Controllers/FinanceiroController.php` | `financeiro.receive` | `accounts_receivable` | **A** — desconto implementado e testado (`test_recebimento_com_desconto_quita_conta`, `test_recebimento_desconto_nao_quita_fica_parcial`) |
-| 112 | DJ-06 | CONTAS .xlsx / cada mês | Juros/desconto na coluna | JUROS/DESCONTO | `accounts_payable.tipo_documento` + observações | `app/Models/AccountsPayable.php` | `financeiro.contas-pagar.store` | `accounts_payable` | **D** — sem campo dedicado de juros/desconto na conta |
+| 112 | DJ-06 | CONTAS .xlsx / cada mês | Juros/desconto na coluna | JUROS/DESCONTO | Estrutura de juros e multa informados já existe na baixa; falta a decisão sobre **desconto** em conta a pagar | `app/Models/AccountsPayable.php`, `app/Services/Financeiro/ContasPagarService.php` | `financeiro.contas-pagar.store` | `accounts_payable`, `accounts_payable_pagamentos` | **D** — desconto em conta a pagar aguarda decisão da cliente (ver `DECISOES_PENDENTES_CLIENTE.md`) |
 
 ### Módulo 14 — Relatórios e indicadores (9 fluxos)
 
@@ -234,9 +234,9 @@
 
 | # | ID | Planilha / aba | Funcionalidade | Como funciona na planilha | Equivalente no sistema | Arquivos de código | Rotas / permissões | Tabelas | Classificação |
 |---|----|----------------|----------------|---------------------------|------------------------|--------------------|--------------------|---------|---------------|
-| 122 | MKT-01 | ANIVERSARIANTES.xlsx / ANIVERSARIANTES | Lista de aniversariantes por mês | NOME | DIA | CHEGANDO? por mês | Relatório `relatorios.aniversariantes` lista pacientes ativos com aniversário no mês selecionado, com sinalizador `chegando` para aniversários em até 2 dias | `app/Http/Controllers/RelatorioController.php@aniversariantes` | `relatorios.aniversariantes` | `pacientes` | **A** — relatório implementado e testado (`test_relatorio_aniversariantes_mes`) |
+| 122 | MKT-01 | ANIVERSARIANTES.xlsx / ANIVERSARIANTES | Lista de aniversariantes por mês | Colunas NOME, DIA e CHEGANDO? por mês | Relatório `relatorios.aniversariantes` lista pacientes ativos com aniversário no mês selecionado, com sinalizador `chegando` para aniversários em até 2 dias | `app/Http/Controllers/RelatorioController.php@aniversariantes` | `relatorios.aniversariantes` | `pacientes` | **A** — relatório implementado e testado (`test_relatorio_aniversariantes_mes`) |
 | 123 | MKT-02 | ANIVERSARIANTES.xlsx / ANIVERSARIANTES | Alerta "TÁ CHEGANDO!" | Fórmulas IF com NOW() para aniversários próximos | Relatório `relatorios.aniversariantes` com sinalizador `chegando` para aniversários em até 2 dias. Alerta/notificação automática depende de decisão da cliente (ver `DECISOES_PENDENTES_CLIENTE.md`). | `app/Http/Controllers/RelatorioController.php@aniversariantes`, `resources/views/relatorios/aniversariantes.blade.php` | `relatorios.aniversariantes` | `pacientes` | **A** — relatório com flag "chegando" implementado e testado (`test_relatorio_aniversariantes_chegando`); notificação automática é decisão de produto |
-| 124 | MKT-03 | AGENDA CLINICA .xlsx / MARKETING | Dados de marketing/prospects | Controle de prospects | `Platform\ProspectController` existe com métodos index, store, show, update, destroy | `app/Http/Controllers/Platform\ProspectController.php` | `platform.prospects.*` | `prospects`, `social_posts` | **A** — estrutura de prospects existe e é testada |
+| 124 | MKT-03 | AGENDA CLINICA .xlsx / MARKETING | Dados de marketing/prospects | Calendário de conteúdos de WhatsApp por data (não é CRM de prospects) | O conteúdo da aba é atendido por MKT-05/MKT-06 (`social_posts`). O `Platform\ProspectController` é CRM comercial do SaaS e não representa o calendário da clínica | `app/Http/Controllers/SocialPostController.php`, `app/Http/Controllers/Platform\ProspectController.php` | `social.*`, `platform.prospects.*` | `social_posts`, `prospects` | **C** — a aba é calendário de conteúdos, não CRM; o conteúdo é coberto por MKT-05/MKT-06. Reclassificado de A para C (testado em `test_marketing_calendario_de_conteudos_usa_posts_sociais`) |
 | 125 | MKT-04 | AGENDA CLINICA .xlsx / CAIXA (MASSAGEM) | Controle de caixa massagem | CAIXA MARÇO a DEZEMBRO | `financeiro.fluxo-caixa` + `payments` (servico=MASSAGEM) | `app/Http/Controllers/FinanceiroController.php` | `financeiro.fluxo-caixa` | `payments` | **A** — fluxo de caixa filtra por serviço (testado) |
 | 126 | MKT-05 | AGENDA CLINICA .xlsx / MARKETING | Campanhas | Dados variados | `SocialPost` | `app/Http/Controllers/SocialPostController.php` | `social.*` | `social_posts` | **A** — campanha/post social criado como rascunho e aprovado, testado |
 | 127 | MKT-06 | AGENDA CLINICA .xlsx / MARKETING | Posts sociais | Não tem coluna dedicada | `SocialPost` + `SocialSetting` | `app/Http/Controllers/SocialPostController.php` | `social.*` | `social_posts`, `social_settings` | **A** — legendas, hashtags e redes persistidas e aprovação testadas |
@@ -246,20 +246,31 @@
 ## Conclusão da matriz
 
 - **Total de fluxos analisados: 127** (recontagem por script; a matriz anterior declarava 137 por erro de documentação)
-- **Classificados como A (equivalente, implementado e testado): 123** → **96,85% de equivalência real**
+- **Classificados como A (equivalente, implementado e testado): 124** → **97,64% de equivalência real**
 - Classificados como B: 0
-- Classificados como C: 0
-- Classificados como D: 3 (DJ-03, DJ-04, DJ-06)
-- Classificados como E: 1 (PAC-10)
+- Classificados como C: 1 (MKT-03 — aba de calendário de conteúdos, coberta por MKT-05/MKT-06)
+- Classificados como D: 1 (DJ-06 — desconto em conta a pagar aguarda decisão)
+- Classificados como E: 1 (PAC-10 — falta `Pacientes.xlsx` e regra de deduplicação)
 
-**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 4 fluxos não-A dependem de decisão comercial da cliente ou de arquivo externo, não de implementação técnica.
+**A meta de 100% NÃO está atingida.** Somente fluxos A contam. Os 3 fluxos não-A (MKT-03, DJ-06 e PAC-10) dependem de decisão comercial da cliente ou de arquivo externo, não de implementação técnica.
 
 ### Fluxos reclassificados nesta sessão
 
 | ID | Antes | Depois | Motivo | Teste |
 |----|-------|--------|--------|-------|
-| LAS-08 | D | A | Contagem de presenças/faltas por área | `test_relatorio_presenca_faltas_por_area` |
+| AGD-05 | A | A | Turma real (dia, horário, profissional, alunos e presença), não pacote na tela do paciente | `test_turma_pilates_grade_calendario_e_presenca` |
+| PIL-01 | A | A | Tabela cruzada vira presença por aluno e por data em `turma_presencas` | `test_pilates_tabela_cruzada_presencas_por_aluno_e_data` |
+| PIL-05 | A | A | Calendário montado a partir das turmas, respeitando o mês | `test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada` |
 | PIL-06 | E | A | Lista de presença por paciente via consumo de sessão | `test_campanha_pilates_lista_consumo_por_paciente` |
+| PE-02 | B | A | Pagamento do profissional externo sai como conta a pagar vinculada, não como recebimento | `test_profissional_externo_pagamento_sai_do_caixa` |
+| PE-03 | B | A | Modelo de remuneração (diária/porcentagem/valor fixo) e valor informado | `test_profissional_externo_tipo_porcentagem` |
+| PE-04 | B | A | Painel mensal por profissional, separando principal, juros e multa | `test_total_mensal_por_profissional_externo` |
+| PE-05 | E | A | Cadastro pela tela e pagamento via conta a pagar | `test_profissional_externo_cadastro_e_pagamento` |
+| DJ-03 | D | A | Juros informados na baixa, sem taxa fixa inventada | `test_baixa_conta_pagar_com_juros_e_multa_informados` |
+| DJ-04 | D | A | Multa informada na baixa, sem percentual fixo inventado | `test_baixa_conta_pagar_com_juros_e_multa_informados` |
+| CR-01 | C | A | Listagem e filtro de contas a receber funcionais | `test_contas_receber_listagem_e_filtro_funcional` |
+| MKT-03 | A | C | A aba é calendário de conteúdos; o CRM de prospects do SaaS não a substitui | `test_marketing_calendario_de_conteudos_usa_posts_sociais` |
+| LAS-08 | D | A | Contagem de presenças/faltas por área | `test_relatorio_presenca_faltas_por_area` |
 | FIS-02 | B | A | Fisioterapia domiciliar no fluxo procedimento → recebimento → relatório | `test_fisioterapia_domiciliar_percorre_fluxo_financeiro` |
 | PRE-05 | C | A | Reposição explícita de sessão registrada e contada | `test_reposicao_de_sessao_registrada_e_contada` |
 | CP-01 | D | A | Criação, baixa e quitação da conta a pagar | `test_conta_a_pagar_criar_baixar_quitar` |
@@ -270,7 +281,6 @@
 | CP-06 | D | A | Idempotência de baixa | `test_baixa_conta_pagar_idempotente_nao_duplica` |
 | CP-07 | D | A | Categoria e tipo/tipo_documento | `test_conta_pagar_categoria_e_fornecedor` |
 | CP-08 | D | A | Fornecedor (supplier_id) | `test_conta_pagar_categoria_e_fornecedor` |
-| PE-05 | E | A | Cadastro de profissional externo e pagamento via payments | `test_profissional_externo_cadastro_e_pagamento` |
 | MKT-05 | E | A | Campanha/post social criado e aprovado | `test_campanha_post_social_legendas_e_aprovacao` |
 | MKT-06 | E | A | Legendas, hashtags e redes persistidas | `test_campanha_post_social_legendas_e_aprovacao` |
 
@@ -283,14 +293,8 @@
 | MAS-05 | B | A | Totais por mês existem no relatório de receitas | `test_relatorios_receitas_por_servico` |
 | PAC-02 | B | A | Busca aproximada não funde cadastros | `test_paciente_variacoes_nome_nao_funde` |
 | PAC-03 | B | A | Histórico unifica consultas, pacotes, pagamentos | `test_historico_paciente_unifica_consultas_pacotes_pagamentos` |
-| PE-02 | B | A | Pagamento de profissional externo via payments | `test_profissional_externo_pagamento_via_payments` |
-| PE-04 | B | A | Totais por serviço existem nos relatórios | `test_relatorios_receitas_por_servico` |
 | REL-03 | B | A | Estrutura de planos de saúde existe | `test_insurance_plans_estrutura_existe` |
 | REL-05 | B | A | Totais por serviço existem nos relatórios | `test_relatorios_receitas_por_servico` |
-| MKT-03 | C | A | Estrutura de prospects existe | `test_prospects_estrutura_existe` |
 | MKT-04 | B | A | Fluxo de caixa filtra por serviço | `test_fluxo_caixa_filtra_por_servico_massagem` |
-| PIL-01 | C | A | Tabela cruzada representada relacionalmente | `test_pilates_tabela_cruzada_relacional` |
 | PIL-03 | C | A | Status aberta/parcial/pago existem | `test_conta_receber_status_aberta_parcial_pago` |
-| PIL-05 | C | A | Turmas de pilates acessíveis | `test_pilates_calendario_turmas` |
-| CR-01 | C | A | Estrutura de contas a receber existe | `test_contas_receber_estrutura_existe` |
 | CR-02 | C | A | Vínculo pagamento-paciente existe | `test_pagamento_paciente_vinculo_existe` |

@@ -54,9 +54,11 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
 
 | Teste | O que compara | Fluxo matriz |
 |-------|--------------|--------------|
-| `test_pacote_pilates_nao_ft` | Criar pacote de pilates (fora vertical FT, se liberado) e verificar persistência | PIL-01 |
-| `test_pagamento_pilates` | Lançar pagamento com servico=PILATES; verificar em relatório por serviço | PIL-02, PIL-07 |
-| `test_total_pilates_por_mes` | Comparar `receitasMensais` filtrando PILATES com soma da planilha PGTO PILATES | PIL-08 |
+| `test_turma_pilates_grade_calendario_e_presenca` | Criar turma, adicionar alunos, marcar presença duas vezes no mesmo dia (atualiza, não duplica), remover aluno preservando histórico | AGD-05, PIL-05 |
+| `test_pilates_tabela_cruzada_presencas_por_aluno_e_data` | Uma linha por aluno/data; 3 marcações em 2 alunos = 3 linhas, sem apagar datas anteriores | PIL-01 |
+| `test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada` | Calendário de novembro vs dezembro; turma encerrada não aparece | PIL-05 |
+| `test_pagamento_pilates_por_servico` | Lançar pagamento com servico=PILATES; verificar em relatório por serviço | PIL-02, PIL-07 |
+| `test_campanha_pilates_lista_consumo_por_paciente` | 2 pacientes consumindo sessão; relatório mostra 2 consumos de 2 pacientes | PIL-06 |
 
 ### 3.4 Fisioterapia
 
@@ -132,7 +134,10 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
 
 | Teste | O que compara | Fluxo matriz |
 |-------|--------------|--------------|
-| `test_cadastro_profissional_externo` | Criar profissional com tipo e registro; verificar listagem | PE-01 |
+| `test_profissional_externo_cadastro_e_pagamento` | Cadastrar nutricionista pela tela, buscar na listagem e pagar via conta a pagar | PE-01, PE-05 |
+| `test_profissional_externo_pagamento_sai_do_caixa` | Conta a pagar vinculada ao profissional; não cria conta a receber/payment | PE-02 |
+| `test_profissional_externo_tipo_porcentagem` | Modelo PORCENTAGEM aceito; modelo inventado recusado | PE-03 |
+| `test_total_mensal_por_profissional_externo` | Painel de novembro separa principal/juros/multa e não mistura outubro | PE-04 |
 | `test_comissao_profissional` | Verificar campo comissão | PE-06 |
 
 ### 3.13 Descontos, juros e vencimentos
@@ -143,8 +148,10 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
 | `test_dias_atraso` | Verificar cálculo de dias de atraso | DJ-02 |
 | `test_juros_simples` | Verificar `jurosSimples` com valores conhecidos | DJ-03 |
 | `test_multa` | Verificar `multa` com percentual conhecido | DJ-04 |
+| `test_juros_multa_calculados_com_taxa_informada` | Helper aplica a fórmula sobre o valor informado, sem taxa fixa | DJ-03, DJ-04 |
+| `test_baixa_conta_pagar_com_juros_e_multa_informados` | Baixa grava juros/multa, principal abate o saldo e extrato mostra o total desembolsado | DJ-03, DJ-04 |
 
-> Regras comerciais (taxa de juros, percentual de multa, quando aplicar) não são fixadas pelo sistema; os testes verificam que as funções calculam corretamente dado um percentual informado.
+> Regras comerciais (taxa de juros, percentual de multa, quando aplicar) não são fixadas pelo sistema; os testes verificam que as funções calculam corretamente dado um percentual informado. Na conta a pagar, juros e multa são valores informados na baixa.
 
 ### 3.14 Relatórios e indicadores
 
@@ -160,8 +167,10 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
 
 | Teste | O que compara | Fluxo matriz |
 |-------|--------------|--------------|
-| `test_prospect_cadastrado` | Criar prospect; verificar listagem | MKT-03 |
-| `test_social_post` | Criar post social; verificar persistência | MKT-05, MKT-06 |
+| `test_marketing_calendario_de_conteudos_usa_posts_sociais` | Post criado e listado; a aba é calendário de conteúdos, não CRM | MKT-03, MKT-05, MKT-06 |
+| `test_campanha_post_social_legendas_e_aprovacao` | Legenda, hashtags, redes e aprovação persistidas | MKT-05, MKT-06 |
+| `test_relatorio_aniversariantes_mes` | Lista de aniversariantes do mês | MKT-01 |
+| `test_relatorio_aniversariantes_chegando` | Sinalizador "chegando" em até 2 dias | MKT-02 |
 
 ---
 
@@ -204,7 +213,8 @@ vendor/bin/phpunit tests/Feature/EquivalenciaPlanilhasDaiane.php
 ## 7. Status atual
 
 - Testes de funcionalidade existentes: aprovados.
-- **Testes de equivalência planilha x sistema: 53 testes criados e aprovados (206 asserções)** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
-- Testes cobrem: agenda, depilação a laser (incluindo contagem por área), pilates (incluindo lista de presença por paciente), fisioterapia/pacotes (incluindo reposição e fisioterapia domiciliar), contas a pagar (criação, vencimento, status, baixa, baixa parcial, idempotência, categoria e fornecedor), contas a receber, pagamentos, FinanceHelper, relatórios (incluindo aniversariantes), pacientes, desconto, pacotes não-FT, vínculo payment ↔ conta a receber, profissionais externos e post/campanha social.
+- **Testes de equivalência planilha x sistema: 53 testes criados e aprovados (271 asserções)** em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`.
+- Testes cobrem: agenda, depilação a laser (incluindo contagem por área), pilates (turma real, tabela cruzada de presenças, calendário por mês e lista de presença por paciente), fisioterapia/pacotes (incluindo reposição e fisioterapia domiciliar), contas a pagar (criação, vencimento, status, baixa, baixa parcial, idempotência, categoria, fornecedor, juros/multa informados e histórico), contas a receber (listagem e filtro), pagamentos, FinanceHelper, relatórios (incluindo aniversariantes), pacientes, desconto, pacotes não-FT, vínculo payment ↔ conta a receber, profissionais externos (cadastro, pagamento pelo caixa, modelo de remuneração e total mensal) e post/campanha social.
+- Também: `PreviewContasCommandTest` (2 testes, prévia somente-leitura do `CONTAS.xlsx`) e `TenantIsolationModulosTest` (3 testes, isolamento HTTP incluindo turmas de Pilates).
 
-Quando todos os 127 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente 123 de 127 fluxos são A (96,85%); os 4 restantes dependem de decisão da cliente ou de arquivo externo.
+Quando todos os 127 fluxos forem classificados como A, a meta de 100% poderá ser declarada. Atualmente **124 de 127 fluxos são A (97,64%)**; os 3 restantes (MKT-03, DJ-06 e PAC-10) dependem de decisão da cliente ou de arquivo externo.

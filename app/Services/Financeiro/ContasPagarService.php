@@ -30,6 +30,8 @@ class ContasPagarService
 
         return AccountsPayable::create([
             'supplier_id' => $dados['supplier_id'] ?? null,
+            'professional_id' => $dados['professional_id'] ?? null,
+            'tipo_remuneracao' => $dados['tipo_remuneracao'] ?? null,
             'financeiro_categoria_id' => $dados['financeiro_categoria_id'] ?? null,
             'nome_conta' => $dados['nome_conta'],
             'descricao' => $dados['descricao'] ?? null,
@@ -93,8 +95,14 @@ class ContasPagarService
             }
 
             $valor = round((float) $dados['valor'], 2);
+            $juros = round((float) ($dados['juros'] ?? 0), 2);
+            $multa = round((float) ($dados['multa'] ?? 0), 2);
 
             if ($valor <= 0) {
+                throw OperacaoFinanceiraInvalida::valorInvalido();
+            }
+
+            if ($juros < 0 || $multa < 0) {
                 throw OperacaoFinanceiraInvalida::valorInvalido();
             }
 
@@ -112,6 +120,8 @@ class ContasPagarService
                 'idempotency_key' => is_string($chave) && $chave !== '' ? $chave : null,
                 'data' => $dados['data'] ?? today(),
                 'valor' => $valor,
+                'juros' => $juros,
+                'multa' => $multa,
                 'observacoes' => $dados['observacoes'] ?? null,
             ]);
 

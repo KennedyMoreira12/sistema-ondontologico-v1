@@ -6,14 +6,17 @@ use App\Exceptions\OperacaoFinanceiraInvalida;
 use App\Http\Requests\AccountsPayablePaymentRequest;
 use App\Http\Requests\AccountsPayableStoreRequest;
 use App\Models\AccountsPayable;
+use App\Models\AccountsPayablePayment;
 use App\Models\FinancialCategory;
 use App\Models\PaymentMethod;
+use App\Models\Professional;
 use App\Models\Supplier;
 use App\Services\AuditLogger;
 use App\Services\Financeiro\ContasPagarService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -33,7 +36,7 @@ class ContaPagarController extends Controller
         $this->authorize('financeiro.view');
 
         $contas = AccountsPayable::query()
-            ->with(['supplier:id,nome', 'categoria:id,nome'])
+            ->with(['supplier:id,nome', 'categoria:id,nome', 'professional:id,nome'])
             ->withSum('pagamentos', 'valor')
             ->when($request->filled('busca'), function ($query) use ($request): void {
                 $busca = $request->string('busca')->toString();
@@ -41,7 +44,8 @@ class ContaPagarController extends Controller
                 $query->where(function ($sub) use ($busca): void {
                     $sub->where('nome_conta', 'like', "%{$busca}%")
                         ->orWhere('descricao', 'like', "%{$busca}%")
-                        ->orWhereHas('supplier', fn ($fornecedor) => $fornecedor->where('nome', 'like', "%{$busca}%"));
+                        ->orWhereHas('supplier', fn ($fornecedor) => $fornecedor->where('nome', 'like', "%{$busca}%"))
+                        ->orWhereHas('professional', fn ($profissional) => $profissional->where('nome', 'like', "%{$busca}%"));
                 });
             })
             ->when($request->input('status') === AccountsPayable::PENDENTE, fn ($query) => $query
@@ -54,6 +58,7 @@ class ContaPagarController extends Controller
                 ->where('status', $request->input('status')))
             ->when($request->filled('tipo'), fn ($query) => $query->where('tipo', $request->input('tipo')))
             ->when($request->filled('supplier_id'), fn ($query) => $query->where('supplier_id', $request->integer('supplier_id')))
+            ->when($request->filled('professional_id'), fn ($query) => $query->where('professional_id', $request->integer('professional_id')))
             ->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [AccountsPayable::PENDENTE])
             ->orderBy('data_vencimento')
             ->paginate(25)
@@ -76,10 +81,34 @@ class ContaPagarController extends Controller
             ->where('status', AccountsPayable::PENDENTE)
             ->whereBetween('data_vencimento', [today(), today()->addDays(7)]));
 
+        $mesReferencia = $this->mesReferencia($request);
+
+        /*
+         * Total pago por profissional externo no mês, pela data da baixa.
+         * `valor` é o principal; juros e multa aparecem separados para não
+         * inflar o total contratado com encargo informado na hora do pagamento.
+         */
+        $totaisPorProfissional = AccountsPayablePayment::query()
+            ->join('accounts_payable', 'accounts_payable.id', '=', 'accounts_payable_pagamentos.accounts_payable_id')
+            ->whereNotNull('accounts_payable.professional_id')
+            ->whereYear('accounts_payable_pagamentos.data', $mesReferencia->year)
+            ->whereMonth('accounts_payable_pagamentos.data', $mesReferencia->month)
+            ->selectRaw('accounts_payable.professional_id, SUM(accounts_payable_pagamentos.valor) as total_principal, SUM(accounts_payable_pagamentos.juros) as total_juros, SUM(accounts_payable_pagamentos.multa) as total_multa, COUNT(*) as baixas')
+            ->groupBy('accounts_payable.professional_id')
+            ->get();
+
+        $nomesProfissionais = Professional::query()
+            ->whereIn('id', $totaisPorProfissional->pluck('professional_id'))
+            ->pluck('nome', 'id');
+
         return view('financeiro.contas-pagar.index', [
             'contas' => $contas,
             'fornecedores' => Supplier::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
+            'profissionais' => Professional::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
             'resumo' => compact('emAberto', 'pago', 'atrasado', 'vencendo'),
+            'totaisPorProfissional' => $totaisPorProfissional,
+            'nomesProfissionais' => $nomesProfissionais,
+            'mesReferencia' => $mesReferencia,
         ]);
     }
 
@@ -89,6 +118,7 @@ class ContaPagarController extends Controller
 
         return view('financeiro.contas-pagar.create', [
             'fornecedores' => Supplier::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
+            'profissionais' => Professional::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
             'categorias' => FinancialCategory::query()->doTipo(FinancialCategory::DESPESA)->ativas()->orderBy('nome')->get(['id', 'nome']),
         ]);
     }
@@ -108,7 +138,7 @@ class ContaPagarController extends Controller
     {
         $this->authorize('financeiro.view');
 
-        $conta->load(['supplier', 'categoria', 'pagamentos.paymentMethod', 'pagamentos.user']);
+        $conta->load(['supplier', 'professional', 'categoria', 'pagamentos.paymentMethod', 'pagamentos.user']);
 
         return view('financeiro.contas-pagar.show', [
             'conta' => $conta,
@@ -123,6 +153,7 @@ class ContaPagarController extends Controller
         return view('financeiro.contas-pagar.edit', [
             'conta' => $conta,
             'fornecedores' => Supplier::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
+            'profissionais' => Professional::query()->where('is_active', true)->orderBy('nome')->get(['id', 'nome']),
             'categorias' => FinancialCategory::query()->doTipo(FinancialCategory::DESPESA)->ativas()->orderBy('nome')->get(['id', 'nome']),
         ]);
     }
@@ -181,6 +212,23 @@ class ContaPagarController extends Controller
         $conta->refresh();
 
         return back()->with('success', 'Baixa registrada. Saldo restante: R$ '.number_format($conta->saldo, 2, ',', '.').'.');
+    }
+
+    /**
+     * Mês de referência do painel "total por profissional". Um valor inválido
+     * não pode quebrar a listagem: cai no mês atual.
+     */
+    private function mesReferencia(Request $request): Carbon
+    {
+        if ($request->filled('mes')) {
+            try {
+                return Carbon::createFromFormat('Y-m', $request->string('mes')->toString())->startOfMonth();
+            } catch (\Throwable) {
+                // Mês inválido: usa o atual.
+            }
+        }
+
+        return today()->startOfMonth();
     }
 
     /**

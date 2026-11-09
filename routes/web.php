@@ -32,6 +32,7 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialSettingController;
 use App\Http\Controllers\TratamentoPlanoController;
+use App\Http\Controllers\TurmaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardController::class)
@@ -66,6 +67,23 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('atendimentos')->name('atendimentos.')->group(function () {
         Route::get('/', [AtendimentoController::class, 'index'])->name('index');
         Route::post('/{consulta}/consumir', [AtendimentoController::class, 'consumir'])->name('consumir');
+    });
+
+    /*
+     * Turmas de Pilates: a grade semanal e o calendário da planilha PILATES,
+     * com lista de presença por aluno e por data. As permissões são as mesmas
+     * dos pacotes de sessões (`pacotes.*`), já existentes em todos os bancos.
+     */
+    Route::prefix('turmas')->name('turmas.')->group(function () {
+        Route::get('/', [TurmaController::class, 'index'])->name('index');
+        Route::get('/create', [TurmaController::class, 'create'])->name('create');
+        Route::post('/', [TurmaController::class, 'store'])->name('store');
+        Route::get('/{turma}', [TurmaController::class, 'show'])->name('show');
+        Route::put('/{turma}', [TurmaController::class, 'update'])->name('update');
+        Route::delete('/{turma}', [TurmaController::class, 'destroy'])->name('destroy');
+        Route::post('/{turma}/pacientes', [TurmaController::class, 'adicionarPaciente'])->name('pacientes.store');
+        Route::delete('/{turma}/pacientes/{paciente}', [TurmaController::class, 'removerPaciente'])->name('pacientes.destroy');
+        Route::post('/{turma}/presencas', [TurmaController::class, 'registrarPresenca'])->name('presencas.store');
     });
 
     Route::prefix('financeiro')->name('financeiro.')->group(function () {

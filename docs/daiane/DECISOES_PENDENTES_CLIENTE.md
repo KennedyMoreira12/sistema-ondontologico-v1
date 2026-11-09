@@ -13,28 +13,37 @@ documentado.
 
 **Contexto:** A planilha CONTAS .xlsx aplica juros sobre contas vencidas em
 algumas abas (a partir de OUTUBRO 2023). O sistema já possui a função
-`FinanceHelper->jurosSimples()` que calcula juros simples proporcionais aos
-dias de atraso, dada uma taxa percentual informada pelo usuário.
+`FinanceHelper->jurosSimples()` e, na baixa da conta a pagar, o campo `juros`
+é **informado** por quem faz a baixa. O principal abate o saldo e os juros
+ficam registrados no extrato.
 
-**Decisão necessária:** Qual a taxa de juros mensal (ou diária) a aplicar?
-Exemplos: 2% ao mês? 0.07% ao dia? Juros apenas após X dias de atraso?
+**Decisão necessária (opcional):** A cliente quer que o sistema calcule os
+juros automaticamente? Se sim, qual a taxa mensal/diária e a partir de quantos
+dias de atraso? Se não, o valor informado na baixa já atende.
 
 **Consequência:** Sem a taxa, o sistema não aplica juros automaticamente. O
-usuário pode lançar juros manualmente no campo de observações ou desconto, mas
-não há cálculo automático.
+usuário informa o valor na baixa, como na planilha.
+
+**Comportamento atual testado:** `test_baixa_conta_pagar_com_juros_e_multa_informados`
+(fluxos DJ-03/DJ-04, classificados como **A**).
 
 ---
 
 ### 1.2 Multa por atraso
 
 **Contexto:** Algumas abas da planilha preveem multa por pagamento em atraso.
-O sistema já possui `FinanceHelper->multa()` que calcula multa sobre um valor,
-dado um percentual informado.
+O sistema possui `FinanceHelper->multa()` e, na baixa da conta a pagar, o campo
+`multa` é **informado** por quem faz a baixa, separado dos juros.
 
-**Decisão necessária:** Qual o percentual de multa? Exemplo: 2% sobre o valor
-da conta? Multa fixa ou percentual?
+**Decisão necessária (opcional):** A cliente quer cálculo automático de multa?
+Se sim, qual o percentual e a base de cálculo? Se não, o valor informado já
+atende.
 
-**Consequência:** Sem o percentual, o sistema não aplica multa automaticamente.
+**Consequência:** Sem o percentual, o sistema não aplica multa automaticamente;
+o valor é informado na baixa.
+
+**Comportamento atual testado:** `test_baixa_conta_pagar_com_juros_e_multa_informados`
+(fluxos DJ-03/DJ-04, classificados como **A**).
 
 ---
 
@@ -54,17 +63,24 @@ sistema. Se for livre, a implementação atual já atende.
 
 ---
 
-### 1.4 Juros/desconto na coluna de contas a pagar
+### 1.4 Desconto na conta a pagar
 
 **Contexto:** A planilha CONTAS .xlsx tem uma coluna "JUROS/DESCONTO" por conta
-a pagar. O sistema tem `accounts_payable.tipo_documento` e `observacoes`, mas
-não um campo dedicado para juros/desconto da conta a pagar.
+a pagar. A parte de **juros e multa** já está implementada: são informados na
+baixa e ficam no extrato (`accounts_payable_pagamentos.juros/multa`), sem taxa
+fixa inventada. O que falta é a regra de **desconto** em conta a pagar.
 
-**Decisão necessária:** O sistema deve ter um campo dedicado `juros_desconto`
-na tabela `accounts_payable`, ou o usuário continua usando `observacoes`?
+**Decisão necessária:** O desconto em conta a pagar é livre (quem paga digita o
+valor) ou segue uma tabela pré-definida? Ele reduz o principal da conta ou é
+registrado à parte, como os juros?
 
-**Consequência:** Sem o campo, o valor de juros/desconto da conta a pagar não é
-estruturado, apenas textual.
+**Consequência:** Sem a decisão, o desconto em conta a pagar não é aplicado
+pelo sistema; o valor pago é o principal informado na baixa. Juros e multa
+continuam funcionando normalmente.
+
+**Comportamento atual testado:** `test_baixa_conta_pagar_com_juros_e_multa_informados`
+(fluxos DJ-03/DJ-04, classificados como **A**). O fluxo DJ-06 (desconto)
+permanece **D** até esta decisão.
 
 ---
 
@@ -89,21 +105,27 @@ pacote ou é gratuita?
 
 ---
 
-### 2.2 Tipo de relacionamento do profissional externo
+### 2.2 Modelo de remuneração do profissional externo
 
 **Contexto:** A planilha PROFISSIONAIS EXTERNOS.xlsx tem profissionais com
-diferentes tipos de relacionamento (ex: nutricionista "DIÁRIA", valor fixo
-R$ 150,00 por sessão). O sistema tem `professionals` com campo `tipo` e
-`comissao`, mas não diferencia "diária" vs "mensal" vs "por sessão".
+diferentes modelos de remuneração (ex: nutricionista **DIÁRIA**, dentista
+**PORCENTAGEM**). O sistema já possui `professionals.tipo` e, na conta a pagar
+do profissional, o campo `tipo_remuneracao` (`diaria`, `porcentagem`,
+`valor_fixo`), além do valor informado.
 
-**Decisão necessária:** Qual a estrutura de tipos de relacionamento?
-Exemplo: diária, mensal, por sessão, por valor fixo?
+**Decisão necessária (opcional):** A cliente quer que o sistema **calcule** a
+diária ou a porcentagem automaticamente? Se sim, qual a base de cálculo e o
+percentual de cada profissional?
 
-**Consequência:** Sem a estrutura, o profissional externo é cadastrado como um
-profissional comum, com comissão livre. O tipo "diária" não é distinguido.
+**Consequência:** Sem a regra de cálculo, o modelo é registrado e o valor é
+sempre informado por quem lança a conta. O sistema não inventa percentual nem
+diária.
 
-**Comportamento atual testado:** `test_profissional_externo_cadastro_e_pagamento`
-(fluxo PE-05, classificado como **A** na matriz).
+**Comportamento atual testado:** `test_profissional_externo_cadastro_e_pagamento`,
+`test_profissional_externo_pagamento_sai_do_caixa`,
+`test_profissional_externo_tipo_porcentagem` e
+`test_total_mensal_por_profissional_externo`
+(fluxos PE-01..PE-05, classificados como **A** na matriz).
 
 ---
 
@@ -173,20 +195,41 @@ utilizado pela cliente.
 
 ---
 
+### 3.3 Importação de pacientes (PAC-10)
+
+**Contexto:** A matriz cita uma planilha de pacientes que **não está no
+repositório**. Sem o arquivo não é possível saber colunas, volume nem
+duplicidades. Também não há regra definida para o que fazer quando o mesmo
+paciente aparece mais de uma vez.
+
+**Decisão necessária:**
+1. A cliente deve entregar o arquivo de pacientes (ou confirmar que a base
+   histórica já está coberta pelas outras planilhas).
+2. Qual a regra de deduplicação? Comparar por nome + telefone, por CPF, por
+   data de nascimento, ou revisar caso a caso?
+3. Quando dois registros forem considerados a mesma pessoa, qual prevalece?
+
+**Consequência:** Sem o arquivo e sem a regra, nenhuma importação de pacientes
+é executada e o fluxo PAC-10 permanece **E** na matriz. Nenhum cadastro é
+mesclado automaticamente.
+
+---
+
 ## 4. Resumo das decisões e impacto
 
 | Decisão | Impacto se não decidida | Prioridade |
 |---------|------------------------|------------|
-| Taxa de juros | Sem cobrança automática de juros | Alta |
-| Percentual de multa | Sem cobrança automática de multa | Alta |
-| Tabela de desconto | Desconto sempre manual (valor livre) | Média |
-| Campo juros/desconto em contas a pagar | Valor apenas em observações | Média |
+| Cálculo automático de juros | Juros continuam informados na baixa (já funcional) | Baixa |
+| Cálculo automático de multa | Multa continua informada na baixa (já funcional) | Baixa |
+| Tabela de desconto à vista | Desconto sempre manual (valor livre) | Média |
+| Desconto em conta a pagar | Desconto não aplicado; juros/multa já funcionam | Média |
 | Regra de reposição de falta | Reposição é ato explícito, não automático | Alta |
-| Tipo de profissional externo | Sem diferenciação diária/mensal/por sessão | Média |
+| Cálculo de diária/porcentagem do profissional externo | Modelo e valor informados; sistema não calcula sozinho | Média |
 | Validade/bloqueio de pacotes | Pacote expira sem bloqueio automático | Média |
 | Alerta aniversariante | Sem notificação, apenas relatório manual | Baixa |
 | Importação histórica contas a pagar | Contas a pagar começam do zero no sistema | Alta |
 | Uso de pacotes não-FT | Recurso disponível, uso a critério da cliente | Média |
+| Importação/deduplicação de pacientes (PAC-10) | Fluxo permanece E; nenhum cadastro é mesclado | Alta |
 
 ---
 

@@ -52,6 +52,15 @@
                         <dd class="col-7"><span class="badge text-bg-{{ $classes[$status] ?? 'secondary' }}">{{ ucfirst($status) }}</span></dd>
                         <dt class="col-5">Fornecedor</dt>
                         <dd class="col-7">{{ $conta->supplier?->nome ?? '—' }}</dd>
+                        @if ($conta->professional)
+                            <dt class="col-5">Profissional externo</dt>
+                            <dd class="col-7">
+                                {{ $conta->professional->nome }}
+                                @if ($conta->tipo_remuneracao)
+                                    <span class="text-muted">· {{ ucfirst(str_replace('_', ' ', $conta->tipo_remuneracao)) }}</span>
+                                @endif
+                            </dd>
+                        @endif
                         <dt class="col-5">Categoria</dt>
                         <dd class="col-7">{{ $conta->categoria?->nome ?? '—' }}</dd>
                         <dt class="col-5">Tipo</dt>
@@ -80,12 +89,22 @@
                             <form method="POST" action="{{ route('financeiro.contas-pagar.baixar', $conta) }}" class="row g-2 align-items-end">
                                 @csrf
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
-                                <div class="col-md-3">
-                                    <label for="valor" class="form-label">Valor *</label>
+                                <div class="col-md-2">
+                                    <label for="valor" class="form-label">Valor principal *</label>
                                     <input type="number" step="0.01" min="0.01" max="{{ $conta->saldo }}" id="valor" name="valor" value="{{ old('valor', number_format($conta->saldo, 2, '.', '')) }}" class="form-control @error('valor') is-invalid @enderror" required>
                                     @error('valor')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-2">
+                                    <label for="juros" class="form-label">Juros</label>
+                                    <input type="number" step="0.01" min="0" id="juros" name="juros" value="{{ old('juros', '0.00') }}" class="form-control @error('juros') is-invalid @enderror" placeholder="Informado">
+                                    @error('juros')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="multa" class="form-label">Multa</label>
+                                    <input type="number" step="0.01" min="0" id="multa" name="multa" value="{{ old('multa', '0.00') }}" class="form-control @error('multa') is-invalid @enderror" placeholder="Informada">
+                                    @error('multa')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-2">
                                     <label for="payment_method_id" class="form-label">Forma</label>
                                     <select id="payment_method_id" name="payment_method_id" class="form-select">
                                         <option value="">Não informada</option>
@@ -94,7 +113,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label for="data" class="form-label">Data *</label>
                                     <input type="date" id="data" name="data" value="{{ old('data', now()->format('Y-m-d')) }}" class="form-control" required>
                                 </div>
@@ -114,17 +133,30 @@
                 <div class="card-header bg-white fw-semibold"><i class="bi bi-list-check me-2"></i>Baixas registradas</div>
                 <div class="table-responsive">
                     <table class="table mb-0">
-                        <thead class="table-light"><tr><th>Data</th><th>Forma</th><th>Responsável</th><th class="text-end">Valor</th></tr></thead>
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Forma</th>
+                                <th>Responsável</th>
+                                <th class="text-end">Principal</th>
+                                <th class="text-end">Juros</th>
+                                <th class="text-end">Multa</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @forelse ($conta->pagamentos as $baixa)
                                 <tr>
                                     <td>{{ $baixa->data?->format('d/m/Y') }}</td>
                                     <td>{{ $baixa->paymentMethod?->label ?? '—' }}</td>
                                     <td>{{ $baixa->user?->name ?? '—' }}</td>
-                                    <td class="text-end fw-semibold">R$ {{ number_format((float) $baixa->valor, 2, ',', '.') }}</td>
+                                    <td class="text-end">R$ {{ number_format((float) $baixa->valor, 2, ',', '.') }}</td>
+                                    <td class="text-end">R$ {{ number_format((float) $baixa->juros, 2, ',', '.') }}</td>
+                                    <td class="text-end">R$ {{ number_format((float) $baixa->multa, 2, ',', '.') }}</td>
+                                    <td class="text-end fw-semibold">R$ {{ number_format($baixa->totalDesembolsado(), 2, ',', '.') }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-muted py-3">Nenhuma baixa registrada.</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted py-3">Nenhuma baixa registrada.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

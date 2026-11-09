@@ -22,6 +22,8 @@ class AccountsPayableStoreRequest extends FormRequest
     {
         return [
             'supplier_id' => ['nullable', 'integer', Rule::exists('tenant.suppliers', 'id')],
+            'professional_id' => ['nullable', 'integer', Rule::exists('tenant.professionals', 'id')],
+            'tipo_remuneracao' => ['nullable', Rule::in(AccountsPayable::TIPOS_REMUNERACAO)],
             'financeiro_categoria_id' => ['nullable', 'integer', Rule::exists('tenant.financeiro_categorias', 'id')],
             'nome_conta' => ['required', 'string', 'max:150'],
             'descricao' => ['nullable', 'string', 'max:1000'],

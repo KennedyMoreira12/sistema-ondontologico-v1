@@ -1,6 +1,6 @@
 # RELATÓRIO FINAL DE EQUIVALÊNCIA — PLANILHAS DA DAIANE x LJ SMARTCLINIC
 
-**Data:** 08/11/2026  
+**Data:** 09/11/2026  
 **Branch:** `feature/daiane-planilha-substituicao`  
 **Commit:** desta sessão na branch `feature/daiane-planilha-substituicao`  
 **Ambiente:** Local (não produção) — nenhum arquivo da VPS, banco real ou tenant Malheiro foi alterado.
@@ -12,17 +12,17 @@
 | Métrica | Valor atual (recontagem) |
 |---------|--------------------------|
 | Fluxos totais analisados | 127 |
-| Fluxos classificados A (equivalente, implementado e testado) | 123 (96,85%) |
+| Fluxos classificados A (equivalente, implementado e testado) | 124 (97,64%) |
 | Fluxos classificados B (parcial) | 0 |
-| Fluxos classificados C (estrutura incompleta) | 0 |
-| Fluxos classificados D (não implementado) | 3 (2,36%) |
+| Fluxos classificados C (estrutura incompleta) | 1 (0,79%) |
+| Fluxos classificados D (não implementado) | 1 (0,79%) |
 | Fluxos classificados E (não verificável) | 1 (0,79%) |
-| **Equivalência real declarada** | **96,85%** |
+| **Equivalência real declarada** | **97,64%** |
 
 > **Correção de contagem:** a matriz anterior declarava 137 fluxos e 99 A (72,3%). A recontagem por script confirmou **127 linhas e 127 IDs únicos**; os totais antigos não fechavam. Os números acima usam o denominador real de 127.
 
 **A meta de 100% NÃO está atingida.** Somente fluxos classificados como A contam.
-Os 4 fluxos não-A (PAC-10, DJ-03, DJ-04, DJ-06) dependem de decisão comercial da cliente ou de arquivo externo.
+Os 3 fluxos não-A (MKT-03, DJ-06 e PAC-10) dependem de decisão comercial da cliente ou de arquivo externo.
 
 ---
 
@@ -196,32 +196,103 @@ existia com tela de revisão e proteção contra sobrescrita.
 
 ---
 
-## 4. Fluxos restantes não-A (46 fluxos)
+### 3.10 AGD-05 / PIL-01 / PIL-05 — Turmas reais de Pilates (A mantido, prova trocada)
+
+**Problema:** a classificação A desses fluxos se apoiava em `PacoteSessao` — um
+pacote exibido na tela do paciente — que não representa a turma (dia, horário,
+profissional, alunos e presença por data).
+
+**Correção:**
+- Migration `2026_11_08_000002_create_turmas_table.php` com `turmas`,
+  `turma_pacientes` e `turma_presencas`.
+- Models `Turma` e `TurmaPresenca`; relações `Paciente::turmas()` e
+  `Paciente::presencasTurmas()`.
+- `TurmaController` com grade semanal, calendário do mês, alunos ativos e
+  presença por data (marcar duas vezes no mesmo dia atualiza a mesma linha).
+- Views `turmas/index|create|show.blade.php` e rotas `turmas.*`, reutilizando as
+  permissões `pacotes.*` para não criar permissões novas em produção.
+
+**Testes:** `test_turma_pilates_grade_calendario_e_presenca`,
+`test_pilates_tabela_cruzada_presencas_por_aluno_e_data`,
+`test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada`,
+`test_turmas_de_pilates_nao_vazam_entre_clinicas`.
+
+---
+
+### 3.11 PE-01..PE-05 — Profissional externo pago pelo caixa (B/E → A)
+
+**Problema:** o pagamento do profissional externo era representado como
+`Payment`/`AccountsReceivable` (dinheiro entrando), quando a planilha registra
+dinheiro saindo. Também não havia total mensal por profissional.
+
+**Correção:**
+- Migration `2026_11_08_000003_add_profissional_e_encargos_to_contas_pagar.php`
+  (`professional_id`, `tipo_remuneracao`, `juros`, `multa`).
+- `ContasPagarService` e `ContaPagarController` criam/baixam a conta vinculada
+  ao profissional, com modelo de remuneração.
+- Painel mensal por profissional na listagem de contas a pagar, separando
+  principal, juros e multa; filtro por profissional.
+- `Professional::TIPOS` inclui `nutricionista`, permitindo o cadastro pela tela.
+- O valor é sempre informado; o sistema não calcula a porcentagem sozinho.
+
+**Testes:** `test_profissional_externo_cadastro_e_pagamento`,
+`test_profissional_externo_pagamento_sai_do_caixa`,
+`test_profissional_externo_tipo_porcentagem`,
+`test_total_mensal_por_profissional_externo`.
+
+---
+
+### 3.12 DJ-03 / DJ-04 — Juros e multa informados na baixa (D → A)
+
+**Problema:** juros e multa estavam em D porque a taxa comercial não foi
+definida. A planilha, porém, registra valores já calculados na coluna JUROS.
+
+**Correção:** juros e multa são **informados na baixa** da conta a pagar e
+ficam no extrato (`accounts_payable_pagamentos.juros/multa`). O principal abate
+o saldo; os encargos não alteram o principal. Nenhuma taxa fixa foi inventada.
+
+**Testes:** `test_baixa_conta_pagar_com_juros_e_multa_informados`,
+`test_juros_multa_calculados_com_taxa_informada`.
+
+---
+
+### 3.13 Prévia do CONTAS.xlsx e homologação manual
+
+- Comando `financeiro:preview-contas {arquivo}` lê o .xlsx direto (ZIP + XML),
+  mostra abas, linhas, valores, juros e duplicidades e **não grava nada**.
+  Testado em `PreviewContasCommandTest`.
+- Roteiro `HOMOLOGACAO_PIL-06_PE-05.md` com dados, passos, resultado esperado,
+  evidência e critério de aprovação para a validação da cliente.
+
+---
+
+## 4. Fluxos restantes não-A (3 fluxos)
 
 ### 4.1 Por classificação
 
 | Classificação | Quantidade | Percentual |
 |---------------|------------|------------|
-| B — Implementado parcialmente | 3 | 2,2% |
-| C — Estrutura existente, comportamento incompleto | 15 | 10,9% |
-| D — Não implementado | 8 | 5,8% |
-| E — Não verificável | 2 | 1,5% |
-| **Total não-A** | **46** | **33,6%** |
+| B — Implementado parcialmente | 0 | 0% |
+| C — Estrutura existente, comportamento incompleto | 1 | 0,79% |
+| D — Não implementado | 1 | 0,79% |
+| E — Não verificável | 1 | 0,79% |
+| **Total não-A** | **3** | **2,36%** |
 
-### 4.2 Principais itens D (não implementados) que dependem da cliente
+### 4.2 Itens não-A e a dependência
 
-| ID | Fluxo | Motivo | Decisão pendente |
-|----|-------|--------|------------------|
-| DJ-03 | Juros sobre vencimento | Taxa não fixada | DECISOES_PENDENTES_CLIENTE.md #1.1 |
-| DJ-04 | Multa por atraso | Percentual não fixado | DECISOES_PENDENTES_CLIENTE.md #1.2 |
-| CP-01 a CP-08 | Contas a pagar histórica | Importação de dados pendente | DECISOES_PENDENTES_CLIENTE.md #3.1 |
-| DJ-06 | Juros/desconto na conta a pagar | Campo dedicado não existe | DECISOES_PENDENTES_CLIENTE.md #1.4 |
+| ID | Classificação | Fluxo | Motivo | Decisão pendente |
+|----|---------------|-------|--------|------------------|
+| MKT-03 | C | Aba MARKETING | É calendário de conteúdos, não CRM; conteúdo coberto por MKT-05/MKT-06 | Confirmar que o calendário de conteúdo é o uso real da aba |
+| DJ-06 | D | Desconto na conta a pagar | Juros/multa informados já existem; falta regra de desconto | DECISOES_PENDENTES_CLIENTE.md #1.4 |
+| PAC-10 | E | Importação de pacientes | Falta `Pacientes.xlsx` e regra de deduplicação | DECISOES_PENDENTES_CLIENTE.md #3.3 |
 
-### 4.3 Principais itens B e C (parciais)
+### 4.3 Observação sobre MKT-03
 
-Muitos fluxos B e C são funcionais mas diferem de formato da planilha (ex:
-grade semanal vs data específica, tabela cruzada vs relacional). Não exigem
-código novo, apenas documentação e/ou adaptação de fluxo de trabalho.
+MKT-03 foi **reclassificado de A para C** nesta sessão. A aba MARKETING é um
+calendário de conteúdos de WhatsApp, e o conteúdo é atendido por MKT-05/MKT-06
+(`social_posts`). O `Platform\ProspectController` é CRM comercial do SaaS e não
+substitui a aba da clínica. Manter A seria declarar equivalência sem prova
+funcional da aba.
 
 ---
 
@@ -229,22 +300,32 @@ código novo, apenas documentação e/ou adaptação de fluxo de trabalho.
 
 ### 5.1 Testes de equivalência (novos)
 
-32 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados:
+53 testes em `tests/Feature/EquivalenciaPlanilhasDaianeTest.php`, todos aprovados
+(271 asserções):
 
 | Módulo | Testes | Status |
 |--------|--------|--------|
-| Agenda | agendamento sem conflito, presença/falta | ✅ |
+| Agenda | agendamento sem conflito, presença/falta, filtros por profissional/busca | ✅ |
 | Depilação a laser | consulta completa, pagamento com plano (anulável) | ✅ |
-| Pilates | pagamento por serviço | ✅ |
+| Pilates | turma real, tabela cruzada de presenças, calendário por mês, pagamento por serviço | ✅ |
 | Fisioterapia / pacotes | consumo debita saldo, saldo não negativo, idempotência por appointment_id | ✅ |
-| Contas a pagar | criar/baixar/quitar, atraso calculado | ✅ |
-| Contas a receber | baixa parcial, rejeita acima do saldo, total em aberto | ✅ |
+| Contas a pagar | criar/baixar/quitar, atraso calculado, juros/multa informados, histórico | ✅ |
+| Contas a receber | listagem/filtro, baixa parcial, rejeita acima do saldo, total em aberto | ✅ |
+| Profissionais externos | cadastro, pagamento pelo caixa, modelo de remuneração, total mensal | ✅ |
 | Pagamentos | vínculo não sobrescreve, vínculo payment ↔ conta | ✅ |
-| FinanceHelper | DAYS360 igual ao Excel | ✅ |
+| FinanceHelper | DAYS360 igual ao Excel, juros/multa com valor informado | ✅ |
 | Relatórios | receitas por mês, presença/faltas, aniversariantes | ✅ |
 | Pacientes | duplicatas não fundem | ✅ |
 | Desconto | recebimento com desconto quita/parcial | ✅ |
 | Pacotes não-FT | pacote pilates fora vertical FT | ✅ |
+| Marketing | post social com legendas/aprovação; calendário de conteúdos | ✅ |
+
+Além desses:
+
+- `tests/Feature/PreviewContasCommandTest.php` — 2 testes da prévia somente-leitura
+  do `CONTAS.xlsx` (lê o arquivo e não grava no banco).
+- `tests/Feature/TenantIsolationModulosTest.php` — 3 testes de isolamento HTTP,
+  incluindo turmas de Pilates e 404 por ID de outra clínica.
 
 ### 5.2 Suíte completa
 
@@ -291,14 +372,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 127 fluxos classificados como A | ❌ 123 de 127 (96,85%) |
+| Todos os 127 fluxos classificados como A | ❌ 124 de 127 (97,64%) |
 | Todas as 311 abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ✅ Equivalente funcional implementado e testado para os fluxos aplicáveis |
 | Dados históricos preservados | ✅ Sem alteração de valores |
-| Testes de equivalência aprovados | ✅ 53 testes aprovados (206 asserções) |
-| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende das 4 decisões pendentes |
+| Testes de equivalência aprovados | ✅ 53 testes aprovados (271 asserções) |
+| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende das 3 pendências |
 
-**Percentual real declarado: 96,85% de equivalência (123/127 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 97,64% de equivalência (124/127 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 

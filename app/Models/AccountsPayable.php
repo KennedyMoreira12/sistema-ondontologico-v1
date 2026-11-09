@@ -18,9 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * meia-noite e ninguém roda um job para reescrever cada linha.
  */
 #[Fillable([
-    'supplier_id', 'financeiro_categoria_id', 'nome_conta', 'descricao',
-    'valor', 'data_vencimento', 'data_pagamento', 'status', 'tipo',
-    'tipo_documento', 'observacoes',
+    'supplier_id', 'professional_id', 'tipo_remuneracao', 'financeiro_categoria_id',
+    'nome_conta', 'descricao', 'valor', 'data_vencimento', 'data_pagamento', 'status',
+    'tipo', 'tipo_documento', 'observacoes',
 ])]
 class AccountsPayable extends TenantModel
 {
@@ -41,6 +41,16 @@ class AccountsPayable extends TenantModel
     public const TIPOS_DOCUMENTO = ['nf', 'boleto', 'duplicata', 'outros'];
 
     /**
+     * Modelos de remuneração de profissional externo.
+     *
+     * A planilha usa DIÁRIA (nutricionista) e PORCENTAGEM (dentista). O valor
+     * em si é informado na conta; o sistema não calcula a porcentagem sozinho.
+     *
+     * @var list<string>
+     */
+    public const TIPOS_REMUNERACAO = ['diaria', 'porcentagem', 'valor_fixo'];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -55,6 +65,14 @@ class AccountsPayable extends TenantModel
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * Profissional externo remunerado por esta conta (diária/porcentagem).
+     */
+    public function professional(): BelongsTo
+    {
+        return $this->belongsTo(Professional::class, 'professional_id');
     }
 
     public function categoria(): BelongsTo

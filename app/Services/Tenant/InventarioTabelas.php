@@ -49,6 +49,9 @@ class InventarioTabelas
         'evolucoes_sessao',
         'pacotes_sessao',
         'consumo_sessao',
+        'turmas',
+        'turma_pacientes',
+        'turma_presencas',
     ];
 
     /**

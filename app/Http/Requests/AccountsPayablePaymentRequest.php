@@ -19,6 +19,8 @@ class AccountsPayablePaymentRequest extends FormRequest
     {
         return [
             'valor' => ['required', 'numeric', 'gt:0', 'max:99999999.99'],
+            'juros' => ['nullable', 'numeric', 'gte:0', 'max:99999999.99'],
+            'multa' => ['nullable', 'numeric', 'gte:0', 'max:99999999.99'],
             'payment_method_id' => ['nullable', 'integer', Rule::exists('tenant.payment_methods', 'id')],
             'data' => ['required', 'date'],
             'observacoes' => ['nullable', 'string', 'max:500'],

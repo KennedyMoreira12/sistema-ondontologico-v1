@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Fillable([
     'accounts_payable_id', 'payment_method_id', 'user_id',
-    'idempotency_key', 'data', 'valor', 'observacoes',
+    'idempotency_key', 'data', 'valor', 'juros', 'multa', 'observacoes',
 ])]
 class AccountsPayablePayment extends TenantModel
 {
@@ -29,7 +29,20 @@ class AccountsPayablePayment extends TenantModel
         return [
             'data' => 'date',
             'valor' => 'decimal:2',
+            'juros' => 'decimal:2',
+            'multa' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Quanto saiu do caixa nesta baixa: principal + encargos informados.
+     *
+     * `valor` é o que abate o saldo da conta; juros e multa são acréscimos
+     * registrados ao lado, sem alterar a dívida original.
+     */
+    public function totalDesembolsado(): float
+    {
+        return round((float) $this->valor + (float) $this->juros + (float) $this->multa, 2);
     }
 
     public function conta(): BelongsTo

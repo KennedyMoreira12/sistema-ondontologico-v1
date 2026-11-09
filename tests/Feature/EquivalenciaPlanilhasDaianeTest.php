@@ -20,6 +20,8 @@ use App\Models\Professional;
 use App\Models\Room;
 use App\Models\SocialPost;
 use App\Models\Supplier;
+use App\Models\Turma;
+use App\Models\TurmaPresenca;
 use App\Support\FinanceHelper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesTenants;
@@ -805,27 +807,102 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     /* 15. Fluxos B/C técnicos — equivalência de formato (não comercial) */
     /* ------------------------------------------------------------------ */
 
-    public function test_agenda_turma_pilates(): void
+    /**
+     * AGD-05/PIL-05 — a grade semanal e o calendário da planilha PILATES são
+     * turmas de verdade: dia, horário, profissional, alunos e presença por data.
+     * Não é o nome de um pacote exibido na tela do paciente.
+     */
+    public function test_turma_pilates_grade_calendario_e_presenca(): void
     {
-        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view', 'pacotes.create', 'pacotes.update');
 
-        $paciente = Paciente::create(['nome' => 'Paciente Pilates Turma', 'status' => 'ativo']);
+        $profissional = Professional::create(['nome' => 'Instrutora Pilates', 'is_active' => true]);
+        $aluno1 = Paciente::create(['nome' => 'Aluno Pilates Um', 'status' => 'ativo']);
+        $aluno2 = Paciente::create(['nome' => 'Aluno Pilates Dois', 'status' => 'ativo']);
 
-        $pacote = PacoteSessao::create([
-            'paciente_id' => $paciente->id,
-            'nome' => 'Turma Pilates Segunda 10h',
-            'total_sessoes' => 10,
-            'sessoes_usadas' => 2,
-            'status' => PacoteSessao::ATIVO,
-            'servico' => 'PILATES',
+        $this->actingAs($user)
+            ->post(route('turmas.store'), [
+                'nome' => 'Pilates Segunda 10h',
+                'servico' => 'PILATES',
+                'profissional_id' => $profissional->id,
+                'dia_semana' => 1,
+                'hora_inicio' => '10:00',
+                'hora_fim' => '11:00',
+                'capacidade' => 6,
+                'sala' => 'Sala Pilates',
+            ])
+            ->assertRedirect();
+
+        $turma = Turma::query()->where('nome', 'Pilates Segunda 10h')->firstOrFail();
+
+        $this->assertTenantDatabaseHas('turmas', [
+            'nome' => 'Pilates Segunda 10h',
+            'profissional_id' => $profissional->id,
+            'dia_semana' => 1,
         ]);
 
-        // Turma de pilates acessível via rota pacotes.index (todas verticais)
-        $response = $this->actingAs($user)
-            ->get(route('pacientes.pacotes.index', $paciente))
-            ->assertOk();
+        // Grade semanal: a turma aparece na coluna de segunda-feira e no calendário.
+        $this->actingAs($user)
+            ->get(route('turmas.index', ['mes' => '2026-11']))
+            ->assertOk()
+            ->assertSee('Pilates Segunda 10h')
+            ->assertSee('Instrutora Pilates')
+            ->assertSee('02/11'); // primeira segunda-feira de novembro/2026
 
-        $response->assertSee('Turma Pilates Segunda 10h');
+        foreach ([$aluno1, $aluno2] as $aluno) {
+            $this->actingAs($user)
+                ->post(route('turmas.pacientes.store', $turma), ['paciente_id' => $aluno->id])
+                ->assertRedirect();
+        }
+
+        $this->assertSame(2, $turma->pacientes()->wherePivot('is_active', true)->count());
+
+        // Presença de um aluno na data: grava uma linha.
+        $this->actingAs($user)
+            ->post(route('turmas.presencas.store', $turma), [
+                'paciente_id' => $aluno1->id,
+                'data' => '2026-11-02',
+                'status' => TurmaPresenca::PRESENTE,
+            ])
+            ->assertRedirect();
+
+        // Marcar de novo no mesmo dia ATUALIZA a chamada, não duplica.
+        $this->actingAs($user)
+            ->post(route('turmas.presencas.store', $turma), [
+                'paciente_id' => $aluno1->id,
+                'data' => '2026-11-02',
+                'status' => TurmaPresenca::AUSENTE,
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(1, TurmaPresenca::query()
+            ->where('turma_id', $turma->id)
+            ->where('paciente_id', $aluno1->id)
+            ->whereDate('data', '2026-11-02')
+            ->count());
+
+        $this->assertSame(TurmaPresenca::AUSENTE, TurmaPresenca::query()
+            ->where('turma_id', $turma->id)
+            ->where('paciente_id', $aluno1->id)
+            ->whereDate('data', '2026-11-02')
+            ->value('status'));
+
+        // A lista de presença da data mostra os dois alunos e a situação.
+        $this->actingAs($user)
+            ->get(route('turmas.show', ['turma' => $turma, 'data' => '2026-11-02']))
+            ->assertOk()
+            ->assertSee('Aluno Pilates Um')
+            ->assertSee('Aluno Pilates Dois')
+            ->assertSee('Ausente')
+            ->assertSee('Sem registro');
+
+        // Aluno removido sai da chamada ativa, mas o histórico não é apagado.
+        $this->actingAs($user)
+            ->delete(route('turmas.pacientes.destroy', ['turma' => $turma, 'paciente' => $aluno2]))
+            ->assertRedirect();
+
+        $this->assertSame(1, $turma->pacientes()->wherePivot('is_active', true)->count());
+        $this->assertSame(0, TurmaPresenca::query()->where('paciente_id', $aluno2->id)->count());
     }
 
     public function test_paciente_variacoes_nome_nao_funde(): void
@@ -849,159 +926,327 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
             ->assertSee('GISELE LVES');
     }
 
-    public function test_profissional_externo_pagamento_via_payments(): void
+    /**
+     * PE-02 — remunerar profissional externo é dinheiro que SAI. A conta nasce
+     * em `accounts_payable`, vinculada ao profissional, e a baixa registra a
+     * saída. Não pode ser um `accounts_receivable` (dinheiro entrando).
+     */
+    public function test_profissional_externo_pagamento_sai_do_caixa(): void
     {
-        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive');
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive', 'financeiro.view');
 
-        $paciente = Paciente::create(['nome' => 'Paciente Profissional Externo', 'status' => 'ativo']);
-        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
-
-        // Pagamento de profissional externo (nutricionista DIÁRIA R$ 150,00)
-        $conta = AccountsReceivable::create([
-            'paciente_id' => $paciente->id,
-            'servico' => 'NUTRICIONISTA DIARIA',
-            'vencimento' => '2026-11-09',
-            'valor' => 150.00,
-            'valor_pago' => 0,
-            'status' => 'aberta',
-        ]);
-
-        $this->actingAs($user)
-            ->post(route('financeiro.receive', $conta), [
-                'valor' => 150.00,
-                'payment_method_id' => $metodo->id,
-            ])
-            ->assertRedirect();
-
-        $conta->refresh();
-        $this->assertSame('pago', $conta->status);
-        $this->assertSame(150.00, (float) $conta->valor_pago);
-
-        $this->assertTenantDatabaseHas('payments', [
-            'accounts_receivable_id' => $conta->id,
-            'valor' => 150.00,
-            'servico' => 'NUTRICIONISTA DIARIA',
-        ]);
-    }
-
-    public function test_pilates_tabela_cruzada_relacional(): void
-    {
-        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
-
-        $paciente1 = Paciente::create(['nome' => 'Cliente Pilates 1', 'status' => 'ativo']);
-        $paciente2 = Paciente::create(['nome' => 'Cliente Pilates 2', 'status' => 'ativo']);
-
-        // Tabela cruzada clientes × meses é representada relacionalmente:
-        // um pacote por cliente, consumos por sessão
-        $pacote1 = PacoteSessao::create([
-            'paciente_id' => $paciente1->id,
-            'nome' => 'Pacote Pilates Março',
-            'total_sessoes' => 4,
-            'sessoes_usadas' => 2,
-            'status' => PacoteSessao::ATIVO,
-            'servico' => 'PILATES',
-        ]);
-
-        $pacote2 = PacoteSessao::create([
-            'paciente_id' => $paciente2->id,
-            'nome' => 'Pacote Pilates Março',
-            'total_sessoes' => 4,
-            'sessoes_usadas' => 3,
-            'status' => PacoteSessao::ATIVO,
-            'servico' => 'PILATES',
-        ]);
-
-        // Consumo relacional: uma linha por sessão usada
-        ConsumoSessao::create([
-            'pacote_id' => $pacote1->id,
-            'paciente_id' => $paciente1->id,
-            'data' => '2026-03-05',
-        ]);
-        ConsumoSessao::create([
-            'pacote_id' => $pacote1->id,
-            'paciente_id' => $paciente1->id,
-            'data' => '2026-03-12',
-        ]);
-
-        // Cada cliente tem seu pacote e suas sessões consumidas (relacional, não cruzada)
-        $this->assertSame(2, PacoteSessao::where('servico', 'PILATES')->count());
-        $this->assertSame(2, $pacote1->refresh()->sessoes_usadas);
-        $this->assertSame(3, $pacote2->refresh()->sessoes_usadas);
-    }
-
-    public function test_pilates_calendario_turmas(): void
-    {
-        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
-
-        $paciente = Paciente::create(['nome' => 'Paciente Calendario Pilates', 'status' => 'ativo']);
-
-        $pacote = PacoteSessao::create([
-            'paciente_id' => $paciente->id,
-            'nome' => 'Turma Pilates Segunda 10h',
-            'total_sessoes' => 8,
-            'sessoes_usadas' => 3,
-            'status' => PacoteSessao::ATIVO,
-            'servico' => 'PILATES',
-        ]);
-
-        // Calendário de turmas acessível via pacotes.index
-        $response = $this->actingAs($user)
-            ->get(route('pacientes.pacotes.index', $paciente))
-            ->assertOk();
-
-        $response->assertSee('Turma Pilates Segunda 10h');
-        $response->assertSee('8'); // total_sessoes
-        $response->assertSee('3'); // sessoes_usadas
-    }
-
-    public function test_profissional_externo_cadastro_e_pagamento(): void
-    {
-        [, $user] = $this->criarUsuarioComPermissao('profissionais.create', 'financeiro.create', 'financeiro.receive');
-
-        // Cadastro de profissional externo (nutricionista DIÁRIA)
         $profissional = Professional::create([
             'nome' => 'Nutricionista Apoena',
             'tipo' => 'nutricionista',
             'registro_profissional' => 'CRN 12345',
             'is_active' => true,
         ]);
-
-        $this->assertSame('nutricionista', $profissional->tipo);
-        $this->assertSame('CRN 12345', $profissional->registro_profissional);
-
-        // Pagamento de profissional externo via payments (valor livre)
         $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
 
-        $conta = AccountsReceivable::create([
-            'paciente_id' => Paciente::create(['nome' => 'Paciente Profissional Externo 2', 'status' => 'ativo'])->id,
-            'servico' => 'NUTRICIONISTA DIARIA',
-            'vencimento' => '2026-11-09',
-            'valor' => 150.00,
-            'valor_pago' => 0,
-            'status' => 'aberta',
-        ]);
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'professional_id' => $profissional->id,
+                'tipo_remuneracao' => 'diaria',
+                'nome_conta' => 'Nutricionista — diária 09/11',
+                'valor' => 150.00,
+                'data_vencimento' => '2026-11-09',
+                'tipo' => 'servico',
+                'tipo_documento' => 'outros',
+            ])
+            ->assertRedirect();
+
+        $conta = AccountsPayable::query()->where('nome_conta', 'Nutricionista — diária 09/11')->firstOrFail();
+
+        $this->assertSame($profissional->id, $conta->professional_id);
+        $this->assertSame('diaria', $conta->tipo_remuneracao);
 
         $this->actingAs($user)
-            ->post(route('financeiro.receive', $conta), [
+            ->post(route('financeiro.contas-pagar.baixar', $conta), [
                 'valor' => 150.00,
                 'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
             ])
             ->assertRedirect();
 
         $conta->refresh();
-        $this->assertSame('pago', $conta->status);
+        $this->assertSame(AccountsPayable::PAGO, $conta->status);
+        $this->assertSame(0.0, $conta->saldo);
+
+        $this->assertTenantDatabaseHas('accounts_payable_pagamentos', [
+            'accounts_payable_id' => $conta->id,
+            'valor' => 150.00,
+        ]);
+
+        // A saída não pode ter sido lançada como recebimento do paciente.
+        $this->assertSame(0, AccountsReceivable::count());
+        $this->assertSame(0, Payment::count());
     }
 
-    public function test_contas_receber_estrutura_existe(): void
+    /**
+     * PIL-01 — a tabela cruzada clientes × meses da planilha PGTO PILATES é
+     * representada por presenças por aluno e por data: cada célula é uma linha
+     * em `turma_presencas`, sem apagar as datas anteriores.
+     */
+    public function test_pilates_tabela_cruzada_presencas_por_aluno_e_data(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view', 'pacotes.create', 'pacotes.update');
+
+        $turma = Turma::create([
+            'nome' => 'Pilates Quarta 08h',
+            'servico' => 'PILATES',
+            'dia_semana' => 3,
+            'hora_inicio' => '08:00',
+            'is_active' => true,
+        ]);
+
+        $aluno1 = Paciente::create(['nome' => 'Cliente Pilates 1', 'status' => 'ativo']);
+        $aluno2 = Paciente::create(['nome' => 'Cliente Pilates 2', 'status' => 'ativo']);
+
+        foreach ([$aluno1, $aluno2] as $aluno) {
+            $this->actingAs($user)
+                ->post(route('turmas.pacientes.store', $turma), ['paciente_id' => $aluno->id])
+                ->assertRedirect();
+        }
+
+        $marcacoes = [
+            [$aluno1, '2026-03-05', TurmaPresenca::PRESENTE],
+            [$aluno1, '2026-03-12', TurmaPresenca::PRESENTE],
+            [$aluno2, '2026-03-05', TurmaPresenca::AUSENTE],
+        ];
+
+        foreach ($marcacoes as [$aluno, $data, $status]) {
+            $this->actingAs($user)
+                ->post(route('turmas.presencas.store', $turma), [
+                    'paciente_id' => $aluno->id,
+                    'data' => $data,
+                    'status' => $status,
+                ])
+                ->assertRedirect();
+        }
+
+        // Uma linha por aluno e por data: 2 alunos na primeira data, 1 na segunda.
+        $this->assertSame(3, TurmaPresenca::query()->where('turma_id', $turma->id)->count());
+        $this->assertSame(2, TurmaPresenca::query()->where('paciente_id', $aluno1->id)->count());
+        $this->assertSame(1, TurmaPresenca::query()->where('paciente_id', $aluno2->id)->count());
+        $this->assertSame(2, TurmaPresenca::query()->whereDate('data', '2026-03-05')->count());
+        $this->assertSame(1, TurmaPresenca::query()
+            ->whereDate('data', '2026-03-05')
+            ->where('status', TurmaPresenca::AUSENTE)
+            ->count());
+    }
+
+    /**
+     * PIL-05 — o calendário respeita o mês escolhido e não mostra turma
+     * encerrada. A data mostrada é a ocorrência real do dia da semana no mês.
+     */
+    public function test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('pacotes.view');
+
+        Turma::create([
+            'nome' => 'Pilates Segunda Ativa',
+            'servico' => 'PILATES',
+            'dia_semana' => 1,
+            'hora_inicio' => '10:00',
+            'is_active' => true,
+        ]);
+
+        Turma::create([
+            'nome' => 'Pilates Terça Encerrada',
+            'servico' => 'PILATES',
+            'dia_semana' => 2,
+            'hora_inicio' => '09:00',
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('turmas.index', ['mes' => '2026-11']))
+            ->assertOk()
+            ->assertSee('Pilates Segunda Ativa')
+            ->assertDontSee('Pilates Terça Encerrada')
+            ->assertSee('02/11');
+
+        $this->actingAs($user)
+            ->get(route('turmas.index', ['mes' => '2026-12']))
+            ->assertOk()
+            ->assertSee('07/12') // primeira segunda-feira de dezembro/2026
+            ->assertDontSee('02/11');
+    }
+
+    /**
+     * PE-01/PE-05 — o profissional externo é cadastrado pela tela (tipo e
+     * registro no conselho) e remunerado por conta a pagar. Outro profissional
+     * externo usa o mesmo cadastro, sem criar um fluxo paralelo.
+     */
+    public function test_profissional_externo_cadastro_e_pagamento(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao(
+            'profissionais.create',
+            'profissionais.view',
+            'financeiro.create',
+            'financeiro.receive',
+            'financeiro.view',
+        );
+
+        $this->actingAs($user)
+            ->post(route('profissionais.store'), [
+                'nome' => 'Nutricionista Apoena',
+                'tipo' => 'nutricionista',
+                'registro_profissional' => 'CRN 12345',
+                'is_active' => true,
+            ])
+            ->assertRedirect(route('profissionais.index'));
+
+        $profissional = Professional::query()->where('nome', 'Nutricionista Apoena')->firstOrFail();
+        $this->assertSame('nutricionista', $profissional->tipo);
+
+        $this->actingAs($user)
+            ->get(route('profissionais.index', ['busca' => 'Apoena']))
+            ->assertOk()
+            ->assertSee('Nutricionista Apoena')
+            ->assertSee('CRN 12345');
+
+        // Pagamento pela conta a pagar, vinculado ao profissional (dinheiro saindo).
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'professional_id' => $profissional->id,
+                'tipo_remuneracao' => 'diaria',
+                'nome_conta' => 'Diária da nutricionista',
+                'valor' => 150.00,
+                'data_vencimento' => '2026-11-09',
+                'tipo' => 'servico',
+                'tipo_documento' => 'outros',
+            ])
+            ->assertRedirect();
+
+        $conta = AccountsPayable::query()->where('nome_conta', 'Diária da nutricionista')->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $conta), [
+                'valor' => 150.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(AccountsPayable::PAGO, $conta->refresh()->status);
+        $this->assertSame(0, AccountsReceivable::count());
+    }
+
+    /**
+     * PE-04 — total mensal por profissional, pela data da baixa, separando
+     * principal de juros/multa. Não é o total por serviço do relatório.
+     */
+    public function test_total_mensal_por_profissional_externo(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive', 'financeiro.view');
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $apoena = Professional::create(['nome' => 'Apoena Nutri', 'tipo' => 'nutricionista', 'is_active' => true]);
+        $outro = Professional::create(['nome' => 'Outro Profissional', 'tipo' => 'outro', 'is_active' => true]);
+
+        $contaNovembro = AccountsPayable::create([
+            'professional_id' => $apoena->id,
+            'tipo_remuneracao' => 'diaria',
+            'nome_conta' => 'Diária novembro',
+            'valor' => 150.00,
+            'data_vencimento' => '2026-11-09',
+            'status' => AccountsPayable::PENDENTE,
+            'tipo' => 'servico',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $contaOutubro = AccountsPayable::create([
+            'professional_id' => $apoena->id,
+            'tipo_remuneracao' => 'diaria',
+            'nome_conta' => 'Diária outubro',
+            'valor' => 200.00,
+            'data_vencimento' => '2026-10-09',
+            'status' => AccountsPayable::PENDENTE,
+            'tipo' => 'servico',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $contaOutroProfissional = AccountsPayable::create([
+            'professional_id' => $outro->id,
+            'tipo_remuneracao' => 'valor_fixo',
+            'nome_conta' => 'Repasse outro profissional',
+            'valor' => 500.00,
+            'data_vencimento' => '2026-11-09',
+            'status' => AccountsPayable::PENDENTE,
+            'tipo' => 'servico',
+            'tipo_documento' => 'outros',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $contaNovembro), [
+                'valor' => 150.00,
+                'juros' => 15.00,
+                'multa' => 5.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $contaOutubro), [
+                'valor' => 200.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-10-09',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $contaOutroProfissional), [
+                'valor' => 500.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
+            ])
+            ->assertRedirect();
+
+        $response = $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.index', ['mes' => '2026-11']))
+            ->assertOk();
+
+        $totais = collect($response->viewData('totaisPorProfissional'))->keyBy('professional_id');
+
+        // Outubro não entra no painel de novembro.
+        $this->assertCount(2, $totais);
+        $this->assertSame(150.0, (float) $totais[$apoena->id]->total_principal);
+        $this->assertSame(15.0, (float) $totais[$apoena->id]->total_juros);
+        $this->assertSame(5.0, (float) $totais[$apoena->id]->total_multa);
+        $this->assertSame(500.0, (float) $totais[$outro->id]->total_principal);
+
+        $response->assertSee('Apoena Nutri')->assertSee('R$ 170,00');
+
+        // Filtro por profissional: só as contas da Apoena na listagem.
+        $filtrada = $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.index', ['professional_id' => $apoena->id]))
+            ->assertOk();
+
+        $this->assertSame(
+            [$apoena->id],
+            $filtrada->viewData('contas')->pluck('professional_id')->unique()->values()->all(),
+        );
+    }
+
+    /**
+     * CR-01 — a listagem de contas a receber filtra por paciente e por status e
+     * o total em aberto desconta o que já foi recebido. Não basta a tabela
+     * existir.
+     */
+    public function test_contas_receber_listagem_e_filtro_funcional(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('financeiro.view');
 
-        $paciente = Paciente::create(['nome' => 'Paciente Contas Receber', 'status' => 'ativo']);
+        $ana = Paciente::create(['nome' => 'Ana Recebível', 'status' => 'ativo']);
+        $bruno = Paciente::create(['nome' => 'Bruno Recebível', 'status' => 'ativo']);
 
-        // Estrutura de contas a receber existe
-        $conta = AccountsReceivable::create([
-            'paciente_id' => $paciente->id,
-            'descricao' => 'Consulta consulta',
+        AccountsReceivable::create([
+            'paciente_id' => $ana->id,
+            'descricao' => 'Consulta da Ana',
             'servico' => 'CONSULTA',
             'vencimento' => '2026-11-15',
             'valor' => 200.00,
@@ -1009,10 +1254,29 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
             'status' => 'aberta',
         ]);
 
-        $this->assertNotNull($conta->id);
-        $this->assertSame($paciente->id, $conta->paciente_id);
-        $this->assertSame(200.00, (float) $conta->valor);
-        $this->assertSame('aberta', $conta->status);
+        AccountsReceivable::create([
+            'paciente_id' => $bruno->id,
+            'descricao' => 'Pilates do Bruno',
+            'servico' => 'PILATES',
+            'vencimento' => '2026-11-10',
+            'valor' => 300.00,
+            'valor_pago' => 300.00,
+            'status' => 'pago',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('financeiro.index', ['busca' => 'Ana']))
+            ->assertOk()
+            ->assertSee('Ana Recebível')
+            ->assertDontSee('Bruno Recebível');
+
+        $this->assertSame(200.0, (float) $response->viewData('totalAberto'));
+
+        $this->actingAs($user)
+            ->get(route('financeiro.index', ['status' => 'pago']))
+            ->assertOk()
+            ->assertSee('Bruno Recebível')
+            ->assertDontSee('Ana Recebível');
     }
 
     public function test_pagamento_paciente_vinculo_existe(): void
@@ -1051,74 +1315,75 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
         ]);
     }
 
-    public function test_prospects_estrutura_existe(): void
+    /**
+     * MKT-03 — a aba MARKETING da planilha é um calendário de conteúdos, não o
+     * CRM de prospects da plataforma. O conteúdo é atendido por MKT-05/MKT-06
+     * (`social_posts`); o teste prova a listagem do post criado.
+     *
+     * O `Platform\ProspectController` é CRM comercial do SaaS e não substitui a
+     * aba da clínica; por isso MKT-03 permanece C na matriz.
+     */
+    public function test_marketing_calendario_de_conteudos_usa_posts_sociais(): void
     {
-        // Estrutura de prospects existe (Platform\ProspectController)
-        $this->assertTrue(file_exists(app_path('Http/Controllers/Platform/ProspectController.php')));
+        [, $user] = $this->criarUsuarioComPermissao('social.view', 'social.manage');
+
+        $this->actingAs($user)
+            ->post(route('social.store'), [
+                'titulo' => 'Calendário de novembro',
+                'legenda_instagram' => 'Conteúdo de novembro',
+                'platforms' => ['instagram'],
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($user)
+            ->get(route('social.index'))
+            ->assertOk()
+            ->assertSee('Calendário de novembro');
     }
 
     /* ------------------------------------------------------------------ */
-    /* 16. Contas a pagar — estrutura existe (dados históricos pendentes) */
+    /* 16. Contas a pagar — dados históricos (sem importar em produção) */
     /* ------------------------------------------------------------------ */
-
-    public function test_contas_pagar_estrutura_existe(): void
-    {
-        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
-
-        $fornecedor = Supplier::create(['nome' => 'Fornecedor Contas Pagar']);
-        $categoria = FinancialCategory::query()->where('nome', 'Aluguel')->firstOrFail();
-
-        // Estrutura de contas a pagar existe (tabela e telas)
-        $conta = AccountsPayable::create([
-            'supplier_id' => $fornecedor->id,
-            'financeiro_categoria_id' => $categoria->id,
-            'nome_conta' => 'Aluguel novembro',
-            'valor' => 1800.00,
-            'data_vencimento' => '2026-11-10',
-            'status' => 'pendente',
-            'tipo' => 'aluguel',
-            'tipo_documento' => 'boleto',
-        ]);
-
-        $this->assertNotNull($conta->id);
-        $this->assertSame('Aluguel novembro', $conta->nome_conta);
-        $this->assertSame(1800.00, (float) $conta->valor);
-        $this->assertSame('pendente', $conta->status);
-        $this->assertSame($fornecedor->id, $conta->supplier_id);
-    }
 
     /* ------------------------------------------------------------------ */
     /* 17. Fluxos D — aguardam decisão do cliente (não implementar) */
     /* ------------------------------------------------------------------ */
 
-    public function test_contas_pagar_estrutura_pronta_para_dados_historicos(): void
+    /**
+     * CP-01/CP-02 (histórico) — uma conta com vencimento antigo entra pela tela
+     * com a data original preservada e aparece como atrasada; nada é
+     * "corrigido" para a data de hoje nem marcado como pago sozinho.
+     */
+    public function test_conta_pagar_historica_preserva_data_e_status(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
 
-        $fornecedor = Supplier::create(['nome' => 'Fornecedor Dados Historicos']);
-        $categoria = FinancialCategory::query()->where('nome', 'Aluguel')->firstOrFail();
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'nome_conta' => 'Aluguel 2023-01',
+                'valor' => 1500.00,
+                'data_vencimento' => '2023-01-10',
+                'tipo' => 'aluguel',
+                'tipo_documento' => 'boleto',
+            ])
+            ->assertRedirect();
 
-        // Estrutura completa de contas a pagar está pronta para receber dados históricos
-        $conta = AccountsPayable::create([
-            'supplier_id' => $fornecedor->id,
-            'financeiro_categoria_id' => $categoria->id,
-            'nome_conta' => 'Aluguel 2023-01',
-            'valor' => 1500.00,
-            'data_vencimento' => '2023-01-10',
-            'status' => 'pendente',
-            'tipo' => 'aluguel',
-            'tipo_documento' => 'boleto',
-        ]);
+        $conta = AccountsPayable::query()->where('nome_conta', 'Aluguel 2023-01')->firstOrFail();
 
-        $this->assertNotNull($conta->id);
-        $this->assertSame('pendente', $conta->status);
-        // Dados históricos de CONTAS .xlsx ainda não importados (aguardam decisão do cliente)
+        $this->assertSame('2023-01-10', $conta->data_vencimento->format('Y-m-d'));
+        $this->assertSame(AccountsPayable::PENDENTE, $conta->status);
+        $this->assertSame(AccountsPayable::ATRASADO, $conta->statusEfetivo());
+
+        $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.index', ['status' => 'atrasado']))
+            ->assertOk()
+            ->assertSee('Aluguel 2023-01');
     }
 
-    public function test_juros_multa_estrutura_existe_mas_taxa_pendente(): void
+    public function test_juros_multa_calculados_com_taxa_informada(): void
     {
-        // Estrutura de juros/multa existe em FinanceHelper
-        // Mas taxa e percentual não estão fixados (aguardam decisão do cliente)
+        // A taxa/percentual NÃO é fixada pelo sistema: é informada por quem
+        // calcula. O helper só aplica a fórmula sobre o valor informado.
         $this->assertTrue(method_exists(FinanceHelper::class, 'jurosSimples'));
         $this->assertTrue(method_exists(FinanceHelper::class, 'multa'));
 
@@ -1353,45 +1618,105 @@ class EquivalenciaPlanilhasDaianeTest extends TestCase
     /* 18. Fluxos B/C — equilvência de formato (não comercial) */
     /* ------------------------------------------------------------------ */
 
-    public function test_profissional_externo_tipo_diaria(): void
-    {
-        [, $user] = $this->criarUsuarioComPermissao('profissionais.create');
-
-        // Profissional externo com tipo 'nutricionista' e tipo_diaria
-        $profissional = Professional::create([
-            'nome' => 'Nutricionista Apoena',
-            'tipo' => 'nutricionista',
-            'registro_profissional' => 'CRN 12345',
-            'is_active' => true,
-        ]);
-
-        $this->assertSame('nutricionista', $profissional->tipo);
-        $this->assertSame('CRN 12345', $profissional->registro_profissional);
-        $this->assertTrue($profissional->is_active);
-    }
-
-    public function test_contas_pagar_campo_juros_desconto(): void
+    /**
+     * PE-02/PE-03 — a remuneração do profissional externo é escolhida entre os
+     * modelos da planilha (diária, porcentagem ou valor fixo). O valor é sempre
+     * o informado; o sistema não calcula a porcentagem sozinho nem inventa taxa.
+     */
+    public function test_profissional_externo_tipo_porcentagem(): void
     {
         [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.view');
 
-        $fornecedor = Supplier::create(['nome' => 'Fornecedor Contas Pagar']);
-
-        // Campo juros_desconto existe em accounts_payable
-        $conta = AccountsPayable::create([
-            'supplier_id' => $fornecedor->id,
-            'nome_conta' => 'Aluguel novembro',
-            'valor' => 1800.00,
-            'data_vencimento' => '2026-11-10',
-            'status' => 'pendente',
-            'tipo' => 'aluguel',
-            'tipo_documento' => 'boleto',
+        $profissional = Professional::create([
+            'nome' => 'Dentista Parceiro',
+            'tipo' => 'dentista',
+            'is_active' => true,
         ]);
 
-        $this->assertNotNull($conta->id);
-        $this->assertSame('Aluguel novembro', $conta->nome_conta);
-        $this->assertSame(1800.00, (float) $conta->valor);
-        $this->assertSame('pendente', $conta->status);
-        $this->assertSame($fornecedor->id, $conta->supplier_id);
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'professional_id' => $profissional->id,
+                'tipo_remuneracao' => 'porcentagem',
+                'nome_conta' => 'Dentista parceiro — repasse',
+                'valor' => 300.00,
+                'data_vencimento' => '2026-11-30',
+                'tipo' => 'servico',
+                'tipo_documento' => 'outros',
+            ])
+            ->assertRedirect();
+
+        $this->assertTenantDatabaseHas('accounts_payable', [
+            'professional_id' => $profissional->id,
+            'tipo_remuneracao' => 'porcentagem',
+        ]);
+
+        // O valor da porcentagem é o combinado informado, não um cálculo do sistema.
+        $conta = AccountsPayable::query()->where('nome_conta', 'Dentista parceiro — repasse')->firstOrFail();
+        $this->assertSame(300.0, (float) $conta->valor);
+
+        // Um modelo fora da lista é recusado.
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'professional_id' => $profissional->id,
+                'tipo_remuneracao' => 'inventado',
+                'nome_conta' => 'Modelo inválido',
+                'valor' => 100.00,
+                'data_vencimento' => '2026-11-30',
+                'tipo' => 'servico',
+                'tipo_documento' => 'outros',
+            ])
+            ->assertSessionHasErrors('tipo_remuneracao');
+    }
+
+    /**
+     * DJ-03/DJ-04 — a coluna JUROS das abas OUTUBRO 2023+ é um valor INFORMADO
+     * na baixa, junto com a multa. O sistema não fixa taxa nem percentual: o
+     * principal abate o saldo e os encargos ficam registrados no extrato.
+     */
+    public function test_baixa_conta_pagar_com_juros_e_multa_informados(): void
+    {
+        [, $user] = $this->criarUsuarioComPermissao('financeiro.create', 'financeiro.receive', 'financeiro.view');
+        $metodo = PaymentMethod::create(['name' => 'PIX', 'label' => 'PIX']);
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.store'), [
+                'nome_conta' => 'Aluguel vencido',
+                'valor' => 1000.00,
+                'data_vencimento' => '2026-10-10',
+                'tipo' => 'aluguel',
+                'tipo_documento' => 'boleto',
+            ])
+            ->assertRedirect();
+
+        $conta = AccountsPayable::query()->where('nome_conta', 'Aluguel vencido')->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('financeiro.contas-pagar.baixar', $conta), [
+                'valor' => 1000.00,
+                'juros' => 20.00,
+                'multa' => 10.00,
+                'payment_method_id' => $metodo->id,
+                'data' => '2026-11-09',
+            ])
+            ->assertRedirect();
+
+        $conta->refresh();
+        $baixa = AccountsPayablePayment::query()->where('accounts_payable_id', $conta->id)->firstOrFail();
+
+        $this->assertSame(20.0, (float) $baixa->juros);
+        $this->assertSame(10.0, (float) $baixa->multa);
+        $this->assertSame(1030.0, $baixa->totalDesembolsado());
+
+        // Juros e multa NÃO abatem o principal: o saldo fecha com o valor da conta.
+        $this->assertSame(0.0, $conta->saldo);
+        $this->assertSame(AccountsPayable::PAGO, $conta->status);
+
+        $this->actingAs($user)
+            ->get(route('financeiro.contas-pagar.show', $conta))
+            ->assertOk()
+            ->assertSee('R$ 20,00')
+            ->assertSee('R$ 10,00')
+            ->assertSee('R$ 1.030,00');
     }
 
     /* ------------------------------------------------------------------ */

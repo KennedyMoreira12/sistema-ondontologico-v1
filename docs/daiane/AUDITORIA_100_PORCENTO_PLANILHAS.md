@@ -66,16 +66,16 @@ Nenhum lançamento foi apagado, alterado ou forçado a bater. As 3 linhas pré-e
 
 | Classificação | Quantidade | Percentual | Conta para 100%? |
 |---------------|------------|------------|------------------|
-| A — Equivalente, implementado e testado | 123 | 96,85% | ✅ Sim |
+| A — Equivalente, implementado e testado | 124 | 97,64% | ✅ Sim |
 | B — Implementado parcialmente | 0 | 0% | ❌ Não |
-| C — Estrutura existente, comportamento incompleto | 0 | 0% | ❌ Não |
-| D — Não implementado | 3 | 2,36% | ❌ Não |
+| C — Estrutura existente, comportamento incompleto | 1 | 0,79% | ❌ Não |
+| D — Não implementado | 1 | 0,79% | ❌ Não |
 | E — Não verificável | 1 | 0,79% | ❌ Não |
 | **Total** | **127** | **100%** | |
 
 > **Correção de contagem:** o total real é 127 fluxos, não 137. A soma das classificações fecha em 127 e os percentuais acima usam esse denominador.
 
-**Equivalência real declarada: 96,85% (123 de 127 fluxos classificados como A).**
+**Equivalência real declarada: 97,64% (124 de 127 fluxos classificados como A).**
 
 A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
@@ -97,10 +97,10 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 | Contas a receber | 8 | 8 | 0 | 0 | 0 | 0 | 100% |
 | Pagamentos e recebimentos | 9 | 9 | 0 | 0 | 0 | 0 | 100% |
 | Profissionais externos | 6 | 6 | 0 | 0 | 0 | 0 | 100% |
-| Descontos, juros e vencimentos | 6 | 3 | 0 | 0 | 3 | 0 | 50% |
+| Descontos, juros e vencimentos | 6 | 5 | 0 | 0 | 1 | 0 | 83% |
 | Relatórios e indicadores | 9 | 9 | 0 | 0 | 0 | 0 | 100% |
-| Marketing e aniversariantes | 6 | 6 | 0 | 0 | 0 | 0 | 100% |
-| **TOTAL** | **127** | **123** | **0** | **0** | **3** | **1** | **96,85%** |
+| Marketing e aniversariantes | 6 | 5 | 0 | 1 | 0 | 0 | 83% |
+| **TOTAL** | **127** | **124** | **0** | **1** | **1** | **1** | **97,64%** |
 
 ---
 
@@ -121,23 +121,31 @@ A meta de 100% **NÃO está atingida**. Somente fluxos A contam.
 
 ---
 
-## 5. O que falta (fluxos não-A — 4 fluxos)
+## 5. O que falta (fluxos não-A — 3 fluxos)
 
 Restam apenas fluxos bloqueados por decisão da cliente ou por arquivo externo:
 
-1. **PAC-10 (E) — Importação de pacientes:** depende do arquivo `Pacientes.xlsx` separado e de regra de deduplicação definida pela cliente.
-2. **DJ-03 (D) — Juros sobre vencimento:** `FinanceHelper` calcula com taxa informada, mas a taxa comercial não foi definida pela cliente.
-3. **DJ-04 (D) — Multa por atraso:** mesma pendência de percentual comercial.
-4. **DJ-06 (D) — Juros/desconto na conta a pagar:** não há campo dedicado; efeito no saldo depende de decisão comercial.
+1. **MKT-03 (C) — Aba MARKETING:** a aba é um calendário de conteúdos de WhatsApp, não um CRM de prospects. O conteúdo é coberto por MKT-05/MKT-06 (`social_posts`); o `Platform\ProspectController` é CRM comercial do SaaS e não substitui a aba da clínica.
+2. **DJ-06 (D) — Desconto na conta a pagar:** juros e multa informados na baixa já existem; falta a decisão sobre desconto em conta a pagar.
+3. **PAC-10 (E) — Importação de pacientes:** depende do arquivo `Pacientes.xlsx` separado e de regra de deduplicação definida pela cliente.
 
 Itens corrigidos nesta sessão (B/C/D/E → A):
+- AGD-05/PIL-05: turmas reais de Pilates com dia, horário, profissional, alunos e presença por data (`test_turma_pilates_grade_calendario_e_presenca`, `test_pilates_calendario_respeita_mes_e_ignora_turma_encerrada`)
+- PIL-01: tabela cruzada vira presença por aluno e por data em `turma_presencas` (`test_pilates_tabela_cruzada_presencas_por_aluno_e_data`)
+- PE-02/PE-03: pagamento do profissional externo sai como conta a pagar vinculada, com modelo de remuneração informado (`test_profissional_externo_pagamento_sai_do_caixa`, `test_profissional_externo_tipo_porcentagem`)
+- PE-04: painel mensal por profissional, separando principal, juros e multa (`test_total_mensal_por_profissional_externo`)
+- PE-05: cadastro pela tela e pagamento via conta a pagar (`test_profissional_externo_cadastro_e_pagamento`)
+- DJ-03/DJ-04: juros e multa informados na baixa, sem taxa fixa inventada (`test_baixa_conta_pagar_com_juros_e_multa_informados`)
+- CR-01: listagem e filtro de contas a receber funcionais (`test_contas_receber_listagem_e_filtro_funcional`)
 - LAS-08: contagem por área no relatório de presença/faltas (`test_relatorio_presenca_faltas_por_area`)
 - PIL-06: lista de presença por paciente via consumo de sessão (`test_campanha_pilates_lista_consumo_por_paciente`)
 - FIS-02: fisioterapia domiciliar no fluxo procedimento → recebimento → relatório (`test_fisioterapia_domiciliar_percorre_fluxo_financeiro`)
 - PRE-05: reposição explícita de sessão (`test_reposicao_de_sessao_registrada_e_contada`)
 - CP-01..CP-08: criação, vencimento, status, baixa, baixa parcial, idempotência, categoria e fornecedor (`test_conta_a_pagar_criar_baixar_quitar`, `test_atraso_calculado_nao_gravado`, `test_baixa_conta_pagar_idempotente_nao_duplica`, `test_conta_pagar_categoria_e_fornecedor`)
-- PE-05: profissional externo cadastrado e pago (`test_profissional_externo_cadastro_e_pagamento`)
 - MKT-05/MKT-06: campanha/post social com legendas e aprovação (`test_campanha_post_social_legendas_e_aprovacao`)
+
+**Reclassificação para baixo (A → C):**
+- MKT-03: a aba é calendário de conteúdos, não CRM. O conteúdo é atendido por MKT-05/MKT-06; manter A seria declarar equivalência sem prova funcional da aba.
 
 Itens corrigidos em sessões anteriores (B/C/D → A):
 - PSP-08: pacotes de sessão disponíveis para todas as verticais (removido middleware `vertical:fisioterapia`)
@@ -171,7 +179,9 @@ Testes automatizados existentes que cobrem fluxos Daiane:
 | `ContaPagarTest` | conta a pagar, baixa parcial/total, idempotência, atraso, fornecedor com conta | ✅ Aprovado |
 | `PacoteSessaoTest` | criação, consumo, saldo não negativo, idempotência, cancelamento, isolamento | ✅ Aprovado |
 | `PagamentoTest` | listagem, filtro sem vínculo, vincular, não sobrescrever, manual, duplicatas | ✅ Aprovado |
-| `EquivalenciaPlanilhasDaianeTest` | 53 testes de equivalência planilha x sistema | ✅ Aprovado |
+| `EquivalenciaPlanilhasDaianeTest` | 53 testes de equivalência planilha x sistema (271 asserções) | ✅ Aprovado |
+| `PreviewContasCommandTest` | prévia somente-leitura do `CONTAS.xlsx` (2 testes) | ✅ Aprovado |
+| `TenantIsolationModulosTest` | isolamento HTTP de agenda, atendimento, financeiro, relatórios e turmas (3 testes) | ✅ Aprovado |
 | `AgendaTest` | agenda (verificar cobertura específica) | — |
 | `AtendimentoTest` | presença/falta, consumo (verificar cobertura específica) | — |
 | `RelatorioTest` | relatórios e exportação (verificar cobertura específica) | — |
@@ -185,14 +195,14 @@ A meta de 100% **NÃO está atingida.**
 
 | Critério | Status |
 |----------|--------|
-| Todos os 127 fluxos classificados como A | ❌ 123 de 127 (96,85%) |
+| Todos os 127 fluxos classificados como A | ❌ 124 de 127 (97,64%) |
 | Todas as abas examinadas | ✅ 292 abas confirmadas (311 era erro de documentação) |
 | Todas as fórmulas relevantes com equivalência comprovada | ✅ Equivalente funcional implementado e testado para os fluxos aplicáveis |
 | Dados históricos preservados | ✅ Sim (sem alteração de valores) |
-| Testes de equivalência aprovados | ✅ 53 testes aprovados (206 asserções) |
-| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende das 4 decisões pendentes (`DECISOES_PENDENTES_CLIENTE.md`) |
+| Testes de equivalência aprovados | ✅ 53 testes aprovados (271 asserções) |
+| Cliente consegue executar processos sem planilhas | ⚠️ Parcial — depende das 3 pendências (`DECISOES_PENDENTES_CLIENTE.md`) |
 
-**Percentual real declarado: 96,85% de equivalência (123/127 fluxos A). Não arredondado, não declarado por estimativa.**
+**Percentual real declarado: 97,64% de equivalência (124/127 fluxos A). Não arredondado, não declarado por estimativa.**
 
 ---
 
