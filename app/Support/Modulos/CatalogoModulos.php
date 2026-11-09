@@ -157,6 +157,8 @@ class CatalogoModulos
             'situacao' => [
                 self::ODONTOLOGIA => self::DISPONIVEL,
                 self::FISIOTERAPIA => self::DISPONIVEL,
+                self::PILATES => self::DISPONIVEL,
+                self::LASER => self::DISPONIVEL,
             ],
             'descricao' => 'Turmas de Pilates com grade semanal, calendário e lista de presença.',
         ],
