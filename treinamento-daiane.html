@@ -15,6 +15,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Light theme (default) */
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --sidebar-bg: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            --sidebar-text: #ffffff;
+            --topbar-bg: #ffffff;
+            --topbar-border: #e0e0e0;
+            --kpi-card-bg: #ffffff;
+            --module-card-bg: #ffffff;
+            --modal-bg: #ffffff;
+            --search-bg: #ffffff;
+            --search-border: #e0e0e0;
+            --checklist-bg: #ffffff;
+            --checklist-hover: #f8f9fa;
+            --presentation-bg: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            --hint-bg: rgba(0, 0, 0, 0.7);
+            --btn-primary: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            --btn-secondary: #e0e0e0;
+            --btn-secondary-text: #333333;
+            --badge-bg: #f8f9fa;
+            
+            /* Brand colors (fixed) */
             --primary: #6c757d;
             --secondary: #6c757d;
             --success: #28a745;
@@ -31,15 +60,46 @@
             --daiane-dark: #2c3e50;
         }
 
+        /* Dark theme */
+        [data-theme="dark"] {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #22272e;
+            --bg-tertiary: #2d333b;
+            --text-primary: #e4e6eb;
+            --text-secondary: #a0a3a8;
+            --text-muted: #6e7681;
+            --border-color: #3d444d;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --sidebar-bg: linear-gradient(180deg, #161b22 0%, #1f242c 100%);
+            --sidebar-text: #e4e6eb;
+            --topbar-bg: #22272e;
+            --topbar-border: #3d444d;
+            --kpi-card-bg: #2d333b;
+            --module-card-bg: #2d333b;
+            --modal-bg: #22272e;
+            --search-bg: #2d333b;
+            --search-border: #3d444d;
+            --checklist-bg: #2d333b;
+            --checklist-hover: #3d444d;
+            --presentation-bg: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+            --hint-bg: rgba(0, 0, 0, 0.9);
+            --btn-primary: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
+            --btn-secondary: #3d444d;
+            --btn-secondary-text: #e4e6eb;
+            --badge-bg: #2d333b;
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* ===== LAYOUT PRINCIPAL ===== */
@@ -51,8 +111,8 @@
         /* ===== SIDEBAR ===== */
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-            color: #fff;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -70,6 +130,17 @@
             padding: 20px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .brand .icon {
+            width: 40px;
+            height: 40px;
+            background: var(--btn-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
         }
 
         .sidebar .brand .icon {
@@ -154,11 +225,12 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            background: var(--bg-primary);
         }
 
         .topbar {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--topbar-border);
             padding: 16px 24px;
             display: flex;
             align-items: center;
@@ -166,7 +238,8 @@
             position: sticky;
             top: 0;
             z-index: 80;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .topbar .logo {
@@ -178,7 +251,7 @@
         .topbar .logo .icon {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: var(--btn-primary);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -194,7 +267,7 @@
         .topbar .title {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
         }
 
         .topbar .user {
@@ -202,7 +275,7 @@
             align-items: center;
             gap: 12px;
             padding: 8px 16px;
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
             border-radius: 20px;
             font-size: 0.8rem;
         }
@@ -222,6 +295,7 @@
 
         .topbar .user .name {
             font-weight: 500;
+            color: var(--text-primary);
         }
 
         /* ===== MODAL ===== */
@@ -241,7 +315,7 @@
         }
 
         .modal {
-            background: white;
+            background: var(--modal-bg);
             border-radius: 16px;
             width: 95%;
             max-width: 900px;
@@ -249,7 +323,8 @@
             overflow-y: auto;
             transform: scale(0.9) translateY(20px);
             transition: transform 0.3s ease;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 25px 50px var(--shadow-hover);
+            color: var(--text-primary);
         }
 
         .modal-overlay.active .modal {
@@ -258,7 +333,7 @@
 
         .modal-header {
             padding: 20px 24px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -267,14 +342,14 @@
         .modal-header h2 {
             font-size: 1.1rem;
             font-weight: 600;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
         }
 
         .modal-header .close-btn {
             background: none;
             border: none;
             font-size: 1.2rem;
-            color: #666;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 4px 8px;
         }
@@ -285,7 +360,7 @@
 
         .modal-footer {
             padding: 16px 24px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: flex-end;
             gap: 8px;
@@ -302,13 +377,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: var(--btn-primary);
             color: white;
         }
 
         .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
+            background: var(--btn-secondary);
+            color: var(--btn-secondary-text);
         }
 
         .btn-success {
@@ -326,7 +401,7 @@
         .dashboard .section {
             margin-bottom: 32px;
             padding-bottom: 32px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .dashboard .section:last-child {
@@ -338,7 +413,7 @@
         .dashboard .section h2 {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -348,7 +423,7 @@
         .dashboard .section h2 .icon {
             width: 24px;
             height: 24px;
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: var(--btn-primary);
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -366,16 +441,18 @@
         }
 
         .kpi-card {
-            background: white;
+            background: var(--kpi-card-bg);
             border-radius: 12px;
             padding: 24px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
         .kpi-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 15px var(--shadow-hover);
         }
 
         .kpi-card .number {
@@ -386,7 +463,7 @@
         }
 
         .kpi-card .label {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -400,24 +477,25 @@
         }
 
         .module-card {
-            background: white;
+            background: var(--module-card-bg);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: all 0.2s ease, background-color 0.3s ease, box-shadow 0.2s ease;
             cursor: pointer;
             border-top: 4px solid var(--daiane-blue);
+            border: 1px solid var(--border-color);
         }
 
         .module-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 15px var(--shadow-hover);
         }
 
         .module-card .icon {
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: var(--btn-primary);
             border-radius: 12px 12px 0 0;
             display: flex;
             align-items: center;
@@ -433,19 +511,19 @@
         .module-card .info h3 {
             font-size: 1rem;
             font-weight: 600;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
             margin-bottom: 4px;
         }
 
         .module-card .info p {
             font-size: 0.85rem;
-            color: #666;
+            color: var(--text-secondary);
         }
 
         .module-card .arrow {
             margin-left: auto;
             font-size: 0.6rem;
-            color: #999;
+            color: var(--text-muted);
             transition: transform 0.2s;
         }
 
@@ -462,10 +540,12 @@
         .search-box input {
             width: 100%;
             padding: 12px 48px 12px 16px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--search-border);
             border-radius: 25px;
             font-size: 0.9rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--search-bg);
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
         }
 
         .search-box input:focus {
@@ -475,7 +555,7 @@
         }
 
         .search-box input::placeholder {
-            color: #999;
+            color: var(--text-muted);
         }
 
         .search-box .clear-btn {
@@ -485,14 +565,14 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #999;
+            color: var(--text-muted);
             font-size: 1.2rem;
             cursor: pointer;
             display: none;
         }
 
         .search-box .clear-btn:hover {
-            color: #333;
+            color: var(--text-primary);
         }
 
         /* ===== CHECKLIST ===== */
@@ -503,7 +583,7 @@
         .checklist h4 {
             font-size: 0.9rem;
             font-weight: 600;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -515,14 +595,14 @@
             align-items: center;
             padding: 10px 12px;
             margin-bottom: 8px;
-            background: white;
+            background: var(--checklist-bg);
             border-radius: 8px;
             border-left: 3px solid var(--daiane-blue);
-            transition: background 0.2s;
+            transition: background 0.2s, background-color 0.3s ease;
         }
 
         .checklist .item:hover {
-            background: #f8f9fa;
+            background: var(--checklist-hover);
         }
 
         .checklist .item input[type="checkbox"] {
@@ -536,11 +616,12 @@
         .checklist .item .text {
             flex: 1;
             font-size: 0.85rem;
+            color: var(--text-primary);
         }
 
         .checklist .item .progress {
             font-size: 0.7rem;
-            color: #666;
+            color: var(--text-secondary);
             margin-left: 10px;
         }
 
@@ -548,7 +629,7 @@
         .presentation {
             position: fixed;
             inset: 0;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: var(--presentation-bg);
             z-index: 9999;
             display: none;
         }
@@ -562,10 +643,11 @@
             margin: auto;
             width: 90%;
             max-width: 800px;
-            background: white;
+            background: var(--modal-bg);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 60px var(--shadow-hover);
+            color: var(--text-primary);
         }
 
         .presentation .slide {
@@ -583,13 +665,13 @@
         .presentation .slide h1 {
             font-size: 3rem;
             font-weight: 700;
-            color: var(--daiane-dark);
+            color: var(--text-primary);
             margin-bottom: 20px;
         }
 
         .presentation .slide p {
             font-size: 1.2rem;
-            color: #666;
+            color: var(--text-secondary);
             line-height: 1.6;
             max-width: 600px;
         }
@@ -597,7 +679,7 @@
         .presentation .slide .icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            background: var(--btn-primary);
             border-radius: 15px;
             display: flex;
             align-items: center;
@@ -663,17 +745,462 @@
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--hint-bg);
             color: white;
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 0.75rem;
             display: none;
             z-index: 100;
+            backdrop-filter: blur(4px);
         }
 
         .keyboard-hint.active {
             display: block;
+        }
+
+        /* ===== SHORTCUTS PANEL (Persistent) ===== */
+        .shortcuts-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 280px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px var(--shadow-hover);
+            z-index: 90;
+            padding: 16px;
+            display: none;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .shortcuts-panel.visible {
+            display: block;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .shortcuts-panel header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shortcuts-panel h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .shortcuts-panel .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+        }
+
+        .shortcuts-panel .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shortcuts-panel .shortcut-item:last-child {
+            border-bottom: none;
+        }
+
+        .shortcuts-panel .shortcut-keys {
+            display: flex;
+            gap: 4px;
+        }
+
+        .shortcuts-panel kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: var(--text-primary);
+        }
+
+        .shortcuts-panel .shortcut-desc {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
+
+        /* ===== THEME TOGGLE ===== */
+        .theme-toggle {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px var(--shadow-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 95;
+            transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle[data-theme="dark"] .sun-icon {
+            display: none;
+        }
+
+        .theme-toggle:not([data-theme="dark"]) .moon-icon {
+            display: none;
+        }
+
+        /* ===== WIZARD / GUIDED MODE ===== */
+        .wizard-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9998;
+            display: none;
+            pointer-events: none;
+        }
+
+        .wizard-overlay.active {
+            display: block;
+        }
+
+        .wizard-overlay .spotlight {
+            position: absolute;
+            border: 3px solid var(--daiane-orange);
+            border-radius: 8px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+            animation: pulse 2s infinite;
+            pointer-events: auto;
+        }
+
+        @keyframes pulse {
+            0%, 100% { border-color: var(--daiane-orange); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px var(--daiane-orange); }
+            50% { border-color: #ffcc00; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 30px #ffcc00; }
+        }
+
+        .wizard-tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            max-width: 320px;
+            box-shadow: 0 8px 24px var(--shadow-hover);
+            z-index: 9999;
+            pointer-events: auto;
+            animation: tooltipIn 0.3s ease;
+        }
+
+        @keyframes tooltipIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wizard-tooltip h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wizard-tooltip h4 .step-badge {
+            background: var(--daiane-orange);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .wizard-tooltip p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .wizard-tooltip .tooltip-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .wizard-tooltip .btn-tooltip {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .wizard-tooltip .btn-primary {
+            background: var(--daiane-orange);
+            color: white;
+        }
+
+        .wizard-tooltip .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* ===== INTERACTIVE SIMULATOR ===== */
+        .simulator-hotspot {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .simulator-hotspot::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px dashed var(--daiane-blue);
+            border-radius: 6px;
+            animation: hotspotPulse 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes hotspotPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .simulator-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            max-width: 280px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            box-shadow: 0 8px 24px var(--shadow-hover);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            margin-bottom: 8px;
+        }
+
+        .simulator-hotspot:hover .simulator-tooltip,
+        .simulator-hotspot:focus .simulator-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .simulator-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border-color);
+        }
+
+        /* ===== QUIZ / ASSESSMENT ===== */
+        .quiz-modal .modal {
+            max-width: 700px;
+        }
+
+        .quiz-progress {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-progress .step {
+            flex: 1;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-progress .step.active {
+            background: var(--daiane-blue);
+        }
+
+        .quiz-progress .step.completed {
+            background: var(--daiane-green);
+        }
+
+        .quiz-question {
+            margin-bottom: 24px;
+        }
+
+        .quiz-question h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .quiz-option:hover {
+            border-color: var(--daiane-blue);
+            background: var(--bg-secondary);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--daiane-blue);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--daiane-green);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--danger);
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .quiz-option input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--daiane-blue);
+        }
+
+        .quiz-option .option-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .quiz-feedback {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            display: block;
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid var(--daiane-green);
+            color: var(--daiane-green);
+        }
+
+        .quiz-feedback.incorrect {
+            display: block;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .quiz-results {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .quiz-results .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: conic-gradient(var(--daiane-green) calc(var(--score) * 3.6deg), var(--border-color) 0deg);
+        }
+
+        .quiz-results .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--modal-bg);
+        }
+
+        .quiz-results .score-circle span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .quiz-results h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .quiz-results .result-message {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .quiz-results .certificate-btn {
+            background: var(--daiane-orange);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -693,6 +1220,12 @@
             .presentation .nav-controls {
                 display: none;
             }
+
+            .shortcuts-panel {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+            }
         }
 
         @media(max-width:480px) {
@@ -708,6 +1241,10 @@
                 padding: 8px 12px;
                 font-size: 0.75rem;
             }
+
+            .wizard-tooltip {
+                max-width: 280px;
+            }
         }
     </style>
 </head>
@@ -715,6 +1252,56 @@
     <!-- Keyboard Hint -->
     <div class="keyboard-hint" id="keyboardHint">
         ⌨️ Atalhos: <kbd>Ctrl</k> + <kbd>K</k> = Buscar | <kbd>Flechas</k> = Navegar | <kbd>Enter</k> = Abrir | <kbd>Esc</k> = Sair
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema" onclick="toggleTheme()" title="Alternar tema claro/escuro">
+        <i class="bi bi-sun-fill sun-icon"></i>
+        <i class="bi bi-moon-fill moon-icon"></i>
+    </button>
+
+    <!-- Shortcuts Panel -->
+    <div class="shortcuts-panel" id="shortcutsPanel" aria-label="Painel de atalhos">
+        <header>
+            <h4><i class="bi bi-keyboard"></i> Atalhos do Teclado</h4>
+            <button class="close-btn" onclick="toggleShortcutsPanel()" aria-label="Fechar painel">✕</button>
+        </header>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Buscar módulo</span>
+            <span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Abrir apresentação</span>
+            <span class="shortcut-keys"><kbd>P</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Próximo slide</span>
+            <span class="shortcut-keys"><kbd>→</kbd> / <kbd>Enter</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Slide anterior</span>
+            <span class="shortcut-keys"><kbd>←</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Sair / Fechar</span>
+            <span class="shortcut-keys"><kbd>Esc</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Alternar tema</span>
+            <span class="shortcut-keys"><kbd>T</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Modo guiado</span>
+            <span class="shortcut-keys"><kbd>G</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Quiz do módulo</span>
+            <span class="shortcut-keys"><kbd>Q</kbd></span>
+        </div>
+        <div class="shortcut-item">
+            <span class="shortcut-desc">Painel de atalhos</span>
+            <span class="shortcut-keys"><kbd>?</kbd></span>
+        </div>
     </div>
 
     <!-- Presentation Mode -->
@@ -732,6 +1319,54 @@
             ✕
         </div>
         <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Wizard / Guided Mode Overlay -->
+    <div class="wizard-overlay" id="wizardOverlay">
+        <div class="spotlight" id="wizardSpotlight"></div>
+        <div class="wizard-tooltip" id="wizardTooltip"></div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div class="modal-overlay quiz-modal" id="quizModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="quizModalTitle">Quiz do Módulo</h2>
+                <button class="close-btn" onclick="closeQuizModal()" aria-label="Fechar quiz">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="quiz-progress" id="quizProgress"></div>
+                <div id="quizContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-secondary" id="quizPrevBtn" onclick="quizPrevious()" disabled>← Anterior</button>
+                <button class="btn-modal btn-primary" id="quizNextBtn" onclick="quizNext()">Próximo →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Modal -->
+    <div class="modal-overlay" id="certificateModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Certificado de Conclusão</h2>
+                <button class="close-btn" onclick="closeCertificateModal()" aria-label="Fechar certificado">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 40px 24px;">
+                <div style="border: 2px solid var(--daiane-gold, #f39c12); border-radius: 16px; padding: 32px; background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%); position: relative;">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">🏆</div>
+                    <h3 style="color: var(--daiane-dark); margin-bottom: 8px;">Certificado de Conclusão</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Este certifica que</p>
+                    <p id="certificateName" style="font-size: 1.5rem; font-weight: 700; color: var(--daiane-dark); margin-bottom: 8px;">Usuário Daiane</p>
+                    <p id="certificateModule" style="color: var(--text-secondary); margin-bottom: 8px;">concluiu o módulo com <span id="certificateScore">100%</span> de aproveitamento</p>
+                    <p id="certificateDate" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 16px;">Data: <span id="certDate"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-primary" onclick="downloadCertificate()">⬇ Baixar Certificado</button>
+                <button class="btn-modal btn-secondary" onclick="closeCertificateModal()">Fechar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Layout principal: sidebar + conteúdo -->
@@ -1030,9 +1665,89 @@
                 `
             }
         };
+        
+        // ===== QUIZ DATA =====
+        const quizData = {
+            dashboard: [
+                { question: "Quantos KPIs principais são exibidos no Dashboard?", options: ["3", "4", "5", "6"], correct: 1, explanation: "O Dashboard exibe 4 KPIs: Consultas/Mês, Pacientes Ativos, Planos Tratamento e Turmas Ativas." },
+                { question: "Qual a cor principal do botão 'Próximo' no modo apresentação?", options: ["Verde", "Laranja", "Azul", "Vermelho"], correct: 2, explanation: "O botão 'Próximo' usa o gradiente azul primário (--btn-primary)." },
+                { question: "Para que serve o atalho Ctrl+K?", options: ["Abrir apresentação", "Focar busca", "Alternar tema", "Fechar modal"], correct: 1, explanation: "Ctrl+K foca o campo de busca de módulos." }
+            ],
+            turmas: [
+                { question: "Quantas turmas são exibidas na grade semanal de exemplo?", options: ["2", "3", "4", "5"], correct: 1, explanation: "A grade semanal mostra 3 turmas: Seg 08:00, Ter 10:00 e Qua 14:00." },
+                { question: "Qual permissão é necessária para acessar o módulo Turmas?", options: ["turmas.view", "turmas.edit", "agenda.view", "pacientes.view"], correct: 0, explanation: "A permissão necessária é turmas.view, concedida via banco para clinic_id=5." },
+                { question: "O que indica o número entre parênteses nas turmas (ex: 5/10)?", options: ["Presentes/Ausentes", "Inscritos/Vagas", "Concluídos/Pendentes", "Ativos/Inativos"], correct: 1, explanation: "Indica a ocupação: inscritos / total de vagas disponíveis." }
+            ],
+            atendimentos: [
+                { question: "Qual status NÃO faz parte do fluxo de atendimentos?", options: ["Agendado", "Confirmado", "Em Atendimento", "Cancelado pelo Sistema"], correct: 3, explanation: "Os status são: Agendado, Confirmado, Em Atendimento, Faltou." },
+                { question: "O que acontece se não houver agendamentos para a data?", options: ["Erro 404", "Tela vazia (normal)", "Redireciona ao dashboard", "Cria agendamento automático"], correct: 1, explanation: "Tela vazia é comportamento normal - o sistema retorna 200 OK mesmo sem consultas." },
+                { question: "Qual permissão controla o registro de presença?", options: ["agenda.presenca", "atendimentos.view", "pacientes.edit", "turmas.checkin"], correct: 0, explanation: "A permissão é agenda.presenca." }
+            ],
+            tratamentos: [
+                { question: "O módulo Tratamentos está disponível para qual vertical?", options: ["Odontologia", "Fisioterapia", "Ambas", "Nenhuma"], correct: 0, explanation: "Para odontologia (clínicas 1 e 6) tem acesso completo. Para fisioterapia (clinic_id=5) está PLANEJADO." },
+                { question: "Qual item NÃO está disponível no módulo Tratamentos?", options: ["Cadastro de planos", "Adicionar procedimentos", "Tela adaptada para fisioterapia", "Histórico de evolução"], correct: 2, explanation: "A tela adaptada para fisioterapia está planejada, não disponível." },
+                { question: "O que define o comportamento por catálogo FISIOTERAPIA => PLANEJADO?", options: ["clinic_id", "user_role", "subscription_plan", "region"], correct: 0, explanation: "O comportamento é definido pelo clinic_id (clinic_id=5 para fisioterapia)." }
+            ],
+            pacientes: [
+                { question: "Qual atalho abre a busca de pacientes?", options: ["Ctrl+P", "Ctrl+K", "Ctrl+B", "F3"], correct: 1, explanation: "Ctrl+K foca o campo de busca que funciona para pacientes também." },
+                { question: "Quantos itens tem o checklist de Pacientes?", options: ["2", "3", "4", "5"], correct: 1, explanation: "O checklist tem 3 itens: Buscar, Visualizar ficha, Cadastro novo." },
+                { question: "O ícone do módulo Pacientes é:", options: ["bi-person", "bi-people", "bi-heart", "bi-file-medical"], correct: 0, explanation: "O ícone usado é bi-person." }
+            ],
+            financeiro: [
+                { question: "Qual ação NÃO está no checklist Financeiro?", options: ["Registrar recebimento", "Verificar contas a receber", "Emitir recibo", "Cancelar nota fiscal"], correct: 3, explanation: "O checklist tem: Registrar recebimento, Verificar contas a receber, Emitir recibo." },
+                { question: "O ícone do módulo Financeiro é:", options: ["bi-cash-coin", "bi-credit-card", "bi-bank", "bi-wallet"], correct: 0, explanation: "O ícone usado é bi-cash-coin." },
+                { question: "Quantos itens de checklist o Financeiro possui?", options: ["2", "3", "4", "5"], correct: 1, explanation: "São 3 itens no checklist." }
+            ],
+            estoque: [
+                { question: "Qual das opções abaixo NÃO é uma ação do checklist Estoque?", options: ["Registrar entrada", "Registrar saída", "Verificar estoque baixo", "Emitir nota fiscal de compra"], correct: 3, explanation: "O checklist: Registrar entrada, Registrar saída, Verificar estoque baixo." },
+                { question: "O ícone do módulo Estoque é:", options: ["bi-box", "bi-boxes", "bi-truck", "bi-tag"], correct: 0, explanation: "O ícone usado é bi-box." },
+                { question: "Quantos itens tem o checklist de Estoque?", options: ["2", "3", "4", "5"], correct: 1, explanation: "São 3 itens no checklist." }
+            ],
+            relatorios: [
+                { question: "Qual formato de exportação NÃO é mencionado?", options: ["PDF", "Excel", "CSV", "Word"], correct: 3, explanation: "São mencionados PDF e Excel." },
+                { question: "O ícone do módulo Relatórios é:", options: ["bi-bar-chart", "bi-graph-up", "bi-file-earmark-bar-graph", "bi-pie-chart"], correct: 0, explanation: "O ícone usado é bi-bar-chart." },
+                { question: "O checklist Relatórios inclui comparação com período anterior?", options: ["Sim", "Não"], correct: 0, explanation: "Sim, 'Comparar com período anterior' é o 3º item." }
+            ]
+        };
+
+        // ===== WIZARD STEPS =====
+        const wizardSteps = {
+            dashboard: [
+                { target: '.kpi-cards', title: 'KPIs Principais', text: 'Aqui você vê os 4 indicadores-chave da clínica: consultas, pacientes, planos e turmas ativas.' },
+                { target: '.modules-grid', title: 'Módulos Disponíveis', text: 'Clique em qualquer card para acessar o módulo correspondente (Turmas, Atendimentos, Tratamentos).' },
+                { target: '#dashboardChecklist', title: 'Checklist Rápido', text: 'Marque as tarefas diárias conforme for executando. O progresso é salvo automaticamente.' }
+            ],
+            turmas: [
+                { target: '.checklist', title: 'Checklist de Turmas', text: 'Marque a presença de cada turma. O sistema salva o progresso por item.' },
+                { target: 'ul', title: 'Grade Semanal', text: 'Visualize as turmas da semana com horários e ocupação (inscritos/vagas).' }
+            ],
+            atendimentos: [
+                { target: '.checklist', title: 'Checklist Atendimentos', text: 'Registre presença, consumo de sessão do pacote e verifique status do pacote.' },
+                { target: '.badge', title: 'Status do Atendimento', text: 'Cada badge representa um status: Agendado, Confirmado, Em Atendimento, Faltou.' }
+            ],
+            tratamentos: [
+                { target: '.alert-warning', title: 'Status do Módulo', text: 'Este módulo está planejado para fisioterapia. Para odontologia já está disponível.' },
+                { target: 'ul', title: 'Funcionalidades Disponíveis', text: 'Cadastro de planos, adição de procedimentos, definição de status e histórico de evolução.' }
+            ],
+            pacientes: [
+                { target: '.checklist', title: 'Checklist Pacientes', text: 'Busque, visualize fichas e cadastre novos pacientes.' }
+            ],
+            financeiro: [
+                { target: '.checklist', title: 'Checklist Financeiro', text: 'Registre recebimentos, verifique contas a receber e emita recibos.' }
+            ],
+            estoque: [
+                { target: '.checklist', title: 'Checklist Estoque', text: 'Registre entradas, saídas e monitore itens com estoque baixo.' }
+            ],
+            relatorios: [
+                { target: '.checklist', title: 'Checklist Relatórios', text: 'Gere relatórios mensais, exporte em PDF/Excel e compare com períodos anteriores.' }
+            ]
+        };
 
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            initTheme();
+            
             // Check localStorage progress (pode estar bloqueado por privacidade)
             let storedProgress = null;
             try {
@@ -1299,11 +2014,46 @@
         // ===== KEYBOARD SHORTCUTS =====
         function setupKeyboardShortcuts() {
             document.addEventListener('keydown', function(event) {
+                // Don't trigger shortcuts when typing in inputs
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                    // Still allow Escape to close things
+                    if (event.key !== 'Escape') return;
+                }
+
                 // Ctrl+K to focus search (event.key é 'k' minúsculo na maioria dos navegadores)
                 if (event.ctrlKey && event.key.toLowerCase() === 'k') {
                     event.preventDefault();
                     document.getElementById('moduleSearch').focus();
                     showKeyboardHint();
+                }
+
+                // Global shortcuts (not in presentation mode)
+                if (!document.getElementById('presentation').classList.contains('active')) {
+                    // T - Toggle theme
+                    if (event.key.toLowerCase() === 't' && !event.ctrlKey && !event.metaKey) {
+                        event.preventDefault();
+                        toggleTheme();
+                    }
+                    // G - Toggle wizard/guided mode
+                    if (event.key.toLowerCase() === 'g' && !event.ctrlKey && !event.metaKey) {
+                        event.preventDefault();
+                        toggleWizard();
+                    }
+                    // Q - Open quiz
+                    if (event.key.toLowerCase() === 'q' && !event.ctrlKey && !event.metaKey) {
+                        event.preventDefault();
+                        openQuiz();
+                    }
+                    // ? - Toggle shortcuts panel
+                    if (event.key === '?' || (event.key === '/' && event.shiftKey)) {
+                        event.preventDefault();
+                        toggleShortcutsPanel();
+                    }
+                    // P - Open presentation
+                    if (event.key.toLowerCase() === 'p' && !event.ctrlKey && !event.metaKey) {
+                        event.preventDefault();
+                        abrirApresentacao();
+                    }
                 }
 
                 // Arrow keys for presentation navigation
@@ -1325,6 +2075,10 @@
                 // Escape to close modals/hide hint
                 if (event.key === 'Escape') {
                     hideKeyboardHint();
+                    toggleShortcutsPanel(); // close if open
+                    stopWizard(); // stop wizard if active
+                    closeQuizModal(); // close quiz if open
+                    closeCertificateModal(); // close certificate if open
                     if (document.getElementById('presentation').classList.contains('active')) {
                         fecharApresentacao();
                     }
@@ -1356,6 +2110,299 @@
         window.addEventListener('hashchange', handleHashNavigation);
         handleHashNavigation();
 
+        // ===== THEME MANAGEMENT =====
+        function initTheme() {
+            let savedTheme = 'light';
+            try {
+                savedTheme = localStorage.getItem('daiane_theme') || 'light';
+            } catch (e) {
+                console.warn('localStorage indisponível para tema:', e);
+            }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) toggle.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            try {
+                localStorage.setItem('daiane_theme', newTheme);
+            } catch (e) {
+                console.warn('Não foi possível salvar tema:', e);
+            }
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) toggle.setAttribute('data-theme', newTheme);
+        }
+
+        // ===== SHORTCUTS PANEL =====
+        function toggleShortcutsPanel() {
+            const panel = document.getElementById('shortcutsPanel');
+            if (panel) panel.classList.toggle('visible');
+        }
+
+        // ===== WIZARD / GUIDED MODE =====
+        let wizardState = { active: false, currentStep: 0, module: null };
+
+        function toggleWizard() {
+            if (wizardState.active) {
+                stopWizard();
+            } else {
+                startWizard();
+            }
+        }
+
+        function startWizard() {
+            const steps = wizardSteps[state.currentModule];
+            if (!steps || steps.length === 0) {
+                showToast('Nenhum guia disponível para este módulo');
+                return;
+            }
+            wizardState = { active: true, currentStep: 0, module: state.currentModule };
+            document.getElementById('wizardOverlay').classList.add('active');
+            showWizardStep(0);
+        }
+
+        function stopWizard() {
+            wizardState = { active: false, currentStep: 0, module: null };
+            document.getElementById('wizardOverlay').classList.remove('active');
+            document.getElementById('wizardSpotlight').style.cssText = '';
+            document.getElementById('wizardTooltip').style.cssText = 'display: none;';
+        }
+
+        function showWizardStep(index) {
+            const steps = wizardSteps[wizardState.module];
+            if (!steps || index >= steps.length) {
+                stopWizard();
+                return;
+            }
+            wizardState.currentStep = index;
+            const step = steps[index];
+            const target = document.querySelector(step.target);
+            if (!target) {
+                showWizardStep(index + 1);
+                return;
+            }
+
+            const rect = target.getBoundingClientRect();
+            const spotlight = document.getElementById('wizardSpotlight');
+            const tooltip = document.getElementById('wizardTooltip');
+
+            // Position spotlight
+            spotlight.style.top = `${rect.top - 4}px`;
+            spotlight.style.left = `${rect.left - 4}px`;
+            spotlight.style.width = `${rect.width + 8}px`;
+            spotlight.style.height = `${rect.height + 8}px`;
+
+            // Position tooltip
+            const tooltipWidth = 320;
+            let tooltipLeft = rect.right + 16;
+            let tooltipTop = rect.top;
+
+            if (tooltipLeft + tooltipWidth > window.innerWidth - 20) {
+                tooltipLeft = rect.left - tooltipWidth - 16;
+            }
+            if (tooltipTop + 200 > window.innerHeight - 20) {
+                tooltipTop = window.innerHeight - 220;
+            }
+
+            tooltip.style.top = `${tooltipTop}px`;
+            tooltip.style.left = `${tooltipLeft}px`;
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = `
+                <h4><span class="step-badge">${index + 1}/${steps.length}</span> ${step.title}</h4>
+                <p>${step.text}</p>
+                <div class="tooltip-actions">
+                    ${index > 0 ? '<button class="btn-tooltip btn-secondary" onclick="wizardPrevious()">← Anterior</button>' : ''}
+                    <button class="btn-tooltip btn-primary" onclick="${index < steps.length - 1 ? 'wizardNext()' : 'stopWizard()'}">
+                        ${index < steps.length - 1 ? 'Próximo →' : 'Concluir ✕'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function wizardNext() {
+            showWizardStep(wizardState.currentStep + 1);
+        }
+
+        function wizardPrevious() {
+            showWizardStep(wizardState.currentStep - 1);
+        }
+
+        // ===== QUIZ / ASSESSMENT =====
+        let quizState = { currentQuestion: 0, answers: [], module: null };
+
+        function openQuiz() {
+            const questions = quizData[state.currentModule];
+            if (!questions || questions.length === 0) {
+                showToast('Quiz não disponível para este módulo');
+                return;
+            }
+            quizState = { currentQuestion: 0, answers: [], module: state.currentModule };
+            document.getElementById('quizModalTitle').textContent = `Quiz - ${modules[state.currentModule].title}`;
+            renderQuiz();
+            document.getElementById('quizModal').classList.add('active');
+        }
+
+        function closeQuizModal() {
+            document.getElementById('quizModal').classList.remove('active');
+            quizState = { currentQuestion: 0, answers: [], module: null };
+        }
+
+        function renderQuiz() {
+            const questions = quizData[quizState.module];
+            const q = questions[quizState.currentQuestion];
+            
+            // Progress bar
+            const progressHtml = questions.map((_, i) => 
+                `<div class="step ${i < quizState.currentQuestion ? 'completed' : ''} ${i === quizState.currentQuestion ? 'active' : ''}"></div>`
+            ).join('');
+            document.getElementById('quizProgress').innerHTML = progressHtml;
+
+            // Question content
+            const optionsHtml = q.options.map((opt, i) => `
+                <label class="quiz-option ${quizState.answers[quizState.currentQuestion] === i ? 'selected' : ''}" 
+                       onclick="selectQuizOption(${i})">
+                    <input type="radio" name="quiz" ${quizState.answers[quizState.currentQuestion] === i ? 'checked' : ''}>
+                    <span class="option-text">${opt}</span>
+                </label>
+            `).join('');
+
+            let feedbackHtml = '';
+            if (quizState.answers[quizState.currentQuestion] !== undefined) {
+                const isCorrect = quizState.answers[quizState.currentQuestion] === q.correct;
+                feedbackHtml = `
+                    <div class="quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${isCorrect ? '✅ Correto!' : '❌ Incorreto.'} ${q.explanation}
+                    </div>
+                `;
+            }
+
+            document.getElementById('quizContent').innerHTML = `
+                <div class="quiz-question">
+                    <h3>Pergunta ${quizState.currentQuestion + 1} de ${questions.length}</h3>
+                    <p>${q.question}</p>
+                    <div class="quiz-options">${optionsHtml}</div>
+                    ${feedbackHtml}
+                </div>
+            `;
+
+            // Update buttons
+            const prevBtn = document.getElementById('quizPrevBtn');
+            const nextBtn = document.getElementById('quizNextBtn');
+            prevBtn.disabled = quizState.currentQuestion === 0;
+            if (quizState.currentQuestion === questions.length - 1) {
+                nextBtn.textContent = quizState.answers.length === questions.length ? 'Ver Resultado' : 'Responder para continuar';
+                nextBtn.onclick = quizState.answers.length === questions.length ? showQuizResults : () => showToast('Responda a pergunta atual');
+            } else {
+                nextBtn.textContent = 'Próximo →';
+                nextBtn.onclick = quizNext;
+            }
+        }
+
+        function selectQuizOption(optionIndex) {
+            quizState.answers[quizState.currentQuestion] = optionIndex;
+            renderQuiz();
+        }
+
+        function quizNext() {
+            if (quizState.currentQuestion < quizData[quizState.module].length - 1) {
+                quizState.currentQuestion++;
+                renderQuiz();
+            }
+        }
+
+        function quizPrevious() {
+            if (quizState.currentQuestion > 0) {
+                quizState.currentQuestion--;
+                renderQuiz();
+            }
+        }
+
+        function showQuizResults() {
+            const questions = quizData[quizState.module];
+            let correct = 0;
+            questions.forEach((q, i) => {
+                if (quizState.answers[i] === q.correct) correct++;
+            });
+            const score = Math.round((correct / questions.length) * 100);
+            
+            document.getElementById('quizContent').innerHTML = `
+                <div class="quiz-results">
+                    <div class="score-circle" style="--score: ${score};">
+                        <span>${score}%</span>
+                    </div>
+                    <h3>${score >= 70 ? 'Parabéns!' : 'Continue estudando'}</h3>
+                    <p class="result-message">
+                        Você acertou ${correct} de ${questions.length} perguntas.
+                        ${score >= 70 ? 'Desempenho excelente!' : 'Revise o conteúdo e tente novamente.'}
+                    </p>
+                    ${score >= 70 ? '<button class="certificate-btn" onclick="showCertificate()">🏆 Gerar Certificado</button>' : '<button class="certificate-btn btn-secondary" onclick="closeQuizModal(); openQuiz()">🔄 Tentar Novamente</button>'}
+                </div>
+            `;
+            
+            document.getElementById('quizNextBtn').style.display = 'none';
+            document.getElementById('quizPrevBtn').style.display = 'none';
+        }
+
+        function showCertificate() {
+            closeQuizModal();
+            const questions = quizData[quizState.module];
+            let correct = 0;
+            questions.forEach((q, i) => {
+                if (quizState.answers[i] === q.correct) correct++;
+            });
+            const score = Math.round((correct / questions.length) * 100);
+            
+            document.getElementById('certificateName').textContent = 'Usuário Daiane';
+            document.getElementById('certificateModule').innerHTML = `concluiu o módulo <strong>${modules[quizState.module].title}</strong> com <span id="certificateScore">${score}%</span> de aproveitamento`;
+            document.getElementById('certDate').textContent = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('certificateModal').classList.add('active');
+        }
+
+        function closeCertificateModal() {
+            document.getElementById('certificateModal').classList.remove('active');
+        }
+
+        function downloadCertificate() {
+            // Simple approach: create a printable version
+            const content = document.getElementById('certificateModal').querySelector('.modal-body').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Certificado - ${modules[quizState.module].title}</title>
+                    <style>
+                        body { font-family: 'Inter', sans-serif; padding: 40px; text-align: center; }
+                        .cert { border: 2px solid #f39c12; border-radius: 16px; padding: 40px; max-width: 600px; margin: 0 auto; }
+                        h1 { color: #2c3e50; }
+                        @media print { body { padding: 0; } .cert { border: none; box-shadow: none; } }
+                    </style>
+                </head>
+                <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        function showToast(message) {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+                background: var(--bg-secondary); border: 1px solid var(--border-color);
+                padding: 12px 24px; border-radius: 8px; box-shadow: 0 8px 24px var(--shadow-hover);
+                z-index: 10000; font-size: 0.85rem; color: var(--text-primary);
+                animation: slideUp 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'slideUp 0.3s ease reverse'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
         // ===== COMPATIBILIDADE DE HANDLERS =====
         // Os cards de módulo usam onclick="openModule('...')" no HTML.
         function openModule(nome) {
@@ -1373,6 +2420,21 @@
         window.slideNext = slideNext;
         window.toggleChecklistItem = toggleChecklistItem;
         window.updateProgress = updateProgress;
+        window.toggleTheme = toggleTheme;
+        window.toggleShortcutsPanel = toggleShortcutsPanel;
+        window.toggleWizard = toggleWizard;
+        window.startWizard = startWizard;
+        window.stopWizard = stopWizard;
+        window.wizardNext = wizardNext;
+        window.wizardPrevious = wizardPrevious;
+        window.openQuiz = openQuiz;
+        window.closeQuizModal = closeQuizModal;
+        window.selectQuizOption = selectQuizOption;
+        window.quizNext = quizNext;
+        window.quizPrevious = quizPrevious;
+        window.showCertificate = showCertificate;
+        window.closeCertificateModal = closeCertificateModal;
+        window.downloadCertificate = downloadCertificate;
     </script>
 </body>
 </html>
