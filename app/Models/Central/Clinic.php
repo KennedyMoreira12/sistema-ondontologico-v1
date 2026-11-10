@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
     'evolution_instance', 'evolution_token',
     'logo_path', 'primary_color', 'secondary_color',
+    'frase_institucional', 'profissional_principal_id',
     'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',
     'suspended_at', 'suspension_reason',
 ])]

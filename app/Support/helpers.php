@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Central\Clinic;
+use App\Services\Branding\MalheiroBranding;
 use App\Services\Tenant\TenantManager;
 use App\Services\Tenant\VerticalManager;
 use Illuminate\Support\Facades\Storage;
@@ -89,5 +90,143 @@ if (! function_exists('clinic_logo_url')) {
         }
 
         return Storage::disk('public')->url($caminho);
+    }
+}
+
+/* ==========================================================================
+ * HELPERS DE BRANDING MALHEIRO
+ * ==========================================================================
+ * Centralizam a identidade visual da Clínica Malheiro (clinic_id = 1).
+ * NÃO espalhar verificações de ID por Views/Controllers: use estes helpers,
+ * que delegam ao App\Services\Branding\MalheiroBranding.
+ * ========================================================================== */
+
+if (! function_exists('is_malheiro')) {
+    /**
+     * O tenant atual é a Clínica Malheiro?
+     */
+    function is_malheiro(): bool
+    {
+        return app(MalheiroBranding::class)->isMalheiro();
+    }
+}
+
+if (! function_exists('malheiro_cores')) {
+    /**
+     * Cores da identidade Malheiro.
+     *
+     * @return array<string, string>
+     */
+    function malheiro_cores(): array
+    {
+        return app(MalheiroBranding::class)->cores();
+    }
+}
+
+if (! function_exists('malheiro_cor_primaria')) {
+    /**
+     * Cor primária (teal) da identidade Malheiro.
+     */
+    function malheiro_cor_primaria(): string
+    {
+        return app(MalheiroBranding::class)->corPrimaria();
+    }
+}
+
+if (! function_exists('malheiro_cor_secundaria')) {
+    /**
+     * Cor secundária (azul-teal escuro) da identidade Malheiro.
+     */
+    function malheiro_cor_secundaria(): string
+    {
+        return app(MalheiroBranding::class)->corSecundaria();
+    }
+}
+
+if (! function_exists('malheiro_profissional')) {
+    /**
+     * Dados do profissional Malheiro.
+     *
+     * @return array{nome: string, cro: string, especialidades: list<string>}
+     */
+    function malheiro_profissional(): array
+    {
+        return app(MalheiroBranding::class)->profissional();
+    }
+}
+
+if (! function_exists('malheiro_nome_profissional')) {
+    /**
+     * Nome do profissional Malheiro.
+     */
+    function malheiro_nome_profissional(): string
+    {
+        return app(MalheiroBranding::class)->nomeProfissional();
+    }
+}
+
+if (! function_exists('malheiro_cro')) {
+    /**
+     * CRO do profissional Malheiro.
+     */
+    function malheiro_cro(): string
+    {
+        return app(MalheiroBranding::class)->cro();
+    }
+}
+
+if (! function_exists('malheiro_especialidades')) {
+    /**
+     * Especialidades na ordem obrigatória.
+     *
+     * @return list<string>
+     */
+    function malheiro_especialidades(): array
+    {
+        return app(MalheiroBranding::class)->especialidades();
+    }
+}
+
+if (! function_exists('malheiro_frase_institucional')) {
+    /**
+     * Frase institucional (configurável no banco, com padrão da arte).
+     */
+    function malheiro_frase_institucional(): string
+    {
+        return app(MalheiroBranding::class)->fraseInstitucional();
+    }
+}
+
+if (! function_exists('malheiro_dados_rodape')) {
+    /**
+     * Dados da clínica para o rodapé dos documentos.
+     *
+     * @return array<string, ?string>
+     */
+    function malheiro_dados_rodape(): array
+    {
+        return app(MalheiroBranding::class)->dadosRodape();
+    }
+}
+
+if (! function_exists('malheiro_dados_documento')) {
+    /**
+     * Dados completos para as views de documentos Malheiro.
+     *
+     * @return array<string, mixed>
+     */
+    function malheiro_dados_documento(): array
+    {
+        return app(MalheiroBranding::class)->dadosParaDocumento();
+    }
+}
+
+if (! function_exists('usar_layout_malheiro')) {
+    /**
+     * Se os documentos do tenant atual devem usar o layout Malheiro.
+     */
+    function usar_layout_malheiro(): bool
+    {
+        return app(MalheiroBranding::class)->usarLayoutMalheiro();
     }
 }

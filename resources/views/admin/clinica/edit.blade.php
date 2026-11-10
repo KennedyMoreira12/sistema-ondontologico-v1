@@ -138,6 +138,30 @@
 
                         <div class="form-text">PNG, JPG ou WEBP de até 2 MB.</div>
                     </div>
+
+                    <div class="col-md-6">
+                        <label for="frase_institucional" class="form-label">Frase institucional</label>
+                        <textarea id="frase_institucional" name="frase_institucional" rows="2" class="form-control">{{ old('frase_institucional', $clinica?->frase_institucional ?: '') }}</textarea>
+                        @error('frase_institucional')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <div class="form-text">Exibida no cabeçalho dos documentos (ex.: "Porque ninguém resiste a um belo sorriso...").</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="profissional_principal_id" class="form-label">Profissional principal</label>
+                        <select id="profissional_principal_id" name="profissional_principal_id" class="form-select">
+                            <option value="">— Selecione o profissional —</option>
+                            @php
+                                $profissionais = \App\Models\Professional::where('clinica_id', $clinica?->id)->where('is_active', true)->orderBy('nome')->get();
+                            @endphp
+                            @foreach ($profissionais as $prof)
+                                <option value="{{ $prof->id }}" @selected(old('profissional_principal_id', $clinica?->profissional_principal_id) == $prof->id)>
+                                    {{ $prof->nome }} {{ $prof->cro ? '(' . $prof->cro . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('profissional_principal_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <div class="form-text">Profissional que aparece no cabeçalho dos documentos.</div>
+                    </div>
                 </div>
             </div>
         </div>

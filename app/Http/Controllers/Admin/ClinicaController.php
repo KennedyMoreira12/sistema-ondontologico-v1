@@ -93,12 +93,14 @@ class ClinicaController extends Controller
             'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
             'remover_logo' => ['nullable', 'boolean'],
+            'frase_institucional' => ['nullable', 'string', 'max:255'],
+            'profissional_principal_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $antes = $clinica->only(['logo_path', 'primary_color', 'secondary_color']);
+        $antes = $clinica->only(['logo_path', 'primary_color', 'secondary_color', 'frase_institucional', 'profissional_principal_id']);
         $novo = [];
 
-        foreach (['primary_color', 'secondary_color'] as $campo) {
+        foreach (['primary_color', 'secondary_color', 'frase_institucional', 'profissional_principal_id'] as $campo) {
             if (! empty($marca[$campo])) {
                 $novo[$campo] = $marca[$campo];
             }

@@ -14,6 +14,7 @@ use App\Http\Controllers\ContaPagarController;
 use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
@@ -307,6 +308,21 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/{paciente}/orcamentos/{orcamento}', [OrcamentoController::class, 'destroy'])->name('orcamentos.destroy');
         Route::post('/{paciente}/orcamentos/{orcamento}/itens', [OrcamentoController::class, 'itemStore'])->name('orcamentos.items.store');
         Route::delete('/{paciente}/orcamentos/{orcamento}/itens/{item}', [OrcamentoController::class, 'itemDestroy'])->name('orcamentos.items.destroy');
+    });
+
+    // =========================================================================
+    // DOCUMENTOS MALHEIRO (clinic_id = 1)
+    // =========================================================================
+    Route::prefix('documentos')->name('documentos.')->group(function () {
+        Route::get('/papel-timbrado', [DocumentController::class, 'papelTimbrado'])->name('papel-timbrado');
+        Route::get('/papel-timbrado/pdf', [DocumentController::class, 'papelTimbradoPdf'])->name('papel-timbrado.pdf');
+
+        Route::get('/guia-cuidados', [DocumentController::class, 'guiaCuidados'])->name('guia-cuidados');
+        Route::get('/guia-cuidados/pdf', [DocumentController::class, 'guiaCuidadosPdf'])->name('guia-cuidados.pdf');
+
+        Route::get('/atestado', [DocumentController::class, 'atestadoCreate'])->name('atestado.create');
+        Route::post('/atestado', [DocumentController::class, 'atestadoPdf'])->name('atestado.pdf');
+        Route::get('/atestado/paciente/{paciente}', [DocumentController::class, 'atestadoPacienteData'])->name('atestado.paciente');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('can:admin.view')->group(function () {
