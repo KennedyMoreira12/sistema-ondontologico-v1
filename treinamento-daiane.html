@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJ SmartClinic - Treinamento Cl├¡nica Daiane</title>
+    <title>LJ SmartClinic - Treinamento Clínica Daiane</title>
     <!-- Bootstrap 5 CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap Icons (classes "bi bi-*" usadas na interface) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <!-- Fontes Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -712,33 +714,35 @@
 <body>
     <!-- Keyboard Hint -->
     <div class="keyboard-hint" id="keyboardHint">
-        Ôî¿´©Å Atalhos: <kbd>Ctrl</k> + <kbd>K</k> = Buscar | <kbd>Flechas</k> = Navegar | <kbd>Enter</k> = Abrir | <kbd>Esc</k> = Sair
+        ⌨️ Atalhos: <kbd>Ctrl</k> + <kbd>K</k> = Buscar | <kbd>Flechas</k> = Navegar | <kbd>Enter</k> = Abrir | <kbd>Esc</k> = Sair
     </div>
 
     <!-- Presentation Mode -->
     <div class="presentation" id="presentation">
         <div class="deck" id="slideDeck">
-            <!-- Slides ser├úo inseridos pelo JS -->
+            <!-- Slides serão inseridos pelo JS -->
         </div>
-        <div class="nav-controls prev" id="navPrev" onclick="slidePrev()" title="Anterior (ÔåÉ)">
-           ÔÇ╣
+        <div class="nav-controls prev" id="navPrev" onclick="slidePrev()" title="Anterior (←)">
+           ‹
         </div>
-        <div class="nav-controls next" id="navNext" onclick="slideNext()" title="Pr├│ximo (ÔåÆ)">
-           ÔÇ║
+        <div class="nav-controls next" id="navNext" onclick="slideNext()" title="Próximo (→)">
+           ›
         </div>
-        <div class="nav-exit" onclick="fecharApresentacao()" title="Sair da apresenta├º├úo (Esc)">
-            Ô£ò
+        <div class="nav-exit" onclick="fecharApresentacao()" title="Sair da apresentação (Esc)">
+            ✕
         </div>
         <div class="progress-bar" id="progressBar"></div>
     </div>
 
+    <!-- Layout principal: sidebar + conteúdo -->
+    <div class="layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="brand">
             <div class="icon"><i class="bi bi-people"></i></div>
             <div>
                 <div class="text">LJ SmartClinic</div>
-                <div class="subtitle">Cl├¡nica Daiane</div>
+                <div class="subtitle">Clínica Daiane</div>
             </div>
         </div>
 
@@ -760,7 +764,7 @@
                 <span class="icon"><i class="bi bi-clipboard2-pulse"></i></span>
                 Tratamentos
             </button>
-            <div class="nav-title">M├│dulos</div>
+            <div class="nav-title">Módulos</div>
             <button class="nav-item" data-module="pacientes" onclick="navigateTo('pacientes')">
                 <span class="icon"><i class="bi bi-person"></i></span>
                 Pacientes
@@ -775,7 +779,7 @@
             </button>
             <button class="nav-item" data-module="relatorios" onclick="navigateTo('relatorios')">
                 <span class="icon"><i class="bi bi-bar-chart"></i></span>
-                Relat├│rios
+                Relatórios
             </button>
         </nav>
     </aside>
@@ -791,8 +795,8 @@
             <div class="user">
                 <div class="avatar">DA</div>
                 <div>
-                    <div class="name">Usu├írio Daiane</div>
-                    <div style="font-size:0.7rem;opacity:0.7">Cl├¡nica Daiane</div>
+                    <div class="name">Usuário Daiane</div>
+                    <div style="font-size:0.7rem;opacity:0.7">Clínica Daiane</div>
                 </div>
             </div>
         </div>
@@ -803,10 +807,12 @@
 
         <!-- Search Box -->
         <div class="search-box" id="searchBox">
-            <input type="text" id="moduleSearch" placeholder="­ƒöÄ Buscar m├│dulo (Ctrl+K)" onkeyup="handleSearch(event)">
+            <input type="text" id="moduleSearch" placeholder="🔎 Buscar módulo (Ctrl+K)" onkeyup="handleSearch(event)">
             <button class="clear-btn" onclick="clearSearch()" title="Limpar busca"><i class="bi bi-x"></i></button>
         </div>
     </main>
+    </div>
+    <!-- /Layout principal -->
 
     
     <script>
@@ -827,7 +833,7 @@
                     <div class="kpi-cards">
                         <div class="kpi-card">
                             <div class="number" data-count="1362">0</div>
-                            <div class="label">Consultas/M├¬s</div>
+                            <div class="label">Consultas/Mês</div>
                         </div>
                         <div class="kpi-card">
                             <div class="number" data-count="89">0</div>
@@ -846,32 +852,32 @@
                         <div class="module-card" onclick="openModule('turmas')">
                             <div class="icon"><i class="bi bi-people"></i></div>
                             <div class="info">
-                                <h3>M├│dulo Turmas</h3>
-                                <p>Controle de grades semanais, presen├ºa e consumo de sess├Áes de pacote.</p>
+                                <h3>Módulo Turmas</h3>
+                                <p>Controle de grades semanais, presença e consumo de sessões de pacote.</p>
                             </div>
-                            <span class="arrow">ÔåÆ</span>
+                            <span class="arrow">→</span>
                         </div>
                         <div class="module-card" onclick="openModule('atendimentos')">
                             <div class="icon"><i class="bi bi-clipboard"></i></div>
                             <div class="info">
-                                <h3>M├│dulo Atendimentos</h3>
-                                <p>Controle do dia a dia: presen├ºa, falta e consumo de sess├úo do pacote.</p>
+                                <h3>Módulo Atendimentos</h3>
+                                <p>Controle do dia a dia: presença, falta e consumo de sessão do pacote.</p>
                             </div>
-                            <span class="arrow">ÔåÆ</span>
+                            <span class="arrow">→</span>
                         </div>
                         <div class="module-card" onclick="openModule('tratamentos')">
                             <div class="icon"><i class="bi bi-clipboard2-pulse"></i></div>
                             <div class="info">
-                                <h3>M├│dulo Tratamentos</h3>
-                                <p>Funcionalidade planejada para vertical fisioterapia. Estrutura existe, tela em adapta├º├úo.</p>
+                                <h3>Módulo Tratamentos</h3>
+                                <p>Funcionalidade planejada para vertical fisioterapia. Estrutura existe, tela em adaptação.</p>
                             </div>
-                            <span class="arrow">ÔåÆ</span>
+                            <span class="arrow">→</span>
                         </div>
                     </div>
                     <div class="checklist" id="dashboardChecklist">
-                        <h4>Ô£à Checklist R├ípido</h4>
+                        <h4>✅ Checklist Rápido</h4>
                         <div class="item"><input type="checkbox" id="cl1"><span class="text">Verificar agenda do dia</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="cl2"><span class="text">Confirmar presen├ºa dos pacientes</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="cl2"><span class="text">Confirmar presença dos pacientes</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="cl3"><span class="text">Controlar consumo de pacotes</span><span class="progress">0%</span></div>
                     </div>
                 `
@@ -891,22 +897,22 @@
                             </li>
                             <li style="margin: 8px 0;">
                                 <span style="width: 80px; display: inline-block;">Ter 10:00</span>
-                                <span>Turma Intermedi├íria (8/10)</span>
+                                <span>Turma Intermediária (8/10)</span>
                             </li>
                             <li style="margin: 8px 0;">
                                 <span style="width: 80px; display: inline-block;">Qua 14:00</span>
-                                <span>Turma Avan├ºada (3/10)</span>
+                                <span>Turma Avançada (3/10)</span>
                             </li>
                         </ul>
                     </div>
                     <div class="checklist">
-                        <h4>Ô£à Checklist Turmas</h4>
-                        <div class="item"><input type="checkbox" id="t1"><span class="text">Marcar presen├ºa Turma Seg 08:00</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="t2"><span class="text">Marcar presen├ºa Turma Ter 10:00</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="t3"><span class="text">Verificar vagas dispon├¡veis</span><span class="progress">0%</span></div>
+                        <h4>✅ Checklist Turmas</h4>
+                        <div class="item"><input type="checkbox" id="t1"><span class="text">Marcar presença Turma Seg 08:00</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="t2"><span class="text">Marcar presença Turma Ter 10:00</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="t3"><span class="text">Verificar vagas disponíveis</span><span class="progress">0%</span></div>
                     </div>
                     <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Permiss├úo necess├íria: <kbd>turmas.view</kbd>. Concedida via banco de dados para clinic_id=5.
+                        Permissão necessária: <kbd>turmas.view</kbd>. Concedida via banco de dados para clinic_id=5.
                     </p>
                 `
             },
@@ -925,17 +931,17 @@
                         </div>
                     </div>
                     <div class="checklist">
-                        <h4>Ô£à Checklist Atendimentos</h4>
-                        <div class="item"><input type="checkbox" id="a1"><span class="text">Registrar presen├ºa do paciente</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="a2"><span class="text">Consumir sess├úo do pacote</span><span class="progress">0%</span></div>
+                        <h4>✅ Checklist Atendimentos</h4>
+                        <div class="item"><input type="checkbox" id="a1"><span class="text">Registrar presença do paciente</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="a2"><span class="text">Consumir sessão do pacote</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="a3"><span class="text">Verificar status do pacote</span><span class="progress">0%</span></div>
                     </div>
                     <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Aten├º├úo: Tela pode ficar vazia sem agendamentos - comportamento normal. Permiss├úo: <kbd>agenda.presenca</kbd>
+                        Atenção: Tela pode ficar vazia sem agendamentos - comportamento normal. Permissão: <kbd>agenda.presenca</kbd>
                     </p>
                     <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h5>ÔÜá´©Å Observa├º├úo Importante</h5>
-                        <p>Se a tela de atendimentos aparecer vazia, verifique se h├í agendamentos para a data selecionada. O sistema retorna 200 OK mesmo sem consultas agendadas.</p>
+                        <h5>⚠️ Observação Importante</h5>
+                        <p>Se a tela de atendimentos aparecer vazia, verifique se há agendamentos para a data selecionada. O sistema retorna 200 OK mesmo sem consultas agendadas.</p>
                     </div>
                 `
             },
@@ -945,26 +951,26 @@
                 color: '#9b59b6',
                 content: `
                     <div class="alert alert-warning">
-                        <strong>Funcionalidade planejada ÔÇö ainda n├úo dispon├¡vel para uso.</strong>
+                        <strong>Funcionalidade planejada — ainda não disponível para uso.</strong>
                     </div>
-                    <p>O m├│dulo de tratamentos est├í configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda n├úo foi adaptada para esta vertical.</p>
+                    <p>O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.</p>
                     <div style="margin-top: 20px;">
-                        <h5>Ô£à O que est├í dispon├¡vel:</h5>
+                        <h5>✅ O que está disponível:</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             <li>Cadastro de planos de tratamento</li>
                             <li>Adicionar itens/procedimentos ao plano</li>
-                            <li>Definir status (rascunho/em andamento/conclu├¡do)</li>
-                            <li>Registrar hist├│rico de evolu├º├úo</li>
+                            <li>Definir status (rascunho/em andamento/concluído)</li>
+                            <li>Registrar histórico de evolução</li>
                         </ul>
-                        <h5>­ƒƒ© O que est├í planejado:</h5>
+                        <h5>🟸 O que está planejado:</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             <li>Tela de interface adaptada para fisioterapia</li>
-                            <li>Novos procedimentos espec├¡ficos de fisioterapia</li>
-                            <li>Relat├│rios espec├¡ficos de evolu├º├úo</li>
+                            <li>Novos procedimentos específicos de fisioterapia</li>
+                            <li>Relatórios específicos de evolução</li>
                         </ul>
                     </div>
                     <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Observa├º├úo: Para odontologia (cl├¡nicas 1 e 6), o m├│dulo tem acesso completo. Para fisioterapia (clinic_id=5), comportamento por cat├ílogo: FISIOTERAPIA => PLANEJADO.
+                        Observação: Para odontologia (clínicas 1 e 6), o módulo tem acesso completo. Para fisioterapia (clinic_id=5), comportamento por catálogo: FISIOTERAPIA => PLANEJADO.
                     </p>
                 `
             },
@@ -974,7 +980,7 @@
                 color: '#9b59b6',
                 content: `
                     <div class="checklist">
-                        <h4>Ô£à Checklist Pacientes</h4>
+                        <h4>✅ Checklist Pacientes</h4>
                         <div class="item"><input type="checkbox" id="p1"><span class="text">Buscar paciente pelo nome</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="p2"><span class="text">Visualizar ficha do paciente</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="p3"><span class="text">Cadastro de novo paciente</span><span class="progress">0%</span></div>
@@ -990,7 +996,7 @@
                 color: '#9b59b6',
                 content: `
                     <div class="checklist">
-                        <h4>Ô£à Checklist Financeiro</h4>
+                        <h4>✅ Checklist Financeiro</h4>
                         <div class="item"><input type="checkbox" id="f1"><span class="text">Registrar recebimento</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="f2"><span class="text">Verificar contas a receber</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="f3"><span class="text">Emitir recibo</span><span class="progress">0%</span></div>
@@ -1003,23 +1009,23 @@
                 color: '#9b59b6',
                 content: `
                     <div class="checklist">
-                        <h4>Ô£à Checklist Estoque</h4>
+                        <h4>✅ Checklist Estoque</h4>
                         <div class="item"><input type="checkbox" id="e1"><span class="text">Registrar entrada de produto</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="e2"><span class="text">Registrar sa├¡da de produto</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="e2"><span class="text">Registrar saída de produto</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="e3"><span class="text">Verificar estoque baixo</span><span class="progress">0%</span></div>
                     </div>
                 `
             },
             relatorios: {
-                title: 'Relat├│rios',
+                title: 'Relatórios',
                 icon: 'bi-bar-chart',
                 color: '#9b59b6',
                 content: `
                     <div class="checklist">
-                        <h4>Ô£à Checklist Relat├│rios</h4>
-                        <div class="item"><input type="checkbox" id="r1"><span class="text">Gerar relat├│rio mensal</span><span class="progress">0%</span></div>
+                        <h4>✅ Checklist Relatórios</h4>
+                        <div class="item"><input type="checkbox" id="r1"><span class="text">Gerar relatório mensal</span><span class="progress">0%</span></div>
                         <div class="item"><input type="checkbox" id="r2"><span class="text">Exportar em PDF/Excel</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="r3"><span class="text">Comparar com per├¡odo anterior</span><span class="progress">0%</span></div>
+                        <div class="item"><input type="checkbox" id="r3"><span class="text">Comparar com período anterior</span><span class="progress">0%</span></div>
                     </div>
                 `
             }
@@ -1027,10 +1033,20 @@
 
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
-            // Check localStorage progress
-            const storedProgress = localStorage.getItem('daiane_training_progress');
+            // Check localStorage progress (pode estar bloqueado por privacidade)
+            let storedProgress = null;
+            try {
+                storedProgress = localStorage.getItem('daiane_training_progress');
+            } catch (e) {
+                console.warn('localStorage indisponível:', e);
+            }
             if (storedProgress) {
-                state.progress = JSON.parse(storedProgress);
+                try {
+                    state.progress = JSON.parse(storedProgress);
+                } catch (e) {
+                    console.warn('Progresso salvo inválido, ignorando:', e);
+                    state.progress = {};
+                }
                 updateProgressUI();
             }
 
@@ -1137,7 +1153,7 @@
                         </div>
                         <h1>${state.currentModule === 'dashboard' ? 'LJ SmartClinic' : state.currentModule}</h1>
                         <p style="color: #666; margin-bottom: 30px;">${getSlideTitle()}</p>
-                        <button class="btn-primary" onclick="proximoSlide()">Pr├│ximo ÔåÆ</button>
+                        <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
                     </div>
                 </div>
                 <div class="slide" id="slide1">
@@ -1148,8 +1164,8 @@
                         <h1>${getSlideTitle()}</h1>
                         <p style="color: #666; margin-bottom: 30px;">${content.substring(0, 200)}...</p>
                         <div style="display: flex; justify-content: center; gap: 20px;">
-                            <button class="btn-secondary" onclick="anteriorSlide()">ÔåÉ Anterior</button>
-                            <button class="btn-primary" onclick="proximoSlide()">Pr├│ximo ÔåÆ</button>
+                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
+                            <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
                         </div>
                     </div>
                 </div>
@@ -1161,8 +1177,8 @@
                         <h1>${getSlideTitle()}</h1>
                         <p style="color: #666; margin-bottom: 30px;">${content.substring(200, 400)}...</p>
                         <div style="display: flex; justify-content: center; gap: 20px;">
-                            <button class="btn-secondary" onclick="anteriorSlide()">ÔåÉ Anterior</button>
-                            <button class="btn-primary" onclick="fecharApresentacao()">Sair Ô£ò</button>
+                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
+                            <button class="btn-primary" onclick="fecharApresentacao()">Sair ✕</button>
                         </div>
                     </div>
                 </div>
@@ -1204,17 +1220,32 @@
             }
         }
 
+        // Aliases mantidos para os onclick do HTML (slidePrev/slideNext)
+        function slidePrev() {
+            anteriorSlide();
+        }
+
+        function slideNext() {
+            proximoSlide();
+        }
+
         function fecharApresentacao() {
             document.getElementById('presentation').classList.remove('active');
-            document.getElementById('sidebar').style.display = 'block';
-            document.querySelector('.main').style.display = 'block';
-            document.getElementById('keyboardHint').style.display = 'block';
+            // Limpa o inline style para o CSS (.sidebar display:flex) voltar a valer
+            document.getElementById('sidebar').style.display = '';
+            document.querySelector('.main').style.display = '';
+            document.getElementById('keyboardHint').style.display = '';
+            hideKeyboardHint();
         }
 
         // ===== PROGRESS TRACKING =====
         function updateProgress(moduleName, percent) {
             state.progress[moduleName] = percent;
-            localStorage.setItem('daiane_training_progress', JSON.stringify(state.progress));
+            try {
+                localStorage.setItem('daiane_training_progress', JSON.stringify(state.progress));
+            } catch (e) {
+                console.warn('Não foi possível salvar o progresso (localStorage indisponível):', e);
+            }
             updateProgressUI();
         }
 
@@ -1268,8 +1299,8 @@
         // ===== KEYBOARD SHORTCUTS =====
         function setupKeyboardShortcuts() {
             document.addEventListener('keydown', function(event) {
-                // Ctrl+K to focus search
-                if (event.ctrlKey && event.key === 'K') {
+                // Ctrl+K to focus search (event.key é 'k' minúsculo na maioria dos navegadores)
+                if (event.ctrlKey && event.key.toLowerCase() === 'k') {
                     event.preventDefault();
                     document.getElementById('moduleSearch').focus();
                     showKeyboardHint();
@@ -1325,6 +1356,12 @@
         window.addEventListener('hashchange', handleHashNavigation);
         handleHashNavigation();
 
+        // ===== COMPATIBILIDADE DE HANDLERS =====
+        // Os cards de módulo usam onclick="openModule('...')" no HTML.
+        function openModule(nome) {
+            navigateTo(nome);
+        }
+
         // ===== EXPORT FUNCTIONS for testing =====
         window.openModule = openModule;
         window.navigateTo = navigateTo;
@@ -1332,6 +1369,8 @@
         window.fecharApresentacao = fecharApresentacao;
         window.proximoSlide = proximoSlide;
         window.anteriorSlide = anteriorSlide;
+        window.slidePrev = slidePrev;
+        window.slideNext = slideNext;
         window.toggleChecklistItem = toggleChecklistItem;
         window.updateProgress = updateProgress;
     </script>
