@@ -54,3 +54,10 @@ Thumbs.db
 
 # Credenciais geradas por script (rotacionar_admin.php e afins).
 /senha_rotacionada.txt
+
+# Documentos comerciais com dados de clientes (nomes, propostas, valores).
+# O repositório é público para servir o GitHub Pages; estas propostas não
+# devem ficar visíveis na árvore pública. Mantidas apenas localmente.
+/proposta_comercial/
+/Proposta_Comercial_John_Kennedy.pdf
+/Proposta_Comercial_Malheiro.pdf
