@@ -1,2440 +1,1183 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJ SmartClinic - Treinamento Clínica Daiane</title>
-    <!-- Bootstrap 5 CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Bootstrap Icons (classes "bi bi-*" usadas na interface) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
-    <!-- Fontes Google -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Light theme (default) */
-            --bg-primary: #f5f7fa;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f8f9fa;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border-color: #e0e0e0;
-            --shadow-color: rgba(0, 0, 0, 0.05);
-            --shadow-hover: rgba(0, 0, 0, 0.1);
-            --sidebar-bg: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-            --sidebar-text: #ffffff;
-            --topbar-bg: #ffffff;
-            --topbar-border: #e0e0e0;
-            --kpi-card-bg: #ffffff;
-            --module-card-bg: #ffffff;
-            --modal-bg: #ffffff;
-            --search-bg: #ffffff;
-            --search-border: #e0e0e0;
-            --checklist-bg: #ffffff;
-            --checklist-hover: #f8f9fa;
-            --presentation-bg: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-            --hint-bg: rgba(0, 0, 0, 0.7);
-            --btn-primary: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-            --btn-secondary: #e0e0e0;
-            --btn-secondary-text: #333333;
-            --badge-bg: #f8f9fa;
-            
-            /* Brand colors (fixed) */
-            --primary: #6c757d;
-            --secondary: #6c757d;
-            --success: #28a745;
-            --info: #17a2b8;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --blue-clinic: #2c3e50;
-            --orange-clinic: #e67e22;
-            --daiane-blue: #3498db;
-            --daiane-orange: #e67e22;
-            --daiane-green: #27ae60;
-            --daiane-dark: #2c3e50;
-        }
-
-        /* Dark theme */
-        [data-theme="dark"] {
-            --bg-primary: #1a1d23;
-            --bg-secondary: #22272e;
-            --bg-tertiary: #2d333b;
-            --text-primary: #e4e6eb;
-            --text-secondary: #a0a3a8;
-            --text-muted: #6e7681;
-            --border-color: #3d444d;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --shadow-hover: rgba(0, 0, 0, 0.4);
-            --sidebar-bg: linear-gradient(180deg, #161b22 0%, #1f242c 100%);
-            --sidebar-text: #e4e6eb;
-            --topbar-bg: #22272e;
-            --topbar-border: #3d444d;
-            --kpi-card-bg: #2d333b;
-            --module-card-bg: #2d333b;
-            --modal-bg: #22272e;
-            --search-bg: #2d333b;
-            --search-border: #3d444d;
-            --checklist-bg: #2d333b;
-            --checklist-hover: #3d444d;
-            --presentation-bg: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
-            --hint-bg: rgba(0, 0, 0, 0.9);
-            --btn-primary: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
-            --btn-secondary: #3d444d;
-            --btn-secondary-text: #e4e6eb;
-            --badge-bg: #2d333b;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* ===== LAYOUT PRINCIPAL ===== */
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .sidebar .brand {
-            display: flex;
-            align-items-center;
-            gap: 12px;
-            padding: 20px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar .brand .icon {
-            width: 40px;
-            height: 40px;
-            background: var(--btn-primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .sidebar .brand .icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .sidebar .brand .text {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .sidebar .brand .subtitle {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .sidebar nav {
-            padding: 10px 0;
-        }
-
-        .sidebar .nav-title {
-            font-size: 0.65rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.5);
-            padding: 8px 20px 4px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 10px 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-align: left;
-            border-radius: 8px;
-            margin: 2px 4px;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .nav-item.ativo {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            border-left: 3px solid var(--daiane-orange);
-            font-weight: 500;
-        }
-
-        .nav-item .icon {
-            width: 22px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .nav-item .badge {
-            margin-left: auto;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-        }
-
-        /* ===== MAIN ===== */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            background: var(--bg-primary);
-        }
-
-        .topbar {
-            background: var(--topbar-bg);
-            border-bottom: 1px solid var(--topbar-border);
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 80;
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .topbar .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .topbar .logo .icon {
-            width: 32px;
-            height: 32px;
-            background: var(--btn-primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .topbar .logo .text {
-            font-weight: 600;
-            color: var(--daiane-dark);
-        }
-
-        .topbar .title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .topbar .user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        .topbar .user .avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--daiane-orange);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 0.8rem;
-        }
-
-        .topbar .user .name {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        /* ===== MODAL ===== */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--modal-bg);
-            border-radius: 16px;
-            width: 95%;
-            max-width: 900px;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.9) translateY(20px);
-            transition: transform 0.3s ease;
-            box-shadow: 0 25px 50px var(--shadow-hover);
-            color: var(--text-primary);
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
-        }
-
-        .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .modal-header .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .btn-modal {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: var(--btn-primary);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: var(--btn-secondary);
-            color: var(--btn-secondary-text);
-        }
-
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-
-        /* ===== DASHBOARD ===== */
-        .dashboard {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .dashboard .section {
-            margin-bottom: 32px;
-            padding-bottom: 32px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .dashboard .section:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .dashboard .section h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .dashboard .section h2 .icon {
-            width: 24px;
-            height: 24px;
-            background: var(--btn-primary);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            color: white;
-        }
-
-        /* Cards KPI */
-        .kpi-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .kpi-card {
-            background: var(--kpi-card-bg);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            box-shadow: 0 4px 6px var(--shadow-color);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
-            border: 1px solid var(--border-color);
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px var(--shadow-hover);
-        }
-
-        .kpi-card .number {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--daiane-blue);
-            margin-bottom: 8px;
-        }
-
-        .kpi-card .label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Modules grid */
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        .module-card {
-            background: var(--module-card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px var(--shadow-color);
-            transition: all 0.2s ease, background-color 0.3s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-            border-top: 4px solid var(--daiane-blue);
-            border: 1px solid var(--border-color);
-        }
-
-        .module-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 15px var(--shadow-hover);
-        }
-
-        .module-card .icon {
-            width: 60px;
-            height: 60px;
-            background: var(--btn-primary);
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .module-card .info {
-            padding: 20px;
-        }
-
-        .module-card .info h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .module-card .info p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .module-card .arrow {
-            margin-left: auto;
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            transition: transform 0.2s;
-        }
-
-        .module-card:hover .arrow {
-            transform: translateX(4px);
-        }
-
-        /* ===== SEARCH ===== */
-        .search-box {
-            position: relative;
-            margin-bottom: 24px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 48px 12px 16px;
-            border: 2px solid var(--search-border);
-            border-radius: 25px;
-            font-size: 0.9rem;
-            background: var(--search-bg);
-            color: var(--text-primary);
-            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--daiane-blue);
-            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
-        }
-
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-box .clear-btn {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: none;
-        }
-
-        .search-box .clear-btn:hover {
-            color: var(--text-primary);
-        }
-
-        /* ===== CHECKLIST ===== */
-        .checklist {
-            margin: 16px 0;
-        }
-
-        .checklist h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .checklist .item {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background: var(--checklist-bg);
-            border-radius: 8px;
-            border-left: 3px solid var(--daiane-blue);
-            transition: background 0.2s, background-color 0.3s ease;
-        }
-
-        .checklist .item:hover {
-            background: var(--checklist-hover);
-        }
-
-        .checklist .item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 12px;
-            cursor: pointer;
-            accent-color: var(--daiane-blue);
-        }
-
-        .checklist .item .text {
-            flex: 1;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-        }
-
-        .checklist .item .progress {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            margin-left: 10px;
-        }
-
-        /* ===== PRESENTATION MODE ===== */
-        .presentation {
-            position: fixed;
-            inset: 0;
-            background: var(--presentation-bg);
-            z-index: 9999;
-            display: none;
-        }
-
-        .presentation.active {
-            display: flex;
-        }
-
-        .presentation .deck {
-            position: relative;
-            margin: auto;
-            width: 90%;
-            max-width: 800px;
-            background: var(--modal-bg);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 0 60px var(--shadow-hover);
-            color: var(--text-primary);
-        }
-
-        .presentation .slide {
-            min-height: 100vh;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 24px;
-        }
-
-        .presentation .slide.active {
-            display: flex;
-        }
-
-        .presentation .slide h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-        }
-
-        .presentation .slide p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            max-width: 600px;
-        }
-
-        .presentation .slide .icon {
-            width: 80px;
-            height: 80px;
-            background: var(--btn-primary);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .presentation .nav-controls {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 10000;
-            transition: background 0.2s;
-        }
-
-        .presentation .nav-controls:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .presentation .nav-prev {
-            left: 20px;
-        }
-
-        .presentation .nav-next {
-            right: 20px;
-        }
-
-        .presentation .nav-exit {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 10000;
-        }
-
-        .presentation .progress-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
-            width: 0%;
-            z-index: 9999;
-        }
-
-        /* ===== KEYBOARD SHORTCUTS ===== */
-        .keyboard-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: var(--hint-bg);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            display: none;
-            z-index: 100;
-            backdrop-filter: blur(4px);
-        }
-
-        .keyboard-hint.active {
-            display: block;
-        }
-
-        /* ===== SHORTCUTS PANEL (Persistent) ===== */
-        .shortcuts-panel {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 280px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px var(--shadow-hover);
-            z-index: 90;
-            padding: 16px;
-            display: none;
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .shortcuts-panel.visible {
-            display: block;
-            animation: slideInRight 0.3s ease;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .shortcuts-panel header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .shortcuts-panel h4 {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .shortcuts-panel .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 4px;
-        }
-
-        .shortcuts-panel .shortcut-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .shortcuts-panel .shortcut-item:last-child {
-            border-bottom: none;
-        }
-
-        .shortcuts-panel .shortcut-keys {
-            display: flex;
-            gap: 4px;
-        }
-
-        .shortcuts-panel kbd {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: var(--text-primary);
-        }
-
-        .shortcuts-panel .shortcut-desc {
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-        }
-
-        /* ===== THEME TOGGLE ===== */
-        .theme-toggle {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 12px var(--shadow-hover);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 95;
-            transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        .theme-toggle i {
-            font-size: 1.2rem;
-            color: var(--text-primary);
-            transition: transform 0.3s ease;
-        }
-
-        .theme-toggle[data-theme="dark"] .sun-icon {
-            display: none;
-        }
-
-        .theme-toggle:not([data-theme="dark"]) .moon-icon {
-            display: none;
-        }
-
-        /* ===== WIZARD / GUIDED MODE ===== */
-        .wizard-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 9998;
-            display: none;
-            pointer-events: none;
-        }
-
-        .wizard-overlay.active {
-            display: block;
-        }
-
-        .wizard-overlay .spotlight {
-            position: absolute;
-            border: 3px solid var(--daiane-orange);
-            border-radius: 8px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
-            animation: pulse 2s infinite;
-            pointer-events: auto;
-        }
-
-        @keyframes pulse {
-            0%, 100% { border-color: var(--daiane-orange); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px var(--daiane-orange); }
-            50% { border-color: #ffcc00; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 30px #ffcc00; }
-        }
-
-        .wizard-tooltip {
-            position: absolute;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px 20px;
-            max-width: 320px;
-            box-shadow: 0 8px 24px var(--shadow-hover);
-            z-index: 9999;
-            pointer-events: auto;
-            animation: tooltipIn 0.3s ease;
-        }
-
-        @keyframes tooltipIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .wizard-tooltip h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .wizard-tooltip h4 .step-badge {
-            background: var(--daiane-orange);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
-
-        .wizard-tooltip p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            line-height: 1.5;
-        }
-
-        .wizard-tooltip .tooltip-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .wizard-tooltip .btn-tooltip {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .wizard-tooltip .btn-primary {
-            background: var(--daiane-orange);
-            color: white;
-        }
-
-        .wizard-tooltip .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        /* ===== INTERACTIVE SIMULATOR ===== */
-        .simulator-hotspot {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-
-        .simulator-hotspot::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border: 2px dashed var(--daiane-blue);
-            border-radius: 6px;
-            animation: hotspotPulse 2s infinite;
-            pointer-events: none;
-        }
-
-        @keyframes hotspotPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        .simulator-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            max-width: 280px;
-            font-size: 0.8rem;
-            color: var(--text-primary);
-            box-shadow: 0 8px 24px var(--shadow-hover);
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            margin-bottom: 8px;
-        }
-
-        .simulator-hotspot:hover .simulator-tooltip,
-        .simulator-hotspot:focus .simulator-tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .simulator-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: var(--border-color);
-        }
-
-        /* ===== QUIZ / ASSESSMENT ===== */
-        .quiz-modal .modal {
-            max-width: 700px;
-        }
-
-        .quiz-progress {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .quiz-progress .step {
-            flex: 1;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-            transition: background 0.3s ease;
-        }
-
-        .quiz-progress .step.active {
-            background: var(--daiane-blue);
-        }
-
-        .quiz-progress .step.completed {
-            background: var(--daiane-green);
-        }
-
-        .quiz-question {
-            margin-bottom: 24px;
-        }
-
-        .quiz-question h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            line-height: 1.4;
-        }
-
-        .quiz-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .quiz-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-primary);
-        }
-
-        .quiz-option:hover {
-            border-color: var(--daiane-blue);
-            background: var(--bg-secondary);
-        }
-
-        .quiz-option.selected {
-            border-color: var(--daiane-blue);
-            background: rgba(52, 152, 219, 0.1);
-        }
-
-        .quiz-option.correct {
-            border-color: var(--daiane-green);
-            background: rgba(39, 174, 96, 0.1);
-        }
-
-        .quiz-option.incorrect {
-            border-color: var(--danger);
-            background: rgba(220, 53, 69, 0.1);
-        }
-
-        .quiz-option input {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--daiane-blue);
-        }
-
-        .quiz-option .option-text {
-            flex: 1;
-            font-size: 0.9rem;
-        }
-
-        .quiz-feedback {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-top: 12px;
-            display: none;
-        }
-
-        .quiz-feedback.correct {
-            display: block;
-            background: rgba(39, 174, 96, 0.1);
-            border: 1px solid var(--daiane-green);
-            color: var(--daiane-green);
-        }
-
-        .quiz-feedback.incorrect {
-            display: block;
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid var(--danger);
-            color: var(--danger);
-        }
-
-        .quiz-results {
-            text-align: center;
-            padding: 24px;
-        }
-
-        .quiz-results .score-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: conic-gradient(var(--daiane-green) calc(var(--score) * 3.6deg), var(--border-color) 0deg);
-        }
-
-        .quiz-results .score-circle::before {
-            content: '';
-            position: absolute;
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: var(--modal-bg);
-        }
-
-        .quiz-results .score-circle span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .quiz-results h3 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-
-        .quiz-results .result-message {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-
-        .quiz-results .certificate-btn {
-            background: var(--daiane-orange);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media(max-width:768px) {
-            .sidebar {
-                width: 200px;
-            }
-
-            .topbar .title {
-                display: none;
-            }
-
-            .kpi-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .presentation .nav-controls {
-                display: none;
-            }
-
-            .shortcuts-panel {
-                width: calc(100vw - 40px);
-                right: 20px;
-                left: 20px;
-            }
-        }
-
-        @media(max-width:480px) {
-            .sidebar {
-                width: 160px;
-            }
-
-            .kpi-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar .nav-item {
-                padding: 8px 12px;
-                font-size: 0.75rem;
-            }
-
-            .wizard-tooltip {
-                max-width: 280px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LJ SmartClinic - Treinamento Clínica Daiane</title>
+<style>
+  :root {
+    /* Tema claro (padrão) */
+    --azul:#0b7285; --azul-escuro:#083c4a; --teal:#0ca678; --teal-claro:#38d9a9;
+    --verde:#2b8a3e; --amarelo:#f59f00; --roxo:#7048e8; --vermelho:#e03131;
+    --cinza-bg:#eef3f6; --texto:#1d2b33; --mouse:#5a6a72; --borda:#dbe6ec; --branco:#fff;
+    --sombra:0 6px 18px rgba(20,60,80,.08);
+    --sidebar-bg:linear-gradient(180deg,#0c1f2c 0%,#0d5e6d 120%);
+    --sidebar-border:rgba(255,255,255,.05);
+    --topbar-bg:rgba(255,255,255,.85);
+    --topbar-shadow:0 1px 0 rgba(20,60,80,.06);
+    --card-bg:var(--branco);
+    --card-shadow:0 8px 24px rgba(20,60,80,.07);
+    --card-hover-shadow:0 14px 30px rgba(20,60,80,.12);
+    --input-bg:var(--branco);
+    --input-border:var(--borda);
+    --modal-bg:var(--branco);
+    --modal-shadow:0 24px 60px rgba(5,20,30,.35);
+    --progress-bg:rgba(255,255,255,.07);
+    --progress-border:rgba(255,255,255,.12);
+    --search-bg:rgba(255,255,255,.08);
+    --search-border:rgba(255,255,255,.14);
+    --treino-bg:linear-gradient(135deg,#fffaf0,#fff3d6);
+    --treino-border:#f4d78e;
+    --dica-bg:#f0f8ff;
+    --dica-border:#cfe0ff;
+  }
+
+  [data-theme="dark"] {
+    --cinza-bg:#0a1c28; --texto:#e6f4f0; --mouse:#8ae7c6; --borda:#1a3a4a;
+    --branco:#0d2d3d; --sombra:0 6px 18px rgba(0,0,0,.3);
+    --sidebar-bg:linear-gradient(180deg,#06121a 0%,#082a35 120%);
+    --sidebar-border:rgba(255,255,255,.03);
+    --topbar-bg:rgba(13,29,45,.9);
+    --topbar-shadow:0 1px 0 rgba(0,0,0,.2);
+    --card-bg:#0d2d3d;
+    --card-shadow:0 8px 24px rgba(0,0,0,.25);
+    --card-hover-shadow:0 14px 30px rgba(0,0,0,.35);
+    --input-bg:#0d2d3d;
+    --input-border:#1a3a4a;
+    --modal-bg:#0d2d3d;
+    --modal-shadow:0 24px 60px rgba(0,0,0,.45);
+    --progress-bg:rgba(255,255,255,.05);
+    --progress-border:rgba(255,255,255,.08);
+    --search-bg:rgba(255,255,255,.06);
+    --search-border:rgba(255,255,255,.1);
+    --treino-bg:linear-gradient(135deg,#1a1500,#2d2000);
+    --treino-border:#5a4500;
+    --dica-bg:#0d1f35;
+    --dica-border:#1a3a5c;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--texto);background:linear-gradient(180deg,#eef5f7,#e7f1f4);line-height:1.55;transition:background .3s,color .3s}
+  [data-theme="dark"] body{background:linear-gradient(180deg,#0a1c28,#0d2d3d);color:#e6f4f0}
+  .layout{display:flex;min-height:100vh;gap:0}
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{width:236px;background:var(--sidebar-bg);color:#fff;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--sidebar-border);box-shadow:2px 0 18px rgba(8,25,35,.18);transition:background .3s,border-color .3s,box-shadow .3s}
+  .sidebar .brand{display:flex;align-items:center;gap:12px;padding:20px 16px;font-weight:800;font-size:1.02rem;border-bottom:1px solid rgba(255,255,255,.12)}
+  .sidebar .brand .icone{font-size:1.15rem;background:linear-gradient(135deg,var(--teal),#69db7c);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(12,166,120,.4)}
+  .sidebar nav{padding:10px 0}
+  .busca-wrap{margin:12px 10px 2px}
+  #buscaMod{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--search-border);background:var(--search-bg);color:#fff;font-size:.85rem;outline:none;transition:.15s}
+  #buscaMod::placeholder{color:rgba(255,255,255,.45)}
+  #buscaMod:focus{border-color:var(--teal-claro);background:rgba(255,255,255,.16)}
+  .busca-dica{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.5);font-size:.7rem;padding:4px 14px 8px}
+  .busca-dica b{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:1px 7px;font-size:.68rem}
+  .prog-wrap{margin:0 10px 12px;background:var(--progress-bg);border:1px solid var(--progress-border);border-radius:12px;padding:10px 12px}
+  .prog-topo{display:flex;justify-content:space-between;align-items:center;color:#fff;font-size:.78rem;font-weight:700;margin-bottom:6px}
+  .prog-topo .zera{background:none;border:none;color:rgba(255,255,255,.55);font-size:.68rem;cursor:pointer;text-decoration:underline;padding:0}
+  .prog-barra{height:8px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}
+  .prog-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal-claro),#4dabf7);border-radius:999px;transition:width .4s ease}
+  .nav-titulo{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);padding:12px 16px 4px;margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:rgba(255,255,255,.85);padding:9px 12px;font-size:.92rem;cursor:pointer;text-align:left;border-radius:10px;margin:2px 8px;transition:background .15s,transform .15s;font-weight:500;position:relative}
+  .nav-item:hover{background:rgba(255,255,255,.09);transform:translateX(3px)}
+  .nav-item.ativo{background:linear-gradient(90deg,var(--teal),var(--teal-claro));border-left:none;color:#fff;font-weight:700;box-shadow:0 6px 16px rgba(18,184,134,.35)}
+  .nav-item.feito .ok{opacity:1}
+  .nav-item .ok{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--teal-claro);font-size:.9rem;font-weight:800;opacity:0;transition:opacity .2s}
+  .nav-item .ico{width:20px;text-align:center;font-size:1rem}
+  .nav-item.escondido{display:none}
+
+  /* ===== MAIN ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--topbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--borda);padding:10px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;box-shadow:var(--topbar-shadow);transition:background .3s,border-color .3s,box-shadow .3s}
+  .topbar h1{font-size:1.18rem;font-weight:700;letter-spacing:-.01em}
+  .topbar .acao{display:flex;gap:8px;align-items:center}
+  .area-treino{background:linear-gradient(135deg,var(--teal),var(--teal-claro));color:#fff;border:none;padding:6px 12px;border-radius:999px;font-size:.8rem;font-weight:700;box-shadow:0 4px 12px rgba(18,184,134,.35)}
+  .usuario{background:#f2f7f9;border:1px solid var(--borda);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600}
+  [data-theme="dark"] .usuario{background:#1a3a4a;border-color:#2a4a5a}
+  .page{padding:22px;max-width:1100px;width:100%;margin:0 auto;animation:fadeUp .35s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ===== COMPONENTES ===== */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .campo{padding:8px 12px;border:1px solid var(--input-border);border-radius:10px;font-size:.9rem;background:var(--input-bg);color:var(--texto);outline:none;transition:.15s}
+  .campo:focus{border-color:var(--teal)}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--azul),#1d8aa3);color:#fff;border:none;padding:8px 14px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(11,114,133,.18);transition:transform .12s,box-shadow .12s,filter .12s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(11,114,133,.26);filter:brightness(1.05)}
+  .btn:active{transform:scale(.97)}
+  .btn.teal{background:linear-gradient(135deg,var(--teal),var(--teal-claro));box-shadow:0 4px 12px rgba(12,166,120,.35)}
+  .btn.verde{background:linear-gradient(135deg,var(--verde),#37b24d);box-shadow:0 4px 12px rgba(43,138,62,.35)}
+  .btn.vermelho{background:linear-gradient(135deg,var(--vermelho),#f03e3e);box-shadow:0 4px 12px rgba(224,49,49,.35)}
+  .btn.amarelo{background:linear-gradient(90deg,var(--amarelo),#fbbf24);color:#4a2e00;box-shadow:0 4px 12px rgba(245,159,0,.35)}
+  .btn.roxo{background:linear-gradient(135deg,var(--roxo),#8466f0);box-shadow:0 4px 12px rgba(112,72,232,.35)}
+  .btn.gray{background:#6c757d;box-shadow:0 4px 12px rgba(108,117,125,.35)}
+  .btn.fino{padding:4px 10px;font-size:.8rem}
+  .btn-link{background:none;border:none;color:var(--azul);cursor:pointer;font-size:.88rem;text-decoration:underline;padding:0}
+  .btn-ghost{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:8px 14px;border-radius:9px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.12s}
+  .btn-ghost:hover{filter:brightness(1.05);background:rgba(255,255,255,.14)}
+  .btn-como-funciona{background:linear-gradient(90deg,var(--teal),var(--teal-claro));border:none}
+  .btn-tour{background:linear-gradient(90deg,#4dabf7,#3d97e8);border:none}
+  .btn-quiz{background:linear-gradient(90deg,var(--amarelo),#fbbf24);border:none;color:#4a2e00;font-weight:800;box-shadow:0 4px 12px rgba(245,159,0,.35)}
+  .btn-apresenta{background:linear-gradient(135deg,var(--roxo),#8466f0);border:none;color:#fff;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(112,72,232,.35);display:inline-flex;align-items:center;gap:6px}
+  .btn-apresenta:hover{filter:brightness(1.06)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+  .card-kpi{position:relative;overflow:hidden;background:var(--card-bg);border:none;border-radius:16px;padding:16px;box-shadow:var(--card-shadow);transition:transform .15s ease,box-shadow .15s ease}
+  .card-kpi:hover{transform:translateY(-3px);box-shadow:var(--card-hover-shadow)}
+  .card-kpi::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,var(--teal),#69db7c)}
+  .card-kpi .v{font-size:1.6rem;font-weight:800;background:linear-gradient(120deg,var(--azul-escuro),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .card-kpi .r{font-size:.8rem;color:var(--mouse)}
+
+  .tabela-wrap{background:var(--card-bg);border:1px solid var(--borda);border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(20,60,80,.06);transition:background .3s,border-color .3s,box-shadow .3s}
+  [data-theme="dark"] .tabela-wrap{box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{background:rgba(12,166,120,.05);text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mouse);border-bottom:1px solid var(--borda);font-weight:700}
+  [data-theme="dark"] th{background:rgba(12,166,120,.08);color:#4dabf7}
+  td{padding:9px 12px;border-bottom:1px solid var(--borda)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(12,166,120,.03)}
+  [data-theme="dark"] tr:hover td{background:rgba(12,166,120,.06)}
+  .badge{display:inline-block;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);letter-spacing:.02em}
+  .aviso{background:var(--card-bg);border:1px dashed var(--borda);border-radius:10px;padding:22px;text-align:center;color:var(--mouse);font-size:.9rem}
+
+  .painel-treino{background:var(--treino-bg);border:1px solid var(--treino-border);border-left:5px solid var(--amarelo);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:.9rem;box-shadow:0 6px 18px rgba(245,159,0,.12);transition:background .3s,border-color .3s,box-shadow .3s}
+  .painel-treino b{color:#8a6100}
+  [data-theme="dark"] .painel-treino b{color:#f59f00}
+  .painel-treino ol{margin:8px 0 0 18px}
+  .painel-treino .passos span{display:inline-block;background:var(--azul);color:#fff;border-radius:5px;padding:1px 7px;margin:3px 3px 0 0;font-size:.8rem}
+
+  .dica-treino{background:var(--dica-bg);border:1px solid var(--dica-border);border-left:4px solid #74c0fc;color:#1d4e8b;padding:8px 12px;border-radius:8px;font-size:.8rem;margin-bottom:14px;transition:background .3s,border-color .3s}
+  .dica-treino b{font-weight:700}
+  [data-theme="dark"] .dica-treino{color:#74c0fc}
+
+  .corte{display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start}
+  @media(max-width:900px){.corte{grid-template-columns:1fr}.sidebar{width:200px}}
+  @media(max-width:720px){.sidebar{display:none}}
+
+  /* ===== EXPLICAÇÕES INTERATIVAS (TOOLTIPS) ===== */
+  #dicaExpli{position:fixed;z-index:98;max-width:330px;background:linear-gradient(135deg,#0c2535,#0b5e6e);color:#fff;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45;box-shadow:0 12px 26px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);opacity:0;pointer-events:none;transition:opacity .12s}
+  #tourDim{position:fixed;inset:0;background:rgba(7,20,30,.55);z-index:80;display:none;pointer-events:none;transition:background .2s ease}
+  #tourCaixa{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff8e8;border:2px solid #f0c24b;border-radius:16px;padding:16px 18px;box-shadow:0 14px 34px rgba(0,0,0,.28);z-index:150;font-size:.9rem;display:none}
+  #tourCaixa .cont{display:flex;gap:10px;align-items:flex-start}
+  #tourCaixa .num{background:var(--amarelo);color:#5f4300;border-radius:999px;padding:3px 10px;font-weight:800;font-size:.75rem;white-space:nowrap;cursor:pointer}
+  .expli-rodape{font-size:.8rem;color:var(--mouse);border-top:1px dashed var(--borda);margin-top:12px;padding-top:8px}
+
+  /* ===== MODAL ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(9,24,33,.55);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal-bg.aberto{display:flex}
+  .modal{background:var(--modal-bg);border-radius:18px;padding:22px;width:min(480px,92vw);max-height:90vh;overflow:auto;box-shadow:var(--modal-shadow);animation:popIn .22s ease;color:var(--texto);transition:background .3s,box-shadow .3s}
+  @keyframes popIn{from{transform:scale(.94) translateY(12px);opacity:0}}
+  .modal h3{margin-bottom:14px;font-size:1.05rem}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .form-grid .full{grid-column:1/-1}
+  .form-grid label{display:block;font-size:.8rem;font-weight:600;margin-bottom:4px;color:var(--mouse)}
+  .form-grid input,.form-grid select,.form-grid textarea{width:100%;padding:8px 10px;border:1px solid var(--input-border);border-radius:8px;font-size:.88rem;font-family:inherit;background:var(--input-bg);color:var(--texto);transition:border .15s}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{border-color:var(--teal);outline:none}
+  .modal .acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .erro{background:#fff1f0;border:1px solid #ffbfb5;color:#9b1c1c;padding:8px 12px;border-radius:8px;font-size:.82rem;margin-top:10px}
+  .ok{background:#e6f7ec;border:1px solid #b8e6c8;color:#15572b;padding:8px 12px;border-radius:8px;font-size:.82rem;margin-top:10px}
+
+  /* ===== PAINEL DESAFIOS ===== */
+  .painel-desafios{background:linear-gradient(135deg,#f4f8ff,#ecf3ff);border:1px solid #cfe0ff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.85rem;transition:background .3s,border-color .3s}
+  [data-theme="dark"] .painel-desafios{background:linear-gradient(135deg,#0d1f35,#142d55);border-color:#1a3a5c}
+  .painel-desafios .tit{font-weight:800;margin-bottom:6px;color:#274a8c}
+  [data-theme="dark"] .painel-desafios .tit{color:#74c0fc}
+  .painel-desafios ul{list-style:none}
+  .painel-desafios li{display:flex;align-items:center;gap:8px;padding:3px 0;color:#3a4a63}
+  [data-theme="dark"] .painel-desafios li{color:#a8c8f0}
+  .painel-desafios li .ch{width:18px;height:18px;border-radius:6px;border:1px solid #b7c9e8;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;background:#fff;flex:none}
+  [data-theme="dark"] .painel-desafios li .ch{background:#0d2d3d;border-color:#2a4a5a}
+  .painel-desafios li.feito{color:#19794f;text-decoration:line-through}
+  [data-theme="dark"] .painel-desafios li.feito{color:#38d9a9}
+  .painel-desafios li.feito .ch{background:#37b24d;border-color:#37b24d;color:#fff}
+
+  /* ===== QUIZ ===== */
+  .quiz-opcao{display:block;width:100%;text-align:left;margin-top:8px;padding:11px 14px;border-radius:10px;border:1px solid #cfdfef;background:#fff;font-size:.9rem;cursor:pointer;transition:.12s}
+  [data-theme="dark"] .quiz-opcao{background:#0d2d3d;border-color:#1a3a4a;color:var(--texto)}
+  .quiz-opcao:hover:not([disabled]){border-color:var(--teal);background:#f0fbf8}
+  [data-theme="dark"] .quiz-opcao:hover:not([disabled]){border-color:var(--teal-claro);background:rgba(12,166,120,.1)}
+  .quiz-opcao.certo{background:#e6f9ef;border-color:#37b24d;color:#186534;font-weight:700}
+  [data-theme="dark"] .quiz-opcao.certo{background:rgba(55,178,77,.15);border-color:#37b24d;color:#69db7c}
+  .quiz-opcao.errado{background:#fff1f0;border-color:#e03131;color:#a3260f}
+  [data-theme="dark"] .quiz-opcao.errado{background:rgba(224,49,49,.1);border-color:#e03131;color:#f08080}
+  .quiz-fb{font-size:.9rem;margin-top:12px;font-weight:700}
+  .quiz-progress{display:flex;gap:6px;margin-bottom:16px}
+  .quiz-progress .step{flex:1;height:6px;border-radius:999px;background:var(--borda);transition:background .3s}
+  [data-theme="dark"] .quiz-progress .step{background:#1a3a4a}
+  .quiz-progress .step.active{background:var(--teal)}
+  .quiz-progress .step.done{background:var(--verde)}
+
+  /* ===== MODO APRESENTAÇÃO (SLIDES) ===== */
+  #slides{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:radial-gradient(1200px 700px at 20% 10%,#0d5e6d,transparent),radial-gradient(900px 600px at 85% 15%,var(--teal),transparent),linear-gradient(160deg,#0a1c28,#0c3f52);color:#fff}
+  #slides.aberto{display:flex}
+  .slides-deck{width:min(880px,93vw);max-height:86vh;display:flex;flex-direction:column}
+  .slides-topo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .slides-topo .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 14px;font-size:.78rem;font-weight:600}
+  .slides-progresso{flex:1;height:6px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden}
+  .slides-progresso i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-claro),#4dabf7);border-radius:999px;transition:width .3s ease}
+  .slides-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);border-radius:22px;padding:42px 46px;animation:slideIn .45s ease;box-shadow:0 30px 70px rgba(0,0,0,.4);overflow:auto}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+  .slides-icon{width:74px;height:74px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2.3rem;background:rgba(12,166,120,.22);border:1px solid rgba(56,217,169,.4);margin-bottom:18px}
+  .slides-card h2{font-size:1.9rem;margin-bottom:6px;letter-spacing:-.01em}
+  .slides-card .modulo-chip{display:inline-block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:#8ae7c6;margin-bottom:16px;font-weight:700}
+  .slides-card p{font-size:1.05rem;line-height:1.7;color:#e6f4f0}
+  .slides-card ul{list-style:none;margin-top:8px}
+  .slides-card li{font-size:1.02rem;line-height:1.6;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.14);display:flex;gap:10px}
+  .slides-card li::before{content:"✦";color:var(--teal-claro)}
+  .slides-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:52px;height:52px;border-radius:50%;font-size:1.8rem;cursor:pointer;transition:background .15s,transform .15s}
+  .slides-nav:hover{background:rgba(255,255,255,.24);transform:translateY(-50%) scale(1.05)}
+  .slides-nav.prev{left:22px}
+  .slides-nav.next{right:22px}
+  .slides-fecha{position:fixed;top:20px;right:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;width:44px;height:44px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:5}
+  .slides-fecha:hover{background:rgba(255,255,255,.25)}
+  .slides-setas-hint{display:flex;justify-content:center;gap:10px;margin-top:18px;font-size:.8rem;color:rgba(255,255,255,.6)}
+  .slides-setas-hint span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 10px}
+
+  /* ===== TOAST ===== */
+  #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card-bg);border:1px solid var(--borda);padding:12px 24px;border-radius:8px;box-shadow:0 8px 24px var(--card-shadow);z-index:10000;font-size:.85rem;color:var(--texto);animation:slideUp .3s ease;display:none}
+  @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  [data-theme="dark"] #toast{background:var(--modal-bg);border-color:var(--borda);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+
+  /* ===== RESPONSIVO ===== */
+  @media(max-width:720px){
+    .sidebar{width:100%;height:auto;position:relative;box-shadow:none;border-right:none;border-bottom:1px solid var(--sidebar-border)}
+    .main{width:100%}
+    .page{padding:16px}
+    .slides-card{padding:24px}
+    .slides-nav{width:44px;height:44px;font-size:1.5rem}
+  }
+</style>
 </head>
 <body>
-    <!-- Keyboard Hint -->
-    <div class="keyboard-hint" id="keyboardHint">
-        ⌨️ Atalhos: <kbd>Ctrl</k> + <kbd>K</k> = Buscar | <kbd>Flechas</k> = Navegar | <kbd>Enter</k> = Abrir | <kbd>Esc</k> = Sair
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="icone">🦷</span> <span>LJ SmartClinic</span></div>
+    <div class="busca-wrap"><input id="buscaMod" placeholder="🔎 Buscar módulo..." autocomplete="off"></div>
+    <div class="busca-dica"><span>Pressione</span><b>/</b><span>ou</span><b>Ctrl K</b><span>para buscar · <b>↑↓→</b> navega · <b>Enter</b> abre</span></div>
+    <div class="prog-wrap">
+      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/16</b></span></div>
+      <div class="prog-barra"><i id="progBarra"></i></div>
     </div>
+    <nav id="navLista">
+      <div class="nav-titulo">Principal</div>
+      <button class="nav-item ativo" data-mod="dashboard" onclick="mostrar('dashboard')"><span class="ico">📊</span>Dashboard</button>
+      <button class="nav-item" data-mod="turmas" onclick="mostrar('turmas')"><span class="ico">👥</span>Turmas</button>
+      <button class="nav-item" data-mod="atendimentos" onclick="mostrar('atendimentos')"><span class="ico">🗓️</span>Atendimentos</button>
+      <button class="nav-item" data-mod="tratamentos" onclick="mostrar('tratamentos')"><span class="ico">💊</span>Tratamentos</button>
+      <div class="nav-titulo">Módulos</div>
+      <button class="nav-item" data-mod="pacientes" onclick="mostrar('pacientes')"><span class="ico">👤</span>Pacientes</button>
+      <button class="nav-item" data-mod="financeiro" onclick="mostrar('financeiro')"><span class="ico">🏦</span>Financeiro</button>
+      <button class="nav-item" data-mod="estoque" onclick="mostrar('estoque')"><span class="ico">📦</span>Estoque</button>
+      <button class="nav-item" data-mod="relatorios" onclick="mostrar('relatorios')"><span class="ico">📊</span>Relatórios</button>
+    </nav>
+  </aside>
 
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema" onclick="toggleTheme()" title="Alternar tema claro/escuro">
-        <i class="bi bi-sun-fill sun-icon"></i>
-        <i class="bi bi-moon-fill moon-icon"></i>
-    </button>
-
-    <!-- Shortcuts Panel -->
-    <div class="shortcuts-panel" id="shortcutsPanel" aria-label="Painel de atalhos">
-        <header>
-            <h4><i class="bi bi-keyboard"></i> Atalhos do Teclado</h4>
-            <button class="close-btn" onclick="toggleShortcutsPanel()" aria-label="Fechar painel">✕</button>
-        </header>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Buscar módulo</span>
-            <span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>K</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Abrir apresentação</span>
-            <span class="shortcut-keys"><kbd>P</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Próximo slide</span>
-            <span class="shortcut-keys"><kbd>→</kbd> / <kbd>Enter</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Slide anterior</span>
-            <span class="shortcut-keys"><kbd>←</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Sair / Fechar</span>
-            <span class="shortcut-keys"><kbd>Esc</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Alternar tema</span>
-            <span class="shortcut-keys"><kbd>T</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Modo guiado</span>
-            <span class="shortcut-keys"><kbd>G</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Quiz do módulo</span>
-            <span class="shortcut-keys"><kbd>Q</kbd></span>
-        </div>
-        <div class="shortcut-item">
-            <span class="shortcut-desc">Painel de atalhos</span>
-            <span class="shortcut-keys"><kbd>?</kbd></span>
-        </div>
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="tituloPagina">Dashboard</h1>
+      <div class="acao">
+        <button class="btn-apresenta" onclick="abrirSlides()">▶ Apresentação</button>
+        <span class="area-treino">🎓 Modo treinamento</span>
+        <span class="usuario">👤 Usuário Daiane</span>
+      </div>
     </div>
+    <div class="page" id="page"></div>
+  </div>
+</div>
 
-    <!-- Presentation Mode -->
-    <div class="presentation" id="presentation">
-        <div class="deck" id="slideDeck">
-            <!-- Slides serão inseridos pelo JS -->
-        </div>
-        <div class="nav-controls prev" id="navPrev" onclick="slidePrev()" title="Anterior (←)">
-           ‹
-        </div>
-        <div class="nav-controls next" id="navNext" onclick="slideNext()" title="Próximo (→)">
-           ›
-        </div>
-        <div class="nav-exit" onclick="fecharApresentacao()" title="Sair da apresentação (Esc)">
-            ✕
-        </div>
-        <div class="progress-bar" id="progressBar"></div>
+<!-- MODAL GENÉRICO -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- TOOLTIP EXPLICATIVO (hover) -->
+<div id="dicaExpli"></div>
+
+<!-- TOUR GUIADO -->
+<div id="tourDim"></div>
+<div id="tourCaixa"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODO APRESENTAÇÃO -->
+<div id="slides">
+  <button class="slides-fecha" onclick="fecharSlides()" title="Sair da apresentação (Esc)">✕</button>
+  <button class="slides-nav prev" onclick="slideVai(-1)" title="Anterior (←)">‹</button>
+  <button class="slides-nav next" onclick="slideVai(1)" title="Próximo (→)">›</button>
+  <div class="slides-deck">
+    <div class="slides-topo">
+      <span class="chip" id="slideModChip">Dashboard</span>
+      <div class="slides-progresso"><i id="slideBarra"></i></div>
+      <span class="chip" id="slideContador">1 / 3</span>
     </div>
+    <div class="slides-card" id="slideCard"></div>
+    <div class="slides-setas-hint"><span>← anterior</span><span>→ próximo</span><span>esc sair</span></div>
+  </div>
+</div>
 
-    <!-- Wizard / Guided Mode Overlay -->
-    <div class="wizard-overlay" id="wizardOverlay">
-        <div class="spotlight" id="wizardSpotlight"></div>
-        <div class="wizard-tooltip" id="wizardTooltip"></div>
+<script>
+/* =========================================================
+   TREINAMENTO DAIANE — LJ SmartClinic
+   Baseado no visual e funcionalidades do SCO Treinador
+   ========================================================= */
+
+// ===== DADOS DO SISTEMA (simulados) =====
+const estado = {
+  consultas: [
+    {h:'08:00', pac:'Maria Souza', pro:'Dr. João', sala:'Sala 1', st:'Em atendimento', dur:60},
+    {h:'09:30', pac:'Carlos Lima', pro:'Dra. Paula', sala:'Sala 2', st:'Confirmado', dur:30},
+    {h:'10:30', pac:'Ana Costa', pro:'Dr. João', sala:'Sala 1', st:'Agendado', dur:45},
+    {h:'14:00', pac:'Pedro Alves', pro:'Dr. João', sala:'Sala 3', st:'Agendado', dur:60},
+  ],
+  pacientes: [
+    {id:1, n:'Maria Souza', cpf:'123.456.789-00', cel:'(11) 98765-4321', st:'ativo', cons:5, orc:2},
+    {id:2, n:'Carlos Lima', cpf:'987.654.321-00', cel:'(11) 97654-3210', st:'ativo', cons:2, orc:1},
+    {id:3, n:'Ana Costa', cpf:'456.123.789-00', cel:'(11) 96543-2109', st:'ativo', cons:9, orc:4},
+    {id:4, n:'Pedro Alves', cpf:'321.654.987-00', cel:'(11) 95432-1098', st:'inativo', cons:1, orc:0},
+  ],
+  turmas: [
+    {dia:'Seg', horario:'08:00', nome:'Turma Iniciantes', inscritos:5, vagas:10},
+    {dia:'Ter', horario:'10:00', nome:'Turma Intermediária', inscritos:8, vagas:10},
+    {dia:'Qua', horario:'14:00', nome:'Turma Avançada', inscritos:3, vagas:10},
+  ],
+  atendimentos: [
+    {pac:'Maria Souza', status:'Presença confirmada', sessao:1, pacote:'10 sessões'},
+    {pac:'Carlos Lima', status:'Faltou', sessao:2, pacote:'10 sessões'},
+    {pac:'Ana Costa', status:'Presença confirmada', sessao:3, pacote:'5 sessões'},
+  ],
+  financeiro: [
+    {pac:'Ana Costa', venc:'25/11/2026', valor:300, pago:0, st:'aberta'},
+    {pac:'Maria Souza', venc:'30/11/2026', valor:150, pago:150, st:'paga'},
+    {pac:'Carlos Lima', venc:'05/12/2026', valor:600, pago:200, st:'parcial'},
+  ],
+  estoque: [
+    {id:1, n:'Luvas de látex', cat:'Descartáveis', est:40, min:50, custo:25, baixo:true},
+    {id:2, n:'Resina composta', cat:'Materiais', est:12, min:5, custo:180, baixo:false},
+    {id:3, n:'Anestésico', cat:'Anestésicos', est:30, min:10, custo:15, baixo:false},
+    {id:4, n:'Algodão', cat:'Descartáveis', est:8, min:20, custo:10, baixo:true},
+  ],
+  relatorios: {recebido:1250, emAberto:700, atendidas:31, canceladas:4, faltas:2, entradas:96, saidas:84, baixo:2}
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// ===== CORES DE STATUS =====
+const stCor = {Agendado:'#0d6efd',Confirmado:'#198754','Em atendimento':'#ffc107',Atendido:'#6f42c1',Faltou:'#dc3545',Cancelado:'#6c757d',Aberta:'#e03131',Parcial:'#f59f00',Paga:'#198754','Em andamento':'#4dabf7','Rascunho':'#6c757d',Aprovado:'#198754'};
+const stBadge = s => `<span class="badge" style="background:${stCor[s]||'#6c757d'}">${s}</span>`;
+
+// ===== MÓDULOS E TÍTULOS =====
+const modulos = {dashboard:0,turmas:1,atendimentos:2,tratamentos:3,pacientes:4,financeiro:5,estoque:6,relatorios:7};
+const titulos = {dashboard:'Dashboard',turmas:'Turmas',atendimentos:'Atendimentos',tratamentos:'Tratamentos',pacientes:'Pacientes',financeiro:'Financeiro',estoque:'Estoque',relatorios:'Relatórios'};
+const iconesMod = {dashboard:'📊',turmas:'👥',atendimentos:'🗓️',tratamentos:'💊',pacientes:'👤',financeiro:'🏦',estoque:'📦',relatorios:'📊'};
+
+// ===== INFO DE TREINAMENTO POR MÓDULO =====
+const treinoInfo = {
+  dashboard:`<ol><li>Observe os 4 indicadores: consultas hoje, pacientes ativos, tratamentos em andamento, estoque baixo.</li><li>Na tabela <b>Agenda de hoje</b>, confira horário, paciente e status.</li><li>Veja <b>Contas a receber</b> — saldos que precisam de cobrança.</li></ol>`,
+  turmas:`<ol><li>Grade semanal com turmas, horários e ocupação (inscritos/vagas).</li><li>Marque presença clicando nas turmas (simulado).</li><li>Verifique vagas disponíveis para novas matrículas.</li></ol>`,
+  atendimentos:`<ol><li>Registre presença do paciente e consumo de sessão do pacote.</li><li>Verifique status do pacote (sessões restantes).</li><li>Sistema bloqueia consumo se pacote esgotado.</li></ol>`,
+  tratamentos:`<ol><li>Funcionalidade planejada para vertical fisioterapia.</li><li>Estrutura existe: cadastro de planos, itens, status, evolução.</li><li>Para odontologia (clínicas 1 e 6) acesso completo.</li></ol>`,
+  pacientes:`<ol><li>Busque pacientes por nome, CPF ou telefone (tempo real).</li><li>Visualize ficha: consultas, orçamentos, alertas.</li><li>Cadastro de novo paciente com validação de CPF único.</li></ol>`,
+  financeiro:`<ol><li>Receba pagamentos: valor parcial → "Parcial"; total → "Paga".</li><li>Sistema bloqueia recebimento maior que saldo devedor.</li><li>Acompanhe contas abertas, parciais e pagas.</li></ol>`,
+  estoque:`<ol><li>Dê Entrada (compra) ou Saída (uso clínico) nos produtos.</li><li>Saída maior que saldo é bloqueada.</li><li>Saldo ≤ mínimo destaca como <b>estoque baixo</b>.</li></ol>`,
+  relatorios:`<ol><li>Indicadores financeiros: recebido, em aberto, canceladas.</li><li>Agenda: atendidas, faltas, taxa de comparecimento.</li><li>Estoque: entradas, saídas, produtos com estoque baixo.</li></ol>`
+};
+
+// ===== QUIZ POR MÓDULO =====
+const quizData = {
+  dashboard:[
+    {q:"Quantos KPIs principais o Dashboard exibe?", op:["3","4","5","6"], c:1, exp:"O Dashboard mostra 4 KPIs: Consultas hoje, Pacientes ativos, Tratamentos em andamento, Estoque baixo."},
+    {q:"Qual status indica consulta em andamento agora?", op:["Agendado","Confirmado","Em atendimento","Faltou"], c:2, exp:"'Em atendimento' (amarelo) indica consulta acontecendo no momento."},
+    {q:"O que significa 'Estoque baixo'?", op:["Produto acabou","Saldo ≤ mínimo","Produto vencido","Sem fornecedor"], c:1, exp:"Produto com estoque atual menor ou igual ao mínimo configurado."}
+  ],
+  turmas:[
+    {q:"Quantas turmas aparecem na grade semanal?", op:["2","3","4","5"], c:1, exp:"A grade mostra 3 turmas: Iniciantes (Seg), Intermediária (Ter), Avançada (Qua)."},
+    {q:"O que indica 5/10 na turma?", op:["Presentes/Ausentes","Inscritos/Vagas","Concluídos/Pendentes"], c:1, exp:"5 inscritos de 10 vagas totais."},
+    {q:"Permissão necessária para módulo Turmas:", op:["turmas.view","turmas.edit","agenda.view"], c:0, exp:"Concedida via banco para clinic_id=5."}
+  ],
+  atendimentos:[
+    {q:"Status NÃO existente no fluxo:", op:["Agendado","Confirmado","Em Atendimento","Cancelado pelo Sistema"], c:3, exp:"Status válidos: Agendado, Confirmado, Em Atendimento, Faltou."},
+    {q:"Tela vazia sem agendamentos é:", op:["Erro 404","Comportamento normal","Redireciona"], c:1, exp:"Sistema retorna 200 OK mesmo sem consultas — tela vazia é normal."},
+    {q:"Permissão para registrar presença:", op:["agenda.presenca","atendimentos.view","pacientes.edit"], c:0, exp:"A permissão é agenda.presenca."}
+  ],
+  tratamentos:[
+    {q:"Módulo Tratamentos está disponível para:", op:["Apenas Fisioterapia","Apenas Odontologia","Ambas","Nenhuma"], c:1, exp:"Para odontologia (clínicas 1 e 6) completo. Para fisioterapia (clinic_id=5) PLANEJADO."},
+    {q:"Item NÃO disponível ainda:", op:["Cadastro de planos","Adicionar procedimentos","Tela adaptada fisioterapia","Histórico evolução"], c:2, exp:"Tela adaptada para fisioterapia está planejada, não disponível."},
+    {q:"Comportamento FISIOTERAPIA => PLANEJADO definido por:", op:["clinic_id","user_role","plano","região"], c:0, exp:"Definido pelo clinic_id (clinic_id=5 para fisioterapia)."}
+  ],
+  pacientes:[
+    {q:"Atalho para busca de pacientes:", op:["Ctrl+P","Ctrl+K","Ctrl+B","F3"], c:1, exp:"Ctrl+K foca o campo de busca global."},
+    {q:"Itens no checklist Pacientes:", op:["2","3","4","5"], c:1, exp:"Buscar paciente, Visualizar ficha, Cadastro novo = 3 itens."},
+    {q:"Validação de CPF no cadastro:", op:["Opcional","Único (bloqueia duplicado)","Ignorado"], c:1, exp:"CPF é único — duplicar é bloqueado pelo sistema."}
+  ],
+  financeiro:[
+    {q:"Ação NÃO no checklist Financeiro:", op:["Registrar recebimento","Verificar contas a receber","Emitir recibo","Cancelar nota fiscal"], c:3, exp:"Checklist: Receber, Verificar a receber, Emitir recibo."},
+    {q:"Receber valor > saldo devedor:", op:["Permitido","Bloqueado","Cria crédito"], c:1, exp:"Sistema bloqueia recebimento maior que o saldo."},
+    {q:"Conta Parcial → recebe o resto → vira:", op:["Aberta","Paga","Cancelada"], c:1, exp:"Quando saldo zera, status muda para Paga."}
+  ],
+  estoque:[
+    {q:"Ação NÃO no checklist Estoque:", op:["Registrar entrada","Registrar saída","Verificar estoque baixo","Emitir nota fiscal"], c:3, exp:"Checklist: Entrada, Saída, Verificar baixo."},
+    {q:"Saída > saldo:", op:["Permitido com aviso","Bloqueado","Cria débito"], c:1, exp:"Saída maior que saldo é bloqueada pelo sistema."},
+    {q:"Produto fica 'Estoque baixo' quando:", op:["Acaba","Saldo ≤ mínimo","Vence","Fornecedor atrasa"], c:1, exp:"Saldo atual menor ou igual ao mínimo configurado."}
+  ],
+  relatorios:[
+    {q:"Exportação NÃO mencionada:", op:["PDF","Excel","CSV","Word"], c:3, exp:"Mencionados PDF e Excel."},
+    {q:"Indicador NÃO no relatório financeiro:", op:["Recebido","Em aberto","Canceladas","Estorno"], c:3, exp:"Financeiro: Recebido, Em aberto, Atendidas, Canceladas, Faltas."},
+    {q:"Comparação de período:", op:["Sim","Não"], c:0, exp:"Checklist inclui 'Comparar com período anterior'."}
+  ]
+};
+
+// ===== DESAFIOS POR MÓDULO =====
+const desafiosData = {
+  dashboard:["Acessar o Dashboard","Visualizar os 4 KPIs","Ver agenda de hoje","Ver contas a receber"],
+  turmas:["Acessar Turmas","Ver grade semanal","Marcar presença em uma turma","Verificar vagas"],
+  atendimentos:["Acessar Atendimentos","Registrar presença","Consumir sessão do pacote","Ver status do pacote"],
+  tratamentos:["Acessar Tratamentos","Entender status PLANEJADO","Ver estrutura de planos","Ver procedimentos"],
+  pacientes:["Acessar Pacientes","Buscar um paciente","Abrir ficha do paciente","Cadastrar novo (simulado)"],
+  financeiro:["Acessar Financeiro","Receber uma conta aberta","Fazer recebimento parcial","Ver conta virar Paga"],
+  estoque:["Acessar Estoque","Dar entrada em produto","Dar saída em produto","Ver produto em estoque baixo"],
+  relatorios:["Acessar Relatórios","Ver indicadores financeiros","Ver indicadores de agenda","Ver indicadores de estoque"]
+};
+
+// ===== SLIDES PARA APRESENTAÇÃO =====
+const slidesData = {
+  dashboard:[
+    {icon:'📊', title:'Dashboard — Visão Geral', modulo:'Dashboard', bullets:['4 KPIs: Consultas, Pacientes, Tratamentos, Estoque','Tabela Agenda de hoje com status coloridos','Contas a receber com saldos em destaque','Acesso rápido aos módulos principais']},
+    {icon:'📊', title:'Indicadores Principais', modulo:'Dashboard', bullets:['Consultas hoje: agenda em tempo real','Pacientes ativos: base cadastrada','Tratamentos em andamento: planos ativos','Estoque baixo: alerta de reposição']},
+    {icon:'📊', title:'Próximos Passos', modulo:'Dashboard', bullets:['Clique em Turmas para ver grade semanal','Use Atendimentos para registrar presença','Financeiro para receber pagamentos','Estoque para controlar insumos']}
+  ],
+  turmas:[
+    {icon:'👥', title:'Turmas — Grade Semanal', modulo:'Turmas', bullets:['3 turmas: Iniciantes, Intermediária, Avançada','Ocupação mostrada como inscritos/vagas','Horários fixos por dia da semana','Permissão: turmas.view (clinic_id=5)']},
+    {icon:'👥', title:'Checklist de Turmas', modulo:'Turmas', bullets:['Marcar presença por turma','Verificar vagas disponíveis','Controlar consumo de pacotes','Progresso salvo automaticamente']},
+    {icon:'👥', title:'Fluxo Real', modulo:'Turmas', bullets:['Aluno agenda → entra na turma','Presença registrada a cada aula','Sessão consumida do pacote','Relatório de frequência mensal']}
+  ],
+  atendimentos:[
+    {icon:'🗓️', title:'Atendimentos — Dia a Dia', modulo:'Atendimentos', bullets:['Registro de presença/falta','Consumo automático de sessão do pacote','Status do pacote (sessões restantes)','Tela vazia = sem agendamentos (normal)']},
+    {icon:'🗓️', title:'Status do Atendimento', modulo:'Atendimentos', bullets:['Agendado (azul) → Confirmado (verde)','Em Atendimento (amarelo) → Atendido (roxo)','Faltou (vermelho) → não consome sessão','Permissão: agenda.presenca']},
+    {icon:'🗓️', title:'Checklist', modulo:'Atendimentos', bullets:['Presença confirmada','Sessão consumida do pacote','Status do pacote verificado','Progresso salvo']}
+  ],
+  tratamentos:[
+    {icon:'💊', title:'Tratamentos — Planejado', modulo:'Tratamentos', bullets:['Vertical Fisioterapia: PLANEJADO','Odontologia (clínicas 1,6): DISPONÍVEL','Estrutura: planos, itens, status, evolução','Catálogo define disponibilidade por clinic_id']},
+    {icon:'💊', title:'O que existe hoje', modulo:'Tratamentos', bullets:['Cadastro de planos de tratamento','Adicionar itens/procedimentos','Status: Rascunho→Em andamento→Concluído','Histórico de evolução do paciente']},
+    {icon:'💊', title:'Planejado para Fisio', modulo:'Tratamentos', bullets:['Tela adaptada para fisioterapia','Procedimentos específicos (cinesio, eletro, etc.)','Relatórios de evolução funcional','Integração com agenda de sessões']}
+  ],
+  pacientes:[
+    {icon:'👤', title:'Pacientes — Busca e Ficha', modulo:'Pacientes', bullets:['Busca tempo real: nome, CPF, telefone','Ficha: consultas, orçamentos, alertas, documentos','Cadastro novo com validação CPF único','Permissão: pacientes.view']},
+    {icon:'👤', title:'Checklist', modulo:'Pacientes', bullets:['Buscar paciente pelo nome','Visualizar ficha completa','Cadastro de novo paciente','Progresso salvo']},
+    {icon:'👤', title:'Prontuário (simulado)', modulo:'Pacientes', bullets:['Evoluções clínicas com tipo/autor','Anamneses pergunta:resposta','Alertas clínicos visíveis','Prescrições e documentos anexos']}
+  ],
+  financeiro:[
+    {icon:'🏦', title:'Financeiro — Contas a Receber', modulo:'Financeiro', bullets:['Total em aberto, Parciais, Pagas','Recebimento: parcial → Parcial; total → Paga','Bloqueio: valor > saldo devedor','Formas: PIX, Dinheiro, Cartão, Boleto, Convênio']},
+    {icon:'🏦', title:'Checklist', modulo:'Financeiro', bullets:['Registrar recebimento','Verificar contas a receber','Emitir recibo','Progresso salvo']},
+    {icon:'🏦', title:'Fluxo Orçamento→Financeiro', modulo:'Financeiro', bullets:['Orçamento Aprovado → gera conta a receber','Recebimento atualiza status','Relatórios: Recebido, Em aberto, Canceladas','Auditoria de cada recebimento']}
+  ],
+  estoque:[
+    {icon:'📦', title:'Estoque — Entrada e Saída', modulo:'Estoque', bullets:['Entrada (compra) aumenta saldo','Saída (uso clínico) diminui saldo','Bloqueio: saída > saldo disponível','Saldo ≤ mínimo = Estoque baixo (vermelho)']},
+    {icon:'📦', title:'Produtos Monitorados', modulo:'Estoque', bullets:['Luvas: 40/50 (baixo)','Resina: 12/5 (ok)','Anestésico: 30/10 (ok)','Algodão: 8/20 (baixo)']},
+    {icon:'📦', title:'Checklist e Histórico', modulo:'Estoque', bullets:['Registrar entrada','Registrar saída','Verificar estoque baixo','Histórico de movimentações']}
+  ],
+  relatorios:[
+    {icon:'📊', title:'Relatórios — Indicadores', modulo:'Relatórios', bullets:['Financeiro: Recebido, Em aberto, Atendidas, Canceladas, Faltas','Agenda: Taxa de comparecimento, Pico de horários','Estoque: Entradas, Saídas, Produtos baixo','Período: De/Até configurável']},
+    {icon:'📊', title:'Comparação', modulo:'Relatórios', bullets:['Compare com período anterior','Variação percentual automática','Exportação PDF/Excel','Filtros por profissional, convênio, procedimento']},
+    {icon:'📊', title:'Checklist', modulo:'Relatórios', bullets:['Gerar relatório mensal','Exportar PDF/Excel','Comparar período anterior','Progresso salvo']}
+  ]
+};
+
+// ===== ESTADO GLOBAL =====
+let estadoApp = {
+  modAtual: 'dashboard',
+  focoIdx: 0,
+  progresso: {},
+  desafiosFeitos: {},
+  quizState: {mod:null, idx:0, respostas:[]},
+  tourState: {mod:null, passo:0, ativo:false},
+  slidesState: {mod:null, idx:0}
+};
+
+// ===== LINKS SISTEMA REAL =====
+const realLink = m => ({dashboard:'https://sco.ljsmartclinic.com.br/',pacientes:'https://sco.ljsmartclinic.com.br/pacientes',agenda:'https://sco.ljsmartclinic.com.br/agenda',financeiro:'https://sco.ljsmartclinic.com.br/financeiro',estoque:'https://sco.ljsmartclinic.com.br/estoque',relatorios:'https://sco.ljsmartclinic.com.br/relatorios',tratamentos:'https://sco.ljsmartclinic.com.br/pacientes',turmas:'https://sco.ljsmartclinic.com.br/turmas',atendimentos:'https://sco.ljsmartclinic.com.br/atendimentos'}[m]||'https://sco.ljsmartclinic.com.br/');
+
+// ===== INICIALIZAÇÃO =====
+document.addEventListener('DOMContentLoaded',()=>{
+  initTheme();
+  carregaProgresso();
+  renderNav();
+  renderProgresso();
+  mostrar('dashboard');
+  setupAtalhos();
+  setupBusca();
+  setupSidebarNavigation();
+});
+
+// ===== TEMA =====
+function initTheme(){
+  let t='light';
+  try{t=localStorage.getItem('daiane_theme')||'light'}catch(e){}
+  document.documentElement.setAttribute('data-theme',t);
+}
+function toggleTheme(){
+  const n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem('daiane_theme',n)}catch(e){}
+}
+
+// ===== PROGRESSO =====
+function carregaProgresso(){
+  try{
+    const p=localStorage.getItem('daiane_progresso');
+    if(p){ estadoApp.progresso=JSON.parse(p); estadoApp.desafiosFeitos=JSON.parse(localStorage.getItem('daiane_desafios')||'{}'); }
+  }catch(e){}
+}
+function salvaProgresso(){
+  try{
+    localStorage.setItem('daiane_progresso',JSON.stringify(estadoApp.progresso));
+    localStorage.setItem('daiane_desafios',JSON.stringify(estadoApp.desafiosFeitos));
+  }catch(e){}
+}
+function fez(acao){
+  const mod=estadoApp.modAtual;
+  estadoApp.progresso[mod]=Math.min(100,(estadoApp.progresso[mod]||0)+12);
+  if(!estadoApp.desafiosFeitos[mod]) estadoApp.desafiosFeitos[mod]={};
+  estadoApp.desafiosFeitos[mod][acao]=true;
+  salvaProgresso();
+  renderNav();
+  renderProgresso();
+}
+function zerarProgresso(){
+  if(!confirm('Apagar TODO o progresso (checklists, desafios, quiz)?')) return;
+  try{localStorage.removeItem('daiane_progresso');localStorage.removeItem('daiane_desafios')}catch(e){}
+  estadoApp.progresso={}; estadoApp.desafiosFeitos={};
+  renderNav(); renderProgresso(); mostrar(estadoApp.modAtual);
+  toast('Progresso zerado');
+}
+function renderProgresso(){
+  const mods=Object.keys(modulos);
+  const total=mods.length;
+  let feitos=0;
+  mods.forEach(m=>{ if((estadoApp.progresso[m]||0)>=100) feitos++; });
+  $('#progNum').textContent=`${feitos}/${total}`;
+  $('#progBarra').style.width=`${(feitos/total)*100}%`;
+}
+
+// ===== NAVEGAÇÃO SIDEBAR =====
+function renderNav(){
+  $$('.nav-item').forEach(btn=>{
+    const m=btn.dataset.mod;
+    const feito=(estadoApp.progresso[m]||0)>=100;
+    btn.classList.toggle('feito',feito);
+    if(feito) btn.querySelector('.ok')?.remove();
+  });
+}
+function setupSidebarNavigation(){
+  const itens=$$('#navLista .nav-item');
+  estadoApp.focoIdx=0;
+  function atualizaFoco(){
+    itens.forEach((b,i)=>b.classList.toggle('foco',i===estadoApp.focoIdx));
+    if(itens[estadoApp.focoIdx]) itens[estadoApp.focoIdx].scrollIntoView({block:'nearest'});
+  }
+  atualizaFoco();
+  // teclas de navegação globais tratadas em setupAtalhos
+  window.navSidebar={itens,atualizaFoco,getIdx:()=>estadoApp.focoIdx,setIdx:i=>{estadoApp.focoIdx=Math.max(0,Math.min(itens.length-1,i));atualizaFoco()}};
+}
+
+// ===== BUSCA SIDEBAR =====
+function setupBusca(){
+  const inp=$('#buscaMod');
+  inp.addEventListener('input',()=>{
+    const f=inp.value.toLowerCase().trim();
+    $$('.nav-item').forEach(b=>{
+      const t=b.textContent.toLowerCase();
+      b.classList.toggle('escondido',f && !t.includes(f));
+    });
+  });
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      const vis=$$('.nav-item:not(.escondido)');
+      if(vis.length){ vis[0].click(); inp.value=''; vis.forEach(v=>v.classList.remove('escondido')); }
+    }
+    if(e.key==='Escape'){ inp.value=''; $$('.nav-item.escondido').forEach(v=>v.classList.remove('escondido')); inp.blur(); }
+  });
+}
+
+// ===== ATALHOS GLOBAIS =====
+function setupAtalhos(){
+  document.addEventListener('keydown',e=>{
+    const tag=e.target.tagName;
+    const editavel=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+    // / ou Ctrl+K -> foco busca
+    if((e.key==='/' && !editavel) || (e.ctrlKey && e.key.toLowerCase()==='k')){
+      e.preventDefault(); $('#buscaMod').focus();
+    }
+    // setas no sidebar
+    if(!editavel && ['ArrowUp','ArrowDown','ArrowRight','Enter'].includes(e.key)){
+      const nav=window.navSidebar;
+      if(!nav) return;
+      if(e.key==='ArrowUp'){ nav.setIdx(nav.getIdx()-1); e.preventDefault(); }
+      if(e.key==='ArrowDown'){ nav.setIdx(nav.getIdx()+1); e.preventDefault(); }
+      if(e.key==='ArrowRight' || e.key==='Enter'){ nav.itens[nav.getIdx()]?.click(); e.preventDefault(); }
+    }
+    // atalhos globais (fora de inputs)
+    if(!editavel){
+      if(e.key.toLowerCase()==='t'){ e.preventDefault(); toggleTheme(); }
+      if(e.key.toLowerCase()==='g'){ e.preventDefault(); toggleTour(); }
+      if(e.key.toLowerCase()==='q'){ e.preventDefault(); abrirQuiz(estadoApp.modAtual); }
+      if(e.key.toLowerCase()==='p'){ e.preventDefault(); abrirSlides(); }
+      if(e.key==='?' || (e.key==='/' && e.shiftKey)){ e.preventDefault(); toggleDicas(); }
+    }
+    // Escape fecha tudo
+    if(e.key==='Escape'){
+      fecharModal(); fecharSlides(); pararTour(); $('#tourCaixa').style.display='none'; $('#tourDim').style.display='none';
+      $('#buscaMod').value=''; $$('.nav-item.escondido').forEach(v=>v.classList.remove('escondido'));
+    }
+  });
+}
+
+// ===== MOSTRAR MÓDULO =====
+function mostrar(mod){
+  if(!modulos.hasOwnProperty(mod)) mod='dashboard';
+  estadoApp.modAtual=mod;
+  // sidebar
+  $$('.nav-item').forEach(b=>b.classList.toggle('ativo',b.dataset.mod===mod));
+  // foco no sidebar
+  const idx=Object.keys(modulos).indexOf(mod);
+  if(window.navSidebar) window.navSidebar.setIdx(idx);
+  // título
+  $('#tituloPagina').textContent=titulos[mod];
+  // render página
+  $('#page').innerHTML=renderPagina(mod);
+  // progresso
+  renderProgresso();
+  // hash
+  history.replaceState(null,'',`#${mod}`);
+}
+function renderPagina(mod){
+  const fn=window['pag'+mod.charAt(0).toUpperCase()+mod.slice(1)];
+  return fn ? fn() : '<div class="aviso">Módulo em construção</div>';
+}
+
+// ===== CABEÇALHO PADRÃO COM BOTÕES DE TREINO =====
+function cabecalho(mod,titulo,extra=''){
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--azul);border-radius:10px;padding:8px 12px;margin-bottom:12px">
+    <button class="btn-como-funciona btn-ghost" data-mod="${mod}" onclick="abrirComoFunciona('${mod}')">❓ Como funciona</button>
+    <button class="btn-tour btn-ghost" data-mod="${mod}" onclick="iniciarTour('${mod}')">▶ Visita guiada</button>
+    <button class="btn-quiz" onclick="abrirQuiz('${mod}')">🎯 Quiz</button>
+    <span style="color:#eafff7;font-size:.8rem">🖱️ Passe o mouse sobre elementos para explicações — clique para ampliar</span>
+  </div>
+  ${barraDesafios(mod)}
+  <div class="painel-treino">🎓 <b>Treine nesta tela:</b><div class="passos">${treinoInfo[mod]||''}</div></div>
+  <div class="dica-treino">💡 <b>Abrir no sistema real:</b> <a target="_blank" href="${realLink(mod)}">${titulo}</a> (login: admin@sco.com / admin123).</div>${extra}`;
+}
+function barraDesafios(mod){
+  const itens=desafiosData[mod]||[];
+  const feitos=estadoApp.desafiosFeitos[mod]||{};
+  return `<div class="painel-desafios"><div class="tit">🏁 Desafios: ${itens.filter(d=>feitos[d]).length}/${itens.length} concluídos</div>
+  <ul>${itens.map(d=>`<li${feitos[d]?' class="feito"':''}><span class="ch">${feitos[d]?'✓':''}</span>${d}</li>`).join('')}</ul></div>`;
+}
+
+// ===== MODAL =====
+function abrirModal(html){ $('#modalBox').innerHTML=html; $('#modalBg').classList.add('aberto'); }
+function fecharModal(){ $('#modalBg').classList.remove('aberto'); }
+$('#modalBg').addEventListener('click',e=>{ if(e.target.id==='modalBg') fecharModal(); });
+
+// ===== COMO FUNCIONA (MODAL INFO) =====
+function abrirComoFunciona(mod){
+  const info={
+    dashboard:'O Dashboard é a visão geral da clínica. Os 4 KPIs mostram o pulso do dia. A agenda lista consultas com status coloridos. Contas a receber alerta sobre valores em aberto.',
+    turmas:'Gerencie turmas de grupos. A grade semanal mostra ocupação (inscritos/vagas). Marque presença e controle consumo de pacotes. Permissão turmas.view via banco.',
+    atendimentos:'Dia a dia da clínica. Registre presença, consuma sessão do pacote, veja status. Tela vazia = sem agendamentos (normal). Permissão agenda.presenca.',
+    tratamentos:'Planejado para Fisioterapia (clinic_id=5). Para Odontologia (clínicas 1,6) completo. Estrutura: planos, itens, status, evolução.',
+    pacientes:'Base de pacientes. Busca tempo real por nome/CPF/telefone. Ficha mostra consultas, orçamentos, alertas, documentos. CPF único (bloqueia duplicado).',
+    financeiro:'Contas a receber. Receba parcial → Parcial; total → Paga. Bloqueia valor > saldo. Formas: PIX, Dinheiro, Cartão, Boleto, Convênio. Auditoria completa.',
+    estoque:'Controle de insumos. Entrada (compra) e Saída (uso). Bloqueia saída > saldo. Saldo ≤ mínimo = Estoque baixo. Histórico de movimentações.',
+    relatorios:'Indicadores por período. Financeiro, Agenda, Estoque. Compare com período anterior. Exportação PDF/Excel. Filtros por profissional/convênio/procedimento.'
+  };
+  abrirModal(`<h3>❓ Como funciona — ${titulos[mod]}</h3><p style="line-height:1.7;margin-bottom:16px">${info[mod]||'Informação não disponível'}</p><div class="acoes"><button class="btn teal" onclick="fecharModal()">Entendi</button></div>`);
+}
+
+// ===== TOUR GUIADO =====
+function iniciarTour(mod){
+  const passos={
+    dashboard:[{sel:'.card-kpi',txt:'KPIs: consultas, pacientes, tratamentos, estoque'},{sel:'.tabela-wrap',txt:'Agenda de hoje e contas a receber'},{sel:'.corte',txt:'Acesso rápido aos módulos principais'}],
+    turmas:[{sel:'.tabela-wrap',txt:'Grade semanal com ocupação'},{sel:'.painel-treino',txt:'Passos para treinar neste módulo'},{sel:'.painel-desafios',txt:'Desafios para marcar como feitos'}],
+    atendimentos:[{sel:'.tabela-wrap',txt:'Lista de atendimentos do dia'},{sel:'.painel-treino',txt:'Como registrar presença e consumo'},{sel:'.painel-desafios',txt:'Desafios de fixação'}],
+    tratamentos:[{sel:'.painel-treino',txt:'Status PLANEJADO para Fisioterapia'},{sel:'.dica-treino',txt:'Link para sistema real (Odontologia)'},{sel:'.painel-desafios',txt:'Desafios de entendimento'}],
+    pacientes:[{sel:'.toolbar .campo',txt:'Busca tempo real por nome/CPF/telefone'},{sel:'.tabela-wrap',txt:'Lista de pacientes com ações'},{sel:'.painel-desafios',txt:'Desafios: buscar, abrir ficha, cadastrar'}],
+    financeiro:[{sel:'.cards',txt:'Resumo: em aberto, parciais, pagas'},{sel:'.tabela-wrap button.btn',txt:'Botão Receber — testa bloqueio > saldo'},{sel:'.painel-desafios',txt:'Desafios: receber parcial, total, emitir'}],
+    estoque:[{sel:'.tabela-wrap button.btn.verde',txt:'Botão +Entrada — compra de insumos'},{sel:'.tabela-wrap button.btn.vermelho',txt:'Botão -Saída — uso clínico (bloqueia > saldo)'},{sel:'.painel-desafios',txt:'Desafios: entrada, saída, baixo'}],
+    relatorios:[{sel:'.cards',txt:'Indicadores financeiros, agenda, estoque'},{sel:'.toolbar',txt:'Filtros de período De/Até'},{sel:'.painel-desafios',txt:'Desafios: gerar, exportar, comparar'}]
+  };
+  const p=passos[mod];
+  if(!p||!p.length){ toast('Tour não disponível para este módulo'); return; }
+  estadoApp.tourState={mod,passo:0,ativo:true};
+  $('#tourDim').style.display='block';
+  mostrarPassoTour(p);
+}
+function mostrarPassoTour(passos){
+  const i=estadoApp.tourState.passo;
+  if(i>=passos.length){ pararTour(); return; }
+  const alvo=$(passos[i].sel);
+  if(!alvo){ estadoApp.tourState.passo++; mostrarPassoTour(passos); return; }
+  const r=alvo.getBoundingClientRect();
+  // highlight
+  alvo.style.outline='3px solid var(--amarelo)';
+  alvo.style.outlineOffset='2px';
+  alvo.style.borderRadius='8px';
+  alvo.scrollIntoView({block:'center',behavior:'smooth'});
+  // caixa
+  const caixa=$('#tourCaixa');
+  caixa.style.display='block';
+  caixa.innerHTML=`<div class="cont">
+    <span class="num">${i+1}/${passos.length}</span>
+    <div style="flex:1">
+      <p style="margin:0 0 12px">${passos[i].txt}</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        ${i>0?'<button class="btn-ghost" onclick="passoTour(-1)">← Voltar</button>':''}
+        <button class="btn btn-quiz" onclick="passoTour(1)">${i===passos.length-1?'Concluir':'Próximo →'}</button>
+      </div>
     </div>
+  </div>`;
+}
+function passoTour(dir){
+  const p={
+    dashboard:[{sel:'.card-kpi',txt:'KPIs: consultas, pacientes, tratamentos, estoque'},{sel:'.tabela-wrap',txt:'Agenda de hoje e contas a receber'},{sel:'.corte',txt:'Acesso rápido aos módulos principais'}],
+    turmas:[{sel:'.tabela-wrap',txt:'Grade semanal com ocupação'},{sel:'.painel-treino',txt:'Passos para treinar neste módulo'},{sel:'.painel-desafios',txt:'Desafios para marcar como feitos'}],
+    atendimentos:[{sel:'.tabela-wrap',txt:'Lista de atendimentos do dia'},{sel:'.painel-treino',txt:'Como registrar presença e consumo'},{sel:'.painel-desafios',txt:'Desafios de fixação'}],
+    tratamentos:[{sel:'.painel-treino',txt:'Status PLANEJADO para Fisioterapia'},{sel:'.dica-treino',txt:'Link para sistema real (Odontologia)'},{sel:'.painel-desafios',txt:'Desafios de entendimento'}],
+    pacientes:[{sel:'.toolbar .campo',txt:'Busca tempo real por nome/CPF/telefone'},{sel:'.tabela-wrap',txt:'Lista de pacientes com ações'},{sel:'.painel-desafios',txt:'Desafios: buscar, abrir ficha, cadastrar'}],
+    financeiro:[{sel:'.cards',txt:'Resumo: em aberto, parciais, pagas'},{sel:'.tabela-wrap button.btn.verde',txt:'Botão Receber — testa bloqueio > saldo'},{sel:'.painel-desafios',txt:'Desafios: receber parcial, total, emitir'}],
+    estoque:[{sel:'.tabela-wrap button.btn.verde',txt:'Botão +Entrada — compra de insumos'},{sel:'.tabela-wrap button.btn.vermelho',txt:'Botão -Saída — uso clínico (bloqueia > saldo)'},{sel:'.painel-desafios',txt:'Desafios: entrada, saída, baixo'}],
+    relatorios:[{sel:'.cards',txt:'Indicadores financeiros, agenda, estoque'},{sel:'.toolbar',txt:'Filtros de período De/Até'},{sel:'.painel-desafios',txt:'Desafios: gerar, exportar, comparar'}]
+  }[estadoApp.tourState.mod];
+  // remove highlight anterior
+  $$('[style*="outline: 3px solid"]').forEach(e=>{e.style.outline='';e.style.outlineOffset='';e.style.borderRadius='';});
+  estadoApp.tourState.passo+=dir;
+  mostrarPassoTour(p);
+}
+function toggleTour(){
+  if(estadoApp.tourState.ativo){ pararTour(); }
+  else{ iniciarTour(estadoApp.modAtual); }
+}
+function pararTour(){
+  $$('[style*="outline: 3px solid"]').forEach(e=>{e.style.outline='';e.style.outlineOffset='';e.style.borderRadius='';});
+  $('#tourCaixa').style.display='none';
+  $('#tourDim').style.display='none';
+  estadoApp.tourState={mod:null,passo:0,ativo:false};
+}
 
-    <!-- Quiz Modal -->
-    <div class="modal-overlay quiz-modal" id="quizModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="quizModalTitle">Quiz do Módulo</h2>
-                <button class="close-btn" onclick="closeQuizModal()" aria-label="Fechar quiz">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="quiz-progress" id="quizProgress"></div>
-                <div id="quizContent"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-modal btn-secondary" id="quizPrevBtn" onclick="quizPrevious()" disabled>← Anterior</button>
-                <button class="btn-modal btn-primary" id="quizNextBtn" onclick="quizNext()">Próximo →</button>
-            </div>
-        </div>
+// ===== QUIZ =====
+function abrirQuiz(mod){
+  const q=quizData[mod];
+  if(!q||!q.length){ toast('Quiz não disponível'); return; }
+  estadoApp.quizState={mod,idx:0,respostas:[]};
+  // Render quiz content directly in modal HTML
+  const prog=q.map((_,i)=>`<div class="step ${i<0?'done':''} ${i===0?'active':''}"></div>`).join('');
+  const firstQ=q[0];
+  const optsHtml=firstQ.op.map((o,j)=>`<button class="quiz-opcao" onclick="selQuiz(${j})">${o}</button>`).join('');
+  abrirModal(`<h3>🎯 Quiz — ${titulos[mod]}</h3>
+    <div id="quizArea">
+      <div class="quiz-progress">${prog}</div>
+      <div class="quiz-pergunta">
+        <h4>Pergunta 1 de ${q.length}</h4>
+        <p style="font-size:1.05rem;font-weight:600;margin:12px 0">${firstQ.q}</p>
+        <div class="quiz-opcoes">${optsHtml}</div>
+      </div>
     </div>
+    <div class="acoes" style="margin-top:16px">
+      <button class="btn gray" onclick="quizAnterior()" id="quizPrev" disabled>← Anterior</button>
+      <button class="btn teal" onclick="quizProximo()" id="quizNext">Próximo →</button>
+      <button class="btn amarelo" onclick="finalizarQuiz()" id="quizFinish" style="display:none">Ver resultado</button>
+    </div>`);
+}
+function renderQuiz(){
+  const {mod,idx,respostas}=estadoApp.quizState;
+  const q=quizData[mod][idx];
+  const prog=quizData[mod].map((_,i)=>`<div class="step ${i<idx?'done':''} ${i===idx?'active':''}"></div>`).join('');
+  $('#quizArea').innerHTML=`
+    <div class="quiz-progress">${prog}</div>
+    <div class="quiz-pergunta">
+      <h4>Pergunta ${idx+1} de ${quizData[mod].length}</h4>
+      <p style="font-size:1.05rem;font-weight:600;margin:12px 0">${q.q}</p>
+      <div class="quiz-opcoes">
+        ${q.op.map((o,j)=>`<button class="quiz-opcao ${respostas[idx]===j?'selecionado':''}" onclick="selQuiz(${j})" ${respostas[idx]!==undefined && respostas[idx]!==j?'disabled':''}>${o}</button>`).join('')}
+      </div>
+      ${respostas[idx]!==undefined?`<div class="quiz-fb ${respostas[idx]===q.c?'certo':'errado'}">${respostas[idx]===q.c?'✅ Correto!':'❌ Incorreto.'} ${q.exp}</div>`:''}
+    </div>`;
+  $('#quizPrev').disabled=idx===0;
+  if(idx===quizData[mod].length-1){
+    $('#quizNext').style.display='none';
+    $('#quizFinish').style.display='inline-flex';
+  }else{
+    $('#quizNext').style.display='inline-flex';
+    $('#quizFinish').style.display='none';
+    $('#quizNext').textContent=respostas[idx]!==undefined?'Próximo →':'Responda para continuar';
+    $('#quizNext').disabled=respostas[idx]===undefined;
+  }
+}
+function selQuiz(j){ estadoApp.quizState.respostas[estadoApp.quizState.idx]=j; renderQuiz(); }
+function quizProximo(){ const {mod}=estadoApp.quizState; if(estadoApp.quizState.idx<quizData[mod].length-1){ estadoApp.quizState.idx++; renderQuiz(); } }
+function quizAnterior(){ if(estadoApp.quizState.idx>0){ estadoApp.quizState.idx--; renderQuiz(); } }
+function finalizarQuiz(){
+  const {mod,respostas}=estadoApp.quizState;
+  let acertos=0;
+  quizData[mod].forEach((q,i)=>{ if(respostas[i]===q.c) acertos++; });
+  const pct=Math.round((acertos/quizData[mod].length)*100);
+  fecharModal();
+  abrirModal(`<div style="text-align:center;padding:20px">
+    <div style="font-size:3rem;margin-bottom:8px">${pct>=70?'🏆':'📚'}</div>
+    <h3 style="margin-bottom:8px">${pct>=70?'Parabéns!':'Continue estudando'}</h3>
+    <p style="font-size:1.2rem;margin-bottom:16px">${acertos} de ${quizData[mod].length} corretas — <b>${pct}%</b></p>
+    ${pct>=70?`<button class="btn amarelo" onclick="gerarCertificado('${mod}',${pct})">🏆 Gerar Certificado</button>`:`<button class="btn teal" onclick="abrirQuiz('${mod}')">🔄 Tentar novamente</button>`}
+    <button class="btn gray" onclick="fecharModal()" style="margin-left:8px">Fechar</button>
+  </div>`);
+  fez('quiz_'+(pct>=70?'aprovado':'reprovado'));
+}
+function gerarCertificado(mod,pct){
+  fecharModal();
+  const data=new Date().toLocaleDateString('pt-BR');
+  abrirModal(`<div style="text-align:center;border:2px solid var(--amarelo);border-radius:16px;padding:32px;background:linear-gradient(135deg,#fffaf0,#fff3d6);position:relative">
+    <div style="font-size:3rem;margin-bottom:12px">🏆</div>
+    <h3 style="color:var(--azul-escuro);margin-bottom:4px">Certificado de Conclusão</h3>
+    <p style="color:var(--mouse);margin-bottom:16px">Certificamos que</p>
+    <p style="font-size:1.5rem;font-weight:700;color:var(--azul-escuro);margin-bottom:8px">Usuário Daiane</p>
+    <p style="color:var(--mouse);margin-bottom:8px">concluiu o módulo <b>${titulos[mod]}</b> com <b>${pct}%</b> de aproveitamento</p>
+    <p style="font-size:.85rem;color:var(--mouse);margin-top:16px">Data: ${data}</p>
+  </div>
+  <div class="acoes" style="margin-top:16px">
+    <button class="btn amarelo" onclick="imprimirCertificado()">🖨️ Imprimir/Salvar PDF</button>
+    <button class="btn gray" onclick="fecharModal()">Fechar</button>
+  </div>`);
+}
+function imprimirCertificado(){
+  const html=$('#modalBox').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Certificado</title><style>body{font-family:Segoe UI;padding:40px;text-align:center}@media print{body{padding:0}}</style></head><body>${html}</body></html>`);
+  w.document.close(); w.focus(); w.print();
+}
 
-    <!-- Certificate Modal -->
-    <div class="modal-overlay" id="certificateModal">
-        <div class="modal" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Certificado de Conclusão</h2>
-                <button class="close-btn" onclick="closeCertificateModal()" aria-label="Fechar certificado">✕</button>
-            </div>
-            <div class="modal-body" style="text-align: center; padding: 40px 24px;">
-                <div style="border: 2px solid var(--daiane-gold, #f39c12); border-radius: 16px; padding: 32px; background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%); position: relative;">
-                    <div style="font-size: 3rem; margin-bottom: 16px;">🏆</div>
-                    <h3 style="color: var(--daiane-dark); margin-bottom: 8px;">Certificado de Conclusão</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Este certifica que</p>
-                    <p id="certificateName" style="font-size: 1.5rem; font-weight: 700; color: var(--daiane-dark); margin-bottom: 8px;">Usuário Daiane</p>
-                    <p id="certificateModule" style="color: var(--text-secondary); margin-bottom: 8px;">concluiu o módulo com <span id="certificateScore">100%</span> de aproveitamento</p>
-                    <p id="certificateDate" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 16px;">Data: <span id="certDate"></span></p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-modal btn-primary" onclick="downloadCertificate()">⬇ Baixar Certificado</button>
-                <button class="btn-modal btn-secondary" onclick="closeCertificateModal()">Fechar</button>
-            </div>
-        </div>
+// ===== APRESENTAÇÃO (SLIDES) =====
+function abrirSlides(){
+  const s=slidesData[estadoApp.modAtual]||slidesData.dashboard;
+  estadoApp.slidesState={mod:estadoApp.modAtual,idx:0};
+  renderSlide();
+  $('#slides').classList.add('aberto');
+}
+function fecharSlides(){ $('#slides').classList.remove('aberto'); }
+function slideVai(dir){
+  const s=slidesData[estadoApp.slidesState.mod];
+  estadoApp.slidesState.idx=Math.max(0,Math.min(s.length-1,estadoApp.slidesState.idx+dir));
+  renderSlide();
+}
+function renderSlide(){
+  const {mod,idx}=estadoApp.slidesState;
+  const s=slidesData[mod][idx];
+  $('#slideModChip').textContent=s.modulo;
+  $('#slideContador').textContent=`${idx+1} / ${slidesData[mod].length}`;
+  $('#slideBarra').style.width=`${((idx+1)/slidesData[mod].length)*100}%`;
+  $('#slideCard').innerHTML=`
+    <div class="slides-icon">${s.icon}</div>
+    <h2>${s.title}</h2>
+    <span class="modulo-chip">${s.modulo}</span>
+    <p>${s.bullets.map(b=>`<li>${b}</li>`).join('')}</p>
+    <ul>${s.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
+  `;
+}
+
+// ===== PÁGINAS DOS MÓDULOS =====
+function pagDashboard(){
+  return cabecalho('dashboard','Dashboard') + `
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.consultas.length}</div><div class="r">🗓️ Consultas hoje</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacientes.filter(p=>p.st==='ativo').length}</div><div class="r">👥 Pacientes ativos</div></div>
+    <div class="card-kpi"><div class="v">1</div><div class="r">💊 Tratamento em andamento</div></div>
+    <div class="card-kpi"><div class="v">${estado.estoque.filter(p=>p.baixo).length}</div><div class="r">📦 Estoque baixo</div></div>
+  </div>
+  <div class="corte">
+    <div>
+      <div class="tabela-wrap"><table>
+        <tr><th>Horário</th><th>Paciente</th><th>Profissional</th><th>Status</th></tr>
+        ${estado.consultas.map(c=>`<tr><td>${c.h}</td><td>${c.pac}</td><td>${c.pro}</td><td>${stBadge(c.st)}</td></tr>`).join('')}
+      </table></div>
+      <div class="tabela-wrap" style="margin-top:14px"><table>
+        <tr><th>Contas a receber</th><th>Saldo</th></tr>
+        ${estado.financeiro.filter(c=>c.st!=='paga').map(c=>`<tr><td>${c.pac}</td><td style="color:#d33;font-weight:700">R$ ${(c.valor-c.pago).toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="2" class="aviso">Nenhuma conta em aberto.</td></tr>'}
+      </table></div>
     </div>
-
-    <!-- Layout principal: sidebar + conteúdo -->
-    <div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="brand">
-            <div class="icon"><i class="bi bi-people"></i></div>
-            <div>
-                <div class="text">LJ SmartClinic</div>
-                <div class="subtitle">Clínica Daiane</div>
-            </div>
-        </div>
-
-        <nav>
-            <div class="nav-title">Principal</div>
-            <button class="nav-item ativo" data-module="dashboard" onclick="navigateTo('dashboard')">
-                <span class="icon"><i class="bi bi-grid"></i></span>
-                Dashboard
-            </button>
-            <button class="nav-item" data-module="turmas" onclick="navigateTo('turmas')">
-                <span class="icon"><i class="bi bi-people"></i></span>
-                Turmas
-            </button>
-            <button class="nav-item" data-module="atendimentos" onclick="navigateTo('atendimentos')">
-                <span class="icon"><i class="bi bi-clipboard"></i></span>
-                Atendimentos
-            </button>
-            <button class="nav-item" data-module="tratamentos" onclick="navigateTo('tratamentos')">
-                <span class="icon"><i class="bi bi-clipboard2-pulse"></i></span>
-                Tratamentos
-            </button>
-            <div class="nav-title">Módulos</div>
-            <button class="nav-item" data-module="pacientes" onclick="navigateTo('pacientes')">
-                <span class="icon"><i class="bi bi-person"></i></span>
-                Pacientes
-            </button>
-            <button class="nav-item" data-module="financeiro" onclick="navigateTo('financeiro')">
-                <span class="icon"><i class="bi bi-cash-coin"></i></span>
-                Financeiro
-            </button>
-            <button class="nav-item" data-module="estoque" onclick="navigateTo('estoque')">
-                <span class="icon"><i class="bi bi-box"></i></span>
-                Estoque
-            </button>
-            <button class="nav-item" data-module="relatorios" onclick="navigateTo('relatorios')">
-                <span class="icon"><i class="bi bi-bar-chart"></i></span>
-                Relatórios
-            </button>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main">
-        <div class="topbar">
-            <div class="logo">
-                <div class="icon"><i class="bi bi-people"></i></div>
-                <div class="text">LJ SmartClinic</div>
-            </div>
-            <div class="title" id="pageTitle">Dashboard</div>
-            <div class="user">
-                <div class="avatar">DA</div>
-                <div>
-                    <div class="name">Usuário Daiane</div>
-                    <div style="font-size:0.7rem;opacity:0.7">Clínica Daiane</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard" id="dashboardContent">
-            <!-- Dashboard content will be loaded by JS -->
-        </div>
-
-        <!-- Search Box -->
-        <div class="search-box" id="searchBox">
-            <input type="text" id="moduleSearch" placeholder="🔎 Buscar módulo (Ctrl+K)" onkeyup="handleSearch(event)">
-            <button class="clear-btn" onclick="clearSearch()" title="Limpar busca"><i class="bi bi-x"></i></button>
-        </div>
-    </main>
+    <div>
+      <div class="tabela-wrap" style="margin-bottom:14px"><table>
+        <tr><th>Lista de espera</th><th>Prioridade</th><th>Status</th></tr>
+        <tr><td>Joana Faria — Vaga urgente</td><td>Alta</td><td>${stBadge('Agendado')}</td></tr>
+        <tr><td>Bruno Réden — Limpeza</td><td>Normal</td><td>${stBadge('Agendado')}</td></tr>
+      </table></div>
+      <div class="tabela-wrap"><table>
+        <tr><th>Produto</th><th>Estoque</th><th>Mín</th></tr>
+        ${estado.estoque.filter(p=>p.baixo).map(p=>`<tr><td>${p.n} <span class="badge" style="background:#e03131">Baixo</span></td><td><b>${p.est}</b></td><td>${p.min}</td></tr>`).join('')}
+      </table></div>
     </div>
-    <!-- /Layout principal -->
-
-    
-    <script>
-        // ===== STATE =====
-        const state = {
-            currentModule: 'dashboard',
-            progress: {},
-            presentedSlide: 0
-        };
-
-        // ===== MODULES DATA =====
-        const modules = {
-            dashboard: {
-                title: 'Dashboard',
-                icon: 'bi-grid',
-                color: '#3498db',
-                content: `
-                    <div class="kpi-cards">
-                        <div class="kpi-card">
-                            <div class="number" data-count="1362">0</div>
-                            <div class="label">Consultas/Mês</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="number" data-count="89">0</div>
-                            <div class="label">Pacientes Ativos</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="number" data-count="24">0</div>
-                            <div class="label">Planos Tratamento</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="number" data-count="12">0</div>
-                            <div class="label">Turmas Ativas</div>
-                        </div>
-                    </div>
-                    <div class="modules-grid">
-                        <div class="module-card" onclick="openModule('turmas')">
-                            <div class="icon"><i class="bi bi-people"></i></div>
-                            <div class="info">
-                                <h3>Módulo Turmas</h3>
-                                <p>Controle de grades semanais, presença e consumo de sessões de pacote.</p>
-                            </div>
-                            <span class="arrow">→</span>
-                        </div>
-                        <div class="module-card" onclick="openModule('atendimentos')">
-                            <div class="icon"><i class="bi bi-clipboard"></i></div>
-                            <div class="info">
-                                <h3>Módulo Atendimentos</h3>
-                                <p>Controle do dia a dia: presença, falta e consumo de sessão do pacote.</p>
-                            </div>
-                            <span class="arrow">→</span>
-                        </div>
-                        <div class="module-card" onclick="openModule('tratamentos')">
-                            <div class="icon"><i class="bi bi-clipboard2-pulse"></i></div>
-                            <div class="info">
-                                <h3>Módulo Tratamentos</h3>
-                                <p>Funcionalidade planejada para vertical fisioterapia. Estrutura existe, tela em adaptação.</p>
-                            </div>
-                            <span class="arrow">→</span>
-                        </div>
-                    </div>
-                    <div class="checklist" id="dashboardChecklist">
-                        <h4>✅ Checklist Rápido</h4>
-                        <div class="item"><input type="checkbox" id="cl1"><span class="text">Verificar agenda do dia</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="cl2"><span class="text">Confirmar presença dos pacientes</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="cl3"><span class="text">Controlar consumo de pacotes</span><span class="progress">0%</span></div>
-                    </div>
-                `
-            },
-            turmas: {
-                title: 'Turmas',
-                icon: 'bi-people',
-                color: '#e67e22',
-                content: `
-                    <h3>Grade Semanal de Turmas</h3>
-                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <p><strong>Semana de 14/11 a 20/11</strong></p>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="margin: 8px 0;">
-                                <span style="width: 80px; display: inline-block;">Seg 08:00</span>
-                                <span>Turma Iniciantes (5/10)</span>
-                            </li>
-                            <li style="margin: 8px 0;">
-                                <span style="width: 80px; display: inline-block;">Ter 10:00</span>
-                                <span>Turma Intermediária (8/10)</span>
-                            </li>
-                            <li style="margin: 8px 0;">
-                                <span style="width: 80px; display: inline-block;">Qua 14:00</span>
-                                <span>Turma Avançada (3/10)</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="checklist">
-                        <h4>✅ Checklist Turmas</h4>
-                        <div class="item"><input type="checkbox" id="t1"><span class="text">Marcar presença Turma Seg 08:00</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="t2"><span class="text">Marcar presença Turma Ter 10:00</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="t3"><span class="text">Verificar vagas disponíveis</span><span class="progress">0%</span></div>
-                    </div>
-                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Permissão necessária: <kbd>turmas.view</kbd>. Concedida via banco de dados para clinic_id=5.
-                    </p>
-                `
-            },
-            atendimentos: {
-                title: 'Atendimentos',
-                icon: 'bi-clipboard',
-                color: '#9b59b6',
-                content: `
-                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <p><strong>Status do Atendimento</strong></p>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <span class="badge bg-success">Agendado</span>
-                            <span class="badge bg-info">Confirmado</span>
-                            <span class="badge bg-warning">Em Atendimento</span>
-                            <span class="badge bg-danger">Faltou</span>
-                        </div>
-                    </div>
-                    <div class="checklist">
-                        <h4>✅ Checklist Atendimentos</h4>
-                        <div class="item"><input type="checkbox" id="a1"><span class="text">Registrar presença do paciente</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="a2"><span class="text">Consumir sessão do pacote</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="a3"><span class="text">Verificar status do pacote</span><span class="progress">0%</span></div>
-                    </div>
-                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Atenção: Tela pode ficar vazia sem agendamentos - comportamento normal. Permissão: <kbd>agenda.presenca</kbd>
-                    </p>
-                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h5>⚠️ Observação Importante</h5>
-                        <p>Se a tela de atendimentos aparecer vazia, verifique se há agendamentos para a data selecionada. O sistema retorna 200 OK mesmo sem consultas agendadas.</p>
-                    </div>
-                `
-            },
-            tratamentos: {
-                title: 'Tratamentos',
-                icon: 'bi-clipboard2-pulse',
-                color: '#9b59b6',
-                content: `
-                    <div class="alert alert-warning">
-                        <strong>Funcionalidade planejada — ainda não disponível para uso.</strong>
-                    </div>
-                    <p>O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.</p>
-                    <div style="margin-top: 20px;">
-                        <h5>✅ O que está disponível:</h5>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            <li>Cadastro de planos de tratamento</li>
-                            <li>Adicionar itens/procedimentos ao plano</li>
-                            <li>Definir status (rascunho/em andamento/concluído)</li>
-                            <li>Registrar histórico de evolução</li>
-                        </ul>
-                        <h5>🟸 O que está planejado:</h5>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            <li>Tela de interface adaptada para fisioterapia</li>
-                            <li>Novos procedimentos específicos de fisioterapia</li>
-                            <li>Relatórios específicos de evolução</li>
-                        </ul>
-                    </div>
-                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Observação: Para odontologia (clínicas 1 e 6), o módulo tem acesso completo. Para fisioterapia (clinic_id=5), comportamento por catálogo: FISIOTERAPIA => PLANEJADO.
-                    </p>
-                `
-            },
-            pacientes: {
-                title: 'Pacientes',
-                icon: 'bi-person',
-                color: '#9b59b6',
-                content: `
-                    <div class="checklist">
-                        <h4>✅ Checklist Pacientes</h4>
-                        <div class="item"><input type="checkbox" id="p1"><span class="text">Buscar paciente pelo nome</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="p2"><span class="text">Visualizar ficha do paciente</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="p3"><span class="text">Cadastro de novo paciente</span><span class="progress">0%</span></div>
-                    </div>
-                    <p style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                        Use a busca (Ctrl+K) para encontrar pacientes rapidamente.
-                    </p>
-                `
-            },
-            financeiro: {
-                title: 'Financeiro',
-                icon: 'bi-cash-coin',
-                color: '#9b59b6',
-                content: `
-                    <div class="checklist">
-                        <h4>✅ Checklist Financeiro</h4>
-                        <div class="item"><input type="checkbox" id="f1"><span class="text">Registrar recebimento</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="f2"><span class="text">Verificar contas a receber</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="f3"><span class="text">Emitir recibo</span><span class="progress">0%</span></div>
-                    </div>
-                `
-            },
-            estoque: {
-                title: 'Estoque',
-                icon: 'bi-box',
-                color: '#9b59b6',
-                content: `
-                    <div class="checklist">
-                        <h4>✅ Checklist Estoque</h4>
-                        <div class="item"><input type="checkbox" id="e1"><span class="text">Registrar entrada de produto</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="e2"><span class="text">Registrar saída de produto</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="e3"><span class="text">Verificar estoque baixo</span><span class="progress">0%</span></div>
-                    </div>
-                `
-            },
-            relatorios: {
-                title: 'Relatórios',
-                icon: 'bi-bar-chart',
-                color: '#9b59b6',
-                content: `
-                    <div class="checklist">
-                        <h4>✅ Checklist Relatórios</h4>
-                        <div class="item"><input type="checkbox" id="r1"><span class="text">Gerar relatório mensal</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="r2"><span class="text">Exportar em PDF/Excel</span><span class="progress">0%</span></div>
-                        <div class="item"><input type="checkbox" id="r3"><span class="text">Comparar com período anterior</span><span class="progress">0%</span></div>
-                    </div>
-                `
-            }
-        };
-        
-        // ===== QUIZ DATA =====
-        const quizData = {
-            dashboard: [
-                { question: "Quantos KPIs principais são exibidos no Dashboard?", options: ["3", "4", "5", "6"], correct: 1, explanation: "O Dashboard exibe 4 KPIs: Consultas/Mês, Pacientes Ativos, Planos Tratamento e Turmas Ativas." },
-                { question: "Qual a cor principal do botão 'Próximo' no modo apresentação?", options: ["Verde", "Laranja", "Azul", "Vermelho"], correct: 2, explanation: "O botão 'Próximo' usa o gradiente azul primário (--btn-primary)." },
-                { question: "Para que serve o atalho Ctrl+K?", options: ["Abrir apresentação", "Focar busca", "Alternar tema", "Fechar modal"], correct: 1, explanation: "Ctrl+K foca o campo de busca de módulos." }
-            ],
-            turmas: [
-                { question: "Quantas turmas são exibidas na grade semanal de exemplo?", options: ["2", "3", "4", "5"], correct: 1, explanation: "A grade semanal mostra 3 turmas: Seg 08:00, Ter 10:00 e Qua 14:00." },
-                { question: "Qual permissão é necessária para acessar o módulo Turmas?", options: ["turmas.view", "turmas.edit", "agenda.view", "pacientes.view"], correct: 0, explanation: "A permissão necessária é turmas.view, concedida via banco para clinic_id=5." },
-                { question: "O que indica o número entre parênteses nas turmas (ex: 5/10)?", options: ["Presentes/Ausentes", "Inscritos/Vagas", "Concluídos/Pendentes", "Ativos/Inativos"], correct: 1, explanation: "Indica a ocupação: inscritos / total de vagas disponíveis." }
-            ],
-            atendimentos: [
-                { question: "Qual status NÃO faz parte do fluxo de atendimentos?", options: ["Agendado", "Confirmado", "Em Atendimento", "Cancelado pelo Sistema"], correct: 3, explanation: "Os status são: Agendado, Confirmado, Em Atendimento, Faltou." },
-                { question: "O que acontece se não houver agendamentos para a data?", options: ["Erro 404", "Tela vazia (normal)", "Redireciona ao dashboard", "Cria agendamento automático"], correct: 1, explanation: "Tela vazia é comportamento normal - o sistema retorna 200 OK mesmo sem consultas." },
-                { question: "Qual permissão controla o registro de presença?", options: ["agenda.presenca", "atendimentos.view", "pacientes.edit", "turmas.checkin"], correct: 0, explanation: "A permissão é agenda.presenca." }
-            ],
-            tratamentos: [
-                { question: "O módulo Tratamentos está disponível para qual vertical?", options: ["Odontologia", "Fisioterapia", "Ambas", "Nenhuma"], correct: 0, explanation: "Para odontologia (clínicas 1 e 6) tem acesso completo. Para fisioterapia (clinic_id=5) está PLANEJADO." },
-                { question: "Qual item NÃO está disponível no módulo Tratamentos?", options: ["Cadastro de planos", "Adicionar procedimentos", "Tela adaptada para fisioterapia", "Histórico de evolução"], correct: 2, explanation: "A tela adaptada para fisioterapia está planejada, não disponível." },
-                { question: "O que define o comportamento por catálogo FISIOTERAPIA => PLANEJADO?", options: ["clinic_id", "user_role", "subscription_plan", "region"], correct: 0, explanation: "O comportamento é definido pelo clinic_id (clinic_id=5 para fisioterapia)." }
-            ],
-            pacientes: [
-                { question: "Qual atalho abre a busca de pacientes?", options: ["Ctrl+P", "Ctrl+K", "Ctrl+B", "F3"], correct: 1, explanation: "Ctrl+K foca o campo de busca que funciona para pacientes também." },
-                { question: "Quantos itens tem o checklist de Pacientes?", options: ["2", "3", "4", "5"], correct: 1, explanation: "O checklist tem 3 itens: Buscar, Visualizar ficha, Cadastro novo." },
-                { question: "O ícone do módulo Pacientes é:", options: ["bi-person", "bi-people", "bi-heart", "bi-file-medical"], correct: 0, explanation: "O ícone usado é bi-person." }
-            ],
-            financeiro: [
-                { question: "Qual ação NÃO está no checklist Financeiro?", options: ["Registrar recebimento", "Verificar contas a receber", "Emitir recibo", "Cancelar nota fiscal"], correct: 3, explanation: "O checklist tem: Registrar recebimento, Verificar contas a receber, Emitir recibo." },
-                { question: "O ícone do módulo Financeiro é:", options: ["bi-cash-coin", "bi-credit-card", "bi-bank", "bi-wallet"], correct: 0, explanation: "O ícone usado é bi-cash-coin." },
-                { question: "Quantos itens de checklist o Financeiro possui?", options: ["2", "3", "4", "5"], correct: 1, explanation: "São 3 itens no checklist." }
-            ],
-            estoque: [
-                { question: "Qual das opções abaixo NÃO é uma ação do checklist Estoque?", options: ["Registrar entrada", "Registrar saída", "Verificar estoque baixo", "Emitir nota fiscal de compra"], correct: 3, explanation: "O checklist: Registrar entrada, Registrar saída, Verificar estoque baixo." },
-                { question: "O ícone do módulo Estoque é:", options: ["bi-box", "bi-boxes", "bi-truck", "bi-tag"], correct: 0, explanation: "O ícone usado é bi-box." },
-                { question: "Quantos itens tem o checklist de Estoque?", options: ["2", "3", "4", "5"], correct: 1, explanation: "São 3 itens no checklist." }
-            ],
-            relatorios: [
-                { question: "Qual formato de exportação NÃO é mencionado?", options: ["PDF", "Excel", "CSV", "Word"], correct: 3, explanation: "São mencionados PDF e Excel." },
-                { question: "O ícone do módulo Relatórios é:", options: ["bi-bar-chart", "bi-graph-up", "bi-file-earmark-bar-graph", "bi-pie-chart"], correct: 0, explanation: "O ícone usado é bi-bar-chart." },
-                { question: "O checklist Relatórios inclui comparação com período anterior?", options: ["Sim", "Não"], correct: 0, explanation: "Sim, 'Comparar com período anterior' é o 3º item." }
-            ]
-        };
-
-        // ===== WIZARD STEPS =====
-        const wizardSteps = {
-            dashboard: [
-                { target: '.kpi-cards', title: 'KPIs Principais', text: 'Aqui você vê os 4 indicadores-chave da clínica: consultas, pacientes, planos e turmas ativas.' },
-                { target: '.modules-grid', title: 'Módulos Disponíveis', text: 'Clique em qualquer card para acessar o módulo correspondente (Turmas, Atendimentos, Tratamentos).' },
-                { target: '#dashboardChecklist', title: 'Checklist Rápido', text: 'Marque as tarefas diárias conforme for executando. O progresso é salvo automaticamente.' }
-            ],
-            turmas: [
-                { target: '.checklist', title: 'Checklist de Turmas', text: 'Marque a presença de cada turma. O sistema salva o progresso por item.' },
-                { target: 'ul', title: 'Grade Semanal', text: 'Visualize as turmas da semana com horários e ocupação (inscritos/vagas).' }
-            ],
-            atendimentos: [
-                { target: '.checklist', title: 'Checklist Atendimentos', text: 'Registre presença, consumo de sessão do pacote e verifique status do pacote.' },
-                { target: '.badge', title: 'Status do Atendimento', text: 'Cada badge representa um status: Agendado, Confirmado, Em Atendimento, Faltou.' }
-            ],
-            tratamentos: [
-                { target: '.alert-warning', title: 'Status do Módulo', text: 'Este módulo está planejado para fisioterapia. Para odontologia já está disponível.' },
-                { target: 'ul', title: 'Funcionalidades Disponíveis', text: 'Cadastro de planos, adição de procedimentos, definição de status e histórico de evolução.' }
-            ],
-            pacientes: [
-                { target: '.checklist', title: 'Checklist Pacientes', text: 'Busque, visualize fichas e cadastre novos pacientes.' }
-            ],
-            financeiro: [
-                { target: '.checklist', title: 'Checklist Financeiro', text: 'Registre recebimentos, verifique contas a receber e emita recibos.' }
-            ],
-            estoque: [
-                { target: '.checklist', title: 'Checklist Estoque', text: 'Registre entradas, saídas e monitore itens com estoque baixo.' }
-            ],
-            relatorios: [
-                { target: '.checklist', title: 'Checklist Relatórios', text: 'Gere relatórios mensais, exporte em PDF/Excel e compare com períodos anteriores.' }
-            ]
-        };
-
-        // ===== INITIALIZE =====
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize theme
-            initTheme();
-            
-            // Check localStorage progress (pode estar bloqueado por privacidade)
-            let storedProgress = null;
-            try {
-                storedProgress = localStorage.getItem('daiane_training_progress');
-            } catch (e) {
-                console.warn('localStorage indisponível:', e);
-            }
-            if (storedProgress) {
-                try {
-                    state.progress = JSON.parse(storedProgress);
-                } catch (e) {
-                    console.warn('Progresso salvo inválido, ignorando:', e);
-                    state.progress = {};
-                }
-                updateProgressUI();
-            }
-
-            // Setup keyboard shortcuts
-            setupKeyboardShortcuts();
-
-            // Initial navigation
-            navigateTo('dashboard');
-
-            // Update progress percentages
-            updateProgressPercentages();
-        });
-
-        // ===== NAVIGATION =====
-        function navigateTo(moduleName) {
-            state.currentModule = moduleName;
-            state.progress[moduleName] = state.progress[moduleName] || 0;
-
-            // Update sidebar
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.toggle('ativo', item.dataset.module === moduleName);
-            });
-
-            // Update main content
-            const module = modules[moduleName];
-            if (module) {
-                document.getElementById('dashboardContent').innerHTML = module.content;
-                document.getElementById('pageTitle').textContent = module.title;
-
-                // Update progress UI
-                updateProgressUI();
-
-                // Update URL hash
-                window.location.hash = moduleName;
-            }
-
-            // Hide keyboard hint after navigation
-            hideKeyboardHint();
-        }
-
-        // ===== SEARCH =====
-        function handleSearch(event) {
-            const searchTerm = event.target.value.toLowerCase();
-            const searchBox = document.getElementById('searchBox');
-
-            // Animate search
-            searchBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.15)';
-
-            // Simple highlight effect
-            document.querySelectorAll('.module-card').forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                if (title.includes(searchTerm)) {
-                    card.style.display = 'block';
-                    card.style.animation = 'fadeIn 0.3s ease';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            // If search is empty, show all
-            if (event.target.value === '') {
-                setTimeout(() => {
-                    searchBox.style.boxShadow = '0 0 0 4px rgba(52, 152, 219, 0.15)';
-                }, 300);
-            }
-        }
-
-        function clearSearch() {
-            document.getElementById('moduleSearch').value = '';
-            document.getElementById('searchBox').style.boxShadow = '';
-            // Show all modules again
-            document.querySelectorAll('.module-card').forEach(card => {
-                card.style.display = 'block';
-            });
-        }
-
-        // ===== PRESENTATION MODE =====
-        function abrirApresentacao() {
-            const module = modules[state.currentModule];
-            if (!module) return;
-
-            const slides = generateSlides(module.content);
-            document.getElementById('slideDeck').innerHTML = slides;
-            document.getElementById('presentation').classList.add('active');
-            document.getElementById('progressBar').style.width = '0%';
-
-            // Show first slide
-            showSlide(0);
-
-            // Hide sidebar and main content
-            document.getElementById('sidebar').style.display = 'none';
-            document.querySelector('.main').style.display = 'none';
-
-            // Show keyboard hint for presentation
-            showKeyboardHint();
-        }
-
-        function generateSlides(content) {
-            return `
-                <div class="slide active" id="slide0">
-                    <div style="text-align: center; max-width: 600px;">
-                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
-                            <i class="bi"></i>
-                        </div>
-                        <h1>${state.currentModule === 'dashboard' ? 'LJ SmartClinic' : state.currentModule}</h1>
-                        <p style="color: #666; margin-bottom: 30px;">${getSlideTitle()}</p>
-                        <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
-                    </div>
-                </div>
-                <div class="slide" id="slide1">
-                    <div style="text-align: center; max-width: 600px;">
-                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
-                            <i class="bi"></i>
-                        </div>
-                        <h1>${getSlideTitle()}</h1>
-                        <p style="color: #666; margin-bottom: 30px;">${content.substring(0, 200)}...</p>
-                        <div style="display: flex; justify-content: center; gap: 20px;">
-                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
-                            <button class="btn-primary" onclick="proximoSlide()">Próximo →</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="slide" id="slide2">
-                    <div style="text-align: center; max-width: 600px;">
-                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: white;">
-                            <i class="bi"></i>
-                        </div>
-                        <h1>${getSlideTitle()}</h1>
-                        <p style="color: #666; margin-bottom: 30px;">${content.substring(200, 400)}...</p>
-                        <div style="display: flex; justify-content: center; gap: 20px;">
-                            <button class="btn-secondary" onclick="anteriorSlide()">← Anterior</button>
-                            <button class="btn-primary" onclick="fecharApresentacao()">Sair ✕</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function getSlideTitle() {
-            const module = modules[state.currentModule];
-            return module ? module.title : 'Treinamento';
-        }
-
-        function showSlide(index) {
-            const slides = document.querySelectorAll('.presentation .slide');
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === index);
-            });
-
-            // Update progress bar
-            const progressBar = document.getElementById('progressBar');
-            const progressPercent = ((index + 1) / slides.length) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-
-            state.presentedSlide = index;
-        }
-
-        function proximoSlide() {
-            const slides = document.querySelectorAll('.presentation .slide');
-            const currentIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
-            if (currentIndex < slides.length - 1) {
-                showSlide(currentIndex + 1);
-            }
-        }
-
-        function anteriorSlide() {
-            const slides = document.querySelectorAll('.presentation .slide');
-            const currentIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
-            if (currentIndex > 0) {
-                showSlide(currentIndex - 1);
-            }
-        }
-
-        // Aliases mantidos para os onclick do HTML (slidePrev/slideNext)
-        function slidePrev() {
-            anteriorSlide();
-        }
-
-        function slideNext() {
-            proximoSlide();
-        }
-
-        function fecharApresentacao() {
-            document.getElementById('presentation').classList.remove('active');
-            // Limpa o inline style para o CSS (.sidebar display:flex) voltar a valer
-            document.getElementById('sidebar').style.display = '';
-            document.querySelector('.main').style.display = '';
-            document.getElementById('keyboardHint').style.display = '';
-            hideKeyboardHint();
-        }
-
-        // ===== PROGRESS TRACKING =====
-        function updateProgress(moduleName, percent) {
-            state.progress[moduleName] = percent;
-            try {
-                localStorage.setItem('daiane_training_progress', JSON.stringify(state.progress));
-            } catch (e) {
-                console.warn('Não foi possível salvar o progresso (localStorage indisponível):', e);
-            }
-            updateProgressUI();
-        }
-
-        function updateProgressUI() {
-            // Update checklist progress
-            document.querySelectorAll('.checklist .progress').forEach(bar => {
-                const itemText = bar.parentElement.querySelector('.text').textContent;
-                const module = state.currentModule;
-                const progress = state.progress[module] || 0;
-                bar.textContent = `${Math.round(progress)}%`;
-                
-                // Update visual
-                const item = bar.parentElement;
-                if (progress >= 100) {
-                    item.style.borderLeftColor = '#27ae60';
-                    item.querySelector('input').checked = true;
-                } else {
-                    item.style.borderLeftColor = '#3498db';
-                }
-            });
-        }
-
-        function updateProgressPercentages() {
-            // Set initial percentages based on module
-            const initialPercentages = {
-                dashboard: 25,
-                turmas: 10,
-                atendimentos: 15,
-                tratamentos: 5,
-                pacientes: 10,
-                financeiro: 10,
-                estoque: 10,
-                relatorios: 10
-            };
-
-            const percent = initialPercentages[state.currentModule] || 0;
-            updateProgress(state.currentModule, percent);
-        }
-
-        // ===== CHECKLIST =====
-        function toggleChecklistItem(itemElement) {
-            const isChecked = itemElement.querySelector('input').checked;
-            const progressBar = itemElement.querySelector('.progress');
-            const newProgress = isChecked ? 100 : 0;
-            progressBar.textContent = `${newProgress}%`;
-            
-            // Update progress state
-            updateProgress(state.currentModule, newProgress);
-        }
-
-        // ===== KEYBOARD SHORTCUTS =====
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', function(event) {
-                // Don't trigger shortcuts when typing in inputs
-                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-                    // Still allow Escape to close things
-                    if (event.key !== 'Escape') return;
-                }
-
-                // Ctrl+K to focus search (event.key é 'k' minúsculo na maioria dos navegadores)
-                if (event.ctrlKey && event.key.toLowerCase() === 'k') {
-                    event.preventDefault();
-                    document.getElementById('moduleSearch').focus();
-                    showKeyboardHint();
-                }
-
-                // Global shortcuts (not in presentation mode)
-                if (!document.getElementById('presentation').classList.contains('active')) {
-                    // T - Toggle theme
-                    if (event.key.toLowerCase() === 't' && !event.ctrlKey && !event.metaKey) {
-                        event.preventDefault();
-                        toggleTheme();
-                    }
-                    // G - Toggle wizard/guided mode
-                    if (event.key.toLowerCase() === 'g' && !event.ctrlKey && !event.metaKey) {
-                        event.preventDefault();
-                        toggleWizard();
-                    }
-                    // Q - Open quiz
-                    if (event.key.toLowerCase() === 'q' && !event.ctrlKey && !event.metaKey) {
-                        event.preventDefault();
-                        openQuiz();
-                    }
-                    // ? - Toggle shortcuts panel
-                    if (event.key === '?' || (event.key === '/' && event.shiftKey)) {
-                        event.preventDefault();
-                        toggleShortcutsPanel();
-                    }
-                    // P - Open presentation
-                    if (event.key.toLowerCase() === 'p' && !event.ctrlKey && !event.metaKey) {
-                        event.preventDefault();
-                        abrirApresentacao();
-                    }
-                }
-
-                // Arrow keys for presentation navigation
-                if (document.getElementById('presentation').classList.contains('active')) {
-                    if (event.key === 'ArrowRight' || event.key === 'Enter') {
-                        event.preventDefault();
-                        proximoSlide();
-                    }
-                    if (event.key === 'ArrowLeft') {
-                        event.preventDefault();
-                        anteriorSlide();
-                    }
-                    if (event.key === 'Escape') {
-                        event.preventDefault();
-                        fecharApresentacao();
-                    }
-                }
-
-                // Escape to close modals/hide hint
-                if (event.key === 'Escape') {
-                    hideKeyboardHint();
-                    toggleShortcutsPanel(); // close if open
-                    stopWizard(); // stop wizard if active
-                    closeQuizModal(); // close quiz if open
-                    closeCertificateModal(); // close certificate if open
-                    if (document.getElementById('presentation').classList.contains('active')) {
-                        fecharApresentacao();
-                    }
-                }
-            });
-        }
-
-        function showKeyboardHint() {
-            const hint = document.getElementById('keyboardHint');
-            hint.style.display = 'block';
-            // Auto-hide after 5 seconds
-            setTimeout(hideKeyboardHint, 5000);
-        }
-
-        function hideKeyboardHint() {
-            const hint = document.getElementById('keyboardHint');
-            hint.style.display = 'none';
-        }
-
-        // ===== HASH NAVIGATION =====
-        function handleHashNavigation() {
-            const hash = window.location.hash.substring(1);
-            if (hash && modules[hash]) {
-                navigateTo(hash);
-            }
-        }
-
-        // Initialize hash navigation
-        window.addEventListener('hashchange', handleHashNavigation);
-        handleHashNavigation();
-
-        // ===== THEME MANAGEMENT =====
-        function initTheme() {
-            let savedTheme = 'light';
-            try {
-                savedTheme = localStorage.getItem('daiane_theme') || 'light';
-            } catch (e) {
-                console.warn('localStorage indisponível para tema:', e);
-            }
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            const toggle = document.getElementById('themeToggle');
-            if (toggle) toggle.setAttribute('data-theme', savedTheme);
-        }
-
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'light';
-            const newTheme = current === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            try {
-                localStorage.setItem('daiane_theme', newTheme);
-            } catch (e) {
-                console.warn('Não foi possível salvar tema:', e);
-            }
-            const toggle = document.getElementById('themeToggle');
-            if (toggle) toggle.setAttribute('data-theme', newTheme);
-        }
-
-        // ===== SHORTCUTS PANEL =====
-        function toggleShortcutsPanel() {
-            const panel = document.getElementById('shortcutsPanel');
-            if (panel) panel.classList.toggle('visible');
-        }
-
-        // ===== WIZARD / GUIDED MODE =====
-        let wizardState = { active: false, currentStep: 0, module: null };
-
-        function toggleWizard() {
-            if (wizardState.active) {
-                stopWizard();
-            } else {
-                startWizard();
-            }
-        }
-
-        function startWizard() {
-            const steps = wizardSteps[state.currentModule];
-            if (!steps || steps.length === 0) {
-                showToast('Nenhum guia disponível para este módulo');
-                return;
-            }
-            wizardState = { active: true, currentStep: 0, module: state.currentModule };
-            document.getElementById('wizardOverlay').classList.add('active');
-            showWizardStep(0);
-        }
-
-        function stopWizard() {
-            wizardState = { active: false, currentStep: 0, module: null };
-            document.getElementById('wizardOverlay').classList.remove('active');
-            document.getElementById('wizardSpotlight').style.cssText = '';
-            document.getElementById('wizardTooltip').style.cssText = 'display: none;';
-        }
-
-        function showWizardStep(index) {
-            const steps = wizardSteps[wizardState.module];
-            if (!steps || index >= steps.length) {
-                stopWizard();
-                return;
-            }
-            wizardState.currentStep = index;
-            const step = steps[index];
-            const target = document.querySelector(step.target);
-            if (!target) {
-                showWizardStep(index + 1);
-                return;
-            }
-
-            const rect = target.getBoundingClientRect();
-            const spotlight = document.getElementById('wizardSpotlight');
-            const tooltip = document.getElementById('wizardTooltip');
-
-            // Position spotlight
-            spotlight.style.top = `${rect.top - 4}px`;
-            spotlight.style.left = `${rect.left - 4}px`;
-            spotlight.style.width = `${rect.width + 8}px`;
-            spotlight.style.height = `${rect.height + 8}px`;
-
-            // Position tooltip
-            const tooltipWidth = 320;
-            let tooltipLeft = rect.right + 16;
-            let tooltipTop = rect.top;
-
-            if (tooltipLeft + tooltipWidth > window.innerWidth - 20) {
-                tooltipLeft = rect.left - tooltipWidth - 16;
-            }
-            if (tooltipTop + 200 > window.innerHeight - 20) {
-                tooltipTop = window.innerHeight - 220;
-            }
-
-            tooltip.style.top = `${tooltipTop}px`;
-            tooltip.style.left = `${tooltipLeft}px`;
-            tooltip.style.display = 'block';
-            tooltip.innerHTML = `
-                <h4><span class="step-badge">${index + 1}/${steps.length}</span> ${step.title}</h4>
-                <p>${step.text}</p>
-                <div class="tooltip-actions">
-                    ${index > 0 ? '<button class="btn-tooltip btn-secondary" onclick="wizardPrevious()">← Anterior</button>' : ''}
-                    <button class="btn-tooltip btn-primary" onclick="${index < steps.length - 1 ? 'wizardNext()' : 'stopWizard()'}">
-                        ${index < steps.length - 1 ? 'Próximo →' : 'Concluir ✕'}
-                    </button>
-                </div>
-            `;
-        }
-
-        function wizardNext() {
-            showWizardStep(wizardState.currentStep + 1);
-        }
-
-        function wizardPrevious() {
-            showWizardStep(wizardState.currentStep - 1);
-        }
-
-        // ===== QUIZ / ASSESSMENT =====
-        let quizState = { currentQuestion: 0, answers: [], module: null };
-
-        function openQuiz() {
-            const questions = quizData[state.currentModule];
-            if (!questions || questions.length === 0) {
-                showToast('Quiz não disponível para este módulo');
-                return;
-            }
-            quizState = { currentQuestion: 0, answers: [], module: state.currentModule };
-            document.getElementById('quizModalTitle').textContent = `Quiz - ${modules[state.currentModule].title}`;
-            renderQuiz();
-            document.getElementById('quizModal').classList.add('active');
-        }
-
-        function closeQuizModal() {
-            document.getElementById('quizModal').classList.remove('active');
-            quizState = { currentQuestion: 0, answers: [], module: null };
-        }
-
-        function renderQuiz() {
-            const questions = quizData[quizState.module];
-            const q = questions[quizState.currentQuestion];
-            
-            // Progress bar
-            const progressHtml = questions.map((_, i) => 
-                `<div class="step ${i < quizState.currentQuestion ? 'completed' : ''} ${i === quizState.currentQuestion ? 'active' : ''}"></div>`
-            ).join('');
-            document.getElementById('quizProgress').innerHTML = progressHtml;
-
-            // Question content
-            const optionsHtml = q.options.map((opt, i) => `
-                <label class="quiz-option ${quizState.answers[quizState.currentQuestion] === i ? 'selected' : ''}" 
-                       onclick="selectQuizOption(${i})">
-                    <input type="radio" name="quiz" ${quizState.answers[quizState.currentQuestion] === i ? 'checked' : ''}>
-                    <span class="option-text">${opt}</span>
-                </label>
-            `).join('');
-
-            let feedbackHtml = '';
-            if (quizState.answers[quizState.currentQuestion] !== undefined) {
-                const isCorrect = quizState.answers[quizState.currentQuestion] === q.correct;
-                feedbackHtml = `
-                    <div class="quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}">
-                        ${isCorrect ? '✅ Correto!' : '❌ Incorreto.'} ${q.explanation}
-                    </div>
-                `;
-            }
-
-            document.getElementById('quizContent').innerHTML = `
-                <div class="quiz-question">
-                    <h3>Pergunta ${quizState.currentQuestion + 1} de ${questions.length}</h3>
-                    <p>${q.question}</p>
-                    <div class="quiz-options">${optionsHtml}</div>
-                    ${feedbackHtml}
-                </div>
-            `;
-
-            // Update buttons
-            const prevBtn = document.getElementById('quizPrevBtn');
-            const nextBtn = document.getElementById('quizNextBtn');
-            prevBtn.disabled = quizState.currentQuestion === 0;
-            if (quizState.currentQuestion === questions.length - 1) {
-                nextBtn.textContent = quizState.answers.length === questions.length ? 'Ver Resultado' : 'Responder para continuar';
-                nextBtn.onclick = quizState.answers.length === questions.length ? showQuizResults : () => showToast('Responda a pergunta atual');
-            } else {
-                nextBtn.textContent = 'Próximo →';
-                nextBtn.onclick = quizNext;
-            }
-        }
-
-        function selectQuizOption(optionIndex) {
-            quizState.answers[quizState.currentQuestion] = optionIndex;
-            renderQuiz();
-        }
-
-        function quizNext() {
-            if (quizState.currentQuestion < quizData[quizState.module].length - 1) {
-                quizState.currentQuestion++;
-                renderQuiz();
-            }
-        }
-
-        function quizPrevious() {
-            if (quizState.currentQuestion > 0) {
-                quizState.currentQuestion--;
-                renderQuiz();
-            }
-        }
-
-        function showQuizResults() {
-            const questions = quizData[quizState.module];
-            let correct = 0;
-            questions.forEach((q, i) => {
-                if (quizState.answers[i] === q.correct) correct++;
-            });
-            const score = Math.round((correct / questions.length) * 100);
-            
-            document.getElementById('quizContent').innerHTML = `
-                <div class="quiz-results">
-                    <div class="score-circle" style="--score: ${score};">
-                        <span>${score}%</span>
-                    </div>
-                    <h3>${score >= 70 ? 'Parabéns!' : 'Continue estudando'}</h3>
-                    <p class="result-message">
-                        Você acertou ${correct} de ${questions.length} perguntas.
-                        ${score >= 70 ? 'Desempenho excelente!' : 'Revise o conteúdo e tente novamente.'}
-                    </p>
-                    ${score >= 70 ? '<button class="certificate-btn" onclick="showCertificate()">🏆 Gerar Certificado</button>' : '<button class="certificate-btn btn-secondary" onclick="closeQuizModal(); openQuiz()">🔄 Tentar Novamente</button>'}
-                </div>
-            `;
-            
-            document.getElementById('quizNextBtn').style.display = 'none';
-            document.getElementById('quizPrevBtn').style.display = 'none';
-        }
-
-        function showCertificate() {
-            closeQuizModal();
-            const questions = quizData[quizState.module];
-            let correct = 0;
-            questions.forEach((q, i) => {
-                if (quizState.answers[i] === q.correct) correct++;
-            });
-            const score = Math.round((correct / questions.length) * 100);
-            
-            document.getElementById('certificateName').textContent = 'Usuário Daiane';
-            document.getElementById('certificateModule').innerHTML = `concluiu o módulo <strong>${modules[quizState.module].title}</strong> com <span id="certificateScore">${score}%</span> de aproveitamento`;
-            document.getElementById('certDate').textContent = new Date().toLocaleDateString('pt-BR');
-            document.getElementById('certificateModal').classList.add('active');
-        }
-
-        function closeCertificateModal() {
-            document.getElementById('certificateModal').classList.remove('active');
-        }
-
-        function downloadCertificate() {
-            // Simple approach: create a printable version
-            const content = document.getElementById('certificateModal').querySelector('.modal-body').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Certificado - ${modules[quizState.module].title}</title>
-                    <style>
-                        body { font-family: 'Inter', sans-serif; padding: 40px; text-align: center; }
-                        .cert { border: 2px solid #f39c12; border-radius: 16px; padding: 40px; max-width: 600px; margin: 0 auto; }
-                        h1 { color: #2c3e50; }
-                        @media print { body { padding: 0; } .cert { border: none; box-shadow: none; } }
-                    </style>
-                </head>
-                <body>${content}</body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
-        }
-
-        function showToast(message) {
-            // Simple toast notification
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-                background: var(--bg-secondary); border: 1px solid var(--border-color);
-                padding: 12px 24px; border-radius: 8px; box-shadow: 0 8px 24px var(--shadow-hover);
-                z-index: 10000; font-size: 0.85rem; color: var(--text-primary);
-                animation: slideUp 0.3s ease;
-            `;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.animation = 'slideUp 0.3s ease reverse'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        // ===== COMPATIBILIDADE DE HANDLERS =====
-        // Os cards de módulo usam onclick="openModule('...')" no HTML.
-        function openModule(nome) {
-            navigateTo(nome);
-        }
-
-        // ===== EXPORT FUNCTIONS for testing =====
-        window.openModule = openModule;
-        window.navigateTo = navigateTo;
-        window.abrirApresentacao = abrirApresentacao;
-        window.fecharApresentacao = fecharApresentacao;
-        window.proximoSlide = proximoSlide;
-        window.anteriorSlide = anteriorSlide;
-        window.slidePrev = slidePrev;
-        window.slideNext = slideNext;
-        window.toggleChecklistItem = toggleChecklistItem;
-        window.updateProgress = updateProgress;
-        window.toggleTheme = toggleTheme;
-        window.toggleShortcutsPanel = toggleShortcutsPanel;
-        window.toggleWizard = toggleWizard;
-        window.startWizard = startWizard;
-        window.stopWizard = stopWizard;
-        window.wizardNext = wizardNext;
-        window.wizardPrevious = wizardPrevious;
-        window.openQuiz = openQuiz;
-        window.closeQuizModal = closeQuizModal;
-        window.selectQuizOption = selectQuizOption;
-        window.quizNext = quizNext;
-        window.quizPrevious = quizPrevious;
-        window.showCertificate = showCertificate;
-        window.closeCertificateModal = closeCertificateModal;
-        window.downloadCertificate = downloadCertificate;
-    </script>
+  </div>`;
+}
+
+function pagTurmas(){
+  return cabecalho('turmas','Turmas') + `
+  <div class="tabela-wrap"><table>
+    <tr><th>Dia</th><th>Horário</th><th>Turma</th><th>Ocupação</th><th>Ações</th></tr>
+    ${estado.turmas.map(t=>`<tr>
+      <td>${t.dia}</td><td>${t.horario}</td><td>${t.nome}</td>
+      <td>${t.inscritos}/${t.vagas} <span class="badge" style="background:${t.inscritos>=t.vagas?'#e03131':t.inscritos>t.vagas*0.7?'#f59f00':'#198754'}">${Math.round(t.inscritos/t.vagas*100)}%</span></td>
+      <td><button class="btn teal fino" onclick="fez('presenca_${t.nome}');toast('Presença registrada em '+t.nome+' ✓')">✓ Presença</button></td>
+    </tr>`).join('')}
+  </table></div>
+  <div class="painel-desafios" style="margin-top:14px"><div class="tit">💡 Dica</div>No sistema real: aluno agenda → entra na turma → presença registrada a cada aula → sessão consumida do pacote.</div>`;
+}
+
+function pagAtendimentos(){
+  return cabecalho('atendimentos','Atendimentos') + `
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(atendimentoForm())">+ Registrar atendimento</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Status</th><th>Sessão</th><th>Pacote</th><th>Ações</th></tr>
+    ${estado.atendimentos.map((a,i)=>`<tr>
+      <td>${a.pac}</td><td>${a.status=='Presença confirmada'?stBadge('Atendido'):stBadge('Faltou')}</td>
+      <td>${a.sessao}</td><td>${a.pacote}</td>
+      <td><button class="btn teal fino" onclick="fez('atend_${i}');toast('Atendimento '+a.pac+' atualizado ✓')">Editar</button></td>
+    </tr>`).join('')}
+  </table></div>
+  <div class="dica-treino" style="margin-top:14px">💡 <b>Sistema real:</b> Se pacote esgotado, consumo é bloqueado. Faltou não consome sessão.</div>`;
+}
+function atendimentoForm(){
+  return `<h3>🗓️ Registrar atendimento</h3>
+  <div class="form-grid">
+    <div class="full"><label>Paciente</label><select id="at_pac">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Status</label><select id="at_st"><option value="Presença confirmada">Presença confirmada</option><option value="Faltou">Faltou</option></select></div>
+    <div><label>Sessão nº</label><input id="at_ses" type="number" value="1" min="1"></div>
+    <div><label>Pacote</label><input id="at_pac" placeholder="Ex.: 10 sessões"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarAtendimento()">Salvar</button></div>`;
+}
+function salvarAtendimento(){
+  const p=$('#at_pac').value, st=$('#at_st').value, ses=parseInt($('#at_ses').value)||1, pac=$('#at_pac').value;
+  estado.atendimentos.push({pac:p,status:st,sessao:ses,pacote:pac});
+  fez('atendimento_novo'); fecharModal(); mostrar('atendimentos'); toast(`Atendimento de ${p} registrado ✓`);
+}
+
+function pagTratamentos(){
+  return cabecalho('tratamentos','Tratamentos') + `
+  <div class="aviso" style="background:#fff8e8;border-color:#f0c24b">
+    <b>⚠️ Módulo PLANEJADO para Fisioterapia</b><br>
+    Para Odontologia (clínicas 1 e 6) o acesso é <b>completo</b>.<br>
+    O catálogo define: FISIOTERAPIA => PLANEJADO (clinic_id=5).
+  </div>
+  <div class="cards" style="margin-top:14px">
+    <div class="card-kpi"><div class="v">${stBadge('Planejado')}</div><div class="r">Status Fisioterapia</div></div>
+    <div class="card-kpi"><div class="v">${stBadge('Disponível')}</div><div class="r">Status Odontologia</div></div>
+    <div class="card-kpi"><div class="v">4</div><div class="r">Funcionalidades base</div></div>
+  </div>
+  <div class="tabela-wrap" style="margin-top:14px"><table>
+    <tr><th>Funcionalidade</th><th>Fisioterapia</th><th>Odontologia</th></tr>
+    <tr><td>Cadastro de planos</td><td>${stBadge('Planejado')}</td><td>${stBadge('Disponível')}</td></tr>
+    <tr><td>Itens/procedimentos</td><td>${stBadge('Planejado')}</td><td>${stBadge('Disponível')}</td></tr>
+    <tr><td>Status (Rasc→Concluído)</td><td>${stBadge('Planejado')}</td><td>${stBadge('Disponível')}</td></tr>
+    <tr><td>Histórico evolução</td><td>${stBadge('Planejado')}</td><td>${stBadge('Disponível')}</td></tr>
+    <tr><td>Tela adaptada fisio</td><td>${stBadge('Planejado')}</td><td>—</td></tr>
+    <tr><td>Procedimentos fisio</td><td>${stBadge('Planejado')}</td><td>—</td></tr>
+  </table></div>`;
+}
+
+function pagPacientes(){
+  return cabecalho('pacientes','Pacientes') + `
+  <div class="toolbar"><input class="campo" id="buscaPac" placeholder="Buscar por nome, CPF ou telefone..." style="min-width:280px" oninput="filtrarPacientes(this.value)">
+    <button class="btn teal" onclick="abrirModal(novoPacienteForm())">+ Novo paciente</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Nome</th><th>CPF</th><th>Celular</th><th>Consultas</th><th>Orçamentos</th><th>Status</th><th></th></tr>
+    <tbody id="corpoPac">${pacientesRows(estado.pacientes,'')}</tbody>
+  </table></div>`;
+}
+function filtrarPacientes(f){
+  f=f.toLowerCase();
+  const lis=estado.pacientes.filter(p=>!f||p.n.toLowerCase().includes(f)||(p.cpf||'').includes(f)||p.cel.includes(f));
+  $('#corpoPac').innerHTML=pacientesRows(lis,f);
+}
+function pacientesRows(lista,f){
+  if(!lista.length) return `<tr><td colspan="7"><div class="aviso">Nenhum paciente${f?' para "'+f+'"':''}.</div></td></tr>`;
+  return lista.map(p=>`<tr>
+    <td><button class="btn-link" onclick="abrirFichaPac('${p.n}')">${p.n}</button></td>
+    <td>${p.cpf}</td><td>${p.cel}</td><td>${p.cons}</td><td>${p.orc}</td>
+    <td>${p.st==='ativo'?stBadge('Ativo'):stBadge('Inativo')}</td>
+    <td><button class="btn gray fino" onclick="abrirFichaPac('${p.n}')">Abrir ficha</button></td></tr>`).join('');
+}
+function abrirFichaPac(nome){
+  const p=estado.pacientes.find(x=>x.n===nome);
+  if(!p) return;
+  fez('abrir_ficha');
+  abrirModal(`<h3>👤 Ficha — ${p.n}</h3>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${p.cons}</div><div class="r">Consultas</div></div>
+    <div class="card-kpi"><div class="v">${p.orc}</div><div class="r">Orçamentos</div></div>
+    <div class="card-kpi"><div class="v">1</div><div class="r">⚠️ Alerta ativo</div></div>
+    <div class="card-kpi"><div class="v">2</div><div class="r">Documentos</div></div>
+  </div>
+  <div class="tabela-wrap" style="margin:14px 0"><table>
+    <tr><th>CPF</th><th>Celular</th><th>Status</th></tr>
+    <tr><td>${p.cpf}</td><td>${p.cel}</td><td>${p.st==='ativo'?stBadge('Ativo'):stBadge('Inativo')}</td></tr>
+  </table></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Alertas clínicos</th><th>Detalhe</th></tr>
+    <tr><td>⚠️ Alergia</td><td>Penicilina</td></tr>
+    <tr><td>💊 Medicação</td><td>Anticoagulante</td></tr>
+  </table></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Fechar</button></div>`);
+}
+function novoPacienteForm(){
+  return `<h3>📝 Novo paciente</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome *</label><input id="np_nome" placeholder="Nome completo"></div>
+    <div><label>CPF</label><input id="np_cpf" placeholder="000.000.000-00"></div>
+    <div><label>Celular</label><input id="np_cel" placeholder="(11) 90000-0000"></div>
+    <div><label>E-mail</label><input id="np_email" placeholder="email@paciente.com"></div>
+    <div><label>Status</label><select id="np_st"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+    <div class="full"><label>Observações</label><textarea id="np_obs" rows="2"></textarea></div>
+  </div>
+  <div class="erro" style="display:none" id="np_erro">O CPF informado já está cadastrado (o CPF é único).</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarNovoPaciente()">Salvar</button></div>`;
+}
+function salvarNovoPaciente(){
+  const nome=$('#np_nome').value.trim(), cpf=$('#np_cpf').value.trim(), cel=$('#np_cel').value.trim();
+  if(!nome){ alert('Informe o nome.'); return; }
+  if(cpf && estado.pacientes.some(p=>p.cpf===cpf)){ $('#np_erro').style.display='block'; return; }
+  estado.pacientes.push({id:estado.pacientes.length+1,n:nome,cpf:cpf||'—',cel:cel||'—',st:$('#np_st').value,cons:0,orc:0});
+  fez('paciente_criado'); fecharModal(); mostrar('pacientes'); toast(`Paciente "${nome}" cadastrado ✓`);
+}
+
+function pagFinanceiro(){
+  return cabecalho('financeiro','Financeiro — Contas a Receber') + `
+  <div class="cards">
+    <div class="card-kpi"><div class="v">R$ ${estado.financeiro.filter(c=>c.st!=='paga').reduce((s,c)=>s+c.valor,0).toFixed(2)}</div><div class="r">Total em aberto</div></div>
+    <div class="card-kpi"><div class="v">${estado.financeiro.filter(c=>c.st==='aberta').length}</div><div class="r">Abertas</div></div>
+    <div class="card-kpi"><div class="v">${estado.financeiro.filter(c=>c.st==='parcial').length}</div><div class="r">Parciais</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Vencimento</th><th>Valor</th><th>Pago</th><th>Saldo</th><th>Status</th><th></th></tr>
+    ${estado.financeiro.map((c,i)=>`<tr>
+      <td>${c.pac}</td><td>${c.venc}</td><td>R$ ${c.valor.toFixed(2)}</td><td>R$ ${c.pago.toFixed(2)}</td>
+      <td style="font-weight:700;${c.st!=='paga'?'color:#d33':''}">R$ ${(c.valor-c.pago).toFixed(2)}</td>
+      <td>${c.st==='aberta'?stBadge('Aberta'):c.st==='parcial'?stBadge('Parcial'):stBadge('Paga')}</td>
+      <td>${c.st==='paga'?'—':`<button class="btn verde fino" onclick="abrirModal(pagamentoForm(${i}))">Receber</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function pagamentoForm(i){
+  const c=estado.financeiro[i], saldo=c.valor-c.pago;
+  return `<h3>💵 Receber — ${c.pac}</h3>
+  <div class="form-grid">
+    <div><label>Valor (saldo R$ ${saldo.toFixed(2)})</label><input id="pg_val" type="number" step="0.01" value="${saldo}"></div>
+    <div><label>Forma</label><select id="pg_forma"><option>PIX</option><option>Dinheiro</option><option>Cartão crédito</option><option>Cartão débito</option><option>Boleto</option><option>Convênio</option></select></div>
+    <div class="full"><label>Data</label><input type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+  </div>
+  <div id="pg_msg"></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn verde" onclick="salvarPagamento(${i})">Confirmar</button></div>`;
+}
+function salvarPagamento(i){
+  const c=estado.financeiro[i], saldo=c.valor-c.pago, v=parseFloat($('#pg_val').value);
+  if(v>saldo){ $('#pg_msg').innerHTML=`<div class="erro">⛔ Valor maior que saldo (R$ ${saldo.toFixed(2)}). Bloqueado.</div>`; return; }
+  c.pago=Math.min(c.pago+v,c.valor);
+  c.st=c.pago>=c.valor?'paga':'parcial'; c.forma=$('#pg_forma').value;
+  fez('receber'); fecharModal(); mostrar('financeiro');
+  toast(c.st==='paga'?`R$ ${v.toFixed(2)} (${c.forma}) — PAGA ✓`:`Parcial R$ ${v.toFixed(2)} — saldo R$ ${(saldo-v).toFixed(2)} ✓`);
+}
+
+function pagEstoque(){
+  return cabecalho('estoque','Estoque') + `
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div class="tabela-wrap" style="flex:1;min-width:300px"><table>
+      <tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mín</th><th>Ações</th></tr>
+      ${estado.estoque.map((p,i)=>`<tr>
+        <td><b>${p.n}</b>${p.baixo?' <span class="badge" style="background:#e03131">Baixo</span>':''}</td>
+        <td>${p.cat}</td><td><b id="estQtd${i}">${p.est}</b></td><td>${p.min}</td>
+        <td><button class="btn verde fino" onclick="abrirModal(movForm(${i},'entrada'))">+Entrada</button>
+            <button class="btn vermelho fino" onclick="abrirModal(movForm(${i},'saida'))">−Saída</button></td></tr>`).join('')}
+    </table></div>
+  </div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Histórico</th><th>Tipo</th><th>Qtd</th></tr>
+    <tr><td>22/11 — Luvas</td><td>${stBadge('Entrada')}</td><td>+20</td></tr>
+    <tr><td>23/11 — Resina</td><td>${stBadge('Saída')}</td><td>-5</td></tr>
+    <tr><td>24/11 — Anestésico</td><td>${stBadge('Entrada')}</td><td>+10</td></tr>
+  </table></div>`;
+}
+function movForm(i,tipo){
+  const p=estado.estoque[i];
+  return `<h3>${tipo==='entrada'?'📦 Entrada':'📦 Saída'} — ${p.n}</h3>
+  <div class="form-grid">
+    <div><label>Quantidade</label><input id="mv_qtd" type="number" min="1" value="1"></div>
+    <div><label>Valor unit. (R$)</label><input id="mv_vlr" type="number" step="0.01" value="${p.custo}"></div>
+    <div class="full"><label>Observação</label><input id="mv_obs" placeholder="Fornecedor / Motivo"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn ${tipo==='entrada'?'verde':'vermelho'}" onclick="salvarMov(${i},'${tipo}')">${tipo==='entrada'?'Entrada':'Saída'}</button></div>`;
+}
+function salvarMov(i,tipo){
+  const p=estado.estoque[i], q=parseInt($('#mv_qtd').value)||1;
+  if(tipo==='saida' && q>p.est){ toast('⛔ Saída maior que saldo ('+p.est+') — bloqueada'); return; }
+  p.est+=tipo==='entrada'?q:-q;
+  $(`#estQtd${i}`).textContent=p.est;
+  p.baixo=p.est<=p.min;
+  fez('estoque_'+tipo); fecharModal(); mostrar('estoque'); toast(`${tipo==='entrada'?'Entrada':'Saída'} de ${q} ${p.n} ✓`);
+}
+
+function pagRelatorios(){
+  const r=estado.relatorios;
+  return cabecalho('relatorios','Relatórios') + `
+  <div class="toolbar"><label style="display:flex;align-items:center;gap:6px;font-size:.85rem">Período: <input type="date" id="rel_de" value="2026-11-01" style="width:auto"> até <input type="date" id="rel_ate" value="2026-11-30" style="width:auto"></label></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">R$ ${r.recebido.toFixed(2)}</div><div class="r">💰 Recebido</div></div>
+    <div class="card-kpi"><div class="v">R$ ${r.emAberto.toFixed(2)}</div><div class="r">📋 Em aberto</div></div>
+    <div class="card-kpi"><div class="v">${r.atendidas}</div><div class="r">✅ Atendidas</div></div>
+    <div class="card-kpi"><div class="v">${r.canceladas}</div><div class="r">❌ Canceladas</div></div>
+    <div class="card-kpi"><div class="v">${r.faltas}</div><div class="r">🚫 Faltas</div></div>
+    <div class="card-kpi"><div class="v">${r.entradas}</div><div class="r">📥 Entradas</div></div>
+    <div class="card-kpi"><div class="v">${r.saidas}</div><div class="r">📤 Saídas</div></div>
+    <div class="card-kpi"><div class="v">${r.baixo}</div><div class="r">⚠️ Estoque baixo</div></div>
+  </div>
+  <div class="tabela-wrap" style="margin-top:14px"><table>
+    <tr><th>Bloco</th><th>Indicador</th><th>Valor</th></tr>
+    <tr><td rowspan="5">Financeiro</td><td>Recebido</td><td>R$ ${r.recebido.toFixed(2)}</td></tr>
+    <tr><td>Em aberto</td><td>R$ ${r.emAberto.toFixed(2)}</td></tr>
+    <tr><td>Atendidas</td><td>${r.atendidas}</td></tr>
+    <tr><td>Canceladas</td><td>${r.canceladas}</td></tr>
+    <tr><td>Faltas</td><td>${r.faltas}</td></tr>
+    <tr><td rowspan="3">Agenda</td><td>Comparecimento</td><td>${Math.round(r.atendidas/(r.atendidas+r.faltas+r.canceladas)*100)}%</td></tr>
+    <tr><td>Pico horário</td><td>08:00-10:00</td></tr>
+    <tr><td>Taxa retorno</td><td>42%</td></tr>
+    <tr><td rowspan="2">Estoque</td><td>Entradas</td><td>${r.entradas}</td></tr>
+    <tr><td>Saídas</td><td>${r.saidas}</td></tr>
+  </table></div>`;
+}
+
+// ===== TOAST =====
+function toast(msg){
+  const t=$('#toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>{t.style.animation='slideUp .3s ease reverse';setTimeout(()=>t.style.display='none',300);},3000);
+}
+
+// ===== HASH NAV =====
+window.addEventListener('hashchange',()=>{
+  const h=location.hash.slice(1);
+  if(h && modulos[h]) mostrar(h);
+});
+if(location.hash){ const h=location.hash.slice(1); if(modulos[h]) mostrar(h); }
+
+// ===== EXPORTS =====
+window.mostrar=mostrar;
+window.abrirModal=abrirModal;
+window.fecharModal=fecharModal;
+window.abrirSlides=abrirSlides;
+window.fecharSlides=fecharSlides;
+window.slideVai=slideVai;
+window.abrirQuiz=abrirQuiz;
+window.iniciarTour=iniciarTour;
+window.toggleTour=toggleTour;
+window.toggleTheme=toggleTheme;
+window.zerarProgresso=zerarProgresso;
+</script>
 </body>
 </html>
