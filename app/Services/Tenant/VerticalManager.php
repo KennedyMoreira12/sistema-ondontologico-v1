@@ -198,6 +198,8 @@ class VerticalManager
      */
     public function permite(string $modulo, ?Clinic $clinic = null): bool
     {
+        $clinic ??= app(TenantManager::class)->current();
+
         $verticalsClinica = $this->verticals($clinic);
 
         if (in_array($modulo, self::VERTICAIS, true)) {
