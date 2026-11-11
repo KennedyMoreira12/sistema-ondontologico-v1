@@ -319,8 +319,8 @@ const estado = {
     documentos: [{tipo:'Termo consentimento', titulo:'Endodontia', data:'20/11/2026'}]
   },
   odontograma: {},
-  planos: {titulo:'Reabilitação oral', status:'Em andamento', desconto:50, itens:[{proc:'Tratamento canal (1 raiz)', dente:26, uni:600, qtd:1, desc:0}]},
-  orcamentos: {titulo:'Tratamento estético', status:'Aprovado', validade:'15/12/2026', itens:[{proc:'Clareamento dental', dente:null, uni:400, qtd:1, desc:0},{proc:'Coroa porcelana', dente:16, uni:1200, qtd:1, desc:100}]},
+  planos: {titulo:'Reabilitação oral', status:'Em andamento', desconto:50, itens:[{proc:3, dente:26, uni:600, qtd:1, desc:0}]},
+  orcamentos: {titulo:'Tratamento estético', status:'Aprovado', validade:'15/12/2026', itens:[{proc:6, dente:null, uni:400, qtd:1, desc:0},{proc:5, dente:16, uni:1200, qtd:1, desc:100}]},
   financeiro: [
     {pac:'Ana Costa', venc:'25/11/2026', valor:300, pago:0, st:'aberta'},
     {pac:'Maria Souza', venc:'30/11/2026', valor:150, pago:150, st:'paga'},
@@ -333,14 +333,33 @@ const estado = {
   contratos: [{pac:'Maria Souza', tipo:'Termo consentimento', st:'Assinado', data:'20/11/2026'},{pac:'Ana Costa', tipo:'Contrato tratamento', st:'Pendente', data:'—'}],
   usuarios: [{n:'Administrador', email:'admin@sco.com', perfil:'Administrador', st:'Ativo'},{n:'Dra. Paula Mendes', email:'paula@sco.com', perfil:'Dentista', st:'Ativo'}],
   auditoria: [{quem:'Administrador', acao:'criar', tabela:'pacientes', id:'#1', quando:'24/11 10:02', ip:'127.0.0.1'},{quem:'Administrador', acao:'registrar_pagamento', tabela:'payments', id:'#12', quando:'24/11 09:41', ip:'127.0.0.1'}],
-  rel: {recebido:1250, emAberto:700, atendidas:31, canceladas:4, faltas:2, entradas:96, saidas:84, baixo:2}
+  rel: {recebido:1250, emAberto:700, atendidas:31, canceladas:4, faltas:2, entradas:96, saidas:84, baixo:2},
+  espera: [
+    {pac:'Joana Faria', proc:'Avaliação', pri:'Alta', st:'Aguardando'},
+    {pac:'Bruno Réden', proc:'Limpeza', pri:'Normal', st:'Aguardando'},
+    {pac:'Lúcia Prado', proc:'Restauração', pri:'Alta', st:'Aguardando'}
+  ],
+  movimentos: [
+    {data:'22/11/2026', prod:'Luvas látex', tipo:'Entrada', qtd:20},
+    {data:'23/11/2026', prod:'Resina composta', tipo:'Saída', qtd:5},
+    {data:'24/11/2026', prod:'Anestésico', tipo:'Entrada', qtd:10}
+  ],
+  parcelas: [
+    {pac:'Ana Costa', num:'1/3', venc:'25/11/2026', valor:100, st:'Aberta'},
+    {pac:'Ana Costa', num:'2/3', venc:'25/12/2026', valor:100, st:'Aberta'},
+    {pac:'Carlos Lima', num:'1/2', venc:'05/12/2026', valor:300, st:'Parcial'},
+    {pac:'Maria Souza', num:'1/1', venc:'30/11/2026', valor:150, st:'Paga'}
+  ]
 };
 
 const stCor = {Agendado:'#0d6efd',Confirmado:'#198754','Em atendimento':'#ffc107',Atendido:'#6f42c1',Faltou:'#dc3545',Cancelado:'#6c757d',Aberta:'#e03131',Parcial:'#f59f00',Paga:'#198754','Em andamento':'#4dabf7',Rascunho:'#6c757d',Aprovado:'#198754',Ativo:'#198754',Inativo:'#dc3545',Pendente:'#f59f00',Assinado:'#198754'};
 const stBadge = s => '<span class="badge" style="background:'+(stCor[s]||'#6c757d')+'">'+s+'</span>';
+const procNome = i => { const p = typeof i.proc==='number' ? estado.procedimentos[i.proc-1] : estado.procedimentos.find(x=>x.nome===i.proc); return p ? p.nome : (i.proc || '—'); };
 
 // ===== 20 MÓDULOS =====
 const modulos = {dashboard:0,pacientes:1,prontuario:2,prontuario_evol:2,prontuario_anam:2,prontuario_alert:2,prontuario_presc:2,prontuario_docs:2,agenda:3,agenda_espera:3,agenda_confirma:3,odontograma:4,planos:4,planos_itens:4,planos_status:4,orcamentos:5,orcamentos_itens:5,orcamentos_status:5,financeiro:5,financeiro_receber:5,financeiro_parcelas:5,convenios:6,profissionais:6,procedimentos:6,estoque:7,estoque_mov:7,estoque_baixo:7,contratos:7,relatorios:8,relatorios_fin:8,relatorios_agenda:8,relatorios_estoque:8,admin:8,admin_usuarios:8,admin_perfis:8,admin_clinica:8,auditoria:8};
+const modPai = {prontuario_evol:'prontuario',prontuario_anam:'prontuario',prontuario_alert:'prontuario',prontuario_presc:'prontuario',prontuario_docs:'prontuario',agenda_espera:'agenda',agenda_confirma:'agenda',planos_itens:'planos',planos_status:'planos',orcamentos_itens:'orcamentos',orcamentos_status:'orcamentos',financeiro_receber:'financeiro',financeiro_parcelas:'financeiro',estoque_mov:'estoque',estoque_baixo:'estoque',relatorios_fin:'relatorios',relatorios_agenda:'relatorios',relatorios_estoque:'relatorios',admin_usuarios:'admin',admin_perfis:'admin',admin_clinica:'admin'};
+const modBase = m => modPai[m] || m;
 const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário',prontuario_evol:'Evoluções',prontuario_anam:'Anamnese',prontuario_alert:'Alertas',prontuario_presc:'Prescrições',prontuario_docs:'Documentos',agenda:'Agenda',agenda_espera:'Lista de Espera',agenda_confirma:'Confirmação de Presença',odontograma:'Odontograma',planos:'Planos de Tratamento',planos_itens:'Itens do Plano',planos_status:'Status do Plano',orcamentos:'Orçamentos',orcamentos_itens:'Itens do Orçamento',orcamentos_status:'Status do Orçamento',financeiro:'Financeiro',financeiro_receber:'Contas a Receber',financeiro_parcelas:'Parcelamentos',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',estoque_mov:'Movimentações',estoque_baixo:'Estoque Baixo',contratos:'Contratos',relatorios:'Relatórios',relatorios_fin:'Financeiro',relatorios_agenda:'Agenda',relatorios_estoque:'Estoque',admin:'Administração',admin_usuarios:'Usuários',admin_perfis:'Perfis',admin_clinica:'Dados da Clínica',auditoria:'Auditoria'};
 const iconesMod = {dashboard:'📊',pacientes:'👥',prontuario:'📋',prontuario_evol:'📝',prontuario_anam:'📋',prontuario_alert:'⚠️',prontuario_presc:'💊',prontuario_docs:'📎',agenda:'🗓️',agenda_espera:'⏳',agenda_confirma:'✅',odontograma:'🦷',planos:'💊',planos_itens:'📋',planos_status:'📊',orcamentos:'💰',orcamentos_itens:'📋',orcamentos_status:'📊',financeiro:'🏦',financeiro_receber:'💰',financeiro_parcelas:'📅',convenios:'🛡️',profissionais:'🧑‍⚕️',procedimentos:'🩺',estoque:'📦',estoque_mov:'📥',estoque_baixo:'⚠️',contratos:'📜',relatorios:'📊',relatorios_fin:'💰',relatorios_agenda:'🗓️',relatorios_estoque:'📦',admin:'⚙️',admin_usuarios:'👥',admin_perfis:'🔐',admin_clinica:'🏥',auditoria:'🔍'};
 
@@ -725,7 +744,7 @@ function cabecalho(mod,titulo,extra=''){
   return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--azul);border-radius:10px;padding:8px 12px;margin-bottom:12px"><button class="btn-como-funciona btn-ghost" data-mod="'+mod+'" onclick="abrirComoFunciona(\''+mod+'\')">❓ Como funciona</button><button class="btn-tour btn-ghost" data-mod="'+mod+'" onclick="iniciarTour(\''+mod+'\')">▶ Visita guiada</button><button class="btn-quiz" onclick="abrirQuiz(\''+mod+'\')">🎯 Quiz</button><span style="color:#eafff7;font-size:.8rem">🖱️ Passe o mouse sobre elementos para explicações — clique para ampliar</span></div>'+barraDesafios(mod)+'<div class="painel-treino">🎓 <b>Treine nesta tela:</b><div class="passos">'+(treinoInfo[mod]||'')+'</div></div><div class="dica-treino">💡 <b>Abrir no sistema real:</b> <a target="_blank" href="'+realLink(mod)+'">'+titulo+'</a> (login: admin@sco.com / admin123).</div>'+extra;
 }
 function barraDesafios(mod){
-  const itens=desafiosData[mod]||[];
+  const itens=desafiosData[mod]||desafiosData[modBase(mod)]||[];
   const feitos=estadoApp.desafiosFeitos[mod]||{};
   return '<div class="painel-desafios"><div class="tit">🏁 Desafios: '+itens.filter(d=>feitos[d]).length+'/'+itens.length+' concluídos</div><ul>'+itens.map(d=>'<li'+(feitos[d]?' class="feito"':'')+'><span class="ch">'+(feitos[d]?'✓':'')+'</span>'+d+'</li>').join('')+'</ul></div>';
 }
@@ -755,7 +774,7 @@ function abrirComoFunciona(mod){
     admin:'Usuários com perfis (RBAC): Admin, Dentista, Recepcionista, etc. Perfis têm permissões por módulo+ação. Dados da Clínica usados pela API WhatsApp.',
     auditoria:'Toda ação gravada: quem, quando, IP, tabela, ID, ação. Filtros por ação, tabela, período. Rastreabilidade total.'
   };
-  abrirModal('<h3>❓ Como funciona — '+titulos[mod]+'</h3><p style="line-height:1.7;margin-bottom:16px">'+(info[mod]||'Informação não disponível')+'</p><div class="acoes"><button class="btn teal" onclick="fecharModal()">Entendi</button></div>');
+  abrirModal('<h3>❓ Como funciona — '+titulos[mod]+'</h3><p style="line-height:1.7;margin-bottom:16px">'+(info[mod]||info[modBase(mod)]||'Informação não disponível')+'</p><div class="acoes"><button class="btn teal" onclick="fecharModal()">Entendi</button></div>');
 }
 
 // ===== TOUR GUIADO =====
@@ -778,9 +797,9 @@ function iniciarTour(mod){
     admin:[{sel:'.toolbar .btn',txt:'Botão + Novo usuário'},{sel:'.tabela-wrap',txt:'Lista de usuários com perfil e status'},{sel:'.painel-desafios',txt:'Desafios: criar usuário, perfil, clínica'}],
     auditoria:[{sel:'.toolbar',txt:'Filtros de ação, tabela, período'},{sel:'.tabela-wrap',txt:'Registros com quem, quando, IP, tabela, ID'},{sel:'.painel-desafios',txt:'Desafios: filtrar ação, tabela'}]
   };
-  const p=passos[mod];
+  const p=passos[mod]||passos[modBase(mod)];
   if(!p||!p.length){toast('Tour não disponível para este módulo');return;}
-  estadoApp.tourState={mod,passo:0,ativo:true};
+  estadoApp.tourState={mod,passo:0,ativo:true,passos:p};
   document.getElementById('tourDim').style.display='block';
   mostrarPassoTour(p);
 }
@@ -799,24 +818,7 @@ function mostrarPassoTour(passos){
   caixa.innerHTML='<div class="cont"><span class="num">'+(i+1)+'/'+passos.length+'</span><div style="flex:1"><p style="margin:0 0 12px">'+passos[i].txt+'</p><div style="display:flex;gap:8px;justify-content:flex-end">'+(i>0?'<button class="btn-ghost" onclick="passoTour(-1)">← Voltar</button>':'')+'<button class="btn btn-quiz" onclick="passoTour(1)">'+(i===passos.length-1?'Concluir':'Próximo →')+'</button></div></div>';
 }
 function passoTour(dir){
-  const p={
-    dashboard:[{sel:'.card-kpi',txt:'KPIs: consultas, pacientes, tratamentos, estoque'},{sel:'.tabela-wrap',txt:'Agenda de hoje e contas a receber'},{sel:'.corte',txt:'Acesso rápido aos módulos principais'}],
-    pacientes:[{sel:'.toolbar .campo',txt:'Busca tempo real por nome/CPF/telefone'},{sel:'.tabela-wrap',txt:'Lista de pacientes com ações'},{sel:'.painel-desafios',txt:'Desafios: buscar, abrir ficha, cadastrar'}],
-    prontuario:[{sel:'.toolbar',txt:'Botões para cada aba do prontuário'},{sel:'.tabela-wrap',txt:'Conteúdo da aba ativa'},{sel:'.painel-desafios',txt:'Desafios: evolução, alerta, anamnese'}],
-    agenda:[{sel:'.tabela-wrap',txt:'Grade semanal com horários e profissionais'},{sel:'.toolbar .btn',txt:'Botão + Novo agendamento'},{sel:'.painel-desafios',txt:'Desafios: agendar, confirmar, espera'}],
-    odontograma:[{sel:'.odonto',txt:'Clique nos dentes para alternar condição'},{sel:'.tabela-wrap',txt:'Legenda para aplicar condição no dente atual'},{sel:'.painel-desafios',txt:'Desafios: marcar cariado, restaurado, legenda'}],
-    planos:[{sel:'.cards',txt:'Status, itens, total do plano'},{sel:'.toolbar .btn',txt:'Botão + Adicionar procedimento'},{sel:'.painel-desafios',txt:'Desafios: adicionar, aprovar, concluir'}],
-    orcamentos:[{sel:'.cards',txt:'Status, subtotal, total do orçamento'},{sel:'.toolbar .btn.verde',txt:'Botão Aprovar — gera conta a receber'},{sel:'.painel-desafios',txt:'Desafios: adicionar, emitir, aprovar'}],
-    financeiro:[{sel:'.cards',txt:'Resumo: em aberto, parciais, pagas'},{sel:'.tabela-wrap button.btn.verde',txt:'Botão Receber — testa bloqueio > saldo'},{sel:'.painel-desafios',txt:'Desafios: receber parcial, total, emitir'}],
-    convenios:[{sel:'.toolbar .btn',txt:'Botão + Nova operadora'},{sel:'.tabela-wrap',txt:'Lista de operadoras com planos contados'},{sel:'.painel-desafios',txt:'Desafios: cadastrar, ver planos'}],
-    profissionais:[{sel:'.toolbar .btn',txt:'Botão + Novo profissional'},{sel:'.tabela-wrap',txt:'Lista com CRO, tipo, especialidades, comissão'},{sel:'.painel-desafios',txt:'Desafios: cadastrar, comissão'}],
-    procedimentos:[{sel:'.toolbar .btn',txt:'Botão + Novo procedimento'},{sel:'.tabela-wrap',txt:'Catálogo com código, valor, duração, categoria'},{sel:'.painel-desafios',txt:'Desafios: cadastrar, valor padrão'}],
-    estoque:[{sel:'.tabela-wrap button.btn.verde',txt:'Botão +Entrada — compra de insumos'},{sel:'.tabela-wrap button.btn.vermelho',txt:'Botão -Saída — uso clínico (bloqueia > saldo)'},{sel:'.painel-desafios',txt:'Desafios: entrada, saída, baixo'}],
-    contratos:[{sel:'.toolbar .btn',txt:'Botão + Novo contrato'},{sel:'.tabela-wrap',txt:'Lista de contratos com paciente, tipo, status'},{sel:'.painel-desafios',txt:'Desafios: cadastrar, assinar'}],
-    relatorios:[{sel:'.cards',txt:'Indicadores financeiros, agenda, estoque'},{sel:'.toolbar',txt:'Filtros de período De/Até'},{sel:'.painel-desafios',txt:'Desafios: gerar, exportar, comparar'}],
-    admin:[{sel:'.toolbar .btn',txt:'Botão + Novo usuário'},{sel:'.tabela-wrap',txt:'Lista de usuários com perfil e status'},{sel:'.painel-desafios',txt:'Desafios: criar usuário, perfil, clínica'}],
-    auditoria:[{sel:'.toolbar',txt:'Filtros de ação, tabela, período'},{sel:'.tabela-wrap',txt:'Registros com quem, quando, IP, tabela, ID'},{sel:'.painel-desafios',txt:'Desafios: filtrar ação, tabela'}]
-  }[estadoApp.tourState.mod];
+  const p=estadoApp.tourState.passos;
   document.querySelectorAll('[style*="outline: 3px solid"]').forEach(e=>{e.style.outline='';e.style.outlineOffset='';e.style.borderRadius='';});
   estadoApp.tourState.passo+=dir;
   mostrarPassoTour(p);
@@ -884,8 +886,9 @@ function imprimirCertificado(){
 
 // ===== APRESENTAÇÃO =====
 function abrirSlides(){
-  const s=slidesData[estadoApp.modAtual]||slidesData.dashboard;
-  estadoApp.slidesState={mod:estadoApp.modAtual,idx:0};
+  const alvo=slidesData[estadoApp.modAtual]?estadoApp.modAtual:modBase(estadoApp.modAtual);
+  const mod=slidesData[alvo]?alvo:'dashboard';
+  estadoApp.slidesState={mod,idx:0};
   renderSlide();
   document.getElementById('slides').classList.add('aberto');
 }
@@ -924,9 +927,9 @@ function renderProntuarioTab(tab){
   if(tab==='docs'){return '<div class="toolbar"><button class="btn teal" onclick="abrirModal(docForm())">📎 Anexar documento</button></div><div class="tabela-wrap"><table><tr><th>Tipo</th><th>Título</th><th>Data</th></tr>'+p.documentos.map(d=>'<tr><td>'+d.tipo+'</td><td>'+d.titulo+'</td><td>'+d.data+'</td></tr>').join('')+'</table></div>';}
   return '';}
 function evolucaoForm(){return '<h3>✍️ Nova evolução clínica</h3><div class="form-grid"><div><label>Tipo</label><select id="ev_tipo"><option value="evolucao">Evolução</option><option value="consulta">Consulta</option><option value="procedimento">Procedimento</option></select></div><div><label>Profissional</label><input value="Dr. João Silva" readonly></div><div class="full"><label>Conteúdo *</label><textarea id="ev_conteudo" rows="4" placeholder="Relato do atendimento..."></textarea></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarEvolucao()">Salvar</button></div>';}
-function salvarEvolucao(){const t=document.getElementById('ev_conteudo').value.trim();if(!t){alert('Preencha o conteúdo.');return;}estado.prontuario.evolucoes.unshift({tipo:document.getElementById('ev_tipo').value,d:t,prof:'Dr. João Silva',data:new Date().toLocaleDateString('pt-BR')});fez('evolucao');fecharModal();mostrar('prontuario');toast('Evolução registrada no prontuário ✓');}
+function salvarEvolucao(){const t=document.getElementById('ev_conteudo').value.trim();if(!t){alert('Preencha o conteúdo.');return;}estado.prontuario.evolucoes.unshift({tipo:document.getElementById('ev_tipo').value,d:t,prof:'Dr. João Silva',data:new Date().toLocaleDateString('pt-BR')});fez('evolucao');fecharModal();mostrar(estadoApp.modAtual);toast('Evolução registrada no prontuário ✓');}
 function alertaForm(){return '<h3>⚠️ Novo alerta clínico</h3><div class="form-grid"><div class="full"><label>Título *</label><input id="al_title" placeholder="Ex.: Alergia a penicilina"></div><div class="full"><label>Descrição</label><textarea id="al_desc" rows="3"></textarea></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarAlerta()">Salvar</button></div>';}
-function salvarAlerta(){const t=document.getElementById('al_title').value.trim();if(!t){alert('Informe o título do alerta.');return;}estado.prontuario.alertas.push({titulo:t,desc:document.getElementById('al_desc').value,ativo:true});fez('alerta');fecharModal();mostrar('prontuario');toast('Alerta "'+t+'" registrado ✓');}
+function salvarAlerta(){const t=document.getElementById('al_title').value.trim();if(!t){alert('Informe o título do alerta.');return;}estado.prontuario.alertas.push({titulo:t,desc:document.getElementById('al_desc').value,ativo:true});fez('alerta');fecharModal();mostrar(estadoApp.modAtual);toast('Alerta "'+t+'" registrado ✓');}
 function docForm(){return '<h3>📎 Anexar documento</h3><div class="form-grid"><div class="full"><label>Tipo</label><select><option>Termo consentimento</option><option>Contrato tratamento</option><option>Exame</option><option>Outro</option></select></div><div class="full"><label>Título</label><input placeholder="Título do documento"></div><div class="full"><label>Arquivo</label><input type="file"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="fecharModal();toast(\'Documento anexado (simulado) ✓\')">Salvar</button></div>';}
 
 function pagAgenda(){const dias=['Seg','Ter','Qua','Qui','Sex','Sáb'];const horarios=['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];return cabecalho('agenda','Agenda')+'<div class="toolbar"><button class="btn teal" onclick="abrirModal(agendarForm())">+ Novo agendamento</button><select class="campo"><option>Dr. João</option><option>Dra. Paula</option></select></div><div class="tabela-wrap"><table><tr><th>Horário</th>'+dias.map(d=>'<th>'+d+' 23/11</th>').join('')+'</tr>'+horarios.map(h=>'<tr><td><b>'+h+'</b></td>'+dias.map((d,i)=>{const c=estado.consultas.find(c=>c.h===h&&c.sala==='Sala 1');return '<td style="cursor:pointer;min-width:110px" onclick="abrirModal(agendarForm(\''+h+'\'))">'+(c?'<span class="badge" style="background:'+stCor[c.st]+'">'+c.pac.split(' ')[0]+'</span>':'<span style="color:#c0ccd3">livre</span>')}).join('')+'</tr>').join('')+'</table></div><div class="cards" style="margin-top:16px"><div class="card-kpi"><div class="v">'+estado.consultas.length+'</div><div class="r">Consultas hoje</div></div><div class="tabela-wrap"><table><tr><th>Lista de espera</th><th>Prioridade</th><th>Status</th></tr><tr><td>Joana Faria — Vaga urgente</td><td>Alta</td><td>'+stBadge('Agendado')+'</td></tr><tr><td>Bruno Réden — Limpeza</td><td>Normal</td><td>'+stBadge('Agendado')+'</td></tr></table></div></div>';}
@@ -939,20 +942,20 @@ function clicarDente(n){const el=document.getElementById('dente'+n);const atuais
 function aplicarIng(n,c){const el=document.getElementById('dente'+n);condOrder.forEach(x=>el.classList.remove(x));if(c!=='higido')el.classList.add(c);el.style.borderColor=c==='higido'?'#b8c4cc':'rgba(0,0,0,.35)';if(c!=='higido')fez('dente_marcado');document.getElementById('condAtual').textContent='Dente '+n+' → '+(c==='higido'?'Hígido (sadio)':condLabel[c]);}
 function aplicarCond(c){const el=document.getElementById('condAtual');if(el.textContent.includes('Dente')){const n=parseInt(el.textContent.match(/\d+/)[0]);aplicarIng(n,c);}}
 
-function pagPlanos(){const p=estado.planos;const total=Math.max(p.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0)-p.desconto,0);return cabecalho('planos','Planos de Tratamento — '+p.titulo)+'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(p.status)+'</div><div class="r">Status do plano</div></div><div class="card-kpi"><div class="v">'+p.itens.length+'</div><div class="r">Procedimentos</div></div><div class="card-kpi"><div class="v">R$ '+total.toFixed(2)+'</div><div class="r">Total (soma − desconto R$ '+p.desconto+')</div></div></div><div class="toolbar"><button class="btn teal" onclick="abrirModal(planoItemForm())">+ Adicionar procedimento</button><button class="btn" onclick="concluirPlano()">✔ Concluir plano</button></div><div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desc.</th><th>Total</th><th>Status</th></tr>'+p.itens.map((i,idx)=>'<tr><td>'+estado.procedimentos[i.proc-1].nome+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td><td>'+stBadge('Atendido')+'</td></tr>').join('')||'<tr><td colspan="7">Nenhum item — adicione procedimentos.</td></tr>'.join('')+'</table></div>';}
+function pagPlanos(){const p=estado.planos;const total=Math.max(p.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0)-p.desconto,0);return cabecalho('planos','Planos de Tratamento — '+p.titulo)+'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(p.status)+'</div><div class="r">Status do plano</div></div><div class="card-kpi"><div class="v">'+p.itens.length+'</div><div class="r">Procedimentos</div></div><div class="card-kpi"><div class="v">R$ '+total.toFixed(2)+'</div><div class="r">Total (soma − desconto R$ '+p.desconto+')</div></div></div><div class="toolbar"><button class="btn teal" onclick="abrirModal(planoItemForm())">+ Adicionar procedimento</button><button class="btn" onclick="concluirPlano()">✔ Concluir plano</button></div><div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desc.</th><th>Total</th><th>Status</th></tr>'+p.itens.map((i,idx)=>'<tr><td>'+procNome(i)+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td><td>'+stBadge('Atendido')+'</td></tr>').join('')||'<tr><td colspan="7">Nenhum item — adicione procedimentos.</td></tr>'.join('')+'</table></div>';}
 function planoItemForm(){return '<h3>💊 Adicionar procedimento ao plano</h3><div class="form-grid"><div class="full"><label>Procedimento</label><select id="pi_proc">'+estado.procedimentos.map((p,i)=>'<option value="'+(i+1)+'">'+p.cod+' — '+p.nome+'</option>').join('')+'</select></div><div><label>Dente</label><input id="pi_dente" placeholder="Ex.: 16" type="number"></div><div><label>Quantidade</label><input id="pi_qtd" type="number" value="1" min="1"></div><div><label>Valor unitário</label><input id="pi_uni" type="number" step="0.01"></div><div><label>Desconto (R$)</label><input id="pi_desc" type="number" value="0" min="0"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarPlanoItem()">Adicionar</button></div>';}
-function salvarPlanoItem(){const idx=parseInt(document.getElementById('pi_proc').value),qtd=parseInt(document.getElementById('pi_qtd').value)||1;const uni=parseFloat(document.getElementById('pi_uni').value)||estado.procedimentos[idx-1].val;estado.planos.itens.push({proc:idx,n:1,dente:parseInt(document.getElementById('pi_dente').value)||null,uni,qtd,desc:parseFloat(document.getElementById('pi_desc').value)||0});fez('plano_item');fecharModal();mostrar('planos');toast('Procedimento adicionado — total R$ '+Math.max(estado.planos.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0)-estado.planos.desconto,0).toFixed(2)+' ✓');}
+function salvarPlanoItem(){const idx=parseInt(document.getElementById('pi_proc').value),qtd=parseInt(document.getElementById('pi_qtd').value)||1;const uni=parseFloat(document.getElementById('pi_uni').value)||estado.procedimentos[idx-1].val;estado.planos.itens.push({proc:idx,n:1,dente:parseInt(document.getElementById('pi_dente').value)||null,uni,qtd,desc:parseFloat(document.getElementById('pi_desc').value)||0});fez('plano_item');fecharModal();mostrar(estadoApp.modAtual);toast('Procedimento adicionado — total R$ '+Math.max(estado.planos.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0)-estado.planos.desconto,0).toFixed(2)+' ✓');}
 function concluirPlano(){fez('concluir_plano');flash('Status do plano atualizado para Concluído — todos os itens marcados como executados ✓');}
 
-function pagOrcamentos(){const o=estado.orcamentos,tot=Math.max(o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0);return cabecalho('orcamentos','Orçamentos — '+o.titulo)+'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(o.status)+'</div><div class="r">Status · Validade '+o.validade+'</div></div><div class="card-kpi"><div class="v">R$ '+o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0).toFixed(2)+'</div><div class="r">Subtotal dos itens</div></div><div class="card-kpi"><div class="v">R$ '+tot.toFixed(2)+'</div><div class="r">Total final</div></div></div><div class="toolbar"><button class="btn teal" onclick="abrirModal(orcItemForm())">+ Adicionar item</button><button class="btn" onclick="emitirOrc()">📤 Emitir</button><button class="btn verde" onclick="aprovarOrc()">✔ Aprovar</button></div><div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desconto</th><th>Total</th></tr>'+o.itens.map(i=>'<tr><td>'+estado.procedimentos[i.proc-1].nome+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td></tr>').join('')+'</table></div>';}
+function pagOrcamentos(){const o=estado.orcamentos,tot=Math.max(o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0);return cabecalho('orcamentos','Orçamentos — '+o.titulo)+'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(o.status)+'</div><div class="r">Status · Validade '+o.validade+'</div></div><div class="card-kpi"><div class="v">R$ '+o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0).toFixed(2)+'</div><div class="r">Subtotal dos itens</div></div><div class="card-kpi"><div class="v">R$ '+tot.toFixed(2)+'</div><div class="r">Total final</div></div></div><div class="toolbar"><button class="btn teal" onclick="abrirModal(orcItemForm())">+ Adicionar item</button><button class="btn" onclick="emitirOrc()">📤 Emitir</button><button class="btn verde" onclick="aprovarOrc()">✔ Aprovar</button></div><div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desconto</th><th>Total</th></tr>'+o.itens.map(i=>'<tr><td>'+procNome(i)+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td></tr>').join('')+'</table></div>';}
 function orcItemForm(){return '<h3>💰 Adicionar item ao orçamento</h3><div class="form-grid"><div class="full"><label>Procedimento</label><select id="oi_proc">'+estado.procedimentos.map((p,i)=>'<option value="'+(i+1)+'">'+p.cod+' — '+p.nome+'</option>').join('')+'</select></div><div><label>Dente</label><input id="oi_dente" type="number" placeholder="16"></div><div><label>Quantidade</label><input id="oi_qtd" type="number" value="1" min="1"></div><div><label>Valor unitário</label><input id="oi_uni" type="number" step="0.01"></div><div><label>Desconto</label><input id="oi_desc" type="number" value="0"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarOrcItem()">Adicionar</button></div>';}
-function salvarOrcItem(){const idx=parseInt(document.getElementById('oi_proc').value);estado.orcamentos.itens.push({proc:idx,n:1,dente:parseInt(document.getElementById('oi_dente').value)||null,uni:parseFloat(document.getElementById('oi_uni').value)||estado.procedimentos[idx-1].val,qtd:parseInt(document.getElementById('oi_qtd').value)||1,desc:parseFloat(document.getElementById('oi_desc').value)||0});fez('orc_item');fecharModal();mostrar('orcamentos');toast('Item adicionado — total R$ '+Math.max(estado.orcamentos.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0).toFixed(2)+' ✓');}
+function salvarOrcItem(){const idx=parseInt(document.getElementById('oi_proc').value);estado.orcamentos.itens.push({proc:idx,n:1,dente:parseInt(document.getElementById('oi_dente').value)||null,uni:parseFloat(document.getElementById('oi_uni').value)||estado.procedimentos[idx-1].val,qtd:parseInt(document.getElementById('oi_qtd').value)||1,desc:parseFloat(document.getElementById('oi_desc').value)||0});fez('orc_item');fecharModal();mostrar(estadoApp.modAtual);toast('Item adicionado — total R$ '+Math.max(estado.orcamentos.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0),0).toFixed(2)+' ✓');}
 function emitirOrc(){flash('Orçamento emitido para o paciente ✓');}
 function aprovarOrc(){fez('aprovar_orc');flash('Orçamento aprovado ✓ — agora gere a conta a receber no Financeiro.');}
 
 function pagFinanceiro(){return cabecalho('financeiro','Financeiro — Contas a Receber')+'<div class="cards"><div class="card-kpi"><div class="v">R$ '+estado.financeiro.filter(c=>c.st!=='paga').reduce((s,c)=>s+c.valor,0).toFixed(2)+'</div><div class="r">Total em aberto</div></div><div class="card-kpi"><div class="v">'+estado.financeiro.filter(c=>c.st==='aberta').length+'</div><div class="r">Abertas</div></div><div class="card-kpi"><div class="v">'+estado.financeiro.filter(c=>c.st==='parcial').length+'</div><div class="r">Parciais</div></div></div><div class="tabela-wrap"><table><tr><th>Paciente</th><th>Vencimento</th><th>Valor</th><th>Pago</th><th>Saldo</th><th>Status</th><th></th></tr>'+estado.financeiro.map((c,i)=>'<tr><td>'+c.pac+'</td><td>'+c.venc+'</td><td>R$ '+c.valor.toFixed(2)+'</td><td>R$ '+c.pago.toFixed(2)+'</td><td style="font-weight:700;'+(c.st!=='paga'?'color:#d33':'')+'">R$ '+(c.valor-c.pago).toFixed(2)+'</td><td>'+(c.st==='aberta'?stBadge('Aberta'):c.st==='parcial'?stBadge('Parcial'):stBadge('Paga'))+'</td><td>'+(c.st==='paga'?'—':'<button class="btn verde fino" onclick="abrirModal(pagamentoForm('+i+'))">Receber</button>')+'</td></tr>').join('')+'</table></div>';}
 function pagamentoForm(i){const c=estado.financeiro[i],saldo=c.valor-c.pago;return '<h3>💵 Receber pagamento — '+c.pac+'</h3><div class="form-grid"><div><label>Valor (saldo R$ '+saldo.toFixed(2)+')</label><input id="pg_val" type="number" step="0.01" value="'+saldo+'"></div><div><label>Forma de pagamento</label><select id="pg_forma"><option>PIX</option><option>Dinheiro</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Boleto</option><option>Convênio</option></select></div><div class="full"><label>Data</label><input type="date" value="'+new Date().toISOString().slice(0,10)+'"></div></div><div id="pg_msg"></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn verde" onclick="salvarPagamento('+i+')">Confirmar pagamento</button></div>';}
-function salvarPagamento(i){const c=estado.financeiro[i],saldo=c.valor-c.pago,v=parseFloat(document.getElementById('pg_val').value);if(v>saldo){document.getElementById('pg_msg').innerHTML='<div class="erro">⛔ Valor informado maior que o saldo devedor (R$ '+saldo.toFixed(2)+'). O sistema real bloqueia esta operação.</div>';return;}c.pago=Math.min(c.pago+v,c.valor);c.st=c.pago>=c.valor?'paga':'parcial';c.forma=document.getElementById('pg_forma').value;fez('receber');fecharModal();mostrar('financeiro');toast(c.st==='paga'?'Pagamento de R$ '+v.toFixed(2)+' ('+c.forma+') — conta PAGA ✓':'Pagamento parcial de R$ '+v.toFixed(2)+' — saldo restante R$ '+(saldo-v).toFixed(2)+' ✓');}
+function salvarPagamento(i){const c=estado.financeiro[i],saldo=c.valor-c.pago,v=parseFloat(document.getElementById('pg_val').value);if(v>saldo){document.getElementById('pg_msg').innerHTML='<div class="erro">⛔ Valor informado maior que o saldo devedor (R$ '+saldo.toFixed(2)+'). O sistema real bloqueia esta operação.</div>';return;}c.pago=Math.min(c.pago+v,c.valor);c.st=c.pago>=c.valor?'paga':'parcial';c.forma=document.getElementById('pg_forma').value;fez('receber');fecharModal();mostrar(estadoApp.modAtual);toast(c.st==='paga'?'Pagamento de R$ '+v.toFixed(2)+' ('+c.forma+') — conta PAGA ✓':'Pagamento parcial de R$ '+v.toFixed(2)+' — saldo restante R$ '+(saldo-v).toFixed(2)+' ✓');}
 
 function pagConvenios(){return cabecalho('convenios','Convênios')+'<div class="toolbar"><button class="btn teal" onclick="abrirModal(convenioForm())">+ Nova operadora</button><input class="campo" placeholder="Buscar por nome ou CNPJ..."></div><div class="tabela-wrap"><table><tr><th>Operadora</th><th>CNPJ</th><th>Planos</th><th>Status</th></tr>'+estado.convenios.map(c=>'<tr><td><b>'+c.n+'</b></td><td>'+c.cnpj+'</td><td>'+c.planos+'&nbsp;planos</td><td><span class="badge" style="background:#198754">Ativo</span></td></tr>').join('')+'</table></div>';}
 function convenioForm(){return '<h3>🛡️ Nova operadora</h3><div class="form-grid"><div class="full"><label>Nome *</label><input id="cv_nome" placeholder="Nome do convênio"></div><div><label>CNPJ</label><input placeholder="00.000.000/0000-00"></div><div><label>Telefone</label><input placeholder="(00) 0000-0000"></div><div><label>E-mail</label><input placeholder="contato@operadora.com"></div><div><label>Responsável</label><input placeholder="Nome"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar(\'convenio\',\'Operadora cadastrada com sucesso ✓\')">Salvar</button></div>';}
@@ -965,7 +968,7 @@ function procedimentoForm(){return '<h3>🩺 Novo procedimento</h3><div class="f
 
 function pagEstoque(){return cabecalho('estoque','Estoque')+'<div style="display:flex;gap:14px;flex-wrap:wrap"><div class="tabela-wrap" style="flex:1;min-width:300px"><table><tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mín</th><th>Ações</th></tr>'+estado.estoque.map((p,i)=>'<tr><td><b>'+p.n+'</b>'+(p.baixo?' <span class="badge" style="background:#e03131">Baixo</span>':'')+'</td><td>'+p.cat+'</td><td><b id="estQtd'+i+'">'+p.est+'</b></td><td>'+p.min+'</td><td><button class="btn verde fino" onclick="abrirModal(movForm('+i+',\'entrada\'))">+Entrada</button><button class="btn vermelho fino" onclick="abrirModal(movForm('+i+',\'saida\'))">−Saída</button></td></tr>').join('')+'</table></div></div><div class="tabela-wrap" style="margin-top:16px"><table><tr><th>Histórico de movimentações</th><th>Tipo</th><th>Qtd</th></tr><tr><td>22/11 — Luvas</td><td>'+stBadge('Entrada')+'</td><td>+20</td></tr><tr><td>23/11 — Resina</td><td>'+stBadge('Saída')+'</td><td>-5</td></tr><tr><td>24/11 — Anestésico</td><td>'+stBadge('Entrada')+'</td><td>+10</td></tr></table></div>';}
 function movForm(i,tipo){const p=estado.estoque[i];return '<h3>'+(tipo==='entrada'?'📦 Entrada no estoque':'📦 Saída do estoque')+' — '+p.n+'</h3><div class="form-grid"><div><label>Quantidade</label><input id="mv_qtd" type="number" min="1" value="1"></div><div><label>Valor unit. (R$)</label><input id="mv_vlr" type="number" step="0.01" value="'+p.custo+'"></div><div class="full"><label>Observação</label><input id="mv_obs" placeholder="Fornecedor / Motivo"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn '+(tipo==='entrada'?'verde':'vermelho')+'" onclick="salvarMov('+i+',\''+tipo+'\')">'+(tipo==='entrada'?'Entrada':'Saída')+'</button></div>';}
-function salvarMov(i,tipo){const p=estado.estoque[i],q=parseInt(document.getElementById('mv_qtd').value)||1;if(tipo==='saida'&&q>p.est){toast('⛔ Saída maior que saldo ('+p.est+') — bloqueada');return;}p.est+=tipo==='entrada'?q:-q;document.getElementById('estQtd'+i).textContent=p.est;p.baixo=p.est<=p.min;fez('estoque_'+tipo);fecharModal();mostrar('estoque');toast((tipo==='entrada'?'Entrada':'Saída')+' de '+q+' '+p.n+' ✓');}
+function salvarMov(i,tipo){const p=estado.estoque[i],q=parseInt(document.getElementById('mv_qtd').value)||1;if(tipo==='saida'&&q>p.est){toast('⛔ Saída maior que saldo ('+p.est+') — bloqueada');return;}p.est+=tipo==='entrada'?q:-q;p.baixo=p.est<=p.min;const el=document.getElementById('estQtd'+i);if(el)el.textContent=p.est;estado.movimentos.unshift({data:new Date().toLocaleDateString('pt-BR'),prod:p.n,tipo:tipo==='entrada'?'Entrada':'Saída',qtd:q});fez('estoque_'+tipo);fecharModal();mostrar(estadoApp.modAtual);toast((tipo==='entrada'?'Entrada':'Saída')+' de '+q+' '+p.n+' ✓');}
 
 function pagContratos(){return cabecalho('contratos','Contratos')+'<div class="toolbar"><button class="btn teal" onclick="abrirModal(contratoForm())">+ Novo contrato</button><input class="campo" placeholder="Buscar por paciente ou tipo..."></div><div class="tabela-wrap"><table><tr><th>Paciente</th><th>Tipo</th><th>Status</th><th>Data</th><th></th></tr>'+estado.contratos.map(c=>'<tr><td>'+c.pac+'</td><td>'+c.tipo+'</td><td>'+(c.st==='Assinado'?stBadge('Assinado'):stBadge('Pendente'))+'</td><td>'+c.data+'</td><td>'+(c.st==='Pendente'?'<button class="btn verde fino" onclick="toast(\'Contrato assinado ✓\');fez(\'assinar_contrato\');mostrar(\'contratos\')">Assinar</button>':'—')+'</td></tr>').join('')+'</table></div>';}
 function contratoForm(){return '<h3>📜 Novo contrato</h3><div class="form-grid"><div class="full"><label>Paciente *</label><select>'+estado.pacientes.map(p=>'<option>'+p.n+'</option>').join('')+'</select></div><div><label>Tipo</label><select><option>Termo consentimento</option><option>Contrato tratamento</option><option>Autorização menor</option><option>Outro</option></select></div><div><label>Status</label><select><option value="Pendente">Pendente</option><option value="Assinado">Assinado</option></select></div><div><label>Data</label><input type="date" value="'+new Date().toISOString().slice(0,10)+'"></div><div class="full"><label>Conteúdo</label><textarea rows="3" placeholder="Texto do contrato..."></textarea></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar(\'contrato\',\'Contrato cadastrado ✓\')">Salvar</button></div>';}
@@ -976,6 +979,193 @@ function pagAdmin(){return cabecalho('admin','Administração — Usuários & Pe
 function usuarioForm(){return '<h3>👤 Novo usuário</h3><div class="form-grid"><div class="full"><label>Nome *</label><input id="us_nome"></div><div><label>E-mail</label><input placeholder="email@clinica.com"></div><div><label>Perfil</label><select><option>Administrador</option><option>Dentista</option><option>Recepcionista</option><option>Auxiliar</option></select></div><div><label>Senha</label><input type="password" placeholder="Mínimo 6 caracteres"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar(\'usuario\',\'Usuário cadastrado ✓\')">Salvar</button></div>';}
 
 function pagAuditoria(){return cabecalho('auditoria','Auditoria')+'<div class="toolbar"><select class="campo"><option>Todas as ações</option><option>criar</option><option>editar</option><option>excluir</option><option>registrar_pagamento</option><option>marcar_dente</option></select><select class="campo"><option>Todas as tabelas</option><option>pacientes</option><option>payments</option><option>odontogram_teeth</option><option>users</option></select><input class="campo" type="date" style="width:auto"></div><div class="tabela-wrap"><table><tr><th>Quem</th><th>Ação</th><th>Tabela</th><th>ID</th><th>Quando</th><th>IP</th></tr>'+estado.auditoria.map(a=>'<tr><td>'+a.quem+'</td><td>'+a.acao+'</td><td>'+a.tabela+'</td><td>'+a.id+'</td><td>'+a.quando+'</td><td>'+a.ip+'</td></tr>').join('')+'</table></div>';}
+
+// ===== PÁGINAS DOS SUB-MÓDULOS =====
+// Prontuário
+function pagProntuario_evol(){
+  const p=estado.prontuario,rot={evolucao:'Evolução',consulta:'Consulta',procedimento:'Procedimento'};
+  return cabecalho('prontuario_evol','Prontuário — Evoluções')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(evolucaoForm())">✍️ Registrar evolução</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Data</th><th>Tipo</th><th>Conteúdo</th><th>Profissional</th></tr>'
+    +p.evolucoes.map(e=>'<tr><td>'+e.data+'</td><td><span class="badge" style="background:#0b7285">'+(rot[e.tipo]||e.tipo)+'</span></td><td>'+e.d+'</td><td>'+e.prof+'</td></tr>').join('')
+    +'</table></div>';
+}
+function pagProntuario_anam(){
+  const p=estado.prontuario;
+  return cabecalho('prontuario_anam','Prontuário — Anamnese')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(anamneseForm())">➕ Nova pergunta</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Pergunta</th><th>Resposta</th></tr>'
+    +p.anamnese.map(a=>'<tr><td>'+a.p+'</td><td>'+a.r+'</td></tr>').join('')
+    +'</table></div>';
+}
+function anamneseForm(){return '<h3>📋 Nova pergunta de anamnese</h3><div class="form-grid"><div class="full"><label>Pergunta *</label><input id="an_p" placeholder="Ex.: Faz uso de anticoagulante?"></div><div class="full"><label>Resposta</label><input id="an_r"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarAnamnese()">Salvar</button></div>';}
+function salvarAnamnese(){const p=document.getElementById('an_p').value.trim();if(!p){alert('Informe a pergunta.');return;}estado.prontuario.anamnese.push({p,r:document.getElementById('an_r').value||'—'});fez('anamnese');fecharModal();mostrar(estadoApp.modAtual);toast('Anamnese atualizada ✓');}
+function pagProntuario_alert(){
+  const p=estado.prontuario;
+  return cabecalho('prontuario_alert','Prontuário — Alertas')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(alertaForm())">⚠️ Novo alerta</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Título</th><th>Descrição</th><th>Status</th></tr>'
+    +p.alertas.map(a=>'<tr><td><b>'+a.titulo+'</b></td><td>'+a.desc+'</td><td>'+(a.ativo?stBadge('Ativo'):stBadge('Inativo'))+'</td></tr>').join('')
+    +'</table></div>';
+}
+function pagProntuario_presc(){
+  const p=estado.prontuario;
+  return cabecalho('prontuario_presc','Prontuário — Prescrições')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(prescricaoForm())">💊 Nova prescrição</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Medicamento</th><th>Dose</th><th>Duração</th></tr>'
+    +p.prescricoes.map(r=>'<tr><td><b>'+r.med+'</b></td><td>'+r.dose+'</td><td>'+r.dur+'</td></tr>').join('')
+    +'</table></div>';
+}
+function prescricaoForm(){return '<h3>💊 Nova prescrição</h3><div class="form-grid"><div class="full"><label>Medicamento *</label><input id="pr_med" placeholder="Ex.: Amoxicilina 500mg"></div><div><label>Dose</label><input id="pr_dose" placeholder="1cp/8h"></div><div><label>Duração</label><input id="pr_dur" placeholder="7 dias"></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarPrescricao()">Salvar</button></div>';}
+function salvarPrescricao(){const m=document.getElementById('pr_med').value.trim();if(!m){alert('Informe o medicamento.');return;}estado.prontuario.prescricoes.push({med:m,dose:document.getElementById('pr_dose').value||'—',dur:document.getElementById('pr_dur').value||'—'});fez('prescricao');fecharModal();mostrar(estadoApp.modAtual);toast('Prescrição registrada ✓');}
+function pagProntuario_docs(){
+  const p=estado.prontuario;
+  return cabecalho('prontuario_docs','Prontuário — Documentos')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(docForm())">📎 Anexar documento</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Tipo</th><th>Título</th><th>Data</th></tr>'
+    +p.documentos.map(d=>'<tr><td>'+d.tipo+'</td><td>'+d.titulo+'</td><td>'+d.data+'</td></tr>').join('')
+    +'</table></div>';
+}
+
+// Agenda
+function pagAgenda_espera(){
+  return cabecalho('agenda_espera','Agenda — Lista de Espera')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(esperaForm())">➕ Adicionar à espera</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Paciente</th><th>Procedimento</th><th>Prioridade</th><th>Status</th><th></th></tr>'
+    +estado.espera.map((e,i)=>'<tr><td><b>'+e.pac+'</b></td><td>'+e.proc+'</td><td>'+(e.pri==='Alta'?'<span class="badge" style="background:#e03131">Alta</span>':'<span class="badge" style="background:#6c757d">Normal</span>')+'</td><td>'+(e.st==='Aguardando'?stBadge('Pendente'):stBadge('Agendado'))+'</td><td>'+(e.st==='Aguardando'?'<button class="btn verde fino" onclick="converterEspera('+i+')">Agendar</button>':'—')+'</td></tr>').join('')
+    +'</table></div>';
+}
+function esperaForm(){return '<h3>⏳ Adicionar à lista de espera</h3><div class="form-grid"><div class="full"><label>Paciente *</label><select id="es_pac">'+estado.pacientes.map(p=>'<option>'+p.n+'</option>').join('')+'</select></div><div><label>Procedimento</label><input id="es_proc" placeholder="Ex.: Limpeza"></div><div><label>Prioridade</label><select id="es_pri"><option>Normal</option><option>Alta</option></select></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="salvarEspera()">Salvar</button></div>';}
+function salvarEspera(){estado.espera.push({pac:document.getElementById('es_pac').value,proc:document.getElementById('es_proc').value||'Avaliação',pri:document.getElementById('es_pri').value,st:'Aguardando'});fez('espera');fecharModal();mostrar(estadoApp.modAtual);toast('Paciente adicionado à lista de espera ✓');}
+function converterEspera(i){estado.espera[i].st='Agendado';fez('converter_espera');mostrar(estadoApp.modAtual);toast('Paciente '+estado.espera[i].pac+' encaixado na agenda ✓');}
+function pagAgenda_confirma(){
+  return cabecalho('agenda_confirma','Agenda — Confirmação de Presença')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+estado.consultas.length+'</div><div class="r">🗓️ Consultas do dia</div></div><div class="card-kpi"><div class="v">'+estado.consultas.filter(c=>c.st==='Confirmado').length+'</div><div class="r">✅ Confirmadas</div></div><div class="card-kpi"><div class="v">'+estado.consultas.filter(c=>c.st==='Agendado').length+'</div><div class="r">⏳ Aguardando confirmação</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Horário</th><th>Paciente</th><th>Profissional</th><th>Status</th><th>Ações</th></tr>'
+    +estado.consultas.map((c,i)=>'<tr><td><b>'+c.h+'</b></td><td>'+c.pac+'</td><td>'+c.pro+'</td><td>'+stBadge(c.st)+'</td><td><button class="btn verde fino" onclick="confirmarConsulta('+i+')">Confirmar</button><button class="btn vermelho fino" onclick="marcarFalta('+i+')">Faltou</button></td></tr>').join('')
+    +'</table></div>';
+}
+function confirmarConsulta(i){estado.consultas[i].st='Confirmado';fez('confirmar_presenca');mostrar(estadoApp.modAtual);toast('Presença confirmada ✓');}
+function marcarFalta(i){estado.consultas[i].st='Faltou';fez('registrar_falta');mostrar(estadoApp.modAtual);toast('Falta registrada — reagende se necessário');}
+
+// Planos
+function pagPlanos_itens(){
+  const p=estado.planos;
+  return cabecalho('planos_itens','Planos — Itens do Plano')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(planoItemForm())">+ Adicionar procedimento</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desc.</th><th>Total</th><th></th></tr>'
+    +p.itens.map((i,idx)=>'<tr><td>'+procNome(i)+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td><td><button class="btn vermelho fino" onclick="removerPlanoItem('+idx+')">Remover</button></td></tr>').join('')
+    +'</table></div>';
+}
+function removerPlanoItem(i){estado.planos.itens.splice(i,1);fez('remover_plano_item');mostrar(estadoApp.modAtual);toast('Item removido do plano ✓');}
+function pagPlanos_status(){
+  const p=estado.planos,etapas=['Rascunho','Aprovado','Em andamento','Concluído'],atual=etapas.indexOf(p.status);
+  return cabecalho('planos_status','Planos — Status do Plano')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(p.status)+'</div><div class="r">Status atual</div></div><div class="card-kpi"><div class="v">'+p.itens.length+'</div><div class="r">Itens no plano</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Etapa</th><th>Status</th><th>Ação</th></tr>'
+    +etapas.map((e,i)=>'<tr><td><b>'+e+'</b></td><td>'+(i<=atual?'<span class="badge" style="background:#198754">Concluída</span>':'<span class="badge" style="background:#adb5bd">Pendente</span>')+'</td><td>'+(i===atual+1?'<button class="btn teal fino" onclick="avancarPlano(\''+e+'\')">Avançar para '+e+'</button>':'—')+'</td></tr>').join('')
+    +'</table></div>';
+}
+function avancarPlano(status){estado.planos.status=status;fez('status_plano');mostrar(estadoApp.modAtual);toast('Plano atualizado para "'+status+'" ✓');}
+
+// Orçamentos
+function pagOrcamentos_itens(){
+  const o=estado.orcamentos;
+  return cabecalho('orcamentos_itens','Orçamentos — Itens do Orçamento')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(orcItemForm())">+ Adicionar item</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Procedimento</th><th>Dente</th><th>Qtd</th><th>Valor un.</th><th>Desconto</th><th>Total</th><th></th></tr>'
+    +o.itens.map((i,idx)=>'<tr><td>'+procNome(i)+'</td><td>'+(i.dente??'—')+'</td><td>'+i.qtd+'</td><td>R$ '+i.uni.toFixed(2)+'</td><td>-R$ '+i.desc.toFixed(2)+'</td><td><b>R$ '+(i.uni*i.qtd-i.desc).toFixed(2)+'</b></td><td><button class="btn vermelho fino" onclick="removerOrcItem('+idx+')">Remover</button></td></tr>').join('')
+    +'</table></div>';
+}
+function removerOrcItem(i){estado.orcamentos.itens.splice(i,1);fez('remover_orc_item');mostrar(estadoApp.modAtual);toast('Item removido do orçamento ✓');}
+function pagOrcamentos_status(){
+  const o=estado.orcamentos,etapas=['Rascunho','Emitido','Aprovado'],atual=etapas.indexOf(o.status);
+  return cabecalho('orcamentos_status','Orçamentos — Status do Orçamento')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+stBadge(o.status)+'</div><div class="r">Status atual · Validade '+o.validade+'</div></div><div class="card-kpi"><div class="v">R$ '+o.itens.reduce((s,i)=>s+i.uni*i.qtd-i.desc,0).toFixed(2)+'</div><div class="r">Total do orçamento</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Etapa</th><th>Status</th><th>Ação</th></tr>'
+    +etapas.map((e,i)=>'<tr><td><b>'+e+'</b></td><td>'+(i<=atual?'<span class="badge" style="background:#198754">Concluída</span>':'<span class="badge" style="background:#adb5bd">Pendente</span>')+'</td><td>'+(i===atual+1?'<button class="btn teal fino" onclick="avancarOrc(\''+e+'\')">Avançar para '+e+'</button>':'—')+'</td></tr>').join('')
+    +'</table></div>';
+}
+function avancarOrc(status){estado.orcamentos.status=status;fez('status_orc');mostrar(estadoApp.modAtual);toast('Orçamento atualizado para "'+status+'" ✓');}
+
+// Financeiro
+function pagFinanceiro_receber(){
+  return cabecalho('financeiro_receber','Financeiro — Contas a Receber')
+    +'<div class="cards"><div class="card-kpi"><div class="v">R$ '+estado.financeiro.filter(c=>c.st!=='paga').reduce((s,c)=>s+c.valor-c.pago,0).toFixed(2)+'</div><div class="r">Total em aberto</div></div><div class="card-kpi"><div class="v">'+estado.financeiro.filter(c=>c.st==='aberta').length+'</div><div class="r">Abertas</div></div><div class="card-kpi"><div class="v">'+estado.financeiro.filter(c=>c.st==='parcial').length+'</div><div class="r">Parciais</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Paciente</th><th>Vencimento</th><th>Valor</th><th>Pago</th><th>Saldo</th><th>Status</th><th></th></tr>'
+    +estado.financeiro.map((c,i)=>'<tr><td>'+c.pac+'</td><td>'+c.venc+'</td><td>R$ '+c.valor.toFixed(2)+'</td><td>R$ '+c.pago.toFixed(2)+'</td><td style="font-weight:700;'+(c.st!=='paga'?'color:#d33':'')+'">R$ '+(c.valor-c.pago).toFixed(2)+'</td><td>'+(c.st==='aberta'?stBadge('Aberta'):c.st==='parcial'?stBadge('Parcial'):stBadge('Paga'))+'</td><td>'+(c.st==='paga'?'—':'<button class="btn verde fino" onclick="abrirModal(pagamentoForm('+i+'))">Receber</button>')+'</td></tr>').join('')
+    +'</table></div>';
+}
+function pagFinanceiro_parcelas(){
+  return cabecalho('financeiro_parcelas','Financeiro — Parcelamentos')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+estado.parcelas.length+'</div><div class="r">Parcelas</div></div><div class="card-kpi"><div class="v">R$ '+estado.parcelas.filter(p=>p.st!=='Paga').reduce((s,p)=>s+p.valor,0).toFixed(2)+'</div><div class="r">A receber</div></div><div class="card-kpi"><div class="v">'+estado.parcelas.filter(p=>p.st==='Paga').length+'</div><div class="r">Pagas</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Paciente</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr>'
+    +estado.parcelas.map((p,i)=>'<tr><td>'+p.pac+'</td><td>'+p.num+'</td><td>'+p.venc+'</td><td>R$ '+p.valor.toFixed(2)+'</td><td>'+stBadge(p.st)+'</td><td>'+(p.st==='Paga'?'—':'<button class="btn verde fino" onclick="pagarParcela('+i+')">Receber</button>')+'</td></tr>').join('')
+    +'</table></div>';
+}
+function pagarParcela(i){estado.parcelas[i].st='Paga';fez('receber_parcela');mostrar(estadoApp.modAtual);toast('Parcela recebida ✓');}
+
+// Estoque
+function pagEstoque_mov(){
+  return cabecalho('estoque_mov','Estoque — Movimentações')
+    +'<div class="toolbar"><button class="btn verde" onclick="abrirModal(movForm(0,\'entrada\'))">+ Entrada</button><button class="btn vermelho" onclick="abrirModal(movForm(0,\'saida\'))">− Saída</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th></tr>'
+    +estado.movimentos.map(m=>'<tr><td>'+m.data+'</td><td>'+m.prod+'</td><td>'+stBadge(m.tipo)+'</td><td><b>'+(m.tipo==='Entrada'?'+':'−')+m.qtd+'</b></td></tr>').join('')
+    +'</table></div>';
+}
+function pagEstoque_baixo(){
+  const baixos=estado.estoque.filter(p=>p.est<=p.min);
+  return cabecalho('estoque_baixo','Estoque — Produtos em Estoque Baixo')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+baixos.length+'</div><div class="r">⚠️ Produtos abaixo do mínimo</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mínimo</th><th>Ação</th></tr>'
+    +(baixos.length?baixos.map(p=>'<tr><td><b>'+p.n+'</b> <span class="badge" style="background:#e03131">Baixo</span></td><td>'+p.cat+'</td><td><b>'+p.est+'</b></td><td>'+p.min+'</td><td><button class="btn verde fino" onclick="abrirModal(movForm('+estado.estoque.indexOf(p)+',\'entrada\'))">Repor</button></td></tr>').join(''):'<tr><td colspan="5" class="aviso">Nenhum produto em estoque baixo.</td></tr>')
+    +'</table></div>';
+}
+
+// Relatórios
+function pagRelatorios_fin(){
+  const r=estado.rel;
+  return cabecalho('relatorios_fin','Relatórios — Financeiro')
+    +'<div class="cards"><div class="card-kpi"><div class="v">R$ '+r.recebido.toFixed(2)+'</div><div class="r">💰 Recebido</div></div><div class="card-kpi"><div class="v">R$ '+r.emAberto.toFixed(2)+'</div><div class="r">📋 Em aberto</div></div><div class="card-kpi"><div class="v">'+r.atendidas+'</div><div class="r">✅ Atendidas</div></div><div class="card-kpi"><div class="v">'+r.canceladas+'</div><div class="r">❌ Canceladas</div></div><div class="card-kpi"><div class="v">'+r.faltas+'</div><div class="r">🚫 Faltas</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Indicador</th><th>Valor</th></tr><tr><td>Recebido</td><td>R$ '+r.recebido.toFixed(2)+'</td></tr><tr><td>Em aberto</td><td>R$ '+r.emAberto.toFixed(2)+'</td></tr><tr><td>Atendidas</td><td>'+r.atendidas+'</td></tr><tr><td>Canceladas</td><td>'+r.canceladas+'</td></tr><tr><td>Faltas</td><td>'+r.faltas+'</td></tr></table></div>';
+}
+function pagRelatorios_agenda(){
+  const r=estado.rel,total=r.atendidas+r.faltas+r.canceladas;
+  return cabecalho('relatorios_agenda','Relatórios — Agenda')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+Math.round(r.atendidas/total*100)+'%</div><div class="r">✅ Comparecimento</div></div><div class="card-kpi"><div class="v">'+r.faltas+'</div><div class="r">🚫 Faltas</div></div><div class="card-kpi"><div class="v">'+r.canceladas+'</div><div class="r">❌ Canceladas</div></div><div class="card-kpi"><div class="v">08:00–10:00</div><div class="r">⏰ Pico de horários</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Indicador</th><th>Valor</th></tr><tr><td>Comparecimento</td><td>'+Math.round(r.atendidas/total*100)+'%</td></tr><tr><td>Pico horário</td><td>08:00–10:00</td></tr><tr><td>Taxa de retorno</td><td>42%</td></tr></table></div>';
+}
+function pagRelatorios_estoque(){
+  const r=estado.rel;
+  return cabecalho('relatorios_estoque','Relatórios — Estoque')
+    +'<div class="cards"><div class="card-kpi"><div class="v">'+r.entradas+'</div><div class="r">📥 Entradas</div></div><div class="card-kpi"><div class="v">'+r.saidas+'</div><div class="r">📤 Saídas</div></div><div class="card-kpi"><div class="v">'+r.baixo+'</div><div class="r">⚠️ Estoque baixo</div></div></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mínimo</th><th>Status</th></tr>'
+    +estado.estoque.map(p=>'<tr><td>'+p.n+'</td><td>'+p.cat+'</td><td><b>'+p.est+'</b></td><td>'+p.min+'</td><td>'+(p.est<=p.min?stBadge('Pendente'):stBadge('Ativo'))+'</td></tr>').join('')
+    +'</table></div>';
+}
+
+// Administração
+function pagAdmin_usuarios(){
+  return cabecalho('admin_usuarios','Administração — Usuários')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(usuarioForm())">+ Novo usuário</button><input class="campo" placeholder="Buscar por nome ou e-mail..."></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th></tr>'
+    +estado.usuarios.map(u=>'<tr><td><b>'+u.n+'</b></td><td>'+u.email+'</td><td>'+u.perfil+'</td><td><span class="badge" style="background:#198754">'+u.st+'</span></td></tr>').join('')
+    +'</table></div>';
+}
+function pagAdmin_perfis(){
+  const perfis=['Administrador','Dentista','Recepcionista','Auxiliar'];
+  const perms={Administrador:['Criar','Ler','Editar','Excluir'],Dentista:['Ler','Editar'],Recepcionista:['Criar','Ler'],Auxiliar:['Ler']};
+  return cabecalho('admin_perfis','Administração — Perfis e Permissões')
+    +'<div class="toolbar"><button class="btn teal" onclick="abrirModal(perfilForm())">+ Novo perfil</button></div>'
+    +'<div class="tabela-wrap"><table><tr><th>Perfil</th><th>Permissões</th><th>Usuários</th></tr>'
+    +perfis.map(p=>'<tr><td><b>'+p+'</b></td><td>'+perms[p].map(x=>'<span class="badge" style="background:#0b7285;margin-right:4px">'+x+'</span>').join('')+'</td><td>'+estado.usuarios.filter(u=>u.perfil===p).length+'</td></tr>').join('')
+    +'</table></div>';
+}
+function perfilForm(){return '<h3>🔐 Novo perfil</h3><div class="form-grid"><div class="full"><label>Nome do perfil *</label><input id="pe_nome" placeholder="Ex.: Financeiro"></div><div class="full"><label>Permissões</label><div style="display:flex;gap:12px;flex-wrap:wrap"><label><input type="checkbox" checked> Criar</label><label><input type="checkbox" checked> Ler</label><label><input type="checkbox"> Editar</label><label><input type="checkbox"> Excluir</label></div></div></div><div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button><button class="btn teal" onclick="registrar(\'perfil\',\'Perfil criado ✓\')">Salvar</button></div>';}
+function pagAdmin_clinica(){
+  return cabecalho('admin_clinica','Administração — Dados da Clínica')
+    +'<div class="tabela-wrap" style="padding:16px"><div class="form-grid"><div class="full"><label>Nome da clínica</label><input value="Clínica Daiane — Odontologia"></div><div><label>CNPJ</label><input value="12.345.678/0001-90"></div><div><label>Telefone</label><input value="(11) 3333-4444"></div><div class="full"><label>Endereço</label><input value="Av. Paulista, 1000 — São Paulo/SP"></div><div><label>E-mail</label><input value="contato@clinicadaiane.com.br"></div><div><label>Horário de atendimento</label><input value="Seg a Sex, 08:00–18:00"></div><div class="full"><label>Mensagem usada pela API WhatsApp</label><textarea rows="2">Olá! Bem-vindo(a) à Clínica Daiane. Como podemos ajudar?</textarea></div></div><div class="acoes"><button class="btn teal" onclick="registrar(\'clinica\',\'Dados da clínica salvos ✓\')">Salvar dados</button></div></div>';
+}
 
 // ===== TOAST/FLASH =====
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>{t.style.animation='slideUp .3s ease reverse';setTimeout(()=>t.style.display='none',300);},3000);}
