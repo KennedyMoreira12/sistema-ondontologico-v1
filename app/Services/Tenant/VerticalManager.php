@@ -204,6 +204,12 @@ class VerticalManager
             return in_array($modulo, $verticalsClinica, true);
         }
 
+        // Módulo desativado explicitamente para esta clínica
+        $desativados = $clinic?->modulos_desativados ?? [];
+        if (in_array($modulo, $desativados, true)) {
+            return false;
+        }
+
         $verticalDoModulo = $this->catalogo->verticalDoModulo($modulo);
 
         // Módulo fora do catálogo (ou comum às duas verticais): liberado,
@@ -224,7 +230,11 @@ class VerticalManager
     {
         $modulos = array_merge(['dashboard'], array_keys($this->catalogo->todos()));
 
-        return array_values(array_filter($modulos, fn (string $m): bool => $this->permite($m, $clinic)));
+        $desativados = $clinic?->modulos_desativados ?? [];
+
+        return array_values(array_filter($modulos, function (string $m): bool {
+            return ! in_array($m, $desativados, true) && $this->permite($m, $clinic);
+        }));
     }
 
     /**
