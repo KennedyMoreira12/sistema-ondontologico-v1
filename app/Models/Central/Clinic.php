@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'logo_path', 'primary_color', 'secondary_color',
     'frase_institucional', 'profissional_principal_id',
     'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',
-    'suspended_at', 'suspension_reason',
+    'suspended_at', 'suspension_reason', 'modulos_desativados',
 ])]
 class Clinic extends CentralModel
 {
@@ -43,6 +43,12 @@ class Clinic extends CentralModel
              * VerticalManager faz esse fallback.
              */
             'verticals' => 'array',
+
+            /**
+             * Módulos desligados explicitamente para esta clínica (ex.: Malheiro
+             * não usa Turmas). JSON array no banco central.
+             */
+            'modulos_desativados' => 'array',
 
             /**
              * O token da instância é usado em claro na chamada, então não pode
