@@ -281,6 +281,44 @@ class DocumentPdfTest extends TestCase
     }
 
     /** @test */
+    public function test_atestado_lista_pacientes_legados_sem_clinica_id(): void
+    {
+        // Pacientes antigos da Malheiro têm clinica_id = 0; o isolamento é a
+        // conexão do tenant, então eles precisam aparecer no formulário.
+        Paciente::create([
+            'clinica_id' => 0,
+            'nome' => 'Paciente Legado',
+            'cpf' => '987.654.321-'.mt_rand(10, 99),
+        ]);
+
+        $response = $this->actingAs($this->provisionResult['user'])
+            ->get(route('documentos.atestado.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Paciente Legado');
+    }
+
+    /** @test */
+    public function test_atestado_busca_dados_de_paciente_legado(): void
+    {
+        $paciente = Paciente::create([
+            'clinica_id' => 0,
+            'nome' => 'Paciente Legado',
+            'cpf' => '987.654.321-'.mt_rand(10, 99),
+            'rg' => '11.222.333',
+        ]);
+
+        $response = $this->actingAs($this->provisionResult['user'])
+            ->get(route('documentos.atestado.paciente', $paciente));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'nome' => 'Paciente Legado',
+            'rg' => '11.222.333',
+        ]);
+    }
+
+    /** @test */
     public function test_clinica_nao_malheiro_nao_acessa_documentos(): void
     {
         // Cria outra clínica (não Malheiro, id ≠ 1)

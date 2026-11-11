@@ -103,16 +103,14 @@ class DocumentController extends Controller
         $this->ensureMalheiro();
         $this->authorize('documentos.view');
 
-        // Busca pacientes e profissionais do tenant atual para preencher selects
-        $clinicaId = $this->branding->clinicaId();
-
+        // Busca pacientes e profissionais do tenant atual para preencher selects.
+        // O isolamento é a conexão `tenant`; `clinica_id` é trilha de auditoria
+        // e não entra em filtro — os pacientes antigos da Malheiro têm 0/NULL.
         $pacientes = Paciente::query()
-            ->where('clinica_id', $clinicaId)
             ->orderBy('nome')
             ->get(['id', 'nome', 'cpf']);
 
         $profissionais = Professional::query()
-            ->where('clinica_id', $clinicaId)
             ->where('is_active', true)
             ->orderBy('nome')
             ->get(['id', 'nome', 'cro', 'registro_profissional', 'conselho_regional']);
@@ -187,11 +185,8 @@ class DocumentController extends Controller
         $this->ensureMalheiro();
         $this->authorize('documentos.view');
 
-        // Verifica se o paciente pertence ao tenant atual
-        if ((int) $paciente->clinica_id !== (int) $this->branding->clinicaId()) {
-            abort(403, 'Paciente não pertence a esta clínica.');
-        }
-
+        // O paciente já foi resolvido pela conexão `tenant` (route model
+        // binding), então ele pertence necessariamente a esta clínica.
         return response()->json([
             'nome' => $paciente->nome,
             'cpf' => $paciente->cpf,
