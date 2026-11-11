@@ -30,14 +30,15 @@ class DocumentoPermissionSeeder extends Seeder
         foreach ($roles as $role) {
             // Admin tem todas as permissões
             if ($role->name === 'admin') {
-                $role->permissions()->sync(Permission::all());
+                $role->permissions()->syncWithoutDetaching(Permission::all());
 
                 continue;
             }
 
             // Dentista: view e generate de documentos
+            // `syncWithoutDetaching` preserva as permissões que o papel já tem.
             $ids = Permission::where('module', 'documentos')->pluck('id')->all();
-            $role->permissions()->sync($ids);
+            $role->permissions()->syncWithoutDetaching($ids);
         }
 
         $this->command->info('Permissões de documentos criadas e associadas aos roles.');

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\tenant;
 
+use Database\Seeders\DocumentoPermissionSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -19,5 +20,15 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             CatalogSeeder::class,
         ]);
+
+        // A identidade Malheiro existe apenas na clínica 1. Os seeders abaixo
+        // dependem do TenantManager estar apontando para essa clínica, o que
+        // acontece quando rodamos via `tenants:seed --clinic=1`.
+        if (tenant_id() === 1) {
+            $this->call([
+                DocumentoPermissionSeeder::class,
+                MalheiroProfessionalSeeder::class,
+            ]);
+        }
     }
 }
