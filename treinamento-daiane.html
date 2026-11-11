@@ -230,7 +230,7 @@ tr:hover td{background:rgba(12,166,120,.03)}
       <button class="nav-item" data-mod="agenda" onclick="mostrar('agenda')"><span class="ico">🗓️</span>Agenda</button>
       <button class="nav-item" data-mod="agenda_espera" onclick="mostrar('agenda_espera')"><span class="ico">⏳</span>Lista de Espera</button>
       <button class="nav-item" data-mod="agenda_confirma" onclick="mostrar('agenda_confirma')"><span class="ico">✅</span>Confirmação</button>
-      <button class="nav-item" data-mod="odontograma" onclick="mostrar('odontograma')"><span class="ico">🦷</span>Odontograma</button>
+      <button class="nav-item" data-mod="odontograma" data-desativado="1" onclick="mostrar('odontograma')"><span class="ico">🦷</span>Odontograma</button>
       <button class="nav-item" data-mod="planos" onclick="mostrar('planos')"><span class="ico">💊</span>Planos de Tratamento</button>
       <button class="nav-item" data-mod="planos_itens" onclick="mostrar('planos_itens')"><span class="ico">📋</span>Itens do Plano</button>
       <button class="nav-item" data-mod="planos_status" onclick="mostrar('planos_status')"><span class="ico">📊</span>Status do Plano</button>
@@ -363,6 +363,10 @@ const procNome = i => { const p = typeof i.proc==='number' ? estado.procedimento
 const modulos = {dashboard:0,pacientes:1,prontuario:2,prontuario_evol:2,prontuario_anam:2,prontuario_alert:2,prontuario_presc:2,prontuario_docs:2,agenda:3,agenda_espera:3,agenda_confirma:3,odontograma:4,planos:4,planos_itens:4,planos_status:4,orcamentos:5,orcamentos_itens:5,orcamentos_status:5,financeiro:5,financeiro_receber:5,financeiro_parcelas:5,convenios:6,profissionais:6,procedimentos:6,estoque:7,estoque_mov:7,estoque_baixo:7,contratos:7,relatorios:8,relatorios_fin:8,relatorios_agenda:8,relatorios_estoque:8,admin:8,admin_usuarios:8,admin_perfis:8,admin_clinica:8,auditoria:8};
 const modPai = {prontuario_evol:'prontuario',prontuario_anam:'prontuario',prontuario_alert:'prontuario',prontuario_presc:'prontuario',prontuario_docs:'prontuario',agenda_espera:'agenda',agenda_confirma:'agenda',planos_itens:'planos',planos_status:'planos',orcamentos_itens:'orcamentos',orcamentos_status:'orcamentos',financeiro_receber:'financeiro',financeiro_parcelas:'financeiro',estoque_mov:'estoque',estoque_baixo:'estoque',relatorios_fin:'relatorios',relatorios_agenda:'relatorios',relatorios_estoque:'relatorios',admin_usuarios:'admin',admin_perfis:'admin',admin_clinica:'admin'};
 const modBase = m => modPai[m] || m;
+// ===== MÓDULOS DESATIVADOS POR CLÍNICA =====
+// Equivalente a clinics.modulos_desativados (JSON). Ex.: Malheiro desliga "Turmas"; Daiane desliga "Odontograma".
+const modulosDesativados = ['odontograma'];
+const moduloDesativado = m => modulosDesativados.includes(m) || modulosDesativados.includes(modPai[m] || m);
 const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário',prontuario_evol:'Evoluções',prontuario_anam:'Anamnese',prontuario_alert:'Alertas',prontuario_presc:'Prescrições',prontuario_docs:'Documentos',agenda:'Agenda',agenda_espera:'Lista de Espera',agenda_confirma:'Confirmação de Presença',odontograma:'Odontograma',planos:'Planos de Tratamento',planos_itens:'Itens do Plano',planos_status:'Status do Plano',orcamentos:'Orçamentos',orcamentos_itens:'Itens do Orçamento',orcamentos_status:'Status do Orçamento',financeiro:'Financeiro',financeiro_receber:'Contas a Receber',financeiro_parcelas:'Parcelamentos',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',estoque_mov:'Movimentações',estoque_baixo:'Estoque Baixo',contratos:'Contratos',relatorios:'Relatórios',relatorios_fin:'Financeiro',relatorios_agenda:'Agenda',relatorios_estoque:'Estoque',admin:'Administração',admin_usuarios:'Usuários',admin_perfis:'Perfis',admin_clinica:'Dados da Clínica',auditoria:'Auditoria'};
 const iconesMod = {dashboard:'📊',pacientes:'👥',prontuario:'📋',prontuario_evol:'📝',prontuario_anam:'📋',prontuario_alert:'⚠️',prontuario_presc:'💊',prontuario_docs:'📎',agenda:'🗓️',agenda_espera:'⏳',agenda_confirma:'✅',odontograma:'🦷',planos:'💊',planos_itens:'📋',planos_status:'📊',orcamentos:'💰',orcamentos_itens:'📋',orcamentos_status:'📊',financeiro:'🏦',financeiro_receber:'💰',financeiro_parcelas:'📅',convenios:'🛡️',profissionais:'🧑‍⚕️',procedimentos:'🩺',estoque:'📦',estoque_mov:'📥',estoque_baixo:'⚠️',contratos:'📜',relatorios:'📊',relatorios_fin:'💰',relatorios_agenda:'🗓️',relatorios_estoque:'📦',admin:'⚙️',admin_usuarios:'👥',admin_perfis:'🔐',admin_clinica:'🏥',auditoria:'🔍'};
 
@@ -659,15 +663,16 @@ function initTheme(){let t='light';try{t=localStorage.getItem('daiane_theme')||'
 function toggleTheme(){const n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('daiane_theme',n)}catch(e){}const t=document.getElementById('themeToggle');if(t)t.setAttribute('data-theme',n);}
 
 // ===== PROGRESSO =====
+function modsAtivos(){return Object.keys(modulos).filter(m=>!moduloDesativado(m));}
 function carregaProgresso(){try{const p=localStorage.getItem('daiane_progresso');if(p){estadoApp.progresso=JSON.parse(p);estadoApp.desafiosFeitos=JSON.parse(localStorage.getItem('daiane_desafios')||'{}');}}catch(e){}}
 function salvaProgresso(){try{localStorage.setItem('daiane_progresso',JSON.stringify(estadoApp.progresso));localStorage.setItem('daiane_desafios',JSON.stringify(estadoApp.desafiosFeitos));}catch(e){}}
-function fez(acao){const mod=estadoApp.modAtual;estadoApp.progresso[mod]=Math.min(100,(estadoApp.progresso[mod]||0)+10);if(!estadoApp.desafiosFeitos[mod])estadoApp.desafiosFeitos[mod]={};estadoApp.desafiosFeitos[mod][acao]=true;salvaProgresso();renderNav();renderProgresso();}
+function fez(acao){const mod=estadoApp.modAtual;if(moduloDesativado(mod))return;estadoApp.progresso[mod]=Math.min(100,(estadoApp.progresso[mod]||0)+10);if(!estadoApp.desafiosFeitos[mod])estadoApp.desafiosFeitos[mod]={};estadoApp.desafiosFeitos[mod][acao]=true;salvaProgresso();renderNav();renderProgresso();}
 function zerarProgresso(){if(!confirm('Apagar TODO o progresso (checklists, desafios, quiz)?'))return;try{localStorage.removeItem('daiane_progresso');localStorage.removeItem('daiane_desafios')}catch(e){}estadoApp.progresso={};estadoApp.desafiosFeitos={};renderNav();renderProgresso();mostrar(estadoApp.modAtual);toast('Progresso zerado');}
-function renderProgresso(){const mods=Object.keys(modulos);const total=mods.length;let feitos=0;mods.forEach(m=>{if((estadoApp.progresso[m]||0)>=100)feitos++;});document.getElementById('progNum').textContent=feitos+'/'+total;document.getElementById('progBarra').style.width=((feitos/total)*100)+'%';}
+function renderProgresso(){const mods=modsAtivos();const total=mods.length;let feitos=0;mods.forEach(m=>{if((estadoApp.progresso[m]||0)>=100)feitos++;});document.getElementById('progNum').textContent=feitos+'/'+total;document.getElementById('progBarra').style.width=((feitos/total)*100)+'%';}
 
 // ===== NAVEGAÇÃO SIDEBAR =====
-function renderNav(){document.querySelectorAll('.nav-item').forEach(btn=>{const m=btn.dataset.mod;const feito=(estadoApp.progresso[m]||0)>=100;btn.classList.toggle('feito',feito);if(feito)btn.querySelector('.ok')?.remove();});}
-function setupSidebarNavigation(){const itens=document.querySelectorAll('#navLista .nav-item');estadoApp.focoIdx=0;function atualizaFoco(){itens.forEach((b,i)=>b.classList.toggle('foco',i===estadoApp.focoIdx));if(itens[estadoApp.focoIdx])itens[estadoApp.focoIdx].scrollIntoView({block:'nearest'});}atualizaFoco();window.navSidebar={itens,atualizaFoco,getIdx:()=>estadoApp.focoIdx,setIdx:i=>{estadoApp.focoIdx=Math.max(0,Math.min(itens.length-1,i));atualizaFoco()}};}
+function renderNav(){document.querySelectorAll('.nav-item').forEach(btn=>{const m=btn.dataset.mod;const desativado=moduloDesativado(m);btn.classList.toggle('escondido',desativado);if(desativado)return;const feito=(estadoApp.progresso[m]||0)>=100;btn.classList.toggle('feito',feito);if(feito)btn.querySelector('.ok')?.remove();});}
+function setupSidebarNavigation(){const itens=document.querySelectorAll('#navLista .nav-item:not(.escondido)');estadoApp.focoIdx=0;function atualizaFoco(){itens.forEach((b,i)=>b.classList.toggle('foco',i===estadoApp.focoIdx));if(itens[estadoApp.focoIdx])itens[estadoApp.focoIdx].scrollIntoView({block:'nearest'});}atualizaFoco();window.navSidebar={itens,atualizaFoco,getIdx:()=>estadoApp.focoIdx,setIdx:i=>{estadoApp.focoIdx=Math.max(0,Math.min(itens.length-1,i));atualizaFoco()}};}
 
 // ===== BUSCA SIDEBAR =====
 function setupBusca(){
@@ -676,17 +681,20 @@ function setupBusca(){
     const f=inp.value.toLowerCase().trim();
     document.querySelectorAll('.nav-item').forEach(b=>{
       const t=b.textContent.toLowerCase();
-      b.classList.toggle('escondido',f&&!t.includes(f));
+      const desativado=moduloDesativado(b.dataset.mod);
+      b.classList.toggle('escondido',desativado||(f&&!t.includes(f)));
     });
   });
   inp.addEventListener('keydown',e=>{
     if(e.key==='Enter'){
       const vis=document.querySelectorAll('.nav-item:not(.escondido)');
       if(vis.length){vis[0].click();inp.value='';vis.forEach(v=>v.classList.remove('escondido'));}
+      renderNav();
     }
     if(e.key==='Escape'){
       inp.value='';
-      document.querySelectorAll('.nav-item.escondido').forEach(v=>v.classList.remove('escondido'));
+      document.querySelectorAll('.nav-item.escondido:not([data-desativado])').forEach(v=>v.classList.remove('escondido'));
+      renderNav();
       inp.blur();
     }
   });
@@ -728,6 +736,11 @@ function setupAtalhos(){
 // ===== MOSTRAR MÓDULO =====
 function mostrar(mod){
   if(!modulos.hasOwnProperty(mod))mod='dashboard';
+  if(moduloDesativado(mod)){
+    toast('Este módulo está desativado para esta clínica');
+    mostrar('dashboard');
+    return;
+  }
   estadoApp.modAtual=mod;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('ativo',b.dataset.mod===mod));
   const idx=Object.keys(modulos).indexOf(mod);
@@ -783,6 +796,7 @@ function abrirComoFunciona(mod){
 
 // ===== TOUR GUIADO =====
 function iniciarTour(mod){
+  if(moduloDesativado(mod)){toast('Este módulo está desativado para esta clínica');return;}
   const passos={
     dashboard:[{sel:'.card-kpi',txt:'KPIs: consultas, pacientes, tratamentos, estoque'},{sel:'.tabela-wrap',txt:'Agenda de hoje e contas a receber'},{sel:'.corte',txt:'Acesso rápido aos módulos principais'}],
     pacientes:[{sel:'.toolbar .campo',txt:'Busca tempo real por nome/CPF/telefone'},{sel:'.tabela-wrap',txt:'Lista de pacientes com ações'},{sel:'.painel-desafios',txt:'Desafios: buscar, abrir ficha, cadastrar'}],
@@ -840,6 +854,7 @@ function pararTour(){
 
 // ===== QUIZ =====
 function abrirQuiz(mod){
+  if(moduloDesativado(mod)){toast('Este módulo está desativado para esta clínica');return;}
   const q=quizData[mod];
   if(!q||!q.length){toast('Quiz não disponível');return;}
   estadoApp.quizState={mod,idx:0,respostas:[]};
@@ -890,6 +905,7 @@ function imprimirCertificado(){
 
 // ===== APRESENTAÇÃO =====
 function abrirSlides(){
+  if(moduloDesativado(estadoApp.modAtual)){toast('Este módulo está desativado para esta clínica');return;}
   const alvo=slidesData[estadoApp.modAtual]?estadoApp.modAtual:modBase(estadoApp.modAtual);
   const mod=slidesData[alvo]?alvo:'dashboard';
   estadoApp.slidesState={mod,idx:0};
