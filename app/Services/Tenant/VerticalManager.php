@@ -232,7 +232,7 @@ class VerticalManager
 
         $desativados = $clinic?->modulos_desativados ?? [];
 
-        return array_values(array_filter($modulos, function (string $m): bool {
+        return array_values(array_filter($modulos, function (string $m) use ($desativados, $clinic): bool {
             return ! in_array($m, $desativados, true) && $this->permite($m, $clinic);
         }));
     }
