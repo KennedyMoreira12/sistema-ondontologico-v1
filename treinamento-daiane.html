@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>LJ SmartClinic - Treinamento Clínica Daiane</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
 <style>
@@ -736,7 +739,8 @@ function mostrar(mod){
 }
 function renderPagina(mod){
   const fn=window['pag'+mod.charAt(0).toUpperCase()+mod.slice(1)];
-  return fn?fn():'<div class="aviso">Módulo em construção</div>';
+  if(fn)return fn();
+  return cabecalho(mod,titulos[mod]||mod)+'<div class="tabela-wrap" style="padding:22px;text-align:center"><div style="font-size:2.2rem;margin-bottom:8px">📘</div><p style="font-weight:700;margin-bottom:6px">'+(titulos[mod]||mod)+'</p><p style="color:var(--mouse);font-size:.9rem">Use os desafios e o quiz deste módulo para praticar. O conteúdo completo está disponível no sistema.</p></div>';
 }
 
 // ===== CABEÇALHO PADRÃO =====
