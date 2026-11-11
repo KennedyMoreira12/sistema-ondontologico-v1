@@ -78,6 +78,16 @@
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     @endcan
+                                    @can('pacientes.delete')
+                                        <form method="POST" action="{{ route('pacientes.destroy', $paciente) }}" class="d-inline"
+                                              onsubmit="return confirm({{ \Illuminate\Support\Js::from('Excluir o paciente '.$paciente->nome.'? O histórico é preservado, mas ele sai da lista de pacientes.') }})">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
