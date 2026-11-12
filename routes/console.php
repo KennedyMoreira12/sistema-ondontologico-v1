@@ -31,3 +31,14 @@ Schedule::command('fiscal:sincronizar')
 Schedule::command('whatsapp:outbox:recover')
     ->everyMinute()
     ->withoutOverlapping();
+
+/**
+ * Lembretes de consulta com 24h de antecedência.
+ *
+ * O comando só enfileira; quem entrega é o `whatsapp:outbox:recover` acima.
+ * Roda no começo da tarde para que o paciente receba o lembrete em horário
+ * comercial e ainda tenha tempo de responder "confirmar" no mesmo dia.
+ */
+Schedule::command('whatsapp:lembretes')
+    ->dailyAt('14:00')
+    ->withoutOverlapping();

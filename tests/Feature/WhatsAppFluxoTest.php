@@ -11,6 +11,7 @@ use App\Models\Procedure;
 use App\Models\Professional;
 use App\Models\ProfessionalSchedule;
 use App\Models\Room;
+use App\Models\Specialty;
 use App\Models\WhatsAppConversation;
 use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,20 +43,37 @@ class WhatsAppFluxoTest extends TestCase
     {
         parent::setUp();
 
+        // Fixa "agora" numa segunda-feira de manhã. A agenda de teste é das
+        // 08:00 às 12:00 de segunda a sexta: sem isto o mesmo teste passa de
+        // manhã e falha à tarde, que é o pior tipo de teste — o que ninguém
+        // sabe se está quebrado.
+        Carbon::setTestNow(Carbon::parse('2026-11-16 07:00:00'));
+
         config([
             'services.evolution.url' => 'https://evolution.test',
             'services.evolution.webhook_secret' => 'segredo',
         ]);
     }
 
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
+
     private function criarContexto(?array $abilities = null): Clinic
     {
         $clinica = $this->criarClinicaTeste('Clínica Teste');
+
+        $especialidade = Specialty::create(['name' => 'Odontologia']);
 
         $this->profissional = Professional::create([
             'nome' => 'Dra. Ana',
             'is_active' => true,
         ]);
+
+        $this->profissional->specialties()->attach($especialidade->id);
 
         $this->procedimento = Procedure::create([
             'codigo' => 'CONSULTA',
@@ -126,7 +144,9 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('1');
         $this->dizer('João da Silva');
 
-        // menu -> profissional
+        // menu -> especialidade
+        $this->dizer('1');
+        // especialidade -> profissional
         $this->dizer('1');
         // profissional -> procedimento
         $this->dizer('1');
@@ -239,6 +259,7 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('oi');
         $this->dizer('1');
         $this->dizer('João da Silva');
+        $this->dizer('1');
         $this->dizer('1');
 
         $this->assertSame('profissional', WhatsAppConversation::first()->etapa);
@@ -357,6 +378,7 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('1');
         $this->dizer('João da Silva');
         $this->dizer('1');
+        $this->dizer('1');
 
         $r = $this->dizer('99');
 
@@ -389,6 +411,9 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('oi');
         $this->dizer('1');
         $this->dizer('João da Silva');
+
+        // Sem profissional ativo vinculado, o menu cai direto na lista de
+        // profissionais — que está vazia — e manda para a recepção.
         $r = $this->dizer('1');
 
         $this->assertSame('recepcao', $r['etapa_para']);
@@ -504,6 +529,221 @@ class WhatsAppFluxoTest extends TestCase
         $this->assertTenantDatabaseCount('whatsapp_conversations', 2);
     }
 
+    public function test_especialidade_lista_e_filtra_profissionais(): void
+    {
+        $this->criarContexto();
+
+        // Outra especialidade com outro profissional
+        $ortodontia = Specialty::create(['name' => 'Ortodontia']);
+        $profissionalOrtodontia = Professional::create([
+            'nome' => 'Dr. Brackets',
+            'is_active' => true,
+        ]);
+        $profissionalOrtodontia->specialties()->attach($ortodontia->id);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $this->dizer('João da Silva');
+
+        // menu -> especialidade: as duas aparecem, sem os profissionais ainda.
+        $r = $this->dizer('1');
+
+        $this->assertSame('especialidade', $r['etapa_para']);
+        $this->assertStringContainsString('Odontologia', $r['resposta']);
+        $this->assertStringContainsString('Ortodontia', $r['resposta']);
+
+        // Odontologia é a primeira em ordem alfabética: só a Dra. Ana aparece.
+        $r = $this->dizer('1');
+
+        $this->assertSame('profissional', $r['etapa_para']);
+        $this->assertStringContainsString('Dra. Ana', $r['resposta']);
+        $this->assertStringNotContainsString('Dr. Brackets', $r['resposta']);
+    }
+
+    public function test_minhas_consultas_mostra_agendamentos_do_paciente(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $statusConfirmado = AppointmentStatus::where('name', 'confirmado')->first();
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => $statusConfirmado->id,
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        // Paciente já cadastrado: consentimento leva direto ao menu.
+        $this->dizer('oi');
+        $this->dizer('1');
+
+        // menu -> minhas consultas (opção 2)
+        $r = $this->dizer('2');
+
+        $this->assertSame('minhas_consultas', $r['etapa_para']);
+        $this->assertStringContainsString('Suas consultas', $r['resposta']);
+        $this->assertStringContainsString($inicio->format('d/m'), $r['resposta']);
+        $this->assertStringContainsString('Dra. Ana', $r['resposta']);
+        $this->assertStringContainsString('Confirmado', $r['resposta']);
+    }
+
+    public function test_minhas_consultas_nao_mostra_consulta_cancelada(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::CANCELADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta cancelada',
+        ]);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $r = $this->dizer('2');
+
+        $this->assertStringContainsString('não tem consultas agendadas', $r['resposta']);
+        $this->assertStringNotContainsString('Consulta cancelada', $r['resposta']);
+    }
+
+    public function test_menu_opcao_tres_vai_para_a_recepcao(): void
+    {
+        $this->criarContexto();
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $this->dizer('João da Silva');
+
+        $r = $this->dizer('3');
+
+        $this->assertSame('recepcao', $r['etapa_para']);
+        $this->assertStringContainsString('recepção', $r['resposta']);
+    }
+
+    public function test_sintoma_encaminha_para_a_especialidade_correta(): void
+    {
+        $this->criarContexto();
+
+        // A clínica de teste tem só "Odontologia"; para o mapa de sintomas
+        // apontar para um profissional vinculado, adicionamos Endodontia.
+        $endodontia = Specialty::create(['name' => 'Endodontia']);
+        $this->profissional->specialties()->attach($endodontia->id);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $this->dizer('João da Silva');
+
+        // menu -> especialidade
+        $this->dizer('1');
+
+        // Última opção da lista: "Descrever o que sinto".
+        $r = $this->dizer('3');
+        $this->assertSame('sintoma', $r['etapa_para']);
+
+        $r = $this->dizer('estou com dor de dente');
+
+        $this->assertSame('profissional', $r['etapa_para']);
+        $this->assertStringContainsString('Endodontia', $r['resposta']);
+        $this->assertStringContainsString('Dra. Ana', $r['resposta']);
+    }
+
+    public function test_sintoma_sem_casamento_volta_para_a_lista_de_especialidades(): void
+    {
+        $this->criarContexto();
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $this->dizer('João da Silva');
+        $this->dizer('1');
+        $this->dizer('2');
+
+        $r = $this->dizer('quero um café');
+
+        $this->assertSame('especialidade', $r['etapa_para']);
+        $this->assertStringContainsString('Não consegui identificar', $r['resposta']);
+        $this->assertStringContainsString('Odontologia', $r['resposta']);
+    }
+
+    public function test_confirmar_marca_a_consulta_de_amanha_como_confirmada(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        $consulta = Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+
+        $r = $this->dizer('confirmar');
+
+        $this->assertSame('menu', $r['etapa_para']);
+        $this->assertStringContainsString('Consulta confirmada', $r['resposta']);
+        $this->assertSame(
+            AppointmentStatus::idFor(AppointmentStatus::CONFIRMADO),
+            $consulta->fresh()->appointment_status_id,
+        );
+    }
+
+    public function test_confirmar_sem_consulta_para_amanha_avisa_o_paciente(): void
+    {
+        $clinica = $this->criarContexto();
+
+        Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+
+        $r = $this->dizer('confirmar');
+
+        $this->assertSame('menu', $r['etapa_para']);
+        $this->assertStringContainsString('Não há consulta agendada para amanhã', $r['resposta']);
+    }
+
     public function test_token_sem_a_ability_do_fluxo_e_recusado(): void
     {
         $this->criarContexto(['appointments.view']);
@@ -537,6 +777,140 @@ class WhatsAppFluxoTest extends TestCase
         $this->assertTenantDatabaseCount('whatsapp_messages', 0);
     }
 
+    public function test_comando_de_lembretes_enfileira_consulta_de_amanha(): void
+    {
+        $clinica = $this->criarContexto();
+
+        // Sem instância/token da Evolution o comando ignora a clínica, e o
+        // teste não provaria o enfileiramento.
+        $clinica->update([
+            'evolution_instance' => 'instancia-teste',
+            'evolution_token' => 'token-teste',
+        ]);
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        $consulta = Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->artisan('whatsapp:lembretes')->assertSuccessful();
+
+        $this->assertTenantDatabaseHas('whatsapp_outbox', [
+            'correlation_id' => "lembrete_24h_{$consulta->id}",
+            'telefone' => '5599999999999',
+            'source' => 'lembrete_24h',
+        ]);
+    }
+
+    public function test_comando_de_lembretes_nao_duplica_o_lembrete(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $clinica->update([
+            'evolution_instance' => 'instancia-teste',
+            'evolution_token' => 'token-teste',
+        ]);
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->artisan('whatsapp:lembretes')->assertSuccessful();
+        $this->artisan('whatsapp:lembretes')->assertSuccessful();
+
+        $this->assertTenantDatabaseCount('whatsapp_outbox', 1);
+    }
+
+    public function test_comando_de_lembretes_ignora_clinica_sem_integracao(): void
+    {
+        $this->criarContexto();
+
+        $paciente = Paciente::create([
+            'clinica_id' => $this->clinicaTest->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $this->clinicaTest->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->artisan('whatsapp:lembretes')->assertSuccessful();
+
+        $this->assertTenantDatabaseCount('whatsapp_outbox', 0);
+    }
+
+    public function test_comando_de_lembretes_em_dry_run_nao_grava_nada(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $clinica->update([
+            'evolution_instance' => 'instancia-teste',
+            'evolution_token' => 'token-teste',
+        ]);
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->artisan('whatsapp:lembretes', ['--dry-run' => true])->assertSuccessful();
+
+        $this->assertTenantDatabaseCount('whatsapp_outbox', 0);
+    }
+
     /**
      * Primeiro dia útil a partir de hoje, que é o primeiro que a agenda oferece.
      */
@@ -544,7 +918,13 @@ class WhatsAppFluxoTest extends TestCase
     {
         $dia = Carbon::today();
 
-        while ($dia->isSunday()) {
+        // A agenda é das 08:00 às 12:00; depois disso o primeiro dia com vaga
+        // já é o seguinte. E sábado/domingo não têm expediente.
+        if (now()->gte($dia->copy()->setTime(12, 0))) {
+            $dia = $dia->copy()->addDay();
+        }
+
+        while ($dia->isWeekend()) {
             $dia = $dia->copy()->addDay();
         }
 

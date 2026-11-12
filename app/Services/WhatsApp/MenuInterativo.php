@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\Central\Clinic;
+use App\Models\Specialty;
 use App\Services\EvolutionService;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -51,9 +52,11 @@ class MenuInterativo
                 ['id' => '2', 'titulo' => 'Falar com a recepção', 'descricao' => 'Quero atendimento humano.'],
             ],
             'menu' => [
-                ['id' => '1', 'titulo' => 'Agendar consulta', 'descricao' => 'Escolher profissional, procedimento e horário.'],
-                ['id' => '2', 'titulo' => 'Falar com a recepção', 'descricao' => 'Quero atendimento humano.'],
+                ['id' => '1', 'titulo' => 'Agendar consulta', 'descricao' => 'Escolher especialidade, profissional e horário.'],
+                ['id' => '2', 'titulo' => 'Minhas consultas', 'descricao' => 'Ver consultas agendadas.'],
+                ['id' => '3', 'titulo' => 'Falar com a recepção', 'descricao' => 'Quero atendimento humano.'],
             ],
+            'especialidade' => $this->dasEspecialidades($dados),
             'profissional' => $this->dasProfissionais($dados),
             'procedimento' => $this->dosProcedimentos($dados),
             'data' => $this->dosDias($dados),
@@ -322,6 +325,40 @@ class MenuInterativo
      * @param  array<string, mixed>  $dados
      * @return list<array<string, mixed>>
      */
+    protected function dasEspecialidades(array $dados): array
+    {
+        $limite = $this->maximoLinhas();
+
+        // Uma linha fica reservada para "Descrever o que sinto", que é a última
+        // opção também na versão textual da etapa. Sem ela, quem usa o menu
+        // interativo não teria como descrever o sintoma.
+        $especialidades = Specialty::orderBy('name')
+            ->take(max(1, $limite - 1))
+            ->get()
+            ->values();
+
+        $opcoes = $especialidades
+            ->map(fn (Specialty $e, int $i) => [
+                'id' => (string) ($i + 1),
+                'titulo' => (string) $e->name,
+            ])
+            ->all();
+
+        $opcoes[] = [
+            'id' => (string) (count($opcoes) + 1),
+            'titulo' => 'Descrever o que sinto',
+        ];
+
+        return $this->mapear(
+            $opcoes,
+            static fn (array $opcao): array => $opcao,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $dados
+     * @return list<array<string, mixed>>
+     */
     protected function dosProcedimentos(array $dados): array
     {
         $procedimentos = is_array($dados['procedimentos'] ?? null) ? $dados['procedimentos'] : [];
@@ -394,6 +431,7 @@ class MenuInterativo
         return match ($etapa) {
             'consentimento' => 'Antes de começar',
             'menu' => 'Como posso ajudar?',
+            'especialidade' => 'Escolha a especialidade',
             'profissional' => 'Escolha o profissional',
             'procedimento' => 'Escolha o procedimento',
             'data' => 'Escolha o dia',
