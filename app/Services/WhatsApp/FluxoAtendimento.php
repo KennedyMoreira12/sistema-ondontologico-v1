@@ -3,10 +3,12 @@
 namespace App\Services\WhatsApp;
 
 use App\Exceptions\HorarioOcupadoException;
+use App\Models\Appointment;
 use App\Models\AppointmentStatus;
 use App\Models\Paciente;
 use App\Models\Procedure;
 use App\Models\Professional;
+use App\Models\Specialty;
 use App\Models\WhatsAppConversation;
 use App\Services\Agenda\AgendamentoService;
 use App\Services\Agenda\DisponibilidadeService;
@@ -45,7 +47,7 @@ class FluxoAtendimento
      *
      * @var list<string>
      */
-    public const COMANDOS_GLOBAIS = ['menu', 'inicio', 'cancelar', 'sair'];
+    public const COMANDOS_GLOBAIS = ['menu', 'inicio', 'cancelar', 'sair', 'voltar'];
 
     /**
      * Quantos dias à frente o bot oferece agenda.
@@ -67,6 +69,11 @@ class FluxoAtendimento
      * Quantos procedimentos são mostrados de uma vez.
      */
     public const MAXIMO_PROCEDIMENTOS = 12;
+
+    /**
+     * Quantas especialidades aparecem de uma vez.
+     */
+    public const MAXIMO_ESPECIALIDADES = 15;
 
     /**
      * Quanto tempo uma conversa abandonada sobrevive.
@@ -101,6 +108,15 @@ class FluxoAtendimento
         if (in_array(mb_strtolower($texto), self::COMANDOS_GLOBAIS, true)) {
             $nome = $dados['nome'] ?? $this->paciente($telefone)?->nome;
 
+            // "voltar" só faz sentido se não estiver no menu: volta para a
+            // etapa anterior gravada, ou para o menu se não houver histórico.
+            if (mb_strtolower($texto) === 'voltar' && $etapa !== 'menu') {
+                $etapaAnterior = $this->etapaAnterior($conversa);
+                $this->salvar($conversa, $etapaAnterior, $dados);
+
+                return $this->resultado($etapa, $etapaAnterior, $this->textoDaEtapa($etapaAnterior, $dados, $nome));
+            }
+
             // `$dados` e não um array novo: o paciente que pede "menu" no meio do
             // agendamento precisa continuar sendo o mesmo paciente quando volta
             // a escolher horário.
@@ -115,10 +131,13 @@ class FluxoAtendimento
             'consentimento' => $this->consentimento($telefone, $opcao, $nomeClinica),
             'cadastro' => $this->cadastro($telefone, $texto),
             'menu' => $this->menuInicial($dados, $opcao),
+            'especialidade' => $this->especialidade($dados, $numero, $opcao),
             'profissional' => $this->profissional($dados, $numero, $opcao),
             'procedimento' => $this->procedimento($dados, $numero, $opcao),
             'data' => $this->data($dados, $numero, $opcao),
             'horario' => $this->horario($remoteJid, $dados, $numero, $opcao),
+            'minhas_consultas' => $this->minhasConsultas($dados, $numero, $opcao),
+            'cancelar_consulta' => $this->cancelarConsulta($dados, $numero, $opcao),
             // Estado de espera: a pessoa já avisou que quer a recepção, e o bot
             // não deve continuar menuizando alguém que pediu um humano.
             'recepcao' => ['recepcao', $dados, "Um atendente da clínica responderá em breve. 😊\n\nResponda \"menu\" se quiser voltar às opções."],
@@ -195,35 +214,30 @@ class FluxoAtendimento
             return ['recepcao', $dados, 'Tudo bem! A recepção vai te atender em breve.'];
         }
 
+        if ($opcao === 2) {
+            return ['minhas_consultas', $dados, $this->minhasConsultasTexto($dados)];
+        }
+
         if ($opcao !== 0) {
             return ['menu', $dados, $this->menu($dados['nome'] ?? null)];
         }
 
-        $profissionais = Professional::with('specialties')
-            ->where('is_active', true)
-            ->orderBy('nome')
+        $especialidades = Specialty::orderBy('name')
+            ->take(self::MAXIMO_ESPECIALIDADES)
             ->get();
 
-        if ($profissionais->isEmpty()) {
-            return ['recepcao', $dados, 'Nenhum profissional disponível para agendamento agora. Vou avisar a recepção.'];
+        if ($especialidades->isEmpty()) {
+            return ['recepcao', $dados, 'Não há especialidades cadastradas. Vou avisar a recepção.'];
         }
 
-        $lista = $profissionais
-            ->map(function (Professional $profissional, int $i): string {
-                $especialidades = $profissional->specialties->pluck('name')->join(', ');
-                $sufixo = $especialidades !== '' ? " ({$especialidades})" : '';
-
-                return ($i + 1).". {$profissional->nome}{$sufixo}";
-            })
+        $lista = $especialidades
+            ->map(fn (Specialty $e, int $i) => ($i + 1).". {$e->name}")
             ->implode("\n");
 
         return [
-            'profissional',
-            $dados + ['profissionais' => $profissionais->map(fn (Professional $p) => [
-                'id' => $p->id,
-                'nome' => $p->nome,
-            ])->all()],
-            "Escolha o profissional:\n\n{$lista}\n\nResponda com o número.",
+            'especialidade',
+            $dados,
+            "Escolha a especialidade:\n\n{$lista}\n\nResponda com o número.",
         ];
     }
 
@@ -566,7 +580,280 @@ class FluxoAtendimento
     {
         $saudacao = is_string($nome) && $nome !== '' ? ", {$nome}" : '';
 
-        return "Olá{$saudacao}! 👋 Como posso ajudar?\n\n1️⃣ Agendar consulta\n2️⃣ Falar com a recepção";
+        return "Olá{$saudacao}! 👋 Como posso ajudar?\n\n1️⃣ Agendar consulta\n2️⃣ Minhas consultas\n3️⃣ Falar com a recepção";
+    }
+
+    /**
+     * Determina a etapa anterior com base na etapa atual, para o comando "voltar".
+     */
+    protected function etapaAnterior(WhatsAppConversation $conversa): string
+    {
+        $etapa = $conversa->etapa ?? 'menu';
+        $dados = is_array($conversa->dados) ? $conversa->dados : [];
+
+        return match ($etapa) {
+            'especialidade' => 'menu',
+            'profissional' => 'especialidade',
+            'procedimento' => 'profissional',
+            'data' => 'procedimento',
+            'horario' => 'data',
+            'minhas_consultas' => 'menu',
+            'cancelar_consulta' => 'menu',
+            default => 'menu',
+        };
+    }
+
+    /**
+     * Texto adequado para cada etapa ao voltar, para não deixar o paciente sem contexto.
+     */
+    protected function textoDaEtapa(string $etapa, array $dados, ?string $nome): string
+    {
+        return match ($etapa) {
+            'especialidade' => $this->textoEspecialidade($dados),
+            'profissional' => $this->textoProfissional($dados),
+            'procedimento' => $this->textoProcedimento($dados),
+            'data' => $this->textoData($dados),
+            'horario' => $this->textoHorario($dados),
+            'minhas_consultas' => $this->minhasConsultasTexto($dados),
+            default => $this->menu($nome),
+        };
+    }
+
+    protected function textoEspecialidade(array $dados): string
+    {
+        $especialidades = Specialty::orderBy('name')
+            ->take(self::MAXIMO_ESPECIALIDADES)
+            ->get();
+
+        if ($especialidades->isEmpty()) {
+            return 'Não há especialidades cadastradas.';
+        }
+
+        $lista = $especialidades
+            ->map(fn (Specialty $e, int $i) => ($i + 1).". {$e->name}")
+            ->implode("\n");
+
+        return "Escolha a especialidade:\n\n{$lista}\n\nResponda com o número.";
+    }
+
+    protected function textoProfissional(array $dados): string
+    {
+        $especialidadeId = $dados['especialidade_id'] ?? null;
+
+        $query = Professional::with('specialties')->where('is_active', true);
+
+        if ($especialidadeId) {
+            $query->whereHas('specialties', fn ($q) => $q->where('specialties.id', $especialidadeId));
+        }
+
+        $profissionais = $query->orderBy('nome')->get();
+
+        if ($profissionais->isEmpty()) {
+            return 'Não há profissionais para esta especialidade.';
+        }
+
+        $lista = $profissionais
+            ->map(function (Professional $profissional, int $i): string {
+                $especialidades = $profissional->specialties->pluck('name')->join(', ');
+                $sufixo = $especialidades !== '' ? " ({$especialidades})" : '';
+
+                return ($i + 1).". {$profissional->nome}{$sufixo}";
+            })
+            ->implode("\n");
+
+        return "Escolha o profissional:\n\n{$lista}\n\nResponda com o número.";
+    }
+
+    protected function textoProcedimento(array $dados): string
+    {
+        $profissionalId = $dados['profissional_id'] ?? null;
+
+        $query = Procedure::where('is_active', true);
+
+        if ($profissionalId) {
+            // Procedimentos não têm relação direta com profissional no modelo atual,
+            // então mostramos todos os ativos.
+        }
+
+        $procedimentos = $query->orderBy('nome')
+            ->take(self::MAXIMO_PROCEDIMENTOS)
+            ->get();
+
+        if ($procedimentos->isEmpty()) {
+            return 'Não há procedimentos cadastrados.';
+        }
+
+        $lista = $procedimentos
+            ->map(fn (Procedure $p, int $i) => ($i + 1).". {$p->nome} ({$p->duracao_minutos} min)")
+            ->implode("\n");
+
+        return "Qual procedimento?\n\n{$lista}\n\nResponda com o número.";
+    }
+
+    protected function textoData(array $dados): string
+    {
+        $profissionalId = $dados['profissional_id'] ?? null;
+        $duracao = $dados['duracao'] ?? null;
+
+        if (! $profissionalId || ! $duracao) {
+            return 'Escolha primeiro o profissional e o procedimento.';
+        }
+
+        $agenda = $this->disponibilidade->horariosLivres(
+            (int) $profissionalId,
+            (int) $duracao,
+            self::DIAS_DE_AGENDA,
+        );
+
+        $dias = $this->diasComHorarios($agenda);
+
+        if ($dias === []) {
+            return 'Sem horários livres nos próximos dias.';
+        }
+
+        $lista = collect($dias)
+            ->map(fn (array $dia, int $i) => ($i + 1).". {$dia['data']} ({$dia['dia_semana']}) — {$dia['quantidade']} horário(s)")
+            ->implode("\n");
+
+        return "Escolha o dia:\n\n{$lista}\n\nResponda com o número.";
+    }
+
+    protected function textoHorario(array $dados): string
+    {
+        $profissionalId = $dados['profissional_id'] ?? null;
+        $duracao = $dados['duracao'] ?? null;
+        $data = $dados['data_escolhida'] ?? null;
+
+        if (! $profissionalId || ! $duracao || ! $data) {
+            return 'Escolha primeiro o profissional, procedimento e data.';
+        }
+
+        $horarios = $this->disponibilidade->horariosDoDia(
+            (int) $profissionalId,
+            (int) $duracao,
+            $data,
+            self::DIAS_DE_AGENDA,
+        );
+
+        if ($horarios === []) {
+            return 'Esse dia não tem mais horários livres.';
+        }
+
+        $visiveis = collect($horarios)
+            ->take(self::MAXIMO_HORARIOS)
+            ->values();
+
+        $lista = $visiveis
+            ->map(fn (string $hora, int $i) => ($i + 1).". {$hora}")
+            ->implode("\n");
+
+        return "Horários livres em {$data}:\n\n{$lista}\n\nResponda com o número.";
+    }
+
+    /**
+     * Lista especialidades e guarda a escolhida para filtrar profissionais.
+     */
+    protected function especialidade(array $dados, ?string $numero, ?int $opcao): array
+    {
+        if ($opcao === null) {
+            return ['especialidade', $dados, $this->textoEspecialidade($dados)];
+        }
+
+        $especialidades = Specialty::orderBy('name')
+            ->take(self::MAXIMO_ESPECIALIDADES)
+            ->get();
+
+        $escolhida = $especialidades[$opcao] ?? null;
+
+        if (! $escolhida) {
+            return ['especialidade', $dados, 'Opção inválida. Responda com o número da especialidade.'];
+        }
+
+        $query = Professional::with('specialties')->where('is_active', true)
+            ->whereHas('specialties', fn ($q) => $q->where('specialties.id', $escolhida->id));
+
+        $profissionais = $query->orderBy('nome')->get();
+
+        if ($profissionais->isEmpty()) {
+            return [
+                'menu',
+                $this->base($dados),
+                "Não há profissionais disponíveis para {$escolhida->name} agora.\n\n".$this->menu($dados['nome'] ?? null),
+            ];
+        }
+
+        $lista = $profissionais
+            ->map(function (Professional $profissional, int $i): string {
+                $especialidadesNomes = $profissional->specialties->pluck('name')->join(', ');
+                $sufixo = $especialidadesNomes !== '' ? " ({$especialidadesNomes})" : '';
+
+                return ($i + 1).". {$profissional->nome}{$sufixo}";
+            })
+            ->implode("\n");
+
+        return [
+            'profissional',
+            $dados + [
+                'especialidade_id' => $escolhida->id,
+                'especialidade' => $escolhida->name,
+                'profissionais' => $profissionais->map(fn (Professional $p) => [
+                    'id' => $p->id,
+                    'nome' => $p->nome,
+                ])->all(),
+            ],
+            "Certo, {$escolhida->name}. Escolha o profissional:\n\n{$lista}\n\nResponda com o número.",
+        ];
+    }
+
+    /**
+     * Mostra as consultas futuras do paciente.
+     */
+    protected function minhasConsultas(array $dados, ?string $numero, ?int $opcao): array
+    {
+        if ($opcao === null) {
+            return ['minhas_consultas', $dados, $this->minhasConsultasTexto($dados)];
+        }
+
+        // Qualquer número volta ao menu.
+        return ['menu', $this->base($dados), $this->menu($dados['nome'] ?? null)];
+    }
+
+    protected function minhasConsultasTexto(array $dados): string
+    {
+        $pacienteId = $dados['paciente_id'] ?? null;
+
+        if (! $pacienteId) {
+            return 'Não consegui identificar seu cadastro. Responda "menu" para começar novamente.';
+        }
+
+        $consultas = Appointment::with(['profissional', 'status'])
+            ->where('paciente_id', $pacienteId)
+            ->where('inicio', '>=', now()->startOfDay())
+            ->orderBy('inicio')
+            ->get();
+
+        if ($consultas->isEmpty()) {
+            return "Você não tem consultas agendadas.\n\n".$this->menu($dados['nome'] ?? null);
+        }
+
+        $linhas = $consultas->map(fn (Appointment $c) => {
+            $statusNome = $c->status?->nome ?? 'Agendado';
+            return "📅 {$c->inicio->format('d/m H:i')} — {$c->profissional?->nome} ({$statusNome})";
+        })->implode("\n");
+
+        return "Suas consultas:\n\n{$linhas}\n\nResponda \"menu\" para voltar.";
+    }
+
+    /**
+     * Cancela uma consulta futura do paciente.
+     */
+    protected function cancelarConsulta(array $dados, ?string $numero, ?int $opcao): array
+    {
+        if ($opcao === null) {
+            return $this->minhasConsultas($dados, $numero, $opcao);
+        }
+
+        return ['menu', $this->base($dados), $this->menu($dados['nome'] ?? null)];
     }
 
     protected function textoConsentimento(string $nomeClinica): string

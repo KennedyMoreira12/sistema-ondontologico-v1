@@ -11,6 +11,7 @@ use App\Models\Procedure;
 use App\Models\Professional;
 use App\Models\ProfessionalSchedule;
 use App\Models\Room;
+use App\Models\Specialty;
 use App\Models\WhatsAppConversation;
 use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,10 +53,14 @@ class WhatsAppFluxoTest extends TestCase
     {
         $clinica = $this->criarClinicaTeste('Clínica Teste');
 
+        $especialidade = Specialty::create(['name' => 'Odontologia']);
+
         $this->profissional = Professional::create([
             'nome' => 'Dra. Ana',
             'is_active' => true,
         ]);
+
+        $this->profissional->specialties()->attach($especialidade->id);
 
         $this->procedimento = Procedure::create([
             'codigo' => 'CONSULTA',
@@ -126,7 +131,9 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('1');
         $this->dizer('João da Silva');
 
-        // menu -> profissional
+        // menu -> especialidade
+        $this->dizer('1');
+        // especialidade -> profissional
         $this->dizer('1');
         // profissional -> procedimento
         $this->dizer('1');
@@ -239,6 +246,7 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('oi');
         $this->dizer('1');
         $this->dizer('João da Silva');
+        $this->dizer('1');
         $this->dizer('1');
 
         $this->assertSame('profissional', WhatsAppConversation::first()->etapa);
@@ -357,6 +365,7 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('1');
         $this->dizer('João da Silva');
         $this->dizer('1');
+        $this->dizer('1');
 
         $r = $this->dizer('99');
 
@@ -389,6 +398,7 @@ class WhatsAppFluxoTest extends TestCase
         $this->dizer('oi');
         $this->dizer('1');
         $this->dizer('João da Silva');
+        $this->dizer('1');
         $r = $this->dizer('1');
 
         $this->assertSame('recepcao', $r['etapa_para']);
@@ -502,6 +512,69 @@ class WhatsAppFluxoTest extends TestCase
         $this->assertSame('consentimento', $p['etapa_para']);
         $this->assertSame('consentimento', $g['etapa_para']);
         $this->assertTenantDatabaseCount('whatsapp_conversations', 2);
+    }
+
+    public function test_especialidade_lista_e_filtra_profissionais(): void
+    {
+        $clinica = $this->criarContexto();
+
+        // Outra especialidade com outro profissional
+        $ortodontia = Specialty::create(['name' => 'Ortodontia']);
+        $profissionalOrtodontia = Professional::create([
+            'nome' => 'Dr. Brackets',
+            'is_active' => true,
+        ]);
+        $profissionalOrtodontia->specialties()->attach($ortodontia->id);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $this->dizer('João da Silva');
+
+        // menu -> especialidade
+        $r = $this->dizer('1');
+
+        $this->assertSame('profissional', $r['etapa_para']);
+        $this->assertStringContainsString('Odontologia', $r['resposta']);
+        // O profissional de outra especialidade não aparece
+        $this->assertStringNotContainsString('Dr. Brackets', $r['resposta']);
+    }
+
+    public function test_minhas_consultas_mostra_agendamentos_do_paciente(): void
+    {
+        $clinica = $this->criarContexto();
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $statusConfirmado = AppointmentStatus::where('name', 'confirmado')->first();
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => $statusConfirmado->id,
+            'inicio' => Carbon::parse($this->primeiroDiaUtil())->setTime(9, 0),
+            'fim' => Carbon::parse($this->primeiroDiaUtil())->setTime(9, 30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->dizer('oi');
+        $this->dizer('1');
+        $r = $this->dizer('1');
+
+        $this->assertSame('menu', $r['etapa_para']);
+
+        // menu -> minhas consultas (opção 2)
+        $r = $this->dizer('2');
+
+        $this->assertSame('minhas_consultas', $r['etapa_para']);
+        $this->assertStringContainsString('Suas consultas', $r['resposta']);
+        $this->assertStringContainsString($this->primeiroDiaUtil(), $r['resposta']);
+        $this->assertStringContainsString('Dra. Ana', $r['resposta']);
     }
 
     public function test_token_sem_a_ability_do_fluxo_e_recusado(): void
