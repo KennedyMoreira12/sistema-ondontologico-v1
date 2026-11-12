@@ -13,6 +13,7 @@ use App\Models\ProfessionalSchedule;
 use App\Models\Room;
 use App\Models\Specialty;
 use App\Models\WhatsAppConversation;
+use App\Services\WhatsApp\ClinicFeatures;
 use App\Support\IntegrationAbilities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -788,6 +789,8 @@ class WhatsAppFluxoTest extends TestCase
             'evolution_token' => 'token-teste',
         ]);
 
+        $this->habilitarLembretes($clinica);
+
         $paciente = Paciente::create([
             'clinica_id' => $clinica->id,
             'nome' => 'João da Silva',
@@ -825,6 +828,8 @@ class WhatsAppFluxoTest extends TestCase
             'evolution_token' => 'token-teste',
         ]);
 
+        $this->habilitarLembretes($clinica);
+
         $paciente = Paciente::create([
             'clinica_id' => $clinica->id,
             'nome' => 'João da Silva',
@@ -852,10 +857,14 @@ class WhatsAppFluxoTest extends TestCase
 
     public function test_comando_de_lembretes_ignora_clinica_sem_integracao(): void
     {
-        $this->criarContexto();
+        $clinica = $this->criarContexto();
+
+        // Flag ligada de propósito: o que se prova aqui é a ausência de
+        // integração, não a flag.
+        $this->habilitarLembretes($clinica);
 
         $paciente = Paciente::create([
-            'clinica_id' => $this->clinicaTest->id,
+            'clinica_id' => $clinica->id,
             'nome' => 'João da Silva',
             'celular' => '5599999999999',
             'status' => 'ativo',
@@ -864,7 +873,7 @@ class WhatsAppFluxoTest extends TestCase
         $inicio = Carbon::tomorrow()->setTime(9, 0);
 
         Appointment::create([
-            'clinica_id' => $this->clinicaTest->id,
+            'clinica_id' => $clinica->id,
             'paciente_id' => $paciente->id,
             'profissional_id' => $this->profissional->id,
             'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
@@ -882,6 +891,43 @@ class WhatsAppFluxoTest extends TestCase
     {
         $clinica = $this->criarContexto();
 
+        $clinica->update([
+            'evolution_instance' => 'instancia-teste',
+            'evolution_token' => 'token-teste',
+        ]);
+
+        $this->habilitarLembretes($clinica);
+
+        $paciente = Paciente::create([
+            'clinica_id' => $clinica->id,
+            'nome' => 'João da Silva',
+            'celular' => '5599999999999',
+            'status' => 'ativo',
+        ]);
+
+        $inicio = Carbon::tomorrow()->setTime(9, 0);
+
+        Appointment::create([
+            'clinica_id' => $clinica->id,
+            'paciente_id' => $paciente->id,
+            'profissional_id' => $this->profissional->id,
+            'appointment_status_id' => AppointmentStatus::idFor(AppointmentStatus::AGENDADO),
+            'inicio' => $inicio,
+            'fim' => $inicio->copy()->addMinutes(30),
+            'titulo' => 'Consulta',
+        ]);
+
+        $this->artisan('whatsapp:lembretes', ['--dry-run' => true])->assertSuccessful();
+
+        $this->assertTenantDatabaseCount('whatsapp_outbox', 0);
+    }
+
+    public function test_comando_de_lembretes_nao_faz_nada_com_a_flag_desligada(): void
+    {
+        $clinica = $this->criarContexto();
+
+        // Evolution configurada, mas a flag `reminders` continua no padrão
+        // desligado: o comando não pode enfileirar nada.
         $clinica->update([
             'evolution_instance' => 'instancia-teste',
             'evolution_token' => 'token-teste',
@@ -906,9 +952,17 @@ class WhatsAppFluxoTest extends TestCase
             'titulo' => 'Consulta',
         ]);
 
-        $this->artisan('whatsapp:lembretes', ['--dry-run' => true])->assertSuccessful();
+        $this->artisan('whatsapp:lembretes')->assertSuccessful();
 
         $this->assertTenantDatabaseCount('whatsapp_outbox', 0);
+    }
+
+    /**
+     * Liga o recurso de lembretes para a clínica, como um operador faria.
+     */
+    private function habilitarLembretes(Clinic $clinica): void
+    {
+        app(ClinicFeatures::class)->set($clinica, 'reminders', true);
     }
 
     /**

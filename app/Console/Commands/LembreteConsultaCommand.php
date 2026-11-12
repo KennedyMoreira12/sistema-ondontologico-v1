@@ -7,6 +7,7 @@ use App\Models\AppointmentStatus;
 use App\Models\Central\Clinic;
 use App\Models\WhatsAppOutboxMessage;
 use App\Services\Tenant\TenantRunner;
+use App\Services\WhatsApp\ClinicFeatures;
 use App\Services\WhatsApp\Outbox;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -26,6 +27,10 @@ use Throwable;
  * agendado ou confirmado, cria uma linha com idempotência por consulta. Rodar
  * o comando de novo não duplica o lembrete.
  *
+ * O recurso é opt-in: a clínica precisa ter a flag `reminders` ligada (via
+ * `ClinicFeatures`). Sem isso o comando não faz nada, mesmo com Evolution
+ * configurada.
+ *
  * O paciente responde "confirmar" para marcar a consulta como confirmada
  * (tratado no `FluxoAtendimento`).
  */
@@ -38,7 +43,7 @@ class LembreteConsultaCommand extends Command
 
     protected $description = 'Enfileira lembretes de consulta para amanhã pelo WhatsApp';
 
-    public function handle(TenantRunner $runner, Outbox $outbox): int
+    public function handle(TenantRunner $runner, Outbox $outbox, ClinicFeatures $features): int
     {
         $alvo = $this->option('data')
             ? Carbon::parse($this->option('data'))->startOfDay()
@@ -63,6 +68,15 @@ class LembreteConsultaCommand extends Command
         $falhas = [];
 
         foreach ($clinicas as $clinica) {
+            // O recurso é opt-in por clínica: a flag nasce desligada e só quem
+            // decide ligar recebe lembrete. Sem esta checagem, o comando novo
+            // passaria a mandar mensagem em produção sem ninguém ter ligado.
+            if (! $features->enabled($clinica, 'reminders')) {
+                $this->components->warn("[{$clinica->name}] recurso de lembretes desligado; ignorado.");
+
+                continue;
+            }
+
             // Sem instância/token da Evolution a outbox não tem como entregar.
             // Enfileirar aqui só encheria a fila de mensagens mortas.
             if (! $clinica->hasEvolutionIntegration()) {
