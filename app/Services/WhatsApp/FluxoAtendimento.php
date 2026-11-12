@@ -17,6 +17,7 @@ use App\Services\Tenant\TenantManager;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
 /**
  * A conversa do WhatsApp: consentimento, cadastro, profissional, procedimento,
@@ -47,7 +48,7 @@ class FluxoAtendimento
      *
      * @var list<string>
      */
-    public const COMANDOS_GLOBAIS = ['menu', 'inicio', 'cancelar', 'sair', 'voltar'];
+    public const COMANDOS_GLOBAIS = ['menu', 'inicio', 'cancelar', 'sair', 'voltar', 'confirmar'];
 
     /**
      * Quantos dias à frente o bot oferece agenda.
@@ -74,6 +75,29 @@ class FluxoAtendimento
      * Quantas especialidades aparecem de uma vez.
      */
     public const MAXIMO_ESPECIALIDADES = 15;
+
+    /**
+     * Mapeamento de sintomas/queixas para especialidades.
+     *
+     * A chave é o termo que o paciente pode digitar (sinônimos separados por
+     * pipe). O valor é o nome da especialidade. Quando o paciente descreve o
+     * que sente em vez de escolher do menu, o bot tenta casar aqui e já
+     * salta direto para os profissionais daquela especialidade.
+     *
+     * @var array<string, string>
+     */
+    public const SINTOMAS_POR_ESPECIALIDADE = [
+        'dor de dente|dente doendo|dente latejando|molar doendo|cárie|carie' => 'Endodontia',
+        'dente quebrado|dente trincado|fratura dentária|dente lascado' => 'Restauradora',
+        'limpeza|tártaro|remoção de tártaro|profilaxia|higiene bucal' => 'Prevenção',
+        'aparelho|aparelho dentário|brackets|alinhador|mordida torta|dente desalinhado' => 'Ortodontia',
+        'implante|implante dentário|prótese|coroa|ponte fixa|dente perdido|falta dente' => 'Implodontia',
+        'cirurgia|extração|siso|siso doendo|cirurgia oral|biópsia' => 'Cirurgia',
+        'clareamento|dente amarelado|dente manchado|estética dental|facetas' => 'Estética',
+        'gengiva sangrando|gengiva inchada|periodontite|gengivite|recesso gengival' => 'Periodontia',
+        'criança|dente de leite|primeira consulta criança|odontopediatria' => 'Odontopediatria',
+        'dor de cabeça|ATM|articulação|má oclusão|ranger de dente|bruxismo' => 'DTM',
+    ];
 
     /**
      * Quanto tempo uma conversa abandonada sobrevive.
@@ -117,6 +141,12 @@ class FluxoAtendimento
                 return $this->resultado($etapa, $etapaAnterior, $this->textoDaEtapa($etapaAnterior, $dados, $nome));
             }
 
+            // "confirmar" confirma a consulta do paciente para amanhã, quando
+            // ele recebeu o lembrete de 24h. Funciona de qualquer etapa.
+            if (mb_strtolower($texto) === 'confirmar') {
+                return $this->confirmarPresenca($telefone, $dados, $nome);
+            }
+
             // `$dados` e não um array novo: o paciente que pede "menu" no meio do
             // agendamento precisa continuar sendo o mesmo paciente quando volta
             // a escolher horário.
@@ -131,6 +161,7 @@ class FluxoAtendimento
             'consentimento' => $this->consentimento($telefone, $opcao, $nomeClinica),
             'cadastro' => $this->cadastro($telefone, $texto),
             'menu' => $this->menuInicial($dados, $opcao),
+            'sintoma' => $this->sintoma($texto, $dados),
             'especialidade' => $this->especialidade($dados, $numero, $opcao),
             'profissional' => $this->profissional($dados, $numero, $opcao),
             'procedimento' => $this->procedimento($dados, $numero, $opcao),
@@ -633,7 +664,7 @@ class FluxoAtendimento
             ->map(fn (Specialty $e, int $i) => ($i + 1).". {$e->name}")
             ->implode("\n");
 
-        return "Escolha a especialidade:\n\n{$lista}\n\nResponda com o número.";
+        return "Escolha a especialidade:\n\n{$lista}\n\n".(count($especialidades) + 1).". Descrever o que sinto (ex: dor de dente)\n\nResponda com o número.";
     }
 
     protected function textoProfissional(array $dados): string
@@ -763,6 +794,11 @@ class FluxoAtendimento
             ->take(self::MAXIMO_ESPECIALIDADES)
             ->get();
 
+        // Última opção é "Descrever o que sinto".
+        if ($opcao === $especialidades->count()) {
+            return ['sintoma', $dados, $this->textoSintoma()];
+        }
+
         $escolhida = $especialidades[$opcao] ?? null;
 
         if (! $escolhida) {
@@ -802,6 +838,126 @@ class FluxoAtendimento
                 ])->all(),
             ],
             "Certo, {$escolhida->name}. Escolha o profissional:\n\n{$lista}\n\nResponda com o número.",
+        ];
+    }
+
+    /**
+     * Texto da etapa de sintoma.
+     */
+    protected function textoSintoma(): string
+    {
+        return "Descreva o que você está sentindo.\n\nExemplos: dor de dente, limpeza, aparelho, implante, gengiva sangrando.\n\nResponda com a sua queixa ou digite 'menu' para voltar.";
+    }
+
+    /**
+     * Busca a especialidade pelo sintoma descrito pelo paciente e avança para
+     * os profissionais dela.
+     *
+     * @param  string  $texto  O que o paciente digitou (texto livre)
+     * @param  array<string, mixed>  $dados  Estado da conversa
+     * @return array{0: string, 1: array<string, mixed>, 2: string}
+     */
+    protected function sintoma(string $texto, array $dados): array
+    {
+        $textoNormalizado = mb_strtolower(trim($texto));
+
+        foreach (self::SINTOMAS_POR_ESPECIALIDADE as $sintomas => $especialidadeNome) {
+            $termos = explode('|', $sintomas);
+
+            foreach ($termos as $termo) {
+                if (mb_strpos($textoNormalizado, mb_strtolower(trim($termo))) !== false) {
+                    // Encontrou a especialidade pelo sintoma
+                    $especialidade = Specialty::where('name', $especialidadeNome)->first();
+
+                    if (! $especialidade) {
+                        return ['sintoma', $dados, 'Não encontrei essa especialidade. Tente descrever de outra forma ou digite "menu".'];
+                    }
+
+                    $query = Professional::with('specialties')->where('is_active', true)
+                        ->whereHas('specialties', fn ($q) => $q->where('specialties.id', $especialidade->id));
+
+                    $profissionais = $query->orderBy('nome')->get();
+
+                    if ($profissionais->isEmpty()) {
+                        return [
+                            'menu',
+                            $this->base($dados),
+                            "Não há profissionais disponíveis para {$especialidadeNome} agora.\n\n".$this->menu($dados['nome'] ?? null),
+                        ];
+                    }
+
+                    $lista = $profissionais
+                        ->map(function (Professional $profissional, int $i): string {
+                            $especialidadesNomes = $profissional->specialties->pluck('name')->join(', ');
+                            $sufixo = $especialidadesNomes !== '' ? " ({$especialidadesNomes})" : '';
+
+                            return ($i + 1).". {$profissional->nome}{$sufixo}";
+                        })
+                        ->implode("\n");
+
+                    return [
+                        'profissional',
+                        $dados + [
+                            'especialidade_id' => $especialidade->id,
+                            'especialidade' => $especialidadeNome,
+                            'profissionais' => $profissionais->map(fn (Professional $p) => [
+                                'id' => $p->id,
+                                'nome' => $p->nome,
+                            ])->all(),
+                        ],
+                        "Com base no que você disse, a especialidade é {$especialidadeNome}.\n\nEscolha o profissional:\n\n{$lista}\n\nResponda com o número.",
+                    ];
+                }
+            }
+        }
+
+        return ['sintoma', $dados, 'Não consegui identificar a especialidade pelo que você escreveu.\n\nTente: "dor de dente", "limpeza", "aparelho", "implante", "gengiva sangrando".\n\nOu digite "menu" para escolher da lista.'];
+    }
+
+    /**
+     * Confirma a consulta do paciente para amanhã (resposta ao lembrete de 24h).
+     *
+     * @param  string  $telefone  Telefone do paciente (apenas dígitos)
+     * @param  array<string, mixed>  $dados  Estado da conversa
+     * @param  string|null  $nome  Nome do paciente
+     * @return array{0: string, 1: array<string, mixed>, 2: string}
+     */
+    protected function confirmarPresenca(string $telefone, array $dados, ?string $nome): array
+    {
+        $paciente = $this->paciente($telefone);
+
+        if (! $paciente) {
+            return ['menu', $this->base($dados), 'Não consegui identificar seu cadastro. Responda "menu" para começar novamente.'];
+        }
+
+        $amanha = Carbon::tomorrow()->startOfDay();
+        $statusIds = AppointmentStatus::query()
+            ->whereIn('name', [AppointmentStatus::AGENDADO, AppointmentStatus::CONFIRMADO])
+            ->pluck('id');
+
+        $consulta = Appointment::query()
+            ->where('paciente_id', $paciente->id)
+            ->whereIn('appointment_status_id', $statusIds)
+            ->whereDate('inicio', $amanha)
+            ->orderBy('inicio')
+            ->first();
+
+        if (! $consulta) {
+            return ['menu', $this->base($dados), "Não há consulta agendada para amanhã em seu nome.\n\n".$this->menu($nome ?? null)];
+        }
+
+        $statusConfirmado = AppointmentStatus::idFor(AppointmentStatus::CONFIRMADO);
+        $consulta->update(['appointment_status_id' => $statusConfirmado]);
+
+        AuditLogger::log('confirmar', 'appointments', $consulta->id, depois: ['appointment_status_id' => $statusConfirmado]);
+
+        $hora = $consulta->inicio->format('H:i');
+        $profissional = $consulta->profissional?->nome ?? 'profissional';
+
+        return [
+            'menu',
+            $this->base($dados),
+            "✅ Consulta confirmada!\n\n📅 Amanhã às {$hora}\n👤 {$profissional}\n\nObrigado por confirmar. Até lá!\n\n".$this->menu($nome ?? null),
         ];
     }
 
