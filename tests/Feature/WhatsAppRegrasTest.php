@@ -362,7 +362,8 @@ class WhatsAppRegrasTest extends TestCase
         $this->criarContexto();
         $this->conversa();
 
-        $resultado = $this->dizer('2');
+        // No menu atual: 1 = agendar, 2 = minhas consultas, 3 = recepção.
+        $resultado = $this->dizer('3');
 
         $this->assertSame('recepcao', $resultado['etapa_para']);
         $this->assertSame(1, WhatsAppAlert::query()->abertos()->count());
