@@ -3,14 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\ClinicProfile;
+use App\Models\FiscalCompany;
+use App\Models\Nfse;
 use App\Models\NotaFiscal;
 use App\Models\Paciente;
 use App\Services\Fiscal\FiscalException;
+use App\Services\Fiscal\FiscalService;
 use App\Services\Fiscal\NotaFiscalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -23,7 +28,10 @@ use Illuminate\View\View;
  */
 class FiscalController extends Controller
 {
-    public function __construct(private readonly NotaFiscalService $fiscal) {}
+    public function __construct(
+        private readonly NotaFiscalService $fiscal,
+        private readonly FiscalService $sendnf,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -50,12 +58,47 @@ class FiscalController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
+        [$configuracaoFiscal, $motivoSemConfiguracao] = $this->configuracaoFiscal();
+
         return view('fiscal.index', [
             'notas' => $notas,
             'resumo' => $resumo,
             'totalAutorizado' => (float) NotaFiscal::query()->autorizadas()->sum('valor_total'),
             'provider' => $this->fiscal->providerNome(),
+            'configuracaoFiscal' => $configuracaoFiscal,
+            'motivoSemConfiguracao' => $motivoSemConfiguracao,
         ]);
+    }
+
+    /**
+     * Dados da configuração do emissor SendNF para a tela unificada.
+     *
+     * A configuração é administrativa: quem não tem `admin.view` continua
+     * vendo apenas as notas operacionais, como antes. As tabelas fiscais podem
+     * não existir em tenants antigos; nesse caso a tela não pode estourar.
+     *
+     * @return array{0: array<string, mixed>|null, 1: string|null}
+     */
+    private function configuracaoFiscal(): array
+    {
+        if (! auth()->user()?->can('admin.view')) {
+            return [null, 'permissao'];
+        }
+
+        // `Schema` usa a conexão padrão (central). As tabelas fiscais vivem no
+        // banco da clínica, então a checagem precisa ser explícita no `tenant`.
+        if (! Schema::connection('tenant')->hasTable('fiscal_companies')
+            || ! Schema::connection('tenant')->hasTable('nfse')) {
+            return [null, 'schema'];
+        }
+
+        return [[
+            'perfil' => ClinicProfile::current(),
+            'company' => FiscalCompany::current(),
+            'drafts' => Nfse::query()->orderByDesc('created_at')->limit(10)->get(),
+            'canEmit' => $this->sendnf->canEmit(),
+            'integrationEnabled' => $this->sendnf->isEnabled(),
+        ], null];
     }
 
     public function create(Request $request): View

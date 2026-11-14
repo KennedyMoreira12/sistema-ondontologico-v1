@@ -160,4 +160,18 @@
             </div>
         @endif
     </div>
+
+    @if ($configuracaoFiscal)
+        <div class="mt-5 mb-3">
+            <h2 class="h5 mb-0">Configuração fiscal</h2>
+            <p class="text-muted small mb-0">Emissor SendNF e notas NFS-e desta clínica.</p>
+        </div>
+
+        @include('admin.fiscal.partials.configuracao', $configuracaoFiscal)
+    @elseif ($motivoSemConfiguracao === 'schema')
+        <div class="alert alert-warning mt-4" role="alert">
+            <i class="bi bi-info-circle me-1"></i>
+            A configuração fiscal ainda não está disponível nesta clínica. Fale com o suporte para ativar as tabelas fiscais.
+        </div>
+    @endif
 @endsection

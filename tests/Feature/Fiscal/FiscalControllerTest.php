@@ -93,6 +93,41 @@ class FiscalControllerTest extends TestCase
             ->assertSee('Fiscal - NFS-e');
     }
 
+    public function test_tela_unificada_mostra_notas_e_configuracao_para_admin(): void
+    {
+        [$clinic, $user] = $this->usuarioCom(['admin.view', 'fiscal.view']);
+
+        $this->actingAs($user)
+            ->get(route('fiscal.index'))
+            ->assertOk()
+            ->assertSee('Notas fiscais')
+            ->assertSee('Configuração de emissão');
+    }
+
+    public function test_tela_unificada_nao_mostra_configuracao_sem_admin_view(): void
+    {
+        [$clinic, $user] = $this->usuarioCom(['fiscal.view']);
+
+        $this->actingAs($user)
+            ->get(route('fiscal.index'))
+            ->assertOk()
+            ->assertSee('Notas fiscais')
+            ->assertDontSee('Configuração de emissão');
+    }
+
+    public function test_menu_tem_uma_unica_entrada_para_notas_fiscais(): void
+    {
+        [$clinic, $user] = $this->usuarioCom(['admin.view', 'fiscal.view', 'dashboard.view']);
+
+        $html = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(1, substr_count($html, route('fiscal.index')));
+        $this->assertStringContainsString('Notas fiscais', $html);
+    }
+
     public function test_update_config_requer_fiscal_update(): void
     {
         [$clinic, $user] = $this->usuarioCom(['admin.view', 'fiscal.view']);

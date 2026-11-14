@@ -294,12 +294,13 @@ class CatalogoModulos
             'descricao' => 'Contas a receber, baixa de pagamento e contas da clínica.',
         ],
         'fiscal' => [
-            'titulo' => 'Fiscal',
+            'titulo' => 'Notas fiscais',
             'icone' => 'bi-receipt',
             'grupo' => self::GRUPO_GESTAO,
             'tipo' => 'lista',
             'rota' => 'fiscal.index',
             'padrao' => 'fiscal.*',
+            'permissao' => 'fiscal.view',
             'vertical' => self::COMUM,
             'situacao' => [
                 self::ODONTOLOGIA => self::DISPONIVEL,
@@ -307,7 +308,7 @@ class CatalogoModulos
                 self::PILATES => self::DISPONIVEL,
                 self::LASER => self::DISPONIVEL,
             ],
-            'descricao' => 'Emissão, consulta e gestão de notas fiscais eletrônicas (NFS-e).',
+            'descricao' => 'Notas fiscais, configuração do emissor e NFS-e da clínica em uma única tela.',
         ],
         'convenios' => [
             'titulo' => 'Convênios',

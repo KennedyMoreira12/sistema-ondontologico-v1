@@ -39,14 +39,6 @@
                     </a>
                 </x-menu-modulos>
 
-                {{-- Módulo fiscal operacional da clínica (NotaFiscal). O painel
-                     admin tem a configuração do emissor em `admin.fiscal.*`. --}}
-                @can('fiscal.view')
-                    <a href="{{ route('fiscal.index') }}" class="nav-link {{ request()->routeIs('fiscal.*') ? 'active' : '' }}" @if (request()->routeIs('fiscal.*')) aria-current="page" @endif>
-                        <i class="bi bi-receipt"></i> Notas fiscais
-                    </a>
-                @endcan
-
                 @can('social.view')
                     <a href="{{ route('social.index') }}" class="nav-link {{ request()->routeIs('social.*') ? 'active' : '' }}" @if (request()->routeIs('social.*')) aria-current="page" @endif>
                         <i class="bi bi-share"></i> Social
@@ -67,11 +59,6 @@
                     <a href="{{ route('admin.clinica.edit') }}" class="nav-link {{ request()->routeIs('admin.clinica*') ? 'active' : '' }}" @if (request()->routeIs('admin.clinica*')) aria-current="page" @endif>
                         <i class="bi bi-building"></i> Clínica
                     </a>
-                    @can('fiscal.view')
-                        <a href="{{ route('admin.fiscal.index') }}" class="nav-link {{ request()->routeIs('admin.fiscal*') ? 'active' : '' }}" @if (request()->routeIs('admin.fiscal*')) aria-current="page" @endif>
-                            <i class="bi bi-receipt"></i> Fiscal
-                        </a>
-                    @endcan
                     @can('auditoria.view')
                         <a href="{{ route('admin.auditoria.index') }}" class="nav-link {{ request()->routeIs('admin.auditoria*') ? 'active' : '' }}" @if (request()->routeIs('admin.auditoria*')) aria-current="page" @endif>
                             <i class="bi bi-list-check"></i> Auditoria

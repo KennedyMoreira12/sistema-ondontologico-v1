@@ -48,6 +48,7 @@
 
         @foreach ($itens as $slug => $modulo)
             @continue(! $verticals->permite($slug))
+            @continue(isset($modulo['permissao']) && ! auth()->user()?->can($modulo['permissao']))
 
             @php
                 $planejado = $catalogo->situacaoParaClinica($slug) === CatalogoModulos::PLANEJADO;
