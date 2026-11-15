@@ -133,7 +133,9 @@ class NotificacaoTest extends TestCase
 
     public function test_usuario_sem_permissao_financeiro_nao_ve_alerta_financeiro(): void
     {
-        [, $semFinanceiro] = $this->criarUsuarioComPermissao('estoque.view');
+        // criarUsuarioSemPapel() evita o unique de permissions.name (a regra do
+        // projeto proíbe criarUsuarioComPermissao duas vezes no mesmo teste).
+        [, $semFinanceiro] = $this->criarUsuarioSemPapel();
 
         AccountsPayable::create([
             'nome_conta' => 'Energia',
@@ -198,6 +200,16 @@ class NotificacaoTest extends TestCase
 
     public function test_marca_notificacao_como_lida(): void
     {
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Z']);
+        AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'nome_conta' => 'Telefone',
+            'valor' => 80,
+            'data_vencimento' => today()->subDays(2),
+            'status' => 'pendente',
+            'tipo' => 'servico',
+        ]);
+
         $this->gerador()->gerar();
 
         $alerta = Notification::query()->first();
@@ -257,6 +269,12 @@ class NotificacaoTest extends TestCase
 
     public function test_evento_pagamento_recebido_cria_alerta(): void
     {
+        \App\Models\Paciente::create([
+            'id' => 1,
+            'nome' => 'Paciente Pagador',
+            'status' => 'ativo',
+        ]);
+
         $metodo = PaymentMethod::create(['name' => 'Pix', 'label' => 'Pix']);
         $conta = AccountsReceivable::create([
             'paciente_id' => 1,
