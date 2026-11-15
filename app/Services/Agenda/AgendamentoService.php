@@ -5,8 +5,11 @@ namespace App\Services\Agenda;
 use App\Exceptions\HorarioOcupadoException;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
+use App\Models\Notification;
 use App\Models\Room;
 use App\Services\AuditLogger;
+use App\Services\Notificacoes\Alerta;
+use App\Services\Notificacoes\Notificador;
 use App\Services\Tenant\TenantManager;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Carbon;
@@ -26,6 +29,7 @@ class AgendamentoService
 {
     public function __construct(
         protected TenantManager $tenants,
+        protected Notificador $notificador,
     ) {}
 
     /**
@@ -145,6 +149,25 @@ class AgendamentoService
         }));
 
         AuditLogger::log('criar', 'appointments', $consulta->id, depois: $consulta->only(['paciente_id', 'profissional_id', 'inicio', 'fim', 'appointment_status_id']));
+
+        $this->notificador->emitir(new Alerta(
+            categoria: Notification::CATEGORIA_AGENDA,
+            tipo: 'agenda.sessao_nova',
+            prioridade: Notification::PRIORIDADE_AVISO,
+            titulo: 'Nova sessão agendada',
+            mensagem: sprintf(
+                'Sessão para %s agendada em %s%s.',
+                $consulta->paciente?->nome ?? 'paciente não informado',
+                $consulta->inicio?->format('d/m/Y H:i') ?? '—',
+                $consulta->profissional ? ' com '.$consulta->profissional->nome : '',
+            ),
+            url: route('agenda.index', ['data' => $consulta->inicio?->toDateString()], false),
+            permissao: 'agenda.view',
+            referenciaType: 'appointment',
+            referenciaId: $consulta->id,
+            dedupeKey: 'agenda.evento.sessao:'.$consulta->id,
+            expiraEm: $consulta->inicio,
+        ), Notificador::ORIGEM_EVENTO);
 
         return $consulta;
     }

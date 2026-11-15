@@ -6,8 +6,11 @@ use App\Models\Central\User;
 use App\Models\Contract;
 use App\Models\DocumentSignature;
 use App\Models\EvolucaoSessao;
+use App\Models\Notification;
 use App\Models\Paciente;
 use App\Services\AuditLogger;
+use App\Services\Notificacoes\Alerta;
+use App\Services\Notificacoes\Notificador;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +27,7 @@ use Illuminate\Validation\ValidationException;
  */
 class AssinaturaService
 {
+    public function __construct(protected Notificador $notificador) {}
     private const TAMANHO_MINIMO = 30;
 
     private const TAMANHO_MAXIMO = 3 * 1024 * 1024;
@@ -146,6 +150,12 @@ class AssinaturaService
             if ($aoCriar !== null) {
                 $aoCriar($assinatura);
             }
+
+            // A assinatura resolve o alerta de "aguardando assinatura".
+            // Resolve as duas chaves possíveis: só a do tipo certo existe,
+            // a outra é um no-op.
+            $this->notificador->resolver('assinaturas.contrato:'.$signable->getKey());
+            $this->notificador->resolver('assinaturas.sessao:'.$signable->getKey());
 
             AuditLogger::log('assinar_documento', 'document_signatures', $assinatura->id, depois: [
                 'paciente_id' => $paciente->id,

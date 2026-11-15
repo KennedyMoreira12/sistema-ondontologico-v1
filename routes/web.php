@@ -21,6 +21,7 @@ use App\Http\Controllers\EvolucaoSessaoController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\ModuloPlanejadoController;
+use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\OdontogramaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
@@ -316,6 +317,18 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/{paciente}/orcamentos/{orcamento}', [OrcamentoController::class, 'destroy'])->name('orcamentos.destroy');
         Route::post('/{paciente}/orcamentos/{orcamento}/itens', [OrcamentoController::class, 'itemStore'])->name('orcamentos.items.store');
         Route::delete('/{paciente}/orcamentos/{orcamento}/itens/{item}', [OrcamentoController::class, 'itemDestroy'])->name('orcamentos.items.destroy');
+    });
+
+    // =========================================================================
+    // CENTRAL DE NOTIFICAÇÕES PARTE 8
+    // =========================================================================
+    Route::prefix('notificacoes')->name('notificacoes.')->group(function () {
+        Route::get('/', [NotificacaoController::class, 'index'])->name('index');
+        Route::get('/nao-lidas', [NotificacaoController::class, 'naoLidas'])->name('nao-lidas');
+        Route::post('/{notificacao}/ler', [NotificacaoController::class, 'ler'])->name('ler');
+        Route::post('/ler-todas', [NotificacaoController::class, 'lerTodas'])->name('ler-todas');
+        Route::get('/preferencias', [NotificacaoController::class, 'preferencias'])->name('preferencias');
+        Route::post('/preferencias', [NotificacaoController::class, 'salvarPreferencias'])->name('preferencias.save');
     });
 
     // =========================================================================

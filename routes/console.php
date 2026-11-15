@@ -42,3 +42,19 @@ Schedule::command('whatsapp:outbox:recover')
 Schedule::command('whatsapp:lembretes')
     ->dailyAt('14:00')
     ->withoutOverlapping();
+
+/**
+ * Central de notificações.
+ *
+ * A varredura lê o estado atual de cada clínica (contas, estoque, agenda,
+ * cadastros e assinaturas) e grava os alertas no banco da clínica. Roda a cada
+ * dez minutos: é frequente o bastante para o aviso de 30 minutos chegar a
+ * tempo e raro o bastante para não pesar em produção.
+ *
+ * O comando enfileira um job por clínica; com `QUEUE_CONNECTION=sync` ele roda
+ * na hora, e quando houver worker de verdade a mesma chamada passa a rodar em
+ * segundo plano.
+ */
+Schedule::command('notificacoes:gerar')
+    ->everyTenMinutes()
+    ->withoutOverlapping();

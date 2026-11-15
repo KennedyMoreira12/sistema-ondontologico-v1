@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Models\Central\IntegrationToken;
 use App\Models\Central\User;
 use App\Rules\Cpf;
+use App\Services\Notificacoes\ColetorNotificacoes;
+use App\Services\Notificacoes\GeradorNotificacoes;
+use App\Services\Notificacoes\Notificador;
 use App\Services\Tenant\TenantManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -19,7 +22,20 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(Notificador::class, fn ($app) => new Notificador());
+
+        $this->app->singleton(ColetorNotificacoes::class, fn ($app) => new ColetorNotificacoes(
+            new \App\Services\Notificacoes\Coletores\FinanceiroColetor(),
+            new \App\Services\Notificacoes\Coletores\EstoqueColetor(),
+            new \App\Services\Notificacoes\Coletores\AgendaColetor(),
+            new \App\Services\Notificacoes\Coletores\PacientesColetor(),
+            new \App\Services\Notificacoes\Coletores\AssinaturasColetor(),
+        ));
+
+        $this->app->singleton(GeradorNotificacoes::class, fn ($app) => new GeradorNotificacoes(
+            $app->make(ColetorNotificacoes::class),
+            $app->make(Notificador::class),
+        ));
     }
 
     public function boot(): void
@@ -48,6 +64,17 @@ class AppServiceProvider extends ServiceProvider
          */
         View::composer('layouts.app', function ($view): void {
             $view->with('clinica', app(TenantManager::class)->current());
+
+            if (auth()->check()) {
+                $preferencias = \App\Models\Central\NotificationPreference::paraUsuario(auth()->user());
+
+                $view->with('scoPreferenciasNotificacoes', [
+                    'sons_ativos' => $preferencias->sons_ativos,
+                    'volume' => $preferencias->volume,
+                    'categorias' => $preferencias->categoriasEfetivas(),
+                    'navegador_ativo' => $preferencias->navegador_ativo,
+                ]);
+            }
         });
 
         /**

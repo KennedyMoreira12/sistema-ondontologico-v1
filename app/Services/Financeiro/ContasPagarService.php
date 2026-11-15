@@ -5,6 +5,7 @@ namespace App\Services\Financeiro;
 use App\Exceptions\OperacaoFinanceiraInvalida;
 use App\Models\AccountsPayable;
 use App\Models\AccountsPayablePayment;
+use App\Services\Notificacoes\Notificador;
 
 /**
  * Criação e baixa de contas a pagar.
@@ -17,6 +18,7 @@ use App\Models\AccountsPayablePayment;
  */
 class ContasPagarService
 {
+    public function __construct(protected Notificador $notificador) {}
     /**
      * @param  array<string, mixed>  $dados
      */
@@ -136,6 +138,9 @@ class ContasPagarService
                     : null,
             ])->save();
 
+            $this->notificador->resolver('financeiro.pagar.vencida:'.$travada->id);
+            $this->notificador->resolver('financeiro.pagar.vencendo:'.$travada->id);
+
             return $pagamento;
         });
     }
@@ -173,6 +178,9 @@ class ContasPagarService
                 'status' => AccountsPayable::CANCELADO,
                 'data_pagamento' => null,
             ])->save();
+
+            $this->notificador->resolver('financeiro.pagar.vencida:'.$travada->id);
+            $this->notificador->resolver('financeiro.pagar.vencendo:'.$travada->id);
 
             return $travada->refresh();
         });

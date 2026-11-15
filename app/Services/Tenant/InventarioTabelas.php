@@ -87,6 +87,8 @@ class InventarioTabelas
         'nfse',
         'nfse_events',
         'notas_fiscais',
+        'notification_reads',
+        'notifications',
         'pacientes',
         'patient_documents',
         'patient_insurances',

@@ -4,7 +4,10 @@ namespace App\Services\Financeiro;
 
 use App\Exceptions\OperacaoFinanceiraInvalida;
 use App\Models\AccountsReceivable;
+use App\Models\Notification;
 use App\Models\Payment;
+use App\Services\Notificacoes\Alerta;
+use App\Services\Notificacoes\Notificador;
 
 /**
  * Baixa de conta a receber.
@@ -16,6 +19,7 @@ use App\Models\Payment;
  */
 class RecebimentoService
 {
+    public function __construct(protected Notificador $notificador) {}
     /**
      * @param  array{valor: float|int|string, payment_method_id: int, data?: mixed, observacoes?: string|null, servico?: string|null, user_id?: int|null}  $dados
      */
@@ -77,6 +81,24 @@ class RecebimentoService
                 'desconto' => $novoDesconto,
                 'status' => ($novoPago + $novoDesconto) >= round((float) $travada->valor, 2) ? 'pago' : 'parcial',
             ])->save();
+
+            $this->notificador->emitir(new Alerta(
+                categoria: Notification::CATEGORIA_FINANCEIRO,
+                tipo: 'financeiro.pagamento_recebido',
+                prioridade: Notification::PRIORIDADE_INFO,
+                titulo: 'Pagamento recebido',
+                mensagem: sprintf(
+                    '%s recebeu R$ %s de %s.',
+                    $travada->descricao ?? $travada->nome ?? 'conta a receber',
+                    number_format($valor, 2, ',', '.'),
+                    $travada->paciente?->nome ?? 'paciente não informado',
+                ),
+                url: route('financeiro.index', ['conta' => $travada->id], false),
+                permissao: 'financeiro.view',
+                referenciaType: 'accounts_receivable',
+                referenciaId: $travada->id,
+                dedupeKey: 'financeiro.evento.pagamento_recebido:'.$travada->id,
+            ), Notificador::ORIGEM_EVENTO);
 
             return $pagamento;
         });

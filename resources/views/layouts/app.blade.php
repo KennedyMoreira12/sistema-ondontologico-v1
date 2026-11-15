@@ -100,6 +100,8 @@
                         </li>
                     </ul>
                 </div>
+
+                @include('partials.sino-notificacoes')
             </header>
 
             <main class="sco-content" id="scoConteudo" tabindex="-1">
@@ -212,5 +214,7 @@
             });
         })();
     </script>
+
+    @include('partials.preferencias-notificacoes', ['preferencias' => $scoPreferenciasNotificacoes ?? []])
 </body>
 </html>
