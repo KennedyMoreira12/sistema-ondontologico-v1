@@ -10,12 +10,14 @@ use App\Http\Requests\PacienteUpdateRequest;
 use App\Http\Requests\PatientDocumentStoreRequest;
 use App\Models\Anamnese;
 use App\Models\ClinicalNote;
+use App\Models\Contract;
 use App\Models\MedicalAlert;
 use App\Models\Paciente;
 use App\Models\PatientDocument;
 use App\Models\Professional;
 use App\Services\AuditLogger;
 use App\Services\Tenant\TenantManager;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -128,7 +130,46 @@ class PacienteController extends Controller
         $alertas = $paciente->alertas()->get();
         $dentistas = Professional::where('tipo', 'dentista')->orderBy('nome')->get();
 
-        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas'));
+        $termo = Contract::with('assinaturaAtiva.user')
+            ->where('paciente_id', $paciente->id)
+            ->where('tipo', Contract::TIPO_TERMO_RESPONSABILIDADE)
+            ->latest('id')
+            ->first();
+
+        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas', 'termo'));
+    }
+
+    /**
+     * PDF da ficha do paciente com as assinaturas registradas.
+     *
+     * É o documento que a clínica imprime ou entrega: histórico clínico,
+     * termo assinado e confirmações de presença, cada um com a evidência da
+     * assinatura.
+     */
+    public function fichaPdf(Paciente $paciente)
+    {
+        $this->authorize('prontuario.view');
+
+        $paciente->load([
+            'evolucoes.profissional',
+            'evolucoesSessao.profissional',
+            'evolucoesSessao.assinaturaAtiva.user',
+        ]);
+
+        $termo = Contract::with('assinaturaAtiva.user')
+            ->where('paciente_id', $paciente->id)
+            ->where('tipo', Contract::TIPO_TERMO_RESPONSABILIDADE)
+            ->latest('id')
+            ->first();
+
+        $pdf = Pdf::loadView('assinaturas.pdf-ficha', [
+            'paciente' => $paciente,
+            'termo' => $termo,
+            'assinaturaTermo' => $termo?->assinaturaAtiva,
+            'clinica' => tenant(),
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('ficha-'.$paciente->id.'.pdf');
     }
 
     public function storeEvolucao(ClinicalNoteStoreRequest $request, Paciente $paciente): RedirectResponse

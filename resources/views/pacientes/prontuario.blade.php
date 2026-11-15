@@ -44,6 +44,12 @@
                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-capsule me-1"></i>Prescrições
                 </a>
+                <a href="{{ route('pacientes.ficha.pdf', $paciente) }}" class="btn btn-outline-secondary" target="_blank" rel="noopener">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Ficha em PDF
+                </a>
+                <a href="{{ route('pacientes.assinaturas.index', $paciente) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pen me-1"></i>Assinaturas
+                </a>
             @endcan
         </div>
     </div>
@@ -92,6 +98,69 @@
                     </div>
                 </div>
             @endcan
+
+            @php
+                $assinaturaTermo = $termo?->assinaturaAtiva;
+                $textoTermo = $termo?->conteudo ?: \App\Models\Contract::textoTermoPadrao($paciente->nome, tenant()?->name);
+                $podeAssinarTermo = auth()->user()?->hasPermission('contratos.create')
+                    || auth()->user()?->hasPermission('contratos.update')
+                    || auth()->user()?->hasPermission('prontuario.create');
+            @endphp
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-earmark-text me-2"></i>Termo de responsabilidade</span>
+                    @if ($assinaturaTermo)
+                        <span class="badge text-bg-success">Assinado</span>
+                    @else
+                        <span class="badge text-bg-warning">Pendente</span>
+                    @endif
+                </div>
+                <div class="card-body">
+                    <div class="border rounded p-2 mb-3 small bg-light"
+                         style="max-height: 220px; overflow-y: auto; white-space: pre-line;">{{ $textoTermo }}</div>
+
+                    @if ($assinaturaTermo)
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-check2-circle text-success me-1"></i>
+                            Assinado em {{ $assinaturaTermo->signed_at?->format('d/m/Y H:i') }}
+                            @if ($assinaturaTermo->user)
+                                por {{ $assinaturaTermo->user->name }}
+                            @endif
+                            — versão {{ $assinaturaTermo->term_version }}.
+                        </p>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{{ route('contratos.pdf', $termo) }}" class="btn btn-outline-primary btn-sm" target="_blank" rel="noopener">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>Ver termo assinado
+                            </a>
+                            <a href="{{ route('pacientes.assinaturas.imagem', [$paciente, $assinaturaTermo]) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                                <i class="bi bi-pen me-1"></i>Ver assinatura
+                            </a>
+                        </div>
+                    @elseif ($podeAssinarTermo)
+                        <p class="small text-muted">
+                            O paciente leu o termo acima. Confirme a assinatura manuscrita para registrar o aceite.
+                        </p>
+                        <x-assinatura-canvas
+                            :action="route('pacientes.assinaturas.termo', $paciente)"
+                            :modal-id="'assinatura-termo-'.$paciente->id"
+                            title="Assinatura do termo de responsabilidade"
+                            :document-title="$termo ? 'Termo v'.$termo->versao : 'Termo padrão da clínica'"
+                            :patient-name="$paciente->nome"
+                            button-label="Assinar documento"
+                            button-class="btn btn-primary w-100"
+                            icon="bi-pen"
+                            confirm-label="Confirmar assinatura"
+                        />
+                    @else
+                        <p class="small text-muted mb-0">Você não tem permissão para registrar a assinatura do termo.</p>
+                    @endif
+
+                    <a href="{{ route('pacientes.assinaturas.index', $paciente) }}" class="btn btn-link btn-sm px-0 mt-2">
+                        Histórico de assinaturas
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-8">

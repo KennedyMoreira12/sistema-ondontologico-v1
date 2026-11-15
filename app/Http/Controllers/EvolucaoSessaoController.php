@@ -25,7 +25,7 @@ class EvolucaoSessaoController extends Controller
         $this->authorize('evolucao.view');
 
         $evolucoes = $paciente->evolucoesSessao()
-            ->with(['profissional', 'avaliacao'])
+            ->with(['profissional', 'avaliacao', 'assinaturaAtiva.user'])
             ->latest('data')
             ->paginate(15);
 

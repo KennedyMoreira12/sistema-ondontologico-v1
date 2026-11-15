@@ -4,7 +4,10 @@
 
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-        <h1 class="h4 mb-0">Contratos</h1>
+        <div>
+            <h1 class="h4 mb-0">Contratos</h1>
+            <p class="text-muted small mb-0">Termos e documentos assinados pelo paciente.</p>
+        </div>
         @can('contratos.create')
             <a href="{{ route('contratos.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Novo contrato</a>
         @endcan
@@ -41,6 +44,7 @@
                         <th>Paciente</th>
                         <th>Tipo</th>
                         <th>Status</th>
+                        <th>Assinatura</th>
                         <th>Assinado em</th>
                         <th>Registrado por</th>
                         <th class="text-end">Ações</th>
@@ -52,16 +56,48 @@
                             <td>
                                 <a href="{{ route('pacientes.show', $contrato->paciente) }}">{{ $contrato->paciente->nome }}</a>
                             </td>
-                            <td>{{ $contrato->tipo }}</td>
+                            <td>
+                                {{ $contrato->tipo }}
+                                <span class="text-muted small">v{{ $contrato->versao }}</span>
+                            </td>
                             <td>
                                 @php
                                     $badges = ['pendente' => 'text-bg-warning', 'assinado' => 'text-bg-success', 'cancelado' => 'text-bg-secondary'];
                                 @endphp
                                 <span class="badge {{ $badges[$contrato->status] ?? 'text-bg-secondary' }}">{{ ucfirst($contrato->status) }}</span>
                             </td>
+                            <td>
+                                @if ($contrato->assinaturaAtiva)
+                                    <span class="badge text-bg-success"><i class="bi bi-pen me-1"></i>Assinada</span>
+                                @else
+                                    <span class="badge text-bg-light text-muted">Não assinada</span>
+                                @endif
+                            </td>
                             <td>{{ $contrato->assinado_em?->format('d/m/Y H:i') ?? '—' }}</td>
                             <td>{{ $contrato->user?->name ?? '—' }}</td>
                             <td class="text-end">
+                                @can('contratos.view')
+                                    <a href="{{ route('contratos.pdf', $contrato) }}" class="btn btn-sm btn-outline-secondary" title="Imprimir / PDF" target="_blank" rel="noopener">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                @endcan
+
+                                @can('contratos.update')
+                                    @if (! $contrato->assinaturaAtiva && $contrato->status !== 'cancelado')
+                                        <x-assinatura-canvas
+                                            :action="route('contratos.assinar', $contrato)"
+                                            :modal-id="'assinatura-contrato-'.$contrato->id"
+                                            title="Assinatura do contrato"
+                                            :document-title="$contrato->tipo.' — versão '.$contrato->versao"
+                                            :patient-name="$contrato->paciente->nome"
+                                            button-label="Assinar"
+                                            button-class="btn btn-sm btn-outline-success"
+                                            icon="bi-pen"
+                                            confirm-label="Confirmar assinatura"
+                                        />
+                                    @endif
+                                @endcan
+
                                 @can('contratos.update')
                                     <a href="{{ route('contratos.edit', $contrato) }}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
                                 @endcan
@@ -75,7 +111,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted py-4">Nenhum contrato encontrado.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">Nenhum contrato encontrado.</td></tr>
                     @endforelse
                 </tbody>
             </table>

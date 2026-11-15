@@ -77,6 +77,7 @@ class InventarioTabelas
         'clinic_settings',
         'clinical_notes',
         'contracts',
+        'document_signatures',
         'financeiro_categorias',
         'fiscal_companies',
         'installments',

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\Api\EvolutionQrController;
+use App\Http\Controllers\AssinaturaController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\ContaPagarController;
@@ -170,6 +171,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/{contrato}/edit', [ContratoController::class, 'edit'])->name('edit');
         Route::put('/{contrato}', [ContratoController::class, 'update'])->name('update');
         Route::delete('/{contrato}', [ContratoController::class, 'destroy'])->name('destroy');
+        Route::get('/{contrato}/pdf', [ContratoController::class, 'pdf'])->name('pdf');
+        Route::post('/{contrato}/assinar', [AssinaturaController::class, 'assinarContrato'])->name('assinar');
     });
 
     Route::prefix('social')->name('social.')->group(function () {
@@ -227,6 +230,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::put('/{paciente}', [PacienteController::class, 'update'])->name('update');
         Route::delete('/{paciente}', [PacienteController::class, 'destroy'])->name('destroy');
         Route::get('/{paciente}/prontuario', [PacienteController::class, 'prontuario'])->name('prontuario');
+        Route::get('/{paciente}/ficha.pdf', [PacienteController::class, 'fichaPdf'])->name('ficha.pdf');
+        Route::get('/{paciente}/assinaturas', [AssinaturaController::class, 'index'])->name('assinaturas.index');
+        Route::post('/{paciente}/assinaturas/termo', [AssinaturaController::class, 'assinarTermo'])->name('assinaturas.termo');
+        Route::get('/{paciente}/assinaturas/{assinatura}/imagem', [AssinaturaController::class, 'imagem'])->name('assinaturas.imagem');
         Route::get('/{paciente}/historico', [AtendimentoController::class, 'historico'])->name('historico');
         Route::post('/{paciente}/evolucoes', [PacienteController::class, 'storeEvolucao'])->name('evolucoes.store');
         Route::post('/{paciente}/anamneses', [PacienteController::class, 'storeAnamnese'])->name('anamneses.store');
@@ -271,6 +278,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('/{evolucao}/edit', [EvolucaoSessaoController::class, 'edit'])->name('edit');
             Route::put('/{evolucao}', [EvolucaoSessaoController::class, 'update'])->name('update');
             Route::post('/{evolucao}/finalizar', [EvolucaoSessaoController::class, 'finalize'])->name('finalize');
+            Route::post('/{evolucao}/assinar-presenca', [AssinaturaController::class, 'assinarPresenca'])->name('assinar-presenca');
         });
 
         /**

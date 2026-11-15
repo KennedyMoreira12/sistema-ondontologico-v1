@@ -77,6 +77,14 @@ class Paciente extends TenantModel
     }
 
     /**
+     * Assinaturas manuscritas do paciente, de qualquer documento.
+     */
+    public function assinaturas(): HasMany
+    {
+        return $this->hasMany(DocumentSignature::class);
+    }
+
+    /**
      * Pacotes de sessões contratados.
      */
     public function pacotesSessao(): HasMany

@@ -6,6 +6,8 @@ use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
  * Evolução de UMA sessão de fisioterapia.
@@ -64,6 +66,37 @@ class EvolucaoSessao extends TenantModel
     public function consumos(): HasMany
     {
         return $this->hasMany(ConsumoSessao::class);
+    }
+
+    public function assinaturas(): MorphMany
+    {
+        return $this->morphMany(DocumentSignature::class, 'signable');
+    }
+
+    /**
+     * Confirmação de presença do paciente ainda válida para esta sessão.
+     */
+    public function assinaturaAtiva(): MorphOne
+    {
+        return $this->morphOne(DocumentSignature::class, 'signable')
+            ->whereNull('superseded_at')
+            ->latestOfMany('signed_at');
+    }
+
+    /**
+     * Texto canônico assinado na confirmação de presença.
+     *
+     * Entra no hash da assinatura: mudar qualquer dado da sessão invalida a
+     * verificação de integridade, que é o comportamento desejado.
+     */
+    public function conteudoParaAssinatura(): string
+    {
+        return implode("\n", [
+            'Confirmação de presença na sessão',
+            'Paciente: '.($this->paciente?->nome ?? $this->paciente_id),
+            'Data da sessão: '.($this->data?->format('d/m/Y') ?? '—'),
+            'Conteúdo registrado: '.($this->conteudo ?? '—'),
+        ]);
     }
 
     public function estaFinalizada(): bool
