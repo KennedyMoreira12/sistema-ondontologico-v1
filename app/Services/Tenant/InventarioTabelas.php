@@ -181,13 +181,29 @@ class InventarioTabelas
      * o inventário é sobre as tabelas, e o prefixo do banco é um detalhe do
      * driver.
      *
+     * O esquema é passado de propósito. Sem ele, o `getTables()` do MySQL
+     * lista TODOS os bancos que o usuário enxerga — inclusive o central,
+     * quando o usuário do tenant tem acesso a ele — e a auditoria acusava
+     * tabela central como se fosse da clínica. O SQLite faz o mesmo com banco
+     * anexado. No PostgreSQL o esquema não é o nome do banco, então ali o
+     * padrão do driver continua valendo.
+     *
      * @return list<string>
      */
     public function tabelasExistentes(): array
     {
+        $conexao = Schema::connection('tenant');
+        $banco = $conexao->getConnection();
+
+        $esquema = match ($banco->getDriverName()) {
+            'mysql', 'mariadb' => $banco->getDatabaseName(),
+            'sqlite' => 'main',
+            default => null,
+        };
+
         $tabelas = [];
 
-        foreach (Schema::connection('tenant')->getTables() as $tabela) {
+        foreach ($conexao->getTables($esquema) as $tabela) {
             $nome = is_object($tabela)
                 ? ($tabela->name ?? null)
                 : (is_array($tabela) ? ($tabela['name'] ?? null) : null);

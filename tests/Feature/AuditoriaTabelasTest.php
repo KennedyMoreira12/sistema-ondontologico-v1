@@ -6,6 +6,7 @@ use App\Models\Procedure;
 use App\Services\Tenant\InventarioTabelas;
 use App\Services\Tenant\VerticalManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\Concerns\CreatesTenants;
 use Tests\TestCase;
@@ -101,5 +102,42 @@ class AuditoriaTabelasTest extends TestCase
 
         $this->artisan('tenants:auditar-tabelas', ['--clinica' => $clinica['clinic']->id])
             ->assertSuccessful();
+    }
+
+    /**
+     * O MySQL lista todos os bancos que o usuário enxerga, e o SQLite lista os
+     * bancos anexados. A auditoria só pode considerar o banco da clínica: sem
+     * esse filtro, uma tabela central (ou de outro banco) aparecia como "sem
+     * classificação" e a auditoria falhava em produção mesmo com o banco da
+     * clínica correto.
+     */
+    public function test_inventario_ignora_tabelas_de_banco_anexado(): void
+    {
+        $this->criarClinica('Clínica do Anexo');
+
+        $arquivo = tempnam(sys_get_temp_dir(), 'anexo_tenant_');
+
+        $this->assertNotFalse($arquivo);
+
+        try {
+            DB::connection('tenant')->statement(
+                "attach database '".str_replace("'", "''", $arquivo)."' as outro_banco"
+            );
+            DB::connection('tenant')->statement(
+                'create table outro_banco.tabela_de_outro_banco (id integer primary key)'
+            );
+
+            $tabelas = app(InventarioTabelas::class)->tabelasExistentes();
+
+            $this->assertNotContains(
+                'tabela_de_outro_banco',
+                $tabelas,
+                'Tabela de banco anexado não pertence à clínica e não pode entrar na auditoria.'
+            );
+            $this->assertContains('pacientes', $tabelas);
+        } finally {
+            DB::connection('tenant')->statement('detach database outro_banco');
+            @unlink($arquivo);
+        }
     }
 }
