@@ -73,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
                     'volume' => $preferencias->volume,
                     'categorias' => $preferencias->categoriasEfetivas(),
                     'navegador_ativo' => $preferencias->navegador_ativo,
+                    'alerta_central' => $preferencias->alerta_central,
                 ]);
             }
         });

@@ -267,6 +267,27 @@ class NotificacaoTest extends TestCase
         $this->assertFalse($preferencia->categorias['estoque'] ?? true);
     }
 
+    public function test_salva_preferencia_de_alerta_central(): void
+    {
+        $this->reconectarTenantParaAssercao();
+
+        $this->actingAs($this->usuario)
+            ->post(route('notificacoes.preferencias.save'), [
+                'sons_ativos' => true,
+                'volume' => 60,
+                'alerta_central' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('preferencias.alerta_central', false);
+
+        $preferencia = \App\Models\Central\NotificationPreference::query()
+            ->where('user_id', $this->usuario->id)
+            ->first();
+
+        $this->assertNotNull($preferencia);
+        $this->assertFalse($preferencia->alerta_central);
+    }
+
     public function test_evento_pagamento_recebido_cria_alerta(): void
     {
         \App\Models\Paciente::create([
@@ -358,7 +379,10 @@ class NotificacaoTest extends TestCase
             ->assertSee('Central de notifica', false)
             ->assertSee('Luz')
             ->assertSee('scoSino', false)
-            ->assertSee('scoPreferenciasNotificacoes', false);
+            ->assertSee('scoPreferenciasNotificacoes', false)
+            ->assertSee('scoAlertaCentralOverlay', false)
+            ->assertSee('Abrir registro')
+            ->assertSee('Mostrar alerta no centro da tela');
     }
 
     public function test_sino_devolve_json_de_nao_lidas(): void
@@ -383,7 +407,7 @@ class NotificacaoTest extends TestCase
             ->assertJsonStructure([
                 'nao_lidas',
                 'itens' => [['id', 'categoria', 'prioridade', 'titulo', 'lida']],
-                'preferencias' => ['sons_ativos', 'volume', 'categorias', 'navegador_ativo'],
+                'preferencias' => ['sons_ativos', 'volume', 'categorias', 'navegador_ativo', 'alerta_central'],
             ])
             ->assertJsonPath('nao_lidas', 1);
     }
@@ -426,7 +450,8 @@ class NotificacaoTest extends TestCase
             ->getJson(route('notificacoes.preferencias'))
             ->assertOk()
             ->assertJsonPath('preferencias.sons_ativos', true)
-            ->assertJsonPath('preferencias.volume', 60);
+            ->assertJsonPath('preferencias.volume', 60)
+            ->assertJsonPath('preferencias.alerta_central', true);
 
         $this->assertDatabaseCount('notification_preferences', 0);
     }

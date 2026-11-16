@@ -59,6 +59,41 @@
     </div>
 </div>
 
+{{--
+    Alerta central: notificações urgentes aparecem no meio da tela, uma por
+    vez, com fila. Fica fora do dropdown de propósito — o sino pode estar
+    fechado quando o alerta chega.
+--}}
+<div id="scoAlertaCentralOverlay"
+    class="sco-alerta-central"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="scoAlertaCentralTitulo"
+    aria-describedby="scoAlertaCentralMensagem"
+    hidden>
+    <div class="sco-alerta-central-card" id="scoAlertaCentralCard" tabindex="-1">
+        <div class="sco-alerta-central-topo">
+            <span class="sco-alerta-central-selo">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                Urgente
+            </span>
+            <button type="button" class="btn-close" id="scoAlertaCentralFechar" aria-label="Dispensar alerta"></button>
+        </div>
+
+        <h2 class="sco-alerta-central-titulo" id="scoAlertaCentralTitulo"></h2>
+        <p class="sco-alerta-central-mensagem" id="scoAlertaCentralMensagem"></p>
+
+        <div class="sco-alerta-central-acoes">
+            <a href="{{ route('notificacoes.index') }}" class="btn btn-danger btn-sm" id="scoAlertaCentralAbrir">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Abrir registro
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="scoAlertaCentralDispensar">Dispensar</button>
+        </div>
+
+        <p class="sco-alerta-central-contagem small text-muted mb-0" id="scoAlertaCentralContagem" hidden></p>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     /*
@@ -70,13 +105,22 @@
      */
     window.scoNotificacoes = (() => {
         const CHAVE_SONS = 'sco.notificacoes.sons';
+        const CHAVE_ALERTAS = 'sco.notificacoes.alertas';
         const PAGINA_CARREGADA_EM = Date.now();
         const LIMITE_HISTORICO = 200;
+        const DURACAO_ALERTA = 30000;
 
-        let preferencias = { sons_ativos: true, volume: 60, categorias: {} };
+        let preferencias = { sons_ativos: true, volume: 60, categorias: {}, alerta_central: true };
         let audioCtx = null;
         let audioLiberado = false;
         let timer = null;
+
+        // Fila do alerta central: um alerta por vez, sem repetir a ocorrência.
+        let filaAlertas = [];
+        let alertaAtual = null;
+        let timerAlerta = null;
+        let focoAnterior = null;
+        const alertasMostradosNaSessao = new Set();
 
         const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
@@ -92,6 +136,133 @@
             const ids = idsTocados();
             ids.add(String(id) + ':' + String(prioridade));
             localStorage.setItem(CHAVE_SONS, JSON.stringify([...ids].slice(-LIMITE_HISTORICO)));
+        };
+
+        const idsAlerta = () => {
+            try {
+                return new Set(JSON.parse(localStorage.getItem(CHAVE_ALERTAS) || '[]'));
+            } catch (erro) {
+                return new Set();
+            }
+        };
+
+        const alertaJaMostrado = (id, prioridade) => {
+            const chave = String(id) + ':' + String(prioridade);
+
+            return alertasMostradosNaSessao.has(chave) || idsAlerta().has(chave);
+        };
+
+        const marcarAlertaMostrado = (id, prioridade) => {
+            const chave = String(id) + ':' + String(prioridade);
+            alertasMostradosNaSessao.add(chave);
+
+            try {
+                const ids = idsAlerta();
+                ids.add(chave);
+                localStorage.setItem(CHAVE_ALERTAS, JSON.stringify([...ids].slice(-LIMITE_HISTORICO)));
+            } catch (erro) {
+                // Sem localStorage: o Set da sessão já evita repetir.
+            }
+        };
+
+        const atualizarContagemAlerta = () => {
+            const contagem = document.getElementById('scoAlertaCentralContagem');
+            if (! contagem) {
+                return;
+            }
+
+            if (alertaAtual !== null && filaAlertas.length > 0) {
+                contagem.hidden = false;
+                contagem.textContent = filaAlertas.length === 1
+                    ? 'Mais 1 alerta urgente na fila.'
+                    : 'Mais ' + filaAlertas.length + ' alertas urgentes na fila.';
+            } else {
+                contagem.hidden = true;
+                contagem.textContent = '';
+            }
+        };
+
+        const fecharAlerta = () => {
+            clearTimeout(timerAlerta);
+            timerAlerta = null;
+
+            const overlay = document.getElementById('scoAlertaCentralOverlay');
+            if (overlay) {
+                overlay.hidden = true;
+            }
+
+            document.body.classList.remove('sco-alerta-central-aberto');
+            alertaAtual = null;
+
+            if (focoAnterior && typeof focoAnterior.focus === 'function') {
+                focoAnterior.focus();
+            }
+            focoAnterior = null;
+
+            if (filaAlertas.length > 0) {
+                setTimeout(mostrarProximoAlerta, 150);
+            }
+        };
+
+        const mostrarProximoAlerta = () => {
+            if (alertaAtual !== null || filaAlertas.length === 0) {
+                return;
+            }
+
+            const overlay = document.getElementById('scoAlertaCentralOverlay');
+            if (! overlay) {
+                filaAlertas = [];
+                return;
+            }
+
+            alertaAtual = filaAlertas.shift();
+
+            const titulo = document.getElementById('scoAlertaCentralTitulo');
+            if (titulo) {
+                titulo.textContent = alertaAtual.titulo || 'Notificação urgente';
+            }
+
+            const mensagem = document.getElementById('scoAlertaCentralMensagem');
+            if (mensagem) {
+                mensagem.textContent = alertaAtual.mensagem || '';
+                mensagem.hidden = ! alertaAtual.mensagem;
+            }
+
+            const abrir = document.getElementById('scoAlertaCentralAbrir');
+            if (abrir) {
+                abrir.href = alertaAtual.url || '{{ route('notificacoes.index') }}';
+                abrir.dataset.scoMarcarLida = '{{ url('/notificacoes') }}/' + alertaAtual.id + '/ler';
+            }
+
+            atualizarContagemAlerta();
+
+            focoAnterior = document.activeElement;
+            overlay.hidden = false;
+            document.body.classList.add('sco-alerta-central-aberto');
+            document.getElementById('scoAlertaCentralFechar')?.focus();
+
+            clearTimeout(timerAlerta);
+            timerAlerta = setTimeout(fecharAlerta, DURACAO_ALERTA);
+        };
+
+        const enfileirarAlerta = (item) => {
+            // Alerta central é visual: independe do som e das categorias.
+            if (! preferencias.alerta_central) {
+                return;
+            }
+
+            if (item.prioridade !== 'critical' || item.lida) {
+                return;
+            }
+
+            if (alertaJaMostrado(item.id, item.prioridade)) {
+                return;
+            }
+
+            marcarAlertaMostrado(item.id, item.prioridade);
+            filaAlertas.push(item);
+            atualizarContagemAlerta();
+            mostrarProximoAlerta();
         };
 
         // Navegadores só liberam áudio depois de uma interação do usuário.
@@ -300,6 +471,7 @@
                 atualizarLista(dados.itens ?? []);
 
                 (dados.itens ?? []).forEach(anunciar);
+                (dados.itens ?? []).forEach(enfileirarAlerta);
             } catch (erro) {
                 // Falha silenciosa: o próximo ciclo tenta de novo.
             }
@@ -347,6 +519,31 @@
             }
         });
 
+        document.getElementById('scoAlertaCentralFechar')?.addEventListener('click', fecharAlerta);
+        document.getElementById('scoAlertaCentralDispensar')?.addEventListener('click', fecharAlerta);
+
+        // O fundo fecha; clique dentro do cartão não.
+        document.getElementById('scoAlertaCentralOverlay')?.addEventListener('click', (evento) => {
+            if (evento.target.id === 'scoAlertaCentralOverlay') {
+                fecharAlerta();
+            }
+        });
+
+        document.addEventListener('keydown', (evento) => {
+            if (evento.key !== 'Escape') {
+                return;
+            }
+
+            const overlay = document.getElementById('scoAlertaCentralOverlay');
+            if (overlay && ! overlay.hidden) {
+                evento.preventDefault();
+                fecharAlerta();
+            }
+        });
+
+        // A navegação para o registro continua; o overlay só sai da frente.
+        document.getElementById('scoAlertaCentralAbrir')?.addEventListener('click', fecharAlerta);
+
         carregarPreferencias().then(atualizar).then(agendar);
 
         return {
@@ -354,6 +551,14 @@
             atualizar,
             definirPreferencias: (novas) => {
                 preferencias = { ...preferencias, ...novas };
+
+                if (! preferencias.alerta_central) {
+                    filaAlertas = [];
+
+                    if (alertaAtual !== null) {
+                        fecharAlerta();
+                    }
+                }
             },
             preferencias: () => preferencias,
         };

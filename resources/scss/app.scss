@@ -832,3 +832,117 @@ button:focus-visible,
         min-width: min(360px, calc(100vw - 1.5rem));
     }
 }
+
+/* Alerta central de notificacoes urgentes (PARTE 8). */
+.sco-alerta-central {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+
+    &[hidden] {
+        display: none !important;
+    }
+}
+
+.sco-alerta-central-card {
+    width: 100%;
+    max-width: 30rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border-top: 0.35rem solid var(--bs-danger);
+    background-color: var(--bs-body-bg, #fff);
+    box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.35);
+    outline: none;
+    animation: scoAlertaCentralEntra 0.18s ease-out;
+}
+
+.sco-alerta-central-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.sco-alerta-central-selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background-color: var(--bs-danger);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.sco-alerta-central-titulo {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $lj-azul-profundo;
+    overflow-wrap: anywhere;
+}
+
+.sco-alerta-central-mensagem {
+    margin-bottom: 1rem;
+    color: var(--bs-secondary-color, #6c757d);
+    overflow-wrap: anywhere;
+}
+
+.sco-alerta-central-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.sco-alerta-central-contagem {
+    margin-top: 0.25rem;
+}
+
+.sco-alerta-central-aberto {
+    overflow: hidden;
+}
+
+@keyframes scoAlertaCentralEntra {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sco-alerta-central {
+        align-items: flex-end;
+        padding: 0.75rem;
+    }
+
+    .sco-alerta-central-card {
+        max-width: none;
+        padding: 1.25rem;
+    }
+
+    .sco-alerta-central-acoes .btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sco-alerta-central-card {
+        animation: none;
+    }
+}

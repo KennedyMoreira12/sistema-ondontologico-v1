@@ -51,6 +51,18 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="scoAlertaCentral"
+                                name="alerta_central" {{ old('alerta_central', $preferencias['alerta_central'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="scoAlertaCentral">Mostrar alerta no centro da tela</label>
+                        </div>
+                        <div class="form-text">
+                            Notificações urgentes aparecem no meio da tela, uma por vez, mesmo com o sino fechado.
+                            Independe do som.
+                        </div>
+                    </div>
+
                     <hr>
 
                     <div class="d-flex justify-content-between align-items-center">
@@ -123,6 +135,7 @@
                 volume: Number(campoVolume?.value ?? 60),
                 categorias: coletarCategorias(),
                 navegador_ativo: navegadorAtivo,
+                alerta_central: document.getElementById('scoAlertaCentral').checked,
             };
 
             try {

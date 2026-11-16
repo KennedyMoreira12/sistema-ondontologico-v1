@@ -158,6 +158,7 @@ class NotificacaoController extends Controller
             'categorias' => ['nullable', 'array'],
             'categorias.*' => ['boolean'],
             'navegador_ativo' => ['sometimes', 'boolean'],
+            'alerta_central' => ['sometimes', 'boolean'],
         ]);
 
         $preferencias = NotificationPreference::paraUsuario($this->usuario());
@@ -167,6 +168,7 @@ class NotificacaoController extends Controller
             'volume' => (int) $dados['volume'],
             'categorias' => $dados['categorias'] ?? $preferencias->categorias,
             'navegador_ativo' => (bool) ($dados['navegador_ativo'] ?? $preferencias->navegador_ativo),
+            'alerta_central' => (bool) ($dados['alerta_central'] ?? $preferencias->alerta_central),
         ]);
 
         return response()->json([
@@ -189,7 +191,7 @@ class NotificacaoController extends Controller
     }
 
     /**
-     * @return array{sons_ativos: bool, volume: int, categorias: array<string, bool>, navegador_ativo: bool}
+     * @return array{sons_ativos: bool, volume: int, categorias: array<string, bool>, navegador_ativo: bool, alerta_central: bool}
      */
     private function preferenciasDoUsuario(User $user): array
     {
@@ -200,6 +202,7 @@ class NotificacaoController extends Controller
             'volume' => $preferencias->volume,
             'categorias' => $preferencias->categoriasEfetivas(),
             'navegador_ativo' => $preferencias->navegador_ativo,
+            'alerta_central' => $preferencias->alerta_central,
         ];
     }
 }

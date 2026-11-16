@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * primeira leitura, com os padrões do banco (sons ligados, volume 60, todas as
  * categorias), assim não é preciso criar preferência no cadastro do usuário.
  */
-#[Fillable(['user_id', 'sons_ativos', 'volume', 'categorias', 'navegador_ativo'])]
+#[Fillable(['user_id', 'sons_ativos', 'volume', 'categorias', 'navegador_ativo', 'alerta_central'])]
 class NotificationPreference extends CentralModel
 {
     /**
@@ -26,6 +26,7 @@ class NotificationPreference extends CentralModel
             'volume' => 'integer',
             'categorias' => 'array',
             'navegador_ativo' => 'boolean',
+            'alerta_central' => 'boolean',
         ];
     }
 
@@ -54,6 +55,7 @@ class NotificationPreference extends CentralModel
                 'sons_ativos' => true,
                 'volume' => 60,
                 'navegador_ativo' => false,
+                'alerta_central' => true,
             ]);
     }
 
