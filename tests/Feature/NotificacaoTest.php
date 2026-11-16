@@ -4,16 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\AccountsPayable;
 use App\Models\AccountsReceivable;
-use App\Models\AppointmentStatus;
 use App\Models\Central\Clinic;
+use App\Models\Central\NotificationPreference;
 use App\Models\Central\User;
 use App\Models\Contract;
 use App\Models\Notification;
 use App\Models\NotificationRead;
+use App\Models\Paciente;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\Role;
+use App\Models\Supplier;
 use App\Services\Documentos\AssinaturaService;
 use App\Services\Financeiro\RecebimentoService;
 use App\Services\Notificacoes\GeradorNotificacoes;
@@ -257,7 +258,7 @@ class NotificacaoTest extends TestCase
             ->assertOk()
             ->assertJson(['ok' => true]);
 
-        $preferencia = \App\Models\Central\NotificationPreference::query()
+        $preferencia = NotificationPreference::query()
             ->where('user_id', $this->usuario->id)
             ->first();
 
@@ -280,7 +281,7 @@ class NotificacaoTest extends TestCase
             ->assertOk()
             ->assertJsonPath('preferencias.alerta_central', false);
 
-        $preferencia = \App\Models\Central\NotificationPreference::query()
+        $preferencia = NotificationPreference::query()
             ->where('user_id', $this->usuario->id)
             ->first();
 
@@ -290,7 +291,7 @@ class NotificacaoTest extends TestCase
 
     public function test_evento_pagamento_recebido_cria_alerta(): void
     {
-        \App\Models\Paciente::create([
+        Paciente::create([
             'id' => 1,
             'nome' => 'Paciente Pagador',
             'status' => 'ativo',
@@ -321,7 +322,7 @@ class NotificacaoTest extends TestCase
 
     public function test_assinatura_resolve_alerta_contrato_pendente(): void
     {
-        $paciente = \App\Models\Paciente::create([
+        $paciente = Paciente::create([
             'nome' => 'Paciente Teste',
             'cpf' => '12345678901',
             'status' => 'ativo',

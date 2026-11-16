@@ -3,8 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Central\IntegrationToken;
+use App\Models\Central\NotificationPreference;
 use App\Models\Central\User;
 use App\Rules\Cpf;
+use App\Services\Notificacoes\Coletores\AgendaColetor;
+use App\Services\Notificacoes\Coletores\AssinaturasColetor;
+use App\Services\Notificacoes\Coletores\EstoqueColetor;
+use App\Services\Notificacoes\Coletores\FinanceiroColetor;
+use App\Services\Notificacoes\Coletores\PacientesColetor;
 use App\Services\Notificacoes\ColetorNotificacoes;
 use App\Services\Notificacoes\GeradorNotificacoes;
 use App\Services\Notificacoes\Notificador;
@@ -22,14 +28,14 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(Notificador::class, fn ($app) => new Notificador());
+        $this->app->singleton(Notificador::class, fn ($app) => new Notificador);
 
         $this->app->singleton(ColetorNotificacoes::class, fn ($app) => new ColetorNotificacoes(
-            new \App\Services\Notificacoes\Coletores\FinanceiroColetor(),
-            new \App\Services\Notificacoes\Coletores\EstoqueColetor(),
-            new \App\Services\Notificacoes\Coletores\AgendaColetor(),
-            new \App\Services\Notificacoes\Coletores\PacientesColetor(),
-            new \App\Services\Notificacoes\Coletores\AssinaturasColetor(),
+            new FinanceiroColetor,
+            new EstoqueColetor,
+            new AgendaColetor,
+            new PacientesColetor,
+            new AssinaturasColetor,
         ));
 
         $this->app->singleton(GeradorNotificacoes::class, fn ($app) => new GeradorNotificacoes(
@@ -66,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('clinica', app(TenantManager::class)->current());
 
             if (auth()->check()) {
-                $preferencias = \App\Models\Central\NotificationPreference::paraLeitura(auth()->user());
+                $preferencias = NotificationPreference::paraLeitura(auth()->user());
 
                 $view->with('scoPreferenciasNotificacoes', [
                     'sons_ativos' => $preferencias->sons_ativos,
