@@ -1,8 +1,8 @@
 /* ==========================================================================
-   IDENTIDADE LJ AUTOMAÇÃO
-   A paleta vem da apresentação da plataforma (apresentacao-plataforma-gestao-clinicas.html),
-   que é a mesma linguagem gráfica da logo: azul profundo -> azul -> verde-azulado.
-   O verde-azulado (teal) é o acento da marca e aparece em bordas, marcadores e selos.
+   IDENTIDADE LJ AUTOMAÃÃO
+   A paleta vem da apresentaÃ§Ã£o da plataforma (apresentacao-plataforma-gestao-clinicas.html),
+   que Ã© a mesma linguagem grÃ¡fica da logo: azul profundo -> azul -> verde-azulado.
+   O verde-azulado (teal) Ã© o acento da marca e aparece em bordas, marcadores e selos.
    ========================================================================== */
 
 $lj-azul-profundo: #063642;
@@ -81,9 +81,9 @@ $enable-negative-margins: true;
 @import 'bootstrap-icons/font/bootstrap-icons';
 
 /* ==========================================================================
-   VARIÁVEIS DE ACENTO
-   O layout sobrescreve --sco-accent e --sco-accent-2 com a cor da clínica.
-   Quando não há clínica resolvida, vale a paleta da marca.
+   VARIÃVEIS DE ACENTO
+   O layout sobrescreve --sco-accent e --sco-accent-2 com a cor da clÃ­nica.
+   Quando nÃ£o hÃ¡ clÃ­nica resolvida, vale a paleta da marca.
    ========================================================================== */
 :root {
     --sco-accent: #{$lj-azul};
@@ -109,7 +109,7 @@ body {
 
 /* ==========================================================================
    ACESSIBILIDADE E CELULAR
-   Atalho para o conteúdo, cortina atrás do menu no celular e foco visível
+   Atalho para o conteÃºdo, cortina atrÃ¡s do menu no celular e foco visÃ­vel
    para quem navega pelo teclado.
    ========================================================================== */
 .sco-skip-link {
@@ -152,8 +152,8 @@ button:focus-visible,
 
 /* ==========================================================================
    MARCA
-   O quadradinho com gradiente é a assinatura da logo — repete no topo do
-   menu, no botão do usuário e nos ícones de destaque.
+   O quadradinho com gradiente Ã© a assinatura da logo â repete no topo do
+   menu, no botÃ£o do usuÃ¡rio e nos Ã­cones de destaque.
    ========================================================================== */
 .sco-mark {
     display: inline-flex;
@@ -180,8 +180,8 @@ button:focus-visible,
 
 /* ==========================================================================
    MENU LATERAL
-   Claro, como no mockup da apresentação: fundo #f7fafb, itens cinza-azulados e
-   o item atual marcado pela barra de acento à esquerda.
+   Claro, como no mockup da apresentaÃ§Ã£o: fundo #f7fafb, itens cinza-azulados e
+   o item atual marcado pela barra de acento Ã  esquerda.
    ========================================================================== */
 .sco-sidebar {
     width: $sidebar-width;
@@ -210,11 +210,11 @@ button:focus-visible,
         border-bottom: 1px solid var(--sco-borda);
 
         .brand-name {
-            /* O nome da clínica pode ser longo: quebra em quantas linhas forem
-               necessárias em vez de aparecer cortado com reticências. O
+            /* O nome da clÃ­nica pode ser longo: quebra em quantas linhas forem
+               necessÃ¡rias em vez de aparecer cortado com reticÃªncias. O
                min-width: 0 libera o item flex para encolher dentro da largura
                fixa do menu, e o overflow-wrap evita estourar com palavras
-               longas sem espaço. */
+               longas sem espaÃ§o. */
             min-width: 0;
             overflow-wrap: anywhere;
         }
@@ -296,7 +296,7 @@ button:focus-visible,
         padding-right: 0;
 
         .brand-name {
-            /* Menu recolhido é só ícone: esconde o nome para não amassá-lo
+            /* Menu recolhido Ã© sÃ³ Ã­cone: esconde o nome para nÃ£o amassÃ¡-lo
                em 64px de largura. */
             display: none;
         }
@@ -322,7 +322,7 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   ÁREA PRINCIPAL
+   ÃREA PRINCIPAL
    ========================================================================== */
 .sco-main {
     flex: 1;
@@ -354,7 +354,7 @@ button:focus-visible,
     flex: 1;
     padding: 1.5rem;
 
-    /* Títulos no azul profundo da marca, como na apresentação. */
+    /* TÃ­tulos no azul profundo da marca, como na apresentaÃ§Ã£o. */
     h1,
     h2,
     h3,
@@ -385,7 +385,7 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   CARTÕES E INDICADORES
+   CARTÃES E INDICADORES
    ========================================================================== */
 .card {
     border-radius: $border-radius-lg;
@@ -429,7 +429,7 @@ button:focus-visible,
     }
 }
 
-/* Cabeçalho de cartão no tom do menu: título em azul profundo, filete na borda. */
+/* CabeÃ§alho de cartÃ£o no tom do menu: tÃ­tulo em azul profundo, filete na borda. */
 .card-header {
     font-weight: 600;
     color: $lj-azul-profundo;
@@ -442,8 +442,8 @@ button:focus-visible,
 
 /* ==========================================================================
    TABELAS
-   Cabeçalho em maiúsculas pequenas, linhas pares levemente azuladas e a
-   primeira coluna em destaque — como na apresentação.
+   CabeÃ§alho em maiÃºsculas pequenas, linhas pares levemente azuladas e a
+   primeira coluna em destaque â como na apresentaÃ§Ã£o.
    ========================================================================== */
 .table {
     --bs-table-border-color: #{$lj-borda};
@@ -473,7 +473,7 @@ button:focus-visible,
     }
 }
 
-/* A agenda desenha as consultations com cores próprias por status. */
+/* A agenda desenha as consultations com cores prÃ³prias por status. */
 .schedule-table {
     min-width: 900px;
 
@@ -637,8 +637,8 @@ button:focus-visible,
 
 /* ==========================================================================
    PAINEL DA PLATAFORMA
-   Mesma estrutura da clínica, com o menu em grafite para que ninguém confunda
-   quem opera o SaaS com quem usa o consultório.
+   Mesma estrutura da clÃ­nica, com o menu em grafite para que ninguÃ©m confunda
+   quem opera o SaaS com quem usa o consultÃ³rio.
    ========================================================================== */
 .sco-platform {
     .sco-sidebar {
@@ -687,8 +687,8 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   TELAS DE ENTRADA (login da clínica e da plataforma)
-   Fundo na diagonal da marca, cartão branco flutuando no centro.
+   TELAS DE ENTRADA (login da clÃ­nica e da plataforma)
+   Fundo na diagonal da marca, cartÃ£o branco flutuando no centro.
    ========================================================================== */
 .sco-auth {
     min-height: 100vh;
@@ -708,8 +708,8 @@ button:focus-visible,
 /**
  * Entrada do painel da plataforma, no canto inferior esquerdo.
  *
- * Fica FORA do cartão e apagado de propósito: é atalho para a equipe da
- * LJ SmartClinic, não mais um campo para o paciente preencher.
+ * Fica FORA do cartÃ£o e apagado de propÃ³sito: Ã© atalho para a equipe da
+ * LJ SmartClinic, nÃ£o mais um campo para o paciente preencher.
  */
 .sco-auth-panel-link {
     position: absolute;
@@ -763,10 +763,10 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   PAGINAÇÃO
-   As setas são chevrons do Bootstrap Icons numa área de 34px — a mesma altura
-   de um número da paginação. Antes, o view padrão do Tailwind deixava o SVG
-   sem medida e ele era desenhado no tamanho intrínseco (300x150px).
+   PAGINAÃÃO
+   As setas sÃ£o chevrons do Bootstrap Icons numa Ã¡rea de 34px â a mesma altura
+   de um nÃºmero da paginaÃ§Ã£o. Antes, o view padrÃ£o do Tailwind deixava o SVG
+   sem medida e ele era desenhado no tamanho intrÃ­nseco (300x150px).
    ========================================================================== */
 .pagination {
     --bs-pagination-color: #{$lj-texto-suave};
@@ -804,7 +804,7 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   CENTRAL DE NOTIFICA��ES (PARTE 8)
+   CENTRAL DE NOTIFICACOES (PARTE 8)
    ========================================================================== */
 
 .sco-notificacoes {
