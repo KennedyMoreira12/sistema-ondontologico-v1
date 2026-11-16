@@ -377,6 +377,16 @@ class NotificacaoTest extends TestCase
 
     public function test_marca_como_lida_via_json(): void
     {
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor JSON']);
+        AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'nome_conta' => 'Agua',
+            'valor' => 60,
+            'data_vencimento' => today()->subDays(3),
+            'status' => 'pendente',
+            'tipo' => 'servico',
+        ]);
+
         $this->gerador()->gerar();
 
         $alerta = Notification::query()->first();
