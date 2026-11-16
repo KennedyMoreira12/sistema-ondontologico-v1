@@ -135,6 +135,10 @@
         </div>
     </div>
 
+    {{-- Modal de preferências antes do @stack: o @push('scripts') dele precisa
+         acontecer ANTES de o stack ser renderizado. --}}
+    @include('partials.preferencias-notificacoes', ['preferencias' => $scoPreferenciasNotificacoes ?? []])
+
     @stack('scripts')
 
     {{-- Menu lateral no celular: abre, fecha, fecha ao tocar fora e devolve
@@ -214,7 +218,5 @@
             });
         })();
     </script>
-
-    @include('partials.preferencias-notificacoes', ['preferencias' => $scoPreferenciasNotificacoes ?? []])
 </body>
 </html>

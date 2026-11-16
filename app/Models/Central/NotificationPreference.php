@@ -40,6 +40,24 @@ class NotificationPreference extends CentralModel
     }
 
     /**
+     * Versão de leitura: NÃO grava.
+     *
+     * O compositor de layout roda em toda página autenticada; usar
+     * `paraUsuario()` ali criaria uma preferência (e um UPDATE por página)
+     * só porque o usuário abriu a tela. Os padrões são os mesmos do banco.
+     */
+    public static function paraLeitura(User $user): self
+    {
+        return static::query()->where('user_id', $user->id)->first()
+            ?? new static([
+                'user_id' => $user->id,
+                'sons_ativos' => true,
+                'volume' => 60,
+                'navegador_ativo' => false,
+            ]);
+    }
+
+    /**
      * Categoria ligada?
      *
      * `categorias` nulo significa "todas ligadas": uma categoria nova no

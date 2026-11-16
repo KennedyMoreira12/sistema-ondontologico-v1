@@ -1,25 +1,14 @@
 @php
     use App\Models\Notification;
-    use App\Models\NotificationRead;
 
     $naoLidas = 0;
     $itens = [];
 
     if (auth()->check()) {
         $usuario = auth()->user();
-        $query = Notification::query()->ativas();
+        $usuario->loadMissing('roles.permissions');
 
-        if (! $usuario->isAdmin()) {
-            $permissoes = $usuario->roles
-                ->flatMap(fn ($role) => $role->permissions->pluck('name')->all())
-                ->unique()
-                ->values()
-                ->all();
-
-            $query = $query->where(function ($q) use ($permissoes) {
-                $q->whereNull('permissao')->orWhereIn('permissao', $permissoes);
-            });
-        }
+        $query = Notification::query()->ativas()->visiveisPara($usuario);
 
         $naoLidas = (clone $query)
             ->whereDoesntHave('leituras', fn ($q) => $q->where('user_id', $usuario->id))
@@ -43,14 +32,10 @@
         aria-label="Notificações">
         <i class="bi bi-bell fs-5"></i>
         <span id="scoSinoContador"
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-{{ $naoLidas > 0 ? 'danger' : 'light' }} border"
-            style="font-size: 0.65rem; {{ $naoLidas > 0 ? '' : 'color: var(--bs-border-color);' }}"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill border {{ $naoLidas > 0 ? 'bg-danger' : 'bg-light text-muted' }}"
+            style="font-size: 0.65rem;"
             aria-hidden="true">
-            @if ($naoLidas > 0)
-                {{ min($naoLidas, 99) }}
-            @else
-                0
-            @endif
+            {{ $naoLidas > 0 ? min($naoLidas, 99) : 0 }}
         </span>
     </button>
 
@@ -62,12 +47,12 @@
         </div>
 
         <div class="list-group list-group-flush" id="scoSinoLista">
-            @include('notificacoes._item', ['nao_lidas' => $itens, 'preferencias' => session('notificacoes_preferencias', [])])
+            @include('notificacoes._item', ['itens' => $itens])
         </div>
 
         <div class="dropdown-footer text-center py-2 border-top">
             <a class="dropdown-item text-primary" href="{{ route('notificacoes.index') }}">Histórico de notificações</a>
-            <button class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#scoPreferenciasNotificacoes">
+            <button type="button" class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#scoPreferenciasNotificacoes">
                 <i class="bi bi-gear me-1"></i>Preferências de som
             </button>
         </div>
@@ -76,124 +61,302 @@
 
 @push('scripts')
 <script>
-    // Carrega as preferências de som do usuário (sons ligados/desligados, volume, categorias).
-    async function scoCarregarPreferenciasSons() {
-        try {
-            const resposta = await fetch('{{ route('notificacoes.preferencias') }}', {
-                credentials: 'same-origin',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            });
-            if (resposta.ok) {
-                const dados = await resposta.json();
-                window.scoPreferenciasSons = dados.preferencias;
+    /*
+     * Central de notificações no navegador.
+     *
+     * O som NÃO substitui a notificação persistida: o alerta já foi gravado
+     * pelo backend. Aqui só decidimos se tocamos o aviso e mantemos o contador
+     * atualizado enquanto a aba está aberta. Nada é prometido com a aba fechada.
+     */
+    window.scoNotificacoes = (() => {
+        const CHAVE_SONS = 'sco.notificacoes.sons';
+        const PAGINA_CARREGADA_EM = Date.now();
+        const LIMITE_HISTORICO = 200;
+
+        let preferencias = { sons_ativos: true, volume: 60, categorias: {} };
+        let audioCtx = null;
+        let audioLiberado = false;
+        let timer = null;
+
+        const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+        const idsTocados = () => {
+            try {
+                return new Set(JSON.parse(localStorage.getItem(CHAVE_SONS) || '[]'));
+            } catch (erro) {
+                return new Set();
             }
-        } catch (erro) {
-            // Sem rede: fica com os padrões (sons ligados).
-            window.scoPreferenciasSons = { sons_ativos: true, volume: 60, categorias: {} };
-        }
-    }
+        };
 
-    // Evita tocar o mesmo som duas vezes: guarda os ids já anunciados.
-    window.scoSonsTocados = window.scoSonsTocados || new Set();
+        const marcarTocado = (id, prioridade = '') => {
+            const ids = idsTocados();
+            ids.add(String(id) + ':' + String(prioridade));
+            localStorage.setItem(CHAVE_SONS, JSON.stringify([...ids].slice(-LIMITE_HISTORICO)));
+        };
 
-    document.addEventListener('alerta:novo', (evento) => {
-        const { id, prioridade, categoria, titulo } = evento.detail;
+        // Navegadores só liberam áudio depois de uma interação do usuário.
+        const liberarAudio = () => {
+            audioLiberado = true;
 
-        if (! window.scoPreferenciasSons?.sons_ativos) {
-            return;
-        }
+            if (audioCtx === null) {
+                const Contexto = window.AudioContext || window.webkitAudioContext;
+                if (Contexto) {
+                    audioCtx = new Contexto();
+                }
+            }
 
-        const categorias = window.scoPreferenciasSons?.categorias ?? {};
-        if (categorias[categoria] === false) {
-            return;
-        }
+            audioCtx?.resume?.();
+        };
 
-        if (window.scoSonsTocados.has(id)) {
-            return;
-        }
+        document.addEventListener('pointerdown', liberarAudio, { once: true });
+        document.addEventListener('keydown', liberarAudio, { once: true });
 
-        window.scoSonsTocados.add(id);
-
-        const urgente = prioridade === 'critical';
-
-        const contexto = new (window.AudioContext || window.webkitAudioContext)();
-        const agora = contexto.currentTime;
-        const oscilador = contexto.createOscillator();
-        const ganho = contexto.createGain();
-
-        oscilador.type = urgente ? 'triangle' : 'sine';
-        oscilador.frequency.setValueAtTime(urgente ? 660 : 880, agora);
-        oscilador.frequency.exponentialRampToValueAtTime(urgente ? 880 : 1320, agora + 0.15);
-
-        ganho.gain.setValueAtTime(0.05 * (window.scoPreferenciasSons?.volume ?? 60) / 100, agora);
-        ganho.gain.exponentialRampToValueAtTime(0.001, agora + (urgente ? 0.5 : 0.2));
-
-        oscilador.connect(ganho);
-        ganho.connect(contexto.destination);
-
-        oscilador.start(agora);
-        oscilador.stop(agora + (urgente ? 0.6 : 0.3));
-    });
-
-    // Atualiza o contador e a lista do sino via polling.
-    async function scoAtualizarSino() {
-        try {
-            const resposta = await fetch('{{ route('notificacoes.nao-lidas') }}', {
-                credentials: 'same-origin',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            });
-            if (! resposta.ok) {
+        /**
+         * Dois tons distintos: aviso comum (curto, agudo) e urgente (mais grave
+         * e mais longo). Sem arquivo de áudio: nada para baixar ou cachear.
+         */
+        const tocar = (urgente = false, volume = null) => {
+            if (! audioLiberado) {
                 return;
             }
 
-            const dados = await resposta.json();
-            const contador = document.getElementById('scoSinoContador');
-            const lista = document.getElementById('scoSinoLista');
-
-            if (contador) {
-                contador.textContent = dados.nao_lidas;
-                contador.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill border ' +
-                    (dados.nao_lidas > 0 ? 'bg-danger' : 'bg-light text-muted');
+            if (audioCtx === null) {
+                const Contexto = window.AudioContext || window.webkitAudioContext;
+                if (! Contexto) {
+                    return;
+                }
+                audioCtx = new Contexto();
             }
 
-            // Dispara eventos de som só para itens novos.
-            (dados.itens || []).forEach((item) => {
-                if (! window.scoSonsTocados.has(item.id)) {
-                    window.scoSonsTocados.add(item.id);
-                    const evento = new CustomEvent('alerta:novo', {
-                        detail: {
-                            id: item.id,
-                            prioridade: item.prioridade,
-                            categoria: item.categoria,
-                            titulo: item.titulo,
-                        },
+            const nivel = Math.max(0, Math.min(100, Number(volume ?? preferencias.volume ?? 60))) / 100;
+            if (nivel <= 0) {
+                return;
+            }
+
+            const agora = audioCtx.currentTime;
+            const oscilador = audioCtx.createOscillator();
+            const ganho = audioCtx.createGain();
+
+            oscilador.type = urgente ? 'triangle' : 'sine';
+            oscilador.frequency.setValueAtTime(urgente ? 660 : 880, agora);
+            oscilador.frequency.exponentialRampToValueAtTime(urgente ? 990 : 1320, agora + 0.15);
+
+            ganho.gain.setValueAtTime(0.06 * nivel, agora);
+            ganho.gain.exponentialRampToValueAtTime(0.0001, agora + (urgente ? 0.5 : 0.22));
+
+            oscilador.connect(ganho);
+            ganho.connect(audioCtx.destination);
+            oscilador.start(agora);
+            oscilador.stop(agora + (urgente ? 0.6 : 0.3));
+        };
+
+        const anunciar = (item) => {
+            // Já anunciado neste navegador (inclusive antes de recarregar a página).
+            // A prioridade entra na chave: um aviso que vira urgente toca de novo.
+            const chave = String(item.id) + ':' + String(item.prioridade);
+
+            if (idsTocados().has(chave)) {
+                return;
+            }
+
+            // Só anuncia o que nasceu depois que a página abriu: os alertas
+            // antigos já estão na tela e não devem apitar de novo.
+            const criadaEm = Date.parse(item.criada_em ?? '');
+            if (Number.isFinite(criadaEm) && criadaEm < PAGINA_CARREGADA_EM) {
+                marcarTocado(item.id, item.prioridade);
+                return;
+            }
+
+            marcarTocado(item.id, item.prioridade);
+
+            // Notificação do navegador: só com a aba aberta (mesmo que oculta).
+            // Não é push: com o navegador fechado nada aparece.
+            if (preferencias.navegador_ativo
+                && document.hidden
+                && 'Notification' in window
+                && window.Notification.permission === 'granted') {
+                try {
+                    new window.Notification(item.titulo || 'Notificação', {
+                        body: item.mensagem || '',
+                        tag: 'sco-notificacao-' + item.id,
                     });
-                    document.dispatchEvent(evento);
+                } catch (erro) {
+                    // Alguns navegadores móveis não permitem criar Notification.
                 }
+            }
+
+            // Som: respeita o interruptor geral e o da categoria.
+            if (! preferencias.sons_ativos) {
+                return;
+            }
+
+            if ((preferencias.categorias ?? {})[item.categoria] === false) {
+                return;
+            }
+
+            tocar(item.prioridade === 'critical');
+        };
+
+        const atualizarContador = (quantidade) => {
+            const contador = document.getElementById('scoSinoContador');
+            if (! contador) {
+                return;
+            }
+
+            contador.textContent = quantidade > 99 ? '99+' : String(quantidade);
+            contador.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill border ' +
+                (quantidade > 0 ? 'bg-danger' : 'bg-light text-muted');
+        };
+
+        /**
+         * Reenche o dropdown com os itens mais recentes, usando DOM (nunca
+         * innerHTML) para não interpretar conteúdo vindo do banco como HTML.
+         */
+        const atualizarLista = (itens) => {
+            const lista = document.getElementById('scoSinoLista');
+            if (! lista) {
+                return;
+            }
+
+            lista.replaceChildren();
+
+            if (! itens || itens.length === 0) {
+                const vazio = document.createElement('div');
+                vazio.className = 'list-group-item text-center text-muted small py-3';
+                vazio.textContent = 'Sem notificações novas.';
+                lista.appendChild(vazio);
+                return;
+            }
+
+            itens.forEach((item) => {
+                const link = document.createElement('a');
+                link.href = item.url || '{{ route('notificacoes.index') }}';
+                link.className = 'list-group-item list-group-item-action p-3 d-flex gap-2 align-items-start' +
+                    (item.lida ? '' : ' fw-bold bg-light') +
+                    (item.prioridade === 'critical' ? ' border-start border-danger' : '');
+                link.dataset.scoMarcarLida = '{{ url('/notificacoes') }}/' + item.id + '/ler';
+
+                const icone = document.createElement('i');
+                icone.className = 'bi ' + (item.icone || 'bi-bell') + ' ' +
+                    (item.prioridade === 'critical' ? 'text-danger' : 'text-muted') + ' mt-1';
+                link.appendChild(icone);
+
+                const corpo = document.createElement('div');
+                corpo.className = 'flex-grow-1';
+
+                const titulo = document.createElement('div');
+                titulo.className = 'small ' + (item.prioridade === 'critical' ? 'text-danger' : 'text-dark') + ' fw-bold';
+                titulo.textContent = item.titulo || '';
+                corpo.appendChild(titulo);
+
+                if (item.mensagem) {
+                    const mensagem = document.createElement('div');
+                    mensagem.className = 'small text-body-secondary';
+                    mensagem.textContent = item.mensagem;
+                    corpo.appendChild(mensagem);
+                }
+
+                const quando = document.createElement('small');
+                quando.className = 'text-muted';
+                quando.textContent = item.criada_em_texto || '';
+                corpo.appendChild(quando);
+
+                link.appendChild(corpo);
+                lista.appendChild(link);
             });
-        } catch (erro) {
-            // Falha silenciosa: o próximo ciclo tenta de novo.
-        }
-    }
+        };
 
-    scoCarregarPreferenciasSons();
-    scoAtualizarSino();
+        const carregarPreferencias = async () => {
+            try {
+                const resposta = await fetch('{{ route('notificacoes.preferencias') }}', {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
 
-    // Polling: a cada 30s enquanto a aba está visível, a cada 90s quando oculta.
-    let intervalo = 30000;
-    const atualizar = () => {
-        scoAtualizarSino();
-        intervalo = document.hidden ? 90000 : 30000;
-        clearTimeout(window.scoSinoTimer);
-        window.scoSinoTimer = setTimeout(atualizar, intervalo);
-    };
+                if (resposta.ok) {
+                    const dados = await resposta.json();
+                    preferencias = dados.preferencias ?? preferencias;
+                }
+            } catch (erro) {
+                // Sem rede: mantém os padrões (sons ligados, volume 60).
+            }
+        };
 
-    document.addEventListener('visibilitychange', () => {
-        if (! document.hidden) {
-            atualizar();
-        }
-    });
+        const atualizar = async () => {
+            try {
+                const resposta = await fetch('{{ route('notificacoes.nao-lidas') }}', {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
 
-    setTimeout(atualizar, intervalo);
+                if (! resposta.ok) {
+                    return;
+                }
+
+                const dados = await resposta.json();
+                preferencias = dados.preferencias ?? preferencias;
+
+                atualizarContador(dados.nao_lidas ?? 0);
+                atualizarLista(dados.itens ?? []);
+
+                (dados.itens ?? []).forEach(anunciar);
+            } catch (erro) {
+                // Falha silenciosa: o próximo ciclo tenta de novo.
+            }
+        };
+
+        const agendar = () => {
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
+                await atualizar();
+                agendar();
+            }, document.hidden ? 90000 : 30000);
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (! document.hidden) {
+                atualizar();
+            }
+            agendar();
+        });
+
+        // Marca como lida antes de navegar; `keepalive` sobrevive à troca de página.
+        document.addEventListener('click', (evento) => {
+            const alvo = evento.target.closest('[data-sco-marcar-lida]');
+            if (! alvo) {
+                return;
+            }
+
+            const url = alvo.dataset.scoMarcarLida;
+            if (! url) {
+                return;
+            }
+
+            try {
+                fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    keepalive: true,
+                    headers: {
+                        'X-CSRF-TOKEN': csrf(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+            } catch (erro) {
+                // A navegação para o registro acontece de qualquer forma.
+            }
+        });
+
+        carregarPreferencias().then(atualizar).then(agendar);
+
+        return {
+            tocar,
+            atualizar,
+            definirPreferencias: (novas) => {
+                preferencias = { ...preferencias, ...novas };
+            },
+            preferencias: () => preferencias,
+        };
+    })();
 </script>
 @endpush

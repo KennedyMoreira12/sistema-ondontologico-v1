@@ -802,3 +802,33 @@ button:focus-visible,
     background-color: transparent;
     cursor: not-allowed;
 }
+
+/* ==========================================================================
+   CENTRAL DE NOTIFICAÇÕES (PARTE 8)
+   ========================================================================== */
+
+.sco-notificacoes {
+    .dropdown-menu {
+        min-width: 360px;
+        max-width: calc(100vw - 1.5rem);
+        overflow-y: auto;
+    }
+
+    #scoSinoLista .list-group-item {
+        min-width: 0;
+
+        > div {
+            min-width: 0;
+        }
+
+        .text-body-secondary {
+            overflow-wrap: anywhere;
+        }
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sco-notificacoes .dropdown-menu {
+        min-width: min(360px, calc(100vw - 1.5rem));
+    }
+}

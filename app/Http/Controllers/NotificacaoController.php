@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\NotificationRead;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -46,7 +47,6 @@ class NotificacaoController extends Controller
             'naoLidas' => $naoLidas,
             'categorias' => Notification::CATEGORIAS,
             'prioridades' => Notification::PRIORIDADES,
-            'preferencias' => $this->preferenciasDoUsuario($user),
         ]);
     }
 
@@ -107,7 +107,11 @@ class NotificacaoController extends Controller
             ['read_at' => now()],
         );
 
-        return response()->json(['ok' => true]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', 'Notificação marcada como lida.');
     }
 
     public function lerTodas(Request $request): JsonResponse|RedirectResponse
@@ -130,7 +134,11 @@ class NotificacaoController extends Controller
             }
         }
 
-        return response()->json(['ok' => true, 'marcadas' => $ids->count()]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'marcadas' => $ids->count()]);
+        }
+
+        return back()->with('success', 'Todas as notificações foram marcadas como lidas.');
     }
 
     public function preferencias(Request $request): JsonResponse
@@ -176,31 +184,7 @@ class NotificacaoController extends Controller
 
     private function consultaBase(User $user): Builder
     {
-        $query = Notification::query();
-
-        if ($user->isAdmin()) {
-            return $query;
-        }
-
-        $permissoes = $this->permissoesDoUsuario($user);
-
-        return $query->where(function (Builder $query) use ($permissoes): void {
-            $query->whereNull('permissao')->orWhereIn('permissao', $permissoes);
-        });
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function permissoesDoUsuario(User $user): array
-    {
-        $user->loadMissing('roles.permissions');
-
-        return $user->roles
-            ->flatMap(fn ($role): array => $role->permissions->pluck('name')->all())
-            ->unique()
-            ->values()
-            ->all();
+        return Notification::query()->visiveisPara($user);
     }
 
     /**
@@ -208,7 +192,7 @@ class NotificacaoController extends Controller
      */
     private function preferenciasDoUsuario(User $user): array
     {
-        $preferencias = NotificationPreference::paraUsuario($user);
+        $preferencias = NotificationPreference::paraLeitura($user);
 
         return [
             'sons_ativos' => $preferencias->sons_ativos,

@@ -5,13 +5,15 @@
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <h1 class="h4 mb-0">Central de notificações</h1>
-        <a href="{{ route('notificacoes.ler-todas') }}"
-            class="btn btn-outline-primary btn-sm {{ $naoLidas === 0 ? 'd-none' : '' }}"
-            hx-post="{{ route('notificacoes.ler-todas') }}"
-            hx-swap="none"
-            hx-on::after-request="location.reload()">
-            <i class="bi bi-check2-all me-1"></i>Marcar todas como lidas
-        </a>
+
+        @if ($naoLidas > 0)
+            <form method="POST" action="{{ route('notificacoes.ler-todas') }}">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-check2-all me-1"></i>Marcar todas como lidas
+                </button>
+            </form>
+        @endif
     </div>
 
     <div class="card shadow-sm mb-4">
@@ -22,7 +24,7 @@
                     <select id="categoria" name="categoria" class="form-select form-select-sm">
                         <option value="">Todas</option>
                         @foreach ($categorias as $categoria)
-                            <option value="{{ $categoria }}" {{ $request->input('categoria') === $categoria ? 'selected' : '' }}>
+                            <option value="{{ $categoria }}" {{ request('categoria') === $categoria ? 'selected' : '' }}>
                                 {{ ucfirst($categoria) }}
                             </option>
                         @endforeach
@@ -33,7 +35,7 @@
                     <select id="prioridade" name="prioridade" class="form-select form-select-sm">
                         <option value="">Todas</option>
                         @foreach ($prioridades as $prioridade)
-                            <option value="{{ $prioridade }}" {{ $request->input('prioridade') === $prioridade ? 'selected' : '' }}>
+                            <option value="{{ $prioridade }}" {{ request('prioridade') === $prioridade ? 'selected' : '' }}>
                                 {{ ucfirst($prioridade) }}
                             </option>
                         @endforeach
@@ -42,8 +44,8 @@
                 <div class="col-md-3">
                     <label for="status" class="form-label small">Status</label>
                     <select id="status" name="status" class="form-select form-select-sm">
-                        <option value="pendentes" {{ $request->input('status', 'pendentes') === 'pendentes' ? 'selected' : '' }}>Pendentes</option>
-                        <option value="resolvidas" {{ $request->input('status') === 'resolvidas' ? 'selected' : '' }}>Resolvidas</option>
+                        <option value="pendentes" {{ request('status', 'pendentes') === 'pendentes' ? 'selected' : '' }}>Pendentes</option>
+                        <option value="resolvidas" {{ request('status') === 'resolvidas' ? 'selected' : '' }}>Resolvidas</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-grid">
@@ -70,7 +72,10 @@
                     </thead>
                     <tbody>
                         @forelse ($notificacoes as $notificacao)
-                            <tr @class(['table-warning' => $notificacao->prioridade === 'warning', 'table-danger' => $notificacao->prioridade === 'critical'])]
+                            @php
+                                $lida = $notificacao->leituras->isNotEmpty();
+                            @endphp
+                            <tr @class(['table-warning' => $notificacao->prioridade === 'warning', 'table-danger' => $notificacao->prioridade === 'critical'])>
                                 <td>
                                     <span class="badge bg-{{ $notificacao->prioridade === 'critical' ? 'danger' : ($notificacao->prioridade === 'warning' ? 'warning' : 'primary') }}">
                                         {{ $notificacao->rotuloPrioridade() }}
@@ -99,15 +104,18 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <form method="POST" action="{{ route('notificacoes.ler', $notificacao) }}" class="d-inline" style="display:inline">
-                                        @csrf
-                                        @method('POST')
-                                        <button type="submit" class="btn btn-{{ $notificacao->leituras()->where('user_id', auth()->id())->exists() ? 'outline' : 'primary' }}-sm btn-sm"
-                                            hx-post="{{ route('notificacoes.ler', $notificacao) }}"
-                                            hx-swap="none">
-                                            <i class="bi bi-{{ $notificacao->leituras()->where('user_id', auth()->id())->exists() ? 'check2' : 'check' }}"></i>
-                                        </button>
-                                    </form>
+                                    @if ($lida)
+                                        <span class="badge bg-light text-muted border small" title="Lida">
+                                            <i class="bi bi-check2"></i>
+                                        </span>
+                                    @else
+                                        <form method="POST" action="{{ route('notificacoes.ler', $notificacao) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary btn-sm" title="Marcar como lida">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

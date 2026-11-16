@@ -66,7 +66,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('clinica', app(TenantManager::class)->current());
 
             if (auth()->check()) {
-                $preferencias = \App\Models\Central\NotificationPreference::paraUsuario(auth()->user());
+                $preferencias = \App\Models\Central\NotificationPreference::paraLeitura(auth()->user());
 
                 $view->with('scoPreferenciasNotificacoes', [
                     'sons_ativos' => $preferencias->sons_ativos,

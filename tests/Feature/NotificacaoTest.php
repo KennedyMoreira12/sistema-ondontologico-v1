@@ -219,7 +219,7 @@ class NotificacaoTest extends TestCase
 
         $this->actingAs($this->usuario)
             ->post(route('notificacoes.ler', $alerta))
-            ->assertOk();
+            ->assertRedirect();
 
         $this->assertTenantDatabaseHas('notification_reads', [
             'notification_id' => $alerta->id,
@@ -235,7 +235,7 @@ class NotificacaoTest extends TestCase
 
         $this->actingAs($this->usuario)
             ->post(route('notificacoes.ler-todas'))
-            ->assertOk();
+            ->assertRedirect();
 
         $total = Notification::query()->count();
         $lidas = NotificationRead::query()->where('user_id', $this->usuario->id)->count();
@@ -332,5 +332,79 @@ class NotificacaoTest extends TestCase
         $alerta = Notification::query()->where('dedupe_key', 'assinaturas.contrato:'.$contrato->id)->first();
         $this->assertNotNull($alerta);
         $this->assertNotNull($alerta->resolved_at);
+    }
+
+    public function test_pagina_de_notificacoes_renderiza(): void
+    {
+        $this->gerador()->gerar();
+
+        $this->reconectarTenantParaAssercao();
+
+        $this->actingAs($this->usuario)
+            ->get(route('notificacoes.index'))
+            ->assertOk()
+            ->assertSee('Central de notifica', false)
+            ->assertSee('scoSino', false)
+            ->assertSee('scoPreferenciasNotificacoes', false);
+    }
+
+    public function test_sino_devolve_json_de_nao_lidas(): void
+    {
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Sino']);
+        AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'nome_conta' => 'Internet',
+            'valor' => 120,
+            'data_vencimento' => today()->subDays(1),
+            'status' => 'pendente',
+            'tipo' => 'servico',
+        ]);
+
+        $this->gerador()->gerar();
+
+        $this->reconectarTenantParaAssercao();
+
+        $this->actingAs($this->usuario)
+            ->getJson(route('notificacoes.nao-lidas'))
+            ->assertOk()
+            ->assertJsonStructure([
+                'nao_lidas',
+                'itens' => [['id', 'categoria', 'prioridade', 'titulo', 'lida']],
+                'preferencias' => ['sons_ativos', 'volume', 'categorias', 'navegador_ativo'],
+            ])
+            ->assertJsonPath('nao_lidas', 1);
+    }
+
+    public function test_marca_como_lida_via_json(): void
+    {
+        $this->gerador()->gerar();
+
+        $alerta = Notification::query()->first();
+        $this->assertNotNull($alerta);
+
+        $this->reconectarTenantParaAssercao();
+
+        $this->actingAs($this->usuario)
+            ->postJson(route('notificacoes.ler', $alerta))
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertTenantDatabaseHas('notification_reads', [
+            'notification_id' => $alerta->id,
+            'user_id' => $this->usuario->id,
+        ]);
+    }
+
+    public function test_preferencias_get_devolve_padroes_sem_gravar(): void
+    {
+        $this->reconectarTenantParaAssercao();
+
+        $this->actingAs($this->usuario)
+            ->getJson(route('notificacoes.preferencias'))
+            ->assertOk()
+            ->assertJsonPath('preferencias.sons_ativos', true)
+            ->assertJsonPath('preferencias.volume', 60);
+
+        $this->assertDatabaseCount('notification_preferences', 0);
     }
 }

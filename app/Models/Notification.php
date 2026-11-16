@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Central\User;
+use App\Models\Role;
 use App\Models\Tenant\TenantModel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -93,6 +95,32 @@ class Notification extends TenantModel
     public function scopeDaCategoria(Builder $query, string $categoria): Builder
     {
         return $query->where('categoria', $categoria);
+    }
+
+    /**
+     * Alerta que o usuário pode ver.
+     *
+     * O filtro é por permissão do módulo, e não por cargo: quem não tem acesso
+     * ao financeiro não deve saber que a conta da clínica está vencida. O admin
+     * vê tudo.
+     */
+    public function scopeVisiveisPara(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        $user->loadMissing('roles.permissions');
+
+        $permissoes = $user->roles
+            ->flatMap(fn (Role $role): array => $role->permissions->pluck('name')->all())
+            ->unique()
+            ->values()
+            ->all();
+
+        return $query->where(function (Builder $query) use ($permissoes): void {
+            $query->whereNull('permissao')->orWhereIn('permissao', $permissoes);
+        });
     }
 
     public function estaResolvida(): bool

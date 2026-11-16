@@ -31,6 +31,9 @@ class FinanceiroController extends Controller
                 fn ($paciente) => $paciente->where('nome', 'like', "%{$busca}%")
             ))
             ->when(request('status'), fn ($query, $status) => $query->where('status', $status))
+            // Link direto do alerta de pagamento recebido: sem este filtro a
+            // conta podia cair fora da página e o alerta não levava a lugar algum.
+            ->when(request('conta'), fn ($query, $conta) => $query->whereKey($conta))
             ->orderByRaw("CASE WHEN status = 'aberta' THEN 0 WHEN status = 'parcial' THEN 1 ELSE 2 END")
             ->orderBy('vencimento')
             ->paginate(20)
