@@ -336,6 +336,18 @@ class NotificacaoTest extends TestCase
 
     public function test_pagina_de_notificacoes_renderiza(): void
     {
+        // Com pelo menos um alerta a página exercita o eager load de `leituras`,
+        // que era onde a tela quebrava com dados reais.
+        $fornecedor = Supplier::create(['nome' => 'Fornecedor Historico']);
+        AccountsPayable::create([
+            'supplier_id' => $fornecedor->id,
+            'nome_conta' => 'Luz',
+            'valor' => 90,
+            'data_vencimento' => today()->subDays(4),
+            'status' => 'pendente',
+            'tipo' => 'servico',
+        ]);
+
         $this->gerador()->gerar();
 
         $this->reconectarTenantParaAssercao();
@@ -344,6 +356,7 @@ class NotificacaoTest extends TestCase
             ->get(route('notificacoes.index'))
             ->assertOk()
             ->assertSee('Central de notifica', false)
+            ->assertSee('Luz')
             ->assertSee('scoSino', false)
             ->assertSee('scoPreferenciasNotificacoes', false);
     }

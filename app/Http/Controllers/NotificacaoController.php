@@ -32,7 +32,8 @@ class NotificacaoController extends Controller
             ->when($request->filled('prioridade'), fn (Builder $query) => $query->where('prioridade', $request->string('prioridade')->toString()))
             ->when($request->input('status', 'pendentes') === 'pendentes', fn (Builder $query) => $query->ativas())
             ->when($request->input('status') === 'resolvidas', fn (Builder $query) => $query->whereNotNull('resolved_at'))
-            ->with(['leituras' => fn (Builder $query) => $query->where('user_id', $user->id)])
+            // O closure de eager load recebe a relação (HasMany), não um Builder.
+            ->with(['leituras' => fn ($query) => $query->where('user_id', $user->id)])
             ->orderByDesc('created_at')
             ->paginate(25)
             ->withQueryString();
