@@ -222,7 +222,7 @@
     <div class="busca-wrap"><input id="buscaMod" placeholder="🔎 Buscar módulo..."></div>
     <div class="busca-dica"><span>Pressione</span><b>/</b><span>ou</span><b>Ctrl K</b><span>para buscar · <b>↑↓→</b> navega · <b>Enter</b> abre</span></div>
     <div class="prog-wrap">
-      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/15</b></span></div>
+      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/16</b></span></div>
       <div class="prog-barra"><i id="progBarra"></i></div>
     </div>
     <nav>
@@ -232,6 +232,7 @@
       <button class="nav-item" data-mod="agenda"><span class="ico">🗓️</span>Agenda</button>
       <button class="nav-item" data-mod="prontuario"><span class="ico">📋</span>Prontuário</button>
       <button class="nav-item" data-mod="planos"><span class="ico">🎯</span>Tratamentos</button>
+      <button class="nav-item" data-mod="laser"><span class="ico">✨</span>Regiões a Laser</button>
       <div class="nav-titulo">Gestão</div>
       <button class="nav-item" data-mod="orcamentos"><span class="ico">💰</span>Orçamentos</button>
       <button class="nav-item" data-mod="financeiro"><span class="ico">🏦</span>Financeiro</button>
@@ -333,6 +334,22 @@ const estado = {
     {quem:'Administrador',acao:'registrar_evolucao',tabela:'evolucoes',id:'#7',quando:'23/09 16:20',ip:'127.0.0.1'}],
   rel: {recebido:1250,emAberto:700,atendidas:31,canceladas:4,faltas:2,entradas:96,saidas:84,baixo:2},
   resumo: 'Maria Souza | Evolução registrada — sessão de fisioterapia concluída. 💪',
+  laserRegioes: [
+    {id:1,nome:'Axilas',desc:'Depilação a laser — axilas',ordem:1,st:'ativa'},
+    {id:2,nome:'Buço',desc:'Depilação a laser — buço',ordem:2,st:'ativa'},
+    {id:3,nome:'Pernas completas',desc:'Pernas inteiras',ordem:3,st:'ativa'},
+    {id:4,nome:'Virilha',desc:'Virilha completa',ordem:4,st:'inativa'},
+  ],
+  laserPacotes: [
+    {id:1,regiao:1,nome:'Axilas — 10 sessões',sessoes:10,valor:900,validade:365,st:'ativo'},
+    {id:2,regiao:2,nome:'Buço — 6 sessões',sessoes:6,valor:450,validade:180,st:'ativo'},
+    {id:3,regiao:3,nome:'Pernas — 8 sessões',sessoes:8,valor:1400,validade:365,st:'ativo'},
+  ],
+  laserAplicacoes: [
+    {data:'2026-09-10',pac:'Maria Souza',regiao:1,pacote:1,sessao:1,prof:'Dra. Daiane Teixeira',obs:'Sem intercorrências'},
+    {data:'2026-09-17',pac:'Maria Souza',regiao:1,pacote:1,sessao:2,prof:'Dra. Daiane Teixeira',obs:'Leve hiperemia, transitória'},
+    {data:'2026-09-15',pac:'Ana Costa',regiao:2,pacote:2,sessao:1,prof:'Dra. Daiane Teixeira',obs:''},
+  ],
 };
 const $ = s => document.querySelector(s);
 const pasta = s => `${s.n.charAt(0).toUpperCase()}${s.n.slice(1)}`;
@@ -342,13 +359,14 @@ const stCor = {Agendado:'#0d6efd',Confirmado:'#198754','Em atendimento':'#ffc107
 const stBadge = s => `<span class="badge" style="background:${stCor[s]||'#6c757d'}">${s}</span>`;
 
 /* ===== NAVEGAÇÃO ===== */
-const modulos = {dashboard:0,pacientes:0,prontuario:1,pacientes_ficha:1,agenda:0,planos:3,orcamentos:4,financeiro:5,convenios:6,profissionais:7,procedimentos:8,estoque:9,contratos:10,relatorios:11,admin:12,auditoria:13};
-const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário clínico',pacientes_ficha:'Ficha do Paciente',agenda:'Agenda',planos:'Planos de Tratamento',orcamentos:'Orçamentos',financeiro:'Financeiro',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',contratos:'Contratos',relatorios:'Relatórios',admin:'Administração',auditoria:'Auditoria'};
+const modulos = {dashboard:0,pacientes:0,prontuario:1,pacientes_ficha:1,agenda:0,planos:3,laser:14,orcamentos:4,financeiro:5,convenios:6,profissionais:7,procedimentos:8,estoque:9,contratos:10,relatorios:11,admin:12,auditoria:13};
+const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário clínico',pacientes_ficha:'Ficha do Paciente',agenda:'Agenda',planos:'Planos de Tratamento',laser:'Regiões a Laser',orcamentos:'Orçamentos',financeiro:'Financeiro',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',contratos:'Contratos',relatorios:'Relatórios',admin:'Administração',auditoria:'Auditoria'};
 const treinoInfo = {
   dashboard:`<ol><li>Observe os 4 indicadores: sessões de hoje, pacientes, planos de tratamento em andamento e estoque baixo.</li><li>Na tabela <b>Agenda de hoje</b>, confira horário, paciente e status de cada sessão.</li><li>Veja a lista de <b>contas a receber</b> — saldos que precisam de cobrança.</li></ol>`,
   pacientes:`<ol><li>Digite um nome no campo de busca e veja o filtro funcionar em tempo real.</li><li>Clique em um paciente para abrir a <b>ficha</b> (aba lateral).</li><li>No sistema real use <b>Novo paciente</b> para cadastrar (teste CPF duplicado = bloqueio).</li></ol>`,
   prontuario:`<ol><li>Registre uma <b>evolução clínica</b> com tipo e conteúdo.</li><li>Adicione um <b>alerta</b> (ex.: alergia a penicilina).</li><li>Veja a <b>anamnese</b> no formato "pergunta: resposta" e a prescrição.</li></ol>`,
   planos:`<ol><li>Adicione um <b>procedimento</b> (quantidade, valor e desconto) ao plano.</li><li>Acompanhe o <b>total recalculado automaticamente</b>.</li><li>Teste o fluxo de status: Rascunho → Aprovado → Em andamento → Concluído.</li></ol>`,
+  laser:`<ol><li>Na aba <b>Regiões</b>, cadastre uma região corporal (ex.: Axilas).</li><li>Na aba <b>Pacotes</b>, crie um pacote-modelo com sessões, valor e validade.</li><li>Na aba <b>Histórico</b>, registre uma aplicação e veja o <b>nº da sessão calculado pelo sistema</b>.</li></ol>`,
   orcamentos:`<ol><li>Monte os itens do orçamento e veja <b>subtotal/total</b> recalcular.</li><li>Emita o orçamento e depois <b>aprove</b> (base para o financeiro).</li><li>Repare na <b>validade</b> da proposta.</li></ol>`,
   financeiro:`<ol><li>Clique em <b>Receber</b> em uma conta em aberto.</li><li>Tente receber valor acima do saldo → o sistema <b>bloqueia</b>.</li><li>Receba parcial → conta vira <b>Parcial</b>; receba o resto → <b>Paga</b>.</li></ol>`,
   convenios:`<ol><li>Cadastre uma operadora com nome/CNPJ/contato.</li><li>Veja que o sistema conta os <b>planos</b> de cada operadora.</li></ol>`,
@@ -360,7 +378,7 @@ const treinoInfo = {
   admin:`<ol><li>Veja a lista de usuários com perfil (RBAC).</li><li>Nos <b>Perfis</b>, entenda que cada perfil tem permissões por módulo+ação.</li><li>Confira os dados da <b>Clínica</b> (usados também pela API WhatsApp).</li></ol>`,
   auditoria:`<ol><li>Cada ação do sistema fica gravada com <b>quem, quando e IP</b>.</li><li>Use os filtros (ação/tabela) para encontrar registros.</li></ol>`,
 };
-const realLink = m => ({dashboard:'https://xn--ljaltomao-s2a7b.com.br/',pacientes:'https://xn--ljaltomao-s2a7b.com.br/pacientes',prontuario:'https://xn--ljaltomao-s2a7b.com.br/pacientes',planos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',orcamentos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',agenda:'https://xn--ljaltomao-s2a7b.com.br/agenda',financeiro:'https://xn--ljaltomao-s2a7b.com.br/financeiro',convenios:'https://xn--ljaltomao-s2a7b.com.br/convenios',profissionais:'https://xn--ljaltomao-s2a7b.com.br/profissionais',procedimentos:'https://xn--ljaltomao-s2a7b.com.br/procedimentos',estoque:'https://xn--ljaltomao-s2a7b.com.br/estoque',contratos:'https://xn--ljaltomao-s2a7b.com.br/contratos',relatorios:'https://xn--ljaltomao-s2a7b.com.br/relatorios',admin:'https://xn--ljaltomao-s2a7b.com.br/admin/usuarios',auditoria:'https://xn--ljaltomao-s2a7b.com.br/admin/auditoria'}[m]);
+const realLink = m => ({dashboard:'https://xn--ljaltomao-s2a7b.com.br/',pacientes:'https://xn--ljaltomao-s2a7b.com.br/pacientes',prontuario:'https://xn--ljaltomao-s2a7b.com.br/pacientes',planos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',laser:'https://xn--ljaltomao-s2a7b.com.br/laser/regioes',orcamentos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',agenda:'https://xn--ljaltomao-s2a7b.com.br/agenda',financeiro:'https://xn--ljaltomao-s2a7b.com.br/financeiro',convenios:'https://xn--ljaltomao-s2a7b.com.br/convenios',profissionais:'https://xn--ljaltomao-s2a7b.com.br/profissionais',procedimentos:'https://xn--ljaltomao-s2a7b.com.br/procedimentos',estoque:'https://xn--ljaltomao-s2a7b.com.br/estoque',contratos:'https://xn--ljaltomao-s2a7b.com.br/contratos',relatorios:'https://xn--ljaltomao-s2a7b.com.br/relatorios',admin:'https://xn--ljaltomao-s2a7b.com.br/admin/usuarios',auditoria:'https://xn--ljaltomao-s2a7b.com.br/admin/auditoria'}[m]);
 
 function cabecalho(mod, titulo, extra=''){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0b7285;border-radius:10px;padding:8px 12px;margin-bottom:12px">
@@ -852,6 +870,205 @@ function pagAuditoria(){
   </table></div>`;
 }
 
+/* ===== REGIÕES A LASER (exclusivo da vertical laser) ===== */
+let laserAba='regioes';
+function mostrarLaserAba(k){ laserAba=k; mostrar('laser'); }
+function laserAbaBtn(k,t){ return `<button class="btn ${laserAba===k?'teal':'gray'}" onclick="mostrarLaserAba('${k}')">${t}</button>`; }
+function dataBR(s){ if(!s) return '—'; const p=String(s).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
+
+function pagLaser(){
+  return cabecalho('laser','Regiões a Laser') + `
+  <div class="dica-treino">✨ <b>Módulo exclusivo da vertical Laser.</b> Aqui ficam as <b>regiões corporais</b>, os <b>pacotes-modelo</b> e o <b>histórico de aplicações</b>. O pacote é só referência de venda: <b>nenhuma cobrança é gerada automaticamente</b>.</div>
+  <div class="toolbar" style="gap:6px">${laserAbaBtn('regioes','🩻 Regiões')}${laserAbaBtn('pacotes','📦 Pacotes')}${laserAbaBtn('historico','🕘 Histórico')}</div>
+  ${laserAba==='pacotes'?laserPacotes():laserAba==='historico'?laserHistorico():laserRegioes()}`;
+}
+
+function laserRegioes(){
+  return `<div class="cards">
+    <div class="card-kpi"><div class="v">${estado.laserRegioes.length}</div><div class="r">🩻 Regiões cadastradas</div></div>
+    <div class="card-kpi"><div class="v">${estado.laserRegioes.filter(r=>r.st==='ativa').length}</div><div class="r">Ativas</div></div>
+    <div class="card-kpi"><div class="v">${estado.laserAplicacoes.length}</div><div class="r">Aplicações no histórico</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(laserRegiaoForm())">+ Nova região</button>
+    <span style="color:#5a6a72;font-size:.85rem">A exclusão é recusada quando há pacotes ou aplicações vinculadas — nesse caso, <b>desative</b> a região.</span></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Região</th><th>Descrição</th><th>Pacotes</th><th>Aplicações</th><th>Status</th><th>Ações</th></tr>
+    ${estado.laserRegioes.map((r,i)=>{
+      const pacotes=estado.laserPacotes.filter(p=>p.regiao===r.id).length;
+      const aplic=estado.laserAplicacoes.filter(a=>a.regiao===r.id).length;
+      const vinc=pacotes+aplic;
+      return `<tr>
+        <td><b>${r.nome}</b></td><td>${r.desc||'—'}</td>
+        <td>${pacotes}</td><td>${aplic}</td>
+        <td>${r.st==='ativa'?'<span class="badge" style="background:#198754">Ativa</span>':'<span class="badge" style="background:#6c757d">Inativa</span>'}</td>
+        <td><button class="btn gray fino" onclick="alternarRegiaoLaser(${i})">${r.st==='ativa'?'Desativar':'Ativar'}</button>
+            <button class="btn ${vinc?'gray':'vermelho'} fino" onclick="excluirLaserRegiao(${i})" title="${vinc?'Há pacotes/aplicações vinculados':''}">Excluir</button></td></tr>`;
+    }).join('')}
+  </table></div>`;
+}
+function laserRegiaoForm(){
+  return `<h3>🩻 Nova região</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome da região *</label><input id="lr_nome" placeholder="Ex.: Axilas"></div>
+    <div><label>Ordem</label><input id="lr_ordem" type="number" min="0" max="999" value="0"></div>
+    <div><label>Status</label><select id="lr_st"><option value="ativa">Ativa</option><option value="inativa">Inativa</option></select></div>
+    <div class="full"><label>Descrição</label><input id="lr_desc" placeholder="Observações sobre a região"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarLaserRegiao()">Salvar região</button></div>`;
+}
+function salvarLaserRegiao(){
+  const nome=$('#lr_nome').value.trim();
+  if(!nome){ alert('Informe o nome da região.'); return; }
+  if(estado.laserRegioes.some(r=>r.nome.toLowerCase()===nome.toLowerCase())){ alert('Já existe uma região com esse nome (o nome é único).'); return; }
+  const id=estado.laserRegioes.reduce((m,r)=>Math.max(m,r.id),0)+1;
+  estado.laserRegioes.push({id,nome,desc:$('#lr_desc').value.trim(),ordem:parseInt($('#lr_ordem').value)||0,st:$('#lr_st').value});
+  fez('laser_regiao'); fecharModal(); mostrar('laser'); flash(`Região "${nome}" cadastrada ✓`);
+}
+function alternarRegiaoLaser(i){
+  const r=estado.laserRegioes[i]; r.st=r.st==='ativa'?'inativa':'ativa';
+  mostrar('laser'); flash(`Região "${r.nome}" agora está ${r.st} ✓`);
+}
+function excluirLaserRegiao(i){
+  const r=estado.laserRegioes[i];
+  const pacotes=estado.laserPacotes.filter(p=>p.regiao===r.id).length;
+  const aplic=estado.laserAplicacoes.filter(a=>a.regiao===r.id).length;
+  if(pacotes+aplic){ flash('Esta região tem pacotes/aplicações vinculados. Desative-a em vez de excluir.'); return; }
+  if(!confirm(`Excluir a região "${r.nome}"?`)) return;
+  estado.laserRegioes.splice(i,1); mostrar('laser'); flash('Região excluída ✓');
+}
+
+function laserPacotes(){
+  const soma=estado.laserPacotes.reduce((s,p)=>s+p.valor,0);
+  return `<div class="cards">
+    <div class="card-kpi"><div class="v">${estado.laserPacotes.length}</div><div class="r">📦 Pacotes-modelo</div></div>
+    <div class="card-kpi"><div class="v">${estado.laserPacotes.filter(p=>p.st==='ativo').length}</div><div class="r">Ativos</div></div>
+    <div class="card-kpi"><div class="v">${mReais(soma)}</div><div class="r">Soma dos valores de referência</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(laserPacoteForm())">+ Novo pacote</button>
+    <span style="color:#5a6a72;font-size:.85rem">O pacote <b>não é debitado</b> automaticamente: quem mostra as sessões feitas é o Histórico.</span></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Região</th><th>Pacote</th><th>Sessões</th><th>Valor</th><th>Validade</th><th>Aplicações</th><th>Status</th><th>Ações</th></tr>
+    ${estado.laserPacotes.map((p,i)=>{
+      const r=estado.laserRegioes.find(x=>x.id===p.regiao);
+      const aplic=estado.laserAplicacoes.filter(a=>a.pacote===p.id).length;
+      return `<tr>
+        <td><b>${r?r.nome:'—'}</b></td>
+        <td>${p.nome}</td><td>${p.sessoes}</td>
+        <td>${mReais(p.valor)}</td><td>${p.validade?p.validade+' dias':'—'}</td>
+        <td>${aplic}</td>
+        <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#6c757d">Inativo</span>'}</td>
+        <td><button class="btn gray fino" onclick="alternarPacoteLaser(${i})">${p.st==='ativo'?'Desativar':'Ativar'}</button>
+            <button class="btn ${aplic?'gray':'vermelho'} fino" onclick="excluirLaserPacote(${i})" title="${aplic?'Já tem aplicações no histórico':''}">Excluir</button></td></tr>`;
+    }).join('')}
+  </table></div>`;
+}
+function laserPacoteForm(){
+  return `<h3>📦 Novo pacote-modelo</h3>
+  <div class="form-grid">
+    <div><label>Região *</label><select id="lp_regiao">${estado.laserRegioes.map(r=>`<option value="${r.id}">${r.nome}${r.st==='ativa'?'':' (inativa)'}</option>`).join('')}</select></div>
+    <div><label>Sessões *</label><input id="lp_sessoes" type="number" min="1" max="100" value="10"></div>
+    <div class="full"><label>Nome do pacote *</label><input id="lp_nome" placeholder="Ex.: Axilas — 10 sessões"></div>
+    <div><label>Valor (R$)</label><input id="lp_valor" type="number" step="0.01" min="0" value="0"></div>
+    <div><label>Validade (dias)</label><input id="lp_validade" type="number" min="1" max="3650" placeholder="Opcional"></div>
+    <div class="full"><label>Descrição</label><input id="lp_desc" placeholder="Observações sobre o pacote"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarLaserPacote()">Salvar pacote</button></div>`;
+}
+function salvarLaserPacote(){
+  const regiao=parseInt($('#lp_regiao').value);
+  const nome=$('#lp_nome').value.trim();
+  if(!nome){ alert('Informe o nome do pacote.'); return; }
+  if(estado.laserPacotes.some(p=>p.regiao===regiao && p.nome.toLowerCase()===nome.toLowerCase())){
+    alert('Já existe um pacote com esse nome nesta região (o nome é único por região).'); return;
+  }
+  const id=estado.laserPacotes.reduce((m,p)=>Math.max(m,p.id),0)+1;
+  estado.laserPacotes.push({id,regiao,nome,sessoes:parseInt($('#lp_sessoes').value)||1,valor:parseFloat($('#lp_valor').value)||0,validade:parseInt($('#lp_validade').value)||null,st:'ativo'});
+  fez('laser_pacote'); fecharModal(); mostrar('laser'); flash(`Pacote "${nome}" cadastrado ✓`);
+}
+function alternarPacoteLaser(i){
+  const p=estado.laserPacotes[i]; p.st=p.st==='ativo'?'inativo':'ativo';
+  mostrar('laser'); flash(`Pacote "${p.nome}" agora está ${p.st} ✓`);
+}
+function excluirLaserPacote(i){
+  const p=estado.laserPacotes[i];
+  if(estado.laserAplicacoes.some(a=>a.pacote===p.id)){ flash('Este pacote já tem aplicações no histórico. Desative-o em vez de excluir.'); return; }
+  if(!confirm(`Excluir o pacote "${p.nome}"?`)) return;
+  estado.laserPacotes.splice(i,1); mostrar('laser'); flash('Pacote excluído ✓');
+}
+
+function laserOpcoesPacote(regiaoId){
+  const lista=estado.laserPacotes.filter(p=>p.regiao===Number(regiaoId));
+  if(!lista.length) return '<option value="">Nenhum pacote para esta região</option>';
+  return '<option value="">Sessão avulsa</option>'+lista.map(p=>`<option value="${p.id}">${p.nome} (${p.sessoes} sessões)</option>`).join('');
+}
+function atualizarPacotesLaser(){
+  const r=$('#lh_regiao'), s=$('#lh_pacote');
+  if(r&&s) s.innerHTML=laserOpcoesPacote(r.value);
+}
+function proximaSessaoLaser(pac,regiao){
+  const nums=estado.laserAplicacoes.filter(a=>a.pac===pac && a.regiao===regiao).map(a=>a.sessao);
+  return (nums.length?Math.max.apply(null,nums):0)+1;
+}
+function laserHistorico(){
+  const pacientes=estado.pacientes.filter(p=>p.st==='ativo');
+  const regioesAtivas=estado.laserRegioes.filter(r=>r.st==='ativa');
+  return `<div class="cards">
+    <div class="card-kpi"><div class="v">${estado.laserAplicacoes.length}</div><div class="r">🕘 Aplicações registradas</div></div>
+    <div class="card-kpi"><div class="v">${estado.laserAplicacoes.filter(a=>!a.pacote).length}</div><div class="r">Sessões avulsas</div></div>
+    <div class="card-kpi"><div class="v">${new Set(estado.laserAplicacoes.map(a=>a.pac)).size}</div><div class="r">Pacientes atendidos</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--borda);border-radius:12px;padding:14px;margin-bottom:16px">
+    <div style="font-weight:700;margin-bottom:10px">➕ Registrar aplicação</div>
+    <div class="form-grid">
+      <div><label>Paciente *</label><select id="lh_pac">${pacientes.map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+      <div><label>Região *</label><select id="lh_regiao" onchange="atualizarPacotesLaser()">${regioesAtivas.map(r=>`<option value="${r.id}">${r.nome}</option>`).join('')}</select></div>
+      <div><label>Pacote (opcional)</label><select id="lh_pacote">${laserOpcoesPacote(regioesAtivas[0]&&regioesAtivas[0].id)}</select></div>
+      <div><label>Data *</label><input id="lh_data" type="date" value="2026-09-24"></div>
+      <div><label>Profissional</label><select id="lh_prof"><option>Dra. Daiane Teixeira</option><option>Fga. Carla Nunes</option></select></div>
+      <div class="full"><label>Observações</label><input id="lh_obs" placeholder="Parâmetros, intercorrências, orientações..."></div>
+    </div>
+    <div class="acoes" style="justify-content:flex-start"><button class="btn teal" onclick="salvarAplicacaoLaser()">✔ Registrar aplicação</button>
+      <span style="color:#5a6a72;font-size:.82rem">O <b>nº da sessão</b> é calculado pelo sistema — não vem do formulário.</span></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Data</th><th>Paciente</th><th>Região</th><th>Pacote</th><th>Sessão</th><th>Profissional</th><th>Observações</th><th>Ações</th></tr>
+    ${estado.laserAplicacoes.map((a,i)=>{
+      const pac=estado.laserPacotes.find(p=>p.id===a.pacote);
+      const reg=estado.laserRegioes.find(r=>r.id===a.regiao);
+      const excede=pac && a.sessao>pac.sessoes;
+      return `<tr>
+        <td>${dataBR(a.data)}</td>
+        <td><button class="btn-link" onclick="abrirFichaLaser('${a.pac}')">${a.pac}</button></td>
+        <td>${reg?reg.nome:'—'}</td>
+        <td>${pac?pac.nome:'<span style="color:#5a6a72">Avulsa</span>'}${excede?' <span class="badge" style="background:#f59f00">além do pacote</span>':''}</td>
+        <td><span class="badge" style="background:#e7f5ff;color:#0b7285;border:1px solid #b6e3ff">nº ${a.sessao}${pac?` de ${pac.sessoes}`:''}</span></td>
+        <td>${a.prof||'—'}</td>
+        <td>${a.obs||'—'}</td>
+        <td><button class="btn vermelho fino" onclick="excluirAplicacaoLaser(${i})">Excluir</button></td></tr>`;
+    }).join('')||'<tr><td colspan="8">Nenhuma aplicação registrada.</td></tr>'}
+  </table></div>`;
+}
+function salvarAplicacaoLaser(){
+  const pac=$('#lh_pac').value, regiao=parseInt($('#lh_regiao').value);
+  if(!pac){ alert('Selecione o paciente.'); return; }
+  if(!regiao){ alert('Selecione a região.'); return; }
+  const pacote=parseInt($('#lh_pacote').value)||null;
+  const numero=proximaSessaoLaser(pac,regiao);
+  estado.laserAplicacoes.unshift({data:$('#lh_data').value||'2026-09-24',pac,regiao,pacote,sessao:numero,prof:$('#lh_prof').value,obs:$('#lh_obs').value.trim()});
+  fez('laser_aplicacao'); mostrar('laser');
+  flash(`Aplicação registrada: sessão nº ${numero} — calculada pelo sistema ✓`);
+}
+function excluirAplicacaoLaser(i){
+  if(!confirm('Excluir esta aplicação do histórico?')) return;
+  estado.laserAplicacoes.splice(i,1); mostrar('laser'); flash('Aplicação excluída do histórico ✓');
+}
+function abrirFichaLaser(nome){
+  const idx=estado.pacientes.findIndex(p=>p.n===nome);
+  if(idx>=0){ pastaPac=idx; mostrar('pacientes_ficha'); }
+}
+
 /* ===== FLASH ===== */
 const flashBox=document.createElement('div');
 flashBox.style.cssText='position:fixed;top:70px;right:22px;background:#0b7285;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:99;font-size:.9rem;font-weight:600;max-width:360px;transition:.25s;opacity:0;pointer-events:none;';
@@ -859,13 +1076,14 @@ document.body.appendChild(flashBox);
 function flash(msg){ flashBox.textContent='✓ '+msg; flashBox.style.opacity=1; setTimeout(()=>flashBox.style.opacity=0,3200); }
 
 /* ===== PROGRESSO, DESAFIOS E QUIZ ===== */
-const CHAVES_MOD = {dashboard:['tour_dashboard'],pacientes:['paciente_criado','abrir_ficha'],prontuario:['evolucao','alerta'],agenda:['agendar'],planos:['plano_item','concluir_plano'],orcamentos:['orc_item','aprovar_orc'],financeiro:['receber'],convenios:['convenio'],profissionais:['profissional'],procedimentos:['procedimento'],estoque:['entrada','saida'],contratos:['contrato'],relatorios:['relatorio_periodo'],admin:['admin_visitado'],auditoria:['aud_filtro']};
+const CHAVES_MOD = {dashboard:['tour_dashboard'],pacientes:['paciente_criado','abrir_ficha'],prontuario:['evolucao','alerta'],agenda:['agendar'],planos:['plano_item','concluir_plano'],laser:['laser_regiao','laser_pacote','laser_aplicacao'],orcamentos:['orc_item','aprovar_orc'],financeiro:['receber'],convenios:['convenio'],profissionais:['profissional'],procedimentos:['procedimento'],estoque:['entrada','saida'],contratos:['contrato'],relatorios:['relatorio_periodo'],admin:['admin_visitado'],auditoria:['aud_filtro']};
 const DESAFIOS = {
   dashboard:[{k:'tour_dashboard',t:'Assista à Visita guiada até o fim (no último passo, clique em Encerrar)'}],
   pacientes:[{k:'paciente_criado',t:'Cadastre um novo paciente (botão "+ Novo paciente")'},{k:'abrir_ficha',t:'Abra a ficha/prontuário de um paciente'}],
   prontuario:[{k:'evolucao',t:'Registre uma evolução clínica'},{k:'alerta',t:'Adicione um alerta clínico'}],
   agenda:[{k:'agendar',t:'Agende uma sessão'}],
   planos:[{k:'plano_item',t:'Adicione um procedimento ao plano'},{k:'concluir_plano',t:'Conclua o plano de tratamento'}],
+  laser:[{k:'laser_regiao',t:'Cadastre uma região corporal'},{k:'laser_pacote',t:'Crie um pacote-modelo para uma região'},{k:'laser_aplicacao',t:'Registre uma aplicação e veja o nº da sessão calculado'}],
   orcamentos:[{k:'orc_item',t:'Adicione um item ao orçamento'},{k:'aprovar_orc',t:'Aprove o orçamento (botão verde)'}],
   financeiro:[{k:'receber',t:'Registre um recebimento (parcial ou total)'}],
   convenios:[{k:'convenio',t:'Cadastre uma operadora'}],
@@ -907,6 +1125,13 @@ const QUIZ = {
     {q:'O valor unitário do item vem sugerido do:',o:['Orçamento anterior','Valor padrão do procedimento','Tabela SUS','Total do plano'],c:1},
     {q:'Ao marcar o plano como CONCLUÍDO, o sistema:',o:['Não faz nada','Executa todos os itens pendentes','Apaga o plano','Zera o desconto'],c:1},
     {q:'Os itens do plano podem ser marcados como:',o:['executado / planejado','ativo / inativo','aberto / fechado','rascunho / final'],c:0},
+  ],
+  laser:[
+    {q:'O módulo Regiões a Laser reúne:',o:['Só o financeiro','Regiões corporais, pacotes-modelo e histórico de aplicações','Apenas a agenda','Somente estoque'],c:1},
+    {q:'Quem define o número da sessão?',o:['A recepção digita','O profissional escolhe','O sistema calcula por paciente e região','O paciente informa'],c:2},
+    {q:'Quando a exclusão de uma região é recusada?',o:['Nunca','Quando ela tem pacotes ou aplicações vinculadas','Só se estiver inativa','Quando o nome tem acento'],c:1},
+    {q:'O pacote-modelo de laser gera cobrança automática?',o:['Sim, ao registrar a sessão','Sim, todo mês','Não — é referência de venda; o histórico mostra o que foi aplicado','Só para sessões avulsas'],c:2},
+    {q:'O histórico de laser também aparece:',o:['No prontuário do paciente','Na agenda','No estoque','Nos convênios'],c:0},
   ],
   orcamentos:[
     {q:'O fluxo de status do orçamento é:',o:['Novo → Pago → Fechado','Rascunho → Emitido → Aprovado → Recusado/Cancelado','Aberto → Fechado','Planejado → Feito'],c:1},
@@ -1107,6 +1332,7 @@ const EXP_MSG = {
   pacientes:'O módulo <b>Pacientes</b> centraliza o cadastro e a busca. A busca filtra por nome, CPF, e-mail, telefone fixo e celular — o MESMO critério usado pela API do WhatsApp. <br><br>Regras reais: somente o <b>nome</b> é obrigatório; o CPF é <b>único</b> (duplicidade bloqueada); ao excluir, o sistema <b>não apaga</b> — faz soft delete e marca como inativo, preservando o histórico clínico. Todo cadastro/alteração gera registro de <b>auditoria</b> com antes/depois.',
   prontuario:'A <b>ficha do paciente</b> reúne os dados e o histórico. O prontuário clínico (evoluções) registra o relato de cada atendimento: o <b>profissional logado vira o autor automaticamente</b>. A anamnese trabalha no formato <b>"pergunta: resposta"</b> (você pode colar várias linhas de uma vez). Os <b>alertas</b> ficam visíveis na ficha para situações críticas (alergias, medicações) — desativar não apaga, só esconde. Prescrições aceitam vários medicamentos com dose, frequência e duração.',
   planos:'O <b>Plano de tratamento</b> organiza os procedimentos (sessões) do paciente. Regras reais do sistema: o <b>total é recalculado automaticamente</b> a cada mudança (soma dos itens − desconto, nunca negativo); o <b>valor unitário</b> vem sugerido do valor padrão do procedimento; ao marcar o plano como <b>Concluído</b>, o sistema executa todos os itens pendentes. Itens podem ser marcados executado/planejado individualmente.',
+  laser:'O módulo <b>Regiões a Laser</b> é exclusivo da vertical <b>laser</b> (a clínica odontológica não abre nem digitando a URL) e tem três abas: <b>Regiões</b>, <b>Pacotes</b> e <b>Histórico</b>. <br><br><b>Regiões</b> é o catálogo corporal (axilas, buço, pernas...). O nome é <b>único</b>, e a exclusão é <b>recusada</b> quando há pacotes ou aplicações vinculadas — nesse caso, desative. <b>Pacotes</b> são modelos de venda por região (sessões, valor e validade de referência) e <b>não geram cobrança automática</b>. No <b>Histórico</b>, cada aplicação registra paciente, região, pacote (opcional), data, profissional e observações: o <b>número da sessão é calculado pelo sistema</b>, por paciente e região, dentro de uma transação — nunca vem do formulário. O mesmo histórico aparece no <b>prontuário</b> do paciente.',
   orcamentos:'O <b>Orçamento</b> é a proposta financeira apresentada ao paciente e o passo anterior ao financeiro. A montagem é idêntica ao plano: procedimentos + quantidade + valor + desconto. O sistema apresenta <b>subtotal</b> (soma dos itens) e <b>total</b> (subtotal − desconto). Fluxo real de status: <b>Rascunho → Emitido → Aprovado</b> (a base para gerar contas a receber) → Recusado/Cancelado.',
   financeiro:'O <b>Financeiro</b> controla as contas a receber. A listagem ordena por prioridade: abertas primeiro, depois parciais e por fim pagas (todas por vencimento); há filtros por paciente e status. <br><br>Ao receber: o valor <b>não pode ultrapassar o saldo devedor</b> (bloqueio com mensagem); pagamento parcial muda a conta para <b>Parcial</b>; pagamento total muda para <b>Paga</b>. Cada recebimento grava a <b>forma de pagamento</b> (Dinheiro, PIX, cartão, boleto, convênio), o usuário responsável e gera <b>auditoria</b>.',
   convenios:'O módulo <b>Convênios</b> cadastra as <b>operadoras</b> que a clínica atende (ex.: Unimed, Bradesco Saúde). Cada operadora pode ter planos vinculados e é filtrada por nome/CNPJ e status ativo/inativo. No recebimento financeiro, a forma "Convênio" é usada para pagamentos via operadora.',
@@ -1148,6 +1374,14 @@ const ANOTACOES = {
     ['.cards .card-kpi:nth-child(3)','Total RECALCULADO a cada mudança: soma dos itens − desconto (nunca negativo).'],
     ['.toolbar .btn.teal','Adiciona procedimento ao plano: quantidade, valor sugerido do catálogo e desconto.'],
     ['.toolbar .btn','Concluir plano — útil após executar todos os itens.'],
+  ],
+  laser:[
+    ['.toolbar .btn.teal','Cadastra uma nova região corporal (ou um novo pacote, conforme a aba). O nome é único.'],
+    ['.cards .card-kpi','Resumo do módulo: regiões, ativos e aplicações — muda conforme a aba selecionada.'],
+    ['table','Regiões: mostram quantos pacotes e aplicações estão vinculados. Pacotes: sessões, valor e validade de referência. Histórico: sessão calculada pelo sistema.'],
+    ['#lh_regiao','Ao trocar a região, a lista de pacotes é filtrada — o pacote precisa pertencer à região escolhida.'],
+    ['#lh_pacote','Pacote opcional: deixe em "Sessão avulsa" para registrar sem pacote.'],
+    ['#lh_data','A data da aplicação. O número da sessão NÃO é digitado: o sistema calcula por paciente + região.'],
   ],
   orcamentos:[
     ['.cards .card-kpi:nth-child(2)','Subtotal = soma dos itens do orçamento.'],
@@ -1197,7 +1431,7 @@ const ANOTACOES = {
     ['table','Trilha completa: usuário, ação, tabela, registro, quando e IP — com valores antes/depois.'],
   ],
 };
-const expNav = {dashboard:'Visão geral: sessões de hoje, indicadores e contas em aberto.',pacientes:'Cadastro, busca e ficha dos pacientes.',prontuario:'Evoluções, anamneses, alertas e prescrições do paciente.',agenda:'Grade semanal de sessões + lista de espera.',planos:'Planos de tratamento com procedimentos e totais automaticos.',orcamentos:'Propostas financeiras apresentadas ao paciente.',financeiro:'Contas a receber e recebimentos.',convenios:'Operadoras e planos de convênio.',profissionais:'Equipe da clínica com CREFITO, especialidades e comissão.',procedimentos:'Catálogo de serviços da clínica.',estoque:'Produtos, estoque mínimo e movimentações.',contratos:'Termos e consentimentos por paciente.',relatorios:'Indicadores por período: financeiro, agenda e estoque.',admin:'Usuários, perfis, permissões e dados da clínica.',auditoria:'Trilha de quem fez o quê, quando e como.'};
+const expNav = {dashboard:'Visão geral: sessões de hoje, indicadores e contas em aberto.',pacientes:'Cadastro, busca e ficha dos pacientes.',prontuario:'Evoluções, anamneses, alertas e prescrições do paciente.',agenda:'Grade semanal de sessões + lista de espera.',planos:'Planos de tratamento com procedimentos e totais automaticos.',laser:'Regiões corporais, pacotes-modelo e histórico de sessões de laser.',orcamentos:'Propostas financeiras apresentadas ao paciente.',financeiro:'Contas a receber e recebimentos.',convenios:'Operadoras e planos de convênio.',profissionais:'Equipe da clínica com CREFITO, especialidades e comissão.',procedimentos:'Catálogo de serviços da clínica.',estoque:'Produtos, estoque mínimo e movimentações.',contratos:'Termos e consentimentos por paciente.',relatorios:'Indicadores por período: financeiro, agenda e estoque.',admin:'Usuários, perfis, permissões e dados da clínica.',auditoria:'Trilha de quem fez o quê, quando e como.'};
 
 const divDica = document.createElement('div');
 divDica.id='dicaExpli';
@@ -1323,8 +1557,8 @@ function fecharTour(credito){
 }
 
 /* ===== MODO APRESENTAÇÃO ===== */
-const ordemModulos=['dashboard','pacientes','prontuario','agenda','planos','orcamentos','financeiro','convenios','profissionais','procedimentos','estoque','contratos','relatorios','admin','auditoria'];
-const iconesMod={dashboard:'🏠',pacientes:'🧑‍⚕️',prontuario:'📋',agenda:'📅',planos:'🧩',orcamentos:'💼',financeiro:'💰',convenios:'🤝',profissionais:'👩‍⚕️',procedimentos:'🧰',estoque:'📦',contratos:'📜',relatorios:'📊',admin:'🧰',auditoria:'🔍'};
+const ordemModulos=['dashboard','pacientes','prontuario','agenda','planos','laser','orcamentos','financeiro','convenios','profissionais','procedimentos','estoque','contratos','relatorios','admin','auditoria'];
+const iconesMod={dashboard:'🏠',pacientes:'🧑‍⚕️',prontuario:'📋',agenda:'📅',planos:'🧩',laser:'✨',orcamentos:'💼',financeiro:'💰',convenios:'🤝',profissionais:'👩‍⚕️',procedimentos:'🧰',estoque:'📦',contratos:'📜',relatorios:'📊',admin:'🧰',auditoria:'🔍'};
 function passosLista(mod){
   return Array.from((treinoInfo[mod]||'').matchAll(/<li>(.*?)<\/li>/g)).map(m=>m[1]);
 }
@@ -1385,7 +1619,7 @@ function mostrar(mod){
   if(tourState) fecharTour();
   $('#tituloPagina').textContent = titulos[mod]||mod;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('ativo', b.dataset.mod===mod));
-  const paginas={dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,agenda:pagAgenda,planos:pagPlanos,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,admin:pagAdmin,auditoria:pagAuditoria};
+  const paginas={dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,agenda:pagAgenda,planos:pagPlanos,laser:pagLaser,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,admin:pagAdmin,auditoria:pagAuditoria};
   $('#page').innerHTML = (paginas[mod]||pagDashboard).call();
   anotar(mod);
   if(mod==='admin' && !prog.feito.admin_visitado) fez('admin_visitado');
