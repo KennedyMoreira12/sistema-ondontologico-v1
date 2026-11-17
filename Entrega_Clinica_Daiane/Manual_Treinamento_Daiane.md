@@ -1257,7 +1257,7 @@ Ao concluir os **35 módulos disponíveis**, você terá praticado:
 | TRAT-01 | Adaptar a tela de Tratamentos para fisioterapia | 🟸 Planejado |
 | PILAT-01 | Tela própria de Turmas de Pilates | 🟸 Planejado |
 | FISC-01 | Notas fiscais em produção (certificado + emissor) | ⏳ Pendente |
-| LASER-01 | Publicar o módulo laser em produção | ⏳ Aguardando autorização |
+| LASER-01 | Publicar o módulo laser em produção (pacotes + histórico) | ⏳ Autorizado; aguardando acesso SSH |
 | ATEND-01 | Lembretes automáticos de sessão | ⏳ Pendente |
 
 ---
