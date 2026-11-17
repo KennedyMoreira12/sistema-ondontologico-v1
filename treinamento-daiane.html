@@ -25,6 +25,12 @@
   .nav-item:hover{background:rgba(255,255,255,.10)}
   .nav-item.ativo{background:rgba(255,255,255,.16);border-left:3px solid var(--teal);font-weight:600}
   .nav-item .ico{width:20px;text-align:center}
+  .nav-item.nav-sub{padding-left:32px;font-size:.82rem;opacity:.92}
+  .nav-item.nav-sub .ico{width:18px;font-size:.9rem}
+  .nav-tag{margin-left:auto;font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#ffe8a3;border-radius:999px;padding:1px 6px;font-weight:800;white-space:nowrap}
+  .planejado{background:#fff4e6;border:1px solid #f0c78a;border-left:5px solid var(--amarelo);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:.88rem;color:#7a4b00}
+  .planejado b{color:#8a5300}
+  .abas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 
   /* ===== MAIN ===== */
   .main{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -222,7 +228,7 @@
     <div class="busca-wrap"><input id="buscaMod" placeholder="🔎 Buscar módulo..."></div>
     <div class="busca-dica"><span>Pressione</span><b>/</b><span>ou</span><b>Ctrl K</b><span>para buscar · <b>↑↓→</b> navega · <b>Enter</b> abre</span></div>
     <div class="prog-wrap">
-      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/16</b></span></div>
+      <div class="prog-topo"><span>📈 Meu progresso</span><span><button class="zera" onclick="zerarProgresso()" title="Apagar todo o progresso">zerar</button> · <b id="progNum">0/35</b></span></div>
       <div class="prog-barra"><i id="progBarra"></i></div>
     </div>
     <nav>
@@ -230,21 +236,43 @@
       <button class="nav-item" data-mod="dashboard"><span class="ico">📊</span>Dashboard</button>
       <button class="nav-item" data-mod="pacientes"><span class="ico">👥</span>Pacientes</button>
       <button class="nav-item" data-mod="agenda"><span class="ico">🗓️</span>Agenda</button>
+      <button class="nav-item" data-mod="atendimentos"><span class="ico">✅</span>Atendimentos</button>
+      <button class="nav-item" data-mod="turmas"><span class="ico">🧘</span>Turmas</button>
       <button class="nav-item" data-mod="prontuario"><span class="ico">📋</span>Prontuário</button>
-      <button class="nav-item" data-mod="planos"><span class="ico">🎯</span>Tratamentos</button>
+      <button class="nav-item" data-mod="avaliacao"><span class="ico">🧾</span>Avaliação</button>
+      <button class="nav-item" data-mod="evolucao"><span class="ico">📈</span>Evolução</button>
+      <button class="nav-item" data-mod="pacotes"><span class="ico">🎟️</span>Pacotes de sessões</button>
       <button class="nav-item" data-mod="laser"><span class="ico">✨</span>Regiões a Laser</button>
+      <button class="nav-item" data-mod="planos"><span class="ico">🎯</span>Tratamentos <span class="nav-tag">planejado</span></button>
+      <button class="nav-item" data-mod="turmas_pilates"><span class="ico">👥</span>Turmas de Pilates <span class="nav-tag">planejado</span></button>
       <div class="nav-titulo">Gestão</div>
       <button class="nav-item" data-mod="orcamentos"><span class="ico">💰</span>Orçamentos</button>
       <button class="nav-item" data-mod="financeiro"><span class="ico">🏦</span>Financeiro</button>
+      <button class="nav-item nav-sub" data-mod="pagamentos"><span class="ico">💵</span>Pagamentos</button>
+      <button class="nav-item nav-sub" data-mod="contas_pagar"><span class="ico">📤</span>Contas a pagar</button>
+      <button class="nav-item nav-sub" data-mod="fornecedores"><span class="ico">🏭</span>Fornecedores</button>
+      <button class="nav-item nav-sub" data-mod="fluxo_caixa"><span class="ico">🌊</span>Fluxo de caixa</button>
+      <button class="nav-item nav-sub" data-mod="duplicatas"><span class="ico">🔁</span>Nomes parecidos</button>
+      <button class="nav-item" data-mod="notas_fiscais"><span class="ico">🧾</span>Notas fiscais</button>
       <button class="nav-item" data-mod="convenios"><span class="ico">🛡️</span>Convênios</button>
       <button class="nav-item" data-mod="profissionais"><span class="ico">🧑‍⚕️</span>Profissionais</button>
       <button class="nav-item" data-mod="procedimentos"><span class="ico">🩺</span>Procedimentos</button>
       <button class="nav-item" data-mod="estoque"><span class="ico">📦</span>Estoque</button>
       <button class="nav-item" data-mod="contratos"><span class="ico">📜</span>Contratos</button>
       <button class="nav-item" data-mod="relatorios"><span class="ico">📊</span>Relatórios</button>
+      <button class="nav-item nav-sub" data-mod="rel_receitas"><span class="ico">📈</span>Receitas</button>
+      <button class="nav-item nav-sub" data-mod="rel_presenca"><span class="ico">✅</span>Presença e faltas</button>
+      <button class="nav-item nav-sub" data-mod="rel_pacotes"><span class="ico">🎟️</span>Pacotes e sessões</button>
+      <button class="nav-item nav-sub" data-mod="rel_aniversariantes"><span class="ico">🎂</span>Aniversariantes</button>
+      <button class="nav-item" data-mod="documentos"><span class="ico">📁</span>Documentos</button>
       <div class="nav-titulo">Administração</div>
-      <button class="nav-item" data-mod="admin"><span class="ico">⚙️</span>Usuários &amp; Perfis</button>
+      <button class="nav-item" data-mod="admin"><span class="ico">⚙️</span>Usuários</button>
+      <button class="nav-item" data-mod="perfis"><span class="ico">🔐</span>Perfis &amp; Permissões</button>
+      <button class="nav-item" data-mod="clinica"><span class="ico">🏥</span>Clínica</button>
       <button class="nav-item" data-mod="auditoria"><span class="ico">🔍</span>Auditoria</button>
+      <div class="nav-titulo">Comunicação</div>
+      <button class="nav-item" data-mod="social"><span class="ico">📣</span>Social</button>
+      <button class="nav-item" data-mod="notificacoes"><span class="ico">🔔</span>Notificações</button>
     </nav>
   </aside>
 
@@ -350,6 +378,78 @@ const estado = {
     {data:'2026-09-17',pac:'Maria Souza',regiao:1,pacote:1,sessao:2,prof:'Dra. Daiane Teixeira',obs:'Leve hiperemia, transitória'},
     {data:'2026-09-15',pac:'Ana Costa',regiao:2,pacote:2,sessao:1,prof:'Dra. Daiane Teixeira',obs:''},
   ],
+  atendimentos: [
+    {h:'08:00',pac:'Maria Souza',prof:'Dra. Daiane Teixeira',proc:'Sessão de fisioterapia',pacote:'Fisioterapia — 10 sessões',st:'Presente',reposicao:false},
+    {h:'09:00',pac:'Carlos Lima',prof:'Dra. Daiane Teixeira',proc:'Pilates terapêutico',pacote:'',st:'Falta',reposicao:true},
+    {h:'10:30',pac:'Ana Costa',prof:'Dra. Daiane Teixeira',proc:'RPG — Reeducação postural global',pacote:'RPG — 8 sessões',st:'Aguardando',reposicao:false},
+    {h:'13:30',pac:'Pedro Alves',prof:'Fga. Carla Nunes',proc:'Drenagem linfática',pacote:'',st:'Aguardando',reposicao:false},
+  ],
+  turmas: [
+    {id:1,nome:'Pilates Iniciante',prof:'Dra. Daiane Teixeira',dias:'Seg, Qua, Sex',hora:'07:00',dur:50,cap:8,alunos:['Maria Souza','Carlos Lima','Ana Costa'],sala:'Studio 1',st:'ativa'},
+    {id:2,nome:'Pilates Avançado',prof:'Fga. Carla Nunes',dias:'Ter, Qui',hora:'18:00',dur:50,cap:6,alunos:['Pedro Alves','Maria Souza'],sala:'Studio 2',st:'ativa'},
+    {id:3,nome:'Pilates Gestantes',prof:'Dra. Daiane Teixeira',dias:'Sáb',hora:'09:00',dur:50,cap:5,alunos:['Ana Costa'],sala:'Studio 1',st:'ativa'},
+  ],
+  avaliacoes: [
+    {id:1,pac:'Maria Souza',data:'2026-08-10',prof:'Dra. Daiane Teixeira',st:'finalizada',queixa:'Dor lombar ao levantar peso',dor:6,obs:'Hiperlordose lombar; teste de Lasègue negativo.'},
+    {id:2,pac:'Ana Costa',data:'2026-09-02',prof:'Dra. Daiane Teixeira',st:'rascunho',queixa:'Dor cervical e tensão em trapézio',dor:4,obs:''},
+  ],
+  evolucoesSessao: [
+    {id:1,pac:'Maria Souza',data:'2026-09-10',sessao:5,proc:'Sessão de fisioterapia',prof:'Dra. Daiane Teixeira',dorAntes:6,dorDepois:3,conduta:'Liberação miofascial + exercícios de estabilização lombar.',st:'finalizada',assinatura:true},
+    {id:2,pac:'Maria Souza',data:'2026-09-17',sessao:6,proc:'Sessão de fisioterapia',prof:'Dra. Daiane Teixeira',dorAntes:3,dorDepois:2,conduta:'Progressão de carga no core; orientação domiciliar.',st:'finalizada',assinatura:true},
+    {id:3,pac:'Ana Costa',data:'2026-09-23',sessao:2,proc:'RPG — Reeducação postural global',prof:'Dra. Daiane Teixeira',dorAntes:5,dorDepois:4,conduta:'Mobilização torácica e treino de respiração.',st:'rascunho',assinatura:false},
+  ],
+  pacotes: [
+    {id:1,pac:'Maria Souza',nome:'Fisioterapia — 10 sessões',proc:'Sessão de fisioterapia',sessoes:10,usadas:6,valor:1200,validade:'2026-12-31',st:'ativo'},
+    {id:2,pac:'Ana Costa',nome:'RPG — 8 sessões',proc:'RPG — Reeducação postural global',sessoes:8,usadas:2,valor:1440,validade:'2026-11-30',st:'ativo'},
+    {id:3,pac:'Carlos Lima',nome:'Pilates — 12 sessões',proc:'Pilates terapêutico',sessoes:12,usadas:12,valor:1200,validade:'2026-09-30',st:'esgotado'},
+  ],
+  pagamentos: [
+    {data:'2026-09-24',pac:'Maria Souza',desc:'Sessão de fisioterapia',forma:'PIX',valor:120,st:'confirmado'},
+    {data:'2026-09-23',pac:'Ana Costa',desc:'RPG — 8 sessões',forma:'Cartão de crédito',valor:720,st:'confirmado'},
+    {data:'2026-09-22',pac:'Carlos Lima',desc:'Pilates — 12 sessões',forma:'Dinheiro',valor:600,st:'pendente'},
+  ],
+  contasPagar: [
+    {id:1,forn:'Fornecedor de insumos',desc:'Gel para ultrassom',venc:'2026-09-30',valor:180,st:'aberta'},
+    {id:2,forn:'Imobiliária Centro',desc:'Aluguel da sala',venc:'2026-10-05',valor:2500,st:'aberta'},
+    {id:3,forn:'Energia Elétrica',desc:'Conta de luz',venc:'2026-09-20',valor:420,st:'paga'},
+  ],
+  fornecedores: [
+    {id:1,nome:'Fornecedor de insumos',doc:'12.345.678/0001-90',contato:'(11) 98888-1111',cat:'Insumos',st:'ativo'},
+    {id:2,nome:'Imobiliária Centro',doc:'98.765.432/0001-10',contato:'(11) 97777-2222',cat:'Aluguel',st:'ativo'},
+    {id:3,nome:'Distribuidora de equipamentos',doc:'11.222.333/0001-44',contato:'(11) 96666-3333',cat:'Equipamentos',st:'inativo'},
+  ],
+  fluxo: {entradas:3420,saidas:1980,saldoInicial:5000},
+  duplicatas: [
+    {grupo:'Maria Souza',qtd:2,docs:'#101, #118',motivo:'Mesmo CPF e telefone'},
+    {grupo:'Ana Costa / Ana C. Costa',qtd:2,docs:'#77, #92',motivo:'Nomes semelhantes'},
+  ],
+  notasFiscais: [
+    {id:1,num:'000123',pac:'Maria Souza',tipo:'NFS-e',valor:1200,status:'autorizada',emissao:'2026-09-10'},
+    {id:2,num:'—',pac:'Ana Costa',tipo:'NFS-e',valor:1440,status:'rascunho',emissao:'—'},
+    {id:3,num:'000124',pac:'Carlos Lima',tipo:'NFS-e',valor:600,status:'rejeitada',emissao:'2026-09-12'},
+  ],
+  documentos: [
+    {id:1,pac:'Maria Souza',titulo:'Laudo médico — ressonância lombar',tipo:'Laudo',data:'2026-08-12',tam:'820 KB'},
+    {id:2,pac:'Maria Souza',titulo:'Termo de consentimento assinado',tipo:'Termo',data:'2026-08-10',tam:'310 KB'},
+    {id:3,pac:'Ana Costa',titulo:'Atestado de comparecimento',tipo:'Atestado',data:'2026-09-02',tam:'95 KB'},
+  ],
+  clinica: {razao:'Clínica Daiane Teixeira Fisioterapia LTDA',fantasia:'Clínica Daiane',cnpj:'00.000.000/0001-00',tel:'(11) 99999-0000',email:'contato@daianeteixeira.com.br',end:'Rua Exemplo, 123 — Centro · São Paulo/SP',whats:'(11) 99999-0000',cor:'#0b7285'},
+  perfis: [
+    {nome:'Administrador',usuarios:1,perms:'Todas as permissões'},
+    {nome:'Fisioterapeuta',usuarios:2,perms:'pacientes, agenda, atendimentos, turmas, prontuario, avaliacao, evolucao, pacotes, laser.view...'},
+    {nome:'Recepção',usuarios:1,perms:'pacientes, agenda, atendimentos, turmas.presenca, financeiro.view...'},
+    {nome:'Financeiro',usuarios:1,perms:'financeiro.*, fiscal.*, relatorios.view, orcamentos.view...'},
+  ],
+  social: [
+    {id:1,titulo:'Dica de alongamento para quem trabalha sentado',rede:'Instagram',data:'2026-09-22',status:'pendente',autor:'Dra. Daiane'},
+    {id:2,titulo:'Depoimento: reabilitação de joelho',rede:'Facebook',data:'2026-09-20',status:'aprovado',autor:'Recepção'},
+    {id:3,titulo:'Promoção de avaliação postural',rede:'Instagram',data:'2026-09-18',status:'rejeitado',autor:'Recepção'},
+  ],
+  notificacoes: [
+    {id:1,t:'Pacote de sessões acabando',d:'Maria Souza tem 4 sessões restantes no pacote de fisioterapia.',quando:'24/09 08:10',lida:false,tipo:'Pacote'},
+    {id:2,t:'Conta a pagar vence hoje',d:'Gel para ultrassom — R$ 180,00 vence em 30/09.',quando:'24/09 07:00',lida:false,tipo:'Financeiro'},
+    {id:3,t:'Evolução pendente',d:'Ana Costa teve sessão em 23/09 e ainda não tem evolução finalizada.',quando:'23/09 18:30',lida:true,tipo:'Clínico'},
+  ],
 };
 const $ = s => document.querySelector(s);
 const pasta = s => `${s.n.charAt(0).toUpperCase()}${s.n.slice(1)}`;
@@ -359,11 +459,25 @@ const stCor = {Agendado:'#0d6efd',Confirmado:'#198754','Em atendimento':'#ffc107
 const stBadge = s => `<span class="badge" style="background:${stCor[s]||'#6c757d'}">${s}</span>`;
 
 /* ===== NAVEGAÇÃO ===== */
-const modulos = {dashboard:0,pacientes:0,prontuario:1,pacientes_ficha:1,agenda:0,planos:3,laser:14,orcamentos:4,financeiro:5,convenios:6,profissionais:7,procedimentos:8,estoque:9,contratos:10,relatorios:11,admin:12,auditoria:13};
-const titulos = {dashboard:'Dashboard',pacientes:'Pacientes',prontuario:'Prontuário clínico',pacientes_ficha:'Ficha do Paciente',agenda:'Agenda',planos:'Planos de Tratamento',laser:'Regiões a Laser',orcamentos:'Orçamentos',financeiro:'Financeiro',convenios:'Convênios',profissionais:'Profissionais',procedimentos:'Procedimentos',estoque:'Estoque',contratos:'Contratos',relatorios:'Relatórios',admin:'Administração',auditoria:'Auditoria'};
+const titulos = {
+  dashboard:'Dashboard',pacientes:'Pacientes',pacientes_ficha:'Ficha do Paciente',agenda:'Agenda',
+  atendimentos:'Atendimentos',turmas:'Turmas',prontuario:'Prontuário clínico',avaliacao:'Avaliação',
+  evolucao:'Evolução por sessão',pacotes:'Pacotes de sessões',planos:'Tratamentos (planejado)',
+  laser:'Regiões a Laser',turmas_pilates:'Turmas de Pilates (planejado)',
+  orcamentos:'Orçamentos',financeiro:'Financeiro',pagamentos:'Financeiro — Pagamentos',
+  contas_pagar:'Financeiro — Contas a pagar',fornecedores:'Financeiro — Fornecedores',
+  fluxo_caixa:'Financeiro — Fluxo de caixa',duplicatas:'Financeiro — Nomes parecidos',
+  notas_fiscais:'Notas fiscais',convenios:'Convênios',profissionais:'Profissionais',
+  procedimentos:'Procedimentos',estoque:'Estoque',contratos:'Contratos',
+  relatorios:'Relatórios',rel_receitas:'Relatórios — Receitas',rel_presenca:'Relatórios — Presença e faltas',
+  rel_pacotes:'Relatórios — Pacotes e sessões',rel_aniversariantes:'Relatórios — Aniversariantes',
+  documentos:'Documentos',admin:'Usuários',perfis:'Perfis & Permissões',clinica:'Clínica',
+  auditoria:'Auditoria',social:'Social',notificacoes:'Notificações',
+};
 const treinoInfo = {
   dashboard:`<ol><li>Observe os 4 indicadores: sessões de hoje, pacientes, planos de tratamento em andamento e estoque baixo.</li><li>Na tabela <b>Agenda de hoje</b>, confira horário, paciente e status de cada sessão.</li><li>Veja a lista de <b>contas a receber</b> — saldos que precisam de cobrança.</li></ol>`,
   pacientes:`<ol><li>Digite um nome no campo de busca e veja o filtro funcionar em tempo real.</li><li>Clique em um paciente para abrir a <b>ficha</b> (aba lateral).</li><li>No sistema real use <b>Novo paciente</b> para cadastrar (teste CPF duplicado = bloqueio).</li></ol>`,
+  agenda:`<ol><li>Clique num espaço vazio da grade para agendar naquele horário.</li><li>Veja a <b>duração</b> do procedimento definir o fim da sessão.</li><li>Confira a <b>lista de espera</b> ordenada por prioridade.</li></ol>`,
   prontuario:`<ol><li>Registre uma <b>evolução clínica</b> com tipo e conteúdo.</li><li>Adicione um <b>alerta</b> (ex.: alergia a penicilina).</li><li>Veja a <b>anamnese</b> no formato "pergunta: resposta" e a prescrição.</li></ol>`,
   planos:`<ol><li>Adicione um <b>procedimento</b> (quantidade, valor e desconto) ao plano.</li><li>Acompanhe o <b>total recalculado automaticamente</b>.</li><li>Teste o fluxo de status: Rascunho → Aprovado → Em andamento → Concluído.</li></ol>`,
   laser:`<ol><li>Na aba <b>Regiões</b>, cadastre uma região corporal (ex.: Axilas).</li><li>Na aba <b>Pacotes</b>, crie um pacote-modelo com sessões, valor e validade.</li><li>Na aba <b>Histórico</b>, registre uma aplicação e veja o <b>nº da sessão calculado pelo sistema</b>.</li></ol>`,
@@ -377,8 +491,44 @@ const treinoInfo = {
   relatorios:`<ol><li>Altere o período de <b>De/Até</b> para ver os indicadores do relatório.</li><li>Compare os blocos: financeiro, agenda e estoque.</li></ol>`,
   admin:`<ol><li>Veja a lista de usuários com perfil (RBAC).</li><li>Nos <b>Perfis</b>, entenda que cada perfil tem permissões por módulo+ação.</li><li>Confira os dados da <b>Clínica</b> (usados também pela API WhatsApp).</li></ol>`,
   auditoria:`<ol><li>Cada ação do sistema fica gravada com <b>quem, quando e IP</b>.</li><li>Use os filtros (ação/tabela) para encontrar registros.</li></ol>`,
+  atendimentos:`<ol><li>Clique em <b>Presença</b> em um paciente aguardando.</li><li>Escolha o <b>pacote</b> e confirme o consumo de 1 sessão.</li><li>Teste <b>Falta</b> — o horário fica livre para reposição.</li></ol>`,
+  turmas:`<ol><li>Crie uma turma com <b>dias, horário, duração e capacidade</b>.</li><li>Use <b>+ Aluno</b> para matricular (turma lotada recusa).</li><li>Abra a <b>Chamada</b> e desmarque quem faltou.</li></ol>`,
+  avaliacao:`<ol><li>Crie uma ficha com <b>queixa principal</b> e nota de dor.</li><li>Salve como rascunho e depois clique em <b>Finalizar</b>.</li><li>Repare que a ficha finalizada fica <b>imutável</b>.</li></ol>`,
+  evolucao:`<ol><li>Crie uma evolução: o <b>nº da sessão</b> vem calculado.</li><li>Registre dor <b>antes → depois</b> e a conduta.</li><li>Finalize e depois colha a <b>assinatura de presença</b>.</li></ol>`,
+  pacotes:`<ol><li>Crie um pacote com sessões, valor e validade.</li><li>Clique em <b>Consumir 1</b> e acompanhe o saldo.</li><li>Leve o saldo a zero: o consumo seguinte é <b>recusado</b>.</li></ol>`,
+  pagamentos:`<ol><li>Lance um pagamento manual com paciente, forma e valor.</li><li>Veja o total <b>recebido (confirmado)</b> subir no topo.</li><li>Compare com as <b>contas a receber</b> em aberto.</li></ol>`,
+  contas_pagar:`<ol><li>Cadastre uma despesa com fornecedor e vencimento.</li><li>Clique em <b>Pagar</b> e confirme.</li><li>Veja a saída refletida no <b>fluxo de caixa</b>.</li></ol>`,
+  fornecedores:`<ol><li>Cadastre um fornecedor com documento e contato.</li><li>Veja a categoria (insumos, aluguel, equipamentos).</li><li>Use-o ao criar uma <b>conta a pagar</b>.</li></ol>`,
+  fluxo_caixa:`<ol><li>Altere o período <b>De/Até</b> e clique em Filtrar.</li><li>Compare <b>entradas recebidas</b> e <b>saídas pagas</b>.</li><li>Confira o <b>saldo acumulado</b> linha a linha.</li></ol>`,
+  duplicatas:`<ol><li>Veja os grupos de <b>nomes parecidos</b> detectados.</li><li>Clique em <b>Revisar</b> e compare CPF/telefone.</li><li>Lembre: nada é mesclado automaticamente.</li></ol>`,
+  notas_fiscais:`<ol><li>Crie uma nota e veja o status <b>Rascunho</b>.</li><li>Clique em <b>Emitir</b> → vira <b>Autorizada</b>.</li><li>Teste <b>PDF</b>, <b>XML</b> e <b>Cancelar</b>.</li></ol>`,
+  rel_receitas:`<ol><li>Defina o período e clique em Filtrar.</li><li>Compare a receita por serviço e o <b>% do total</b>.</li><li>Use <b>Exportar CSV</b> para a contabilidade.</li></ol>`,
+  rel_presenca:`<ol><li>Filtre o período e veja a <b>taxa de presença</b>.</li><li>Compare os profissionais na tabela.</li><li>Lembre: falta não consome sessão do pacote.</li></ol>`,
+  rel_pacotes:`<ol><li>Veja pacotes ativos, consumidas e restantes.</li><li>Filtre por <b>vencendo em 30 dias</b>.</li><li>Exporte o CSV para cobrança.</li></ol>`,
+  rel_aniversariantes:`<ol><li>Escolha o <b>mês</b> no seletor.</li><li>Veja dia, idade e contato de cada paciente.</li><li>Use <b>Preparar mensagem</b> para a campanha.</li></ol>`,
+  documentos:`<ol><li>Anexe um documento à ficha do paciente.</li><li>Baixe e depois exclua um arquivo.</li><li>Gere <b>papel timbrado</b>, <b>guia de cuidados</b> e <b>atestado</b>.</li></ol>`,
+  perfis:`<ol><li>Veja os perfis e quantos usuários cada um tem.</li><li>Crie um perfil com permissões iniciais.</li><li>Confira a matriz <b>módulo × perfil</b>.</li></ol>`,
+  clinica:`<ol><li>Altere nome fantasia, telefone e endereço.</li><li>Troque a <b>cor primária</b> e salve.</li><li>Esses dados alimentam telas, documentos e a API WhatsApp.</li></ol>`,
+  social:`<ol><li>Crie um post — ele nasce <b>Pendente</b>.</li><li>Clique em <b>Aprovar</b> e depois em Publicar.</li><li>Teste <b>Rejeitar</b> e veja o fluxo de revisão.</li></ol>`,
+  notificacoes:`<ol><li>Veja os avisos de pacote, financeiro e clínico.</li><li>Marque uma como <b>lida</b> e observe o contador.</li><li>Abra as <b>Preferências</b> e escolha o que receber.</li></ol>`,
+  turmas_pilates:`<ol><li>Leia o aviso de módulo <b>planejado</b>.</li><li>Compare a tabela "o que fará × use enquanto isso".</li><li>Clique em <b>Abrir Turmas disponíveis</b>.</li></ol>`,
 };
-const realLink = m => ({dashboard:'https://xn--ljaltomao-s2a7b.com.br/',pacientes:'https://xn--ljaltomao-s2a7b.com.br/pacientes',prontuario:'https://xn--ljaltomao-s2a7b.com.br/pacientes',planos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',laser:'https://xn--ljaltomao-s2a7b.com.br/laser/regioes',orcamentos:'https://xn--ljaltomao-s2a7b.com.br/pacientes',agenda:'https://xn--ljaltomao-s2a7b.com.br/agenda',financeiro:'https://xn--ljaltomao-s2a7b.com.br/financeiro',convenios:'https://xn--ljaltomao-s2a7b.com.br/convenios',profissionais:'https://xn--ljaltomao-s2a7b.com.br/profissionais',procedimentos:'https://xn--ljaltomao-s2a7b.com.br/procedimentos',estoque:'https://xn--ljaltomao-s2a7b.com.br/estoque',contratos:'https://xn--ljaltomao-s2a7b.com.br/contratos',relatorios:'https://xn--ljaltomao-s2a7b.com.br/relatorios',admin:'https://xn--ljaltomao-s2a7b.com.br/admin/usuarios',auditoria:'https://xn--ljaltomao-s2a7b.com.br/admin/auditoria'}[m]);
+const BASE_REAL='https://xn--ljaltomao-s2a7b.com.br';
+const LINKS_REAIS={
+  dashboard:'/',pacientes:'/pacientes',agenda:'/agenda',atendimentos:'/atendimentos',turmas:'/turmas',
+  prontuario:'/pacientes',avaliacao:'/pacientes',evolucao:'/pacientes',pacotes:'/pacientes',
+  planos:'/modulos/tratamentos',laser:'/laser/regioes',turmas_pilates:'/modulos/turmas_pilates',
+  orcamentos:'/pacientes',financeiro:'/financeiro',pagamentos:'/financeiro/pagamentos',
+  contas_pagar:'/financeiro/contas-pagar',fornecedores:'/financeiro/fornecedores',
+  fluxo_caixa:'/financeiro/fluxo-caixa',duplicatas:'/financeiro/duplicatas',notas_fiscais:'/fiscal',
+  convenios:'/convenios',profissionais:'/profissionais',procedimentos:'/procedimentos',
+  estoque:'/estoque',contratos:'/contratos',relatorios:'/relatorios',rel_receitas:'/relatorios/receitas',
+  rel_presenca:'/relatorios/presenca-faltas',rel_pacotes:'/relatorios/pacotes',
+  rel_aniversariantes:'/relatorios/aniversariantes',documentos:'/pacientes',
+  admin:'/admin/usuarios',perfis:'/admin/perfis',clinica:'/admin/clinica',auditoria:'/admin/auditoria',
+  social:'/social',notificacoes:'/notificacoes',
+};
+const realLink = m => BASE_REAL + (LINKS_REAIS[m]||'/');
 
 function cabecalho(mod, titulo, extra=''){
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0b7285;border-radius:10px;padding:8px 12px;margin-bottom:12px">
@@ -580,6 +730,7 @@ function pagPlanos(){
   const p=estado.plano;
   const total=totalPlano();
   return cabecalho('planos','Planos de Tratamento — '+p.titulo) + `
+  <div class="planejado">🟸 <b>Funcionalidade planejada — ainda não disponível para uso.</b> <b>Plano de tratamento do paciente, com itens, valores e evolução do status.</b> O módulo existe na estrutura do sistema, mas a tela de plano atual é odontológica e ainda não foi adaptada para esta clínica. No sistema real, esta URL abre a tela padrão de módulo planejado. Enquanto isso, use <b>Pacotes de sessões</b> para controlar o que foi contratado e <b>Evolução por sessão</b> para registrar cada atendimento.</div>
   <div class="dica-treino">💊 <b>Experimente:</b> adicione um procedimento (com quantidade/desconto) e veja o total recalcular. Itens executados somam para "Concluído".</div>
   <div class="cards">
     <div class="card-kpi"><div class="v">${stBadge(p.status)}</div><div class="r">Status do plano</div></div>
@@ -649,7 +800,7 @@ function salvarOrcItem(){
 }
 
 function pagFinanceiro(){
-  return cabecalho('financeiro','Financeiro — Contas a Receber') + `
+  return cabecalho('financeiro','Financeiro — Contas a Receber') + abas('financeiro',FIN_ABAS) + `
   <div class="dica-treino">🏦 <b>Experimente:</b> clique em <b>Receber</b> numa conta em aberto. Tente receber mais do que o saldo (bloqueio) e depois receba parcial → a conta vira "Parcial".</div>
   <div class="cards">
     <div class="card-kpi"><div class="v">R$ ${estado.contas.filter(c=>c.st!=='paga').reduce((s,c)=>s+c.valor,0).toFixed(2)}</div><div class="r">Total em aberto</div></div>
@@ -810,7 +961,7 @@ function contratoForm(){
 function mReais(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
 function pagRelatorios(){
   const r=estado.rel;
-  return cabecalho('relatorios','Relatórios') + `
+  return cabecalho('relatorios','Relatórios') + abas('relatorios',REL_ABAS) + `
   <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01" onchange="fez('relatorio_periodo')">
     <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-24" onchange="fez('relatorio_periodo')">
     <button class="btn" onclick="fez('relatorio_periodo');flash('Relatório recalculado para o período selecionado ✓')">Filtrar</button></div>
@@ -830,7 +981,7 @@ function pagRelatorios(){
 }
 
 function pagAdmin(){
-  return cabecalho('admin','Administração') + `
+  return cabecalho('admin','Administração — Usuários') + abas('admin',ADM_ABAS) + `
   <div class="dica-treino">⚙️ <b>RBAC:</b> usuários têm um perfil; cada perfil tem permissões por módulo+ação (ex.: estoque.update, orcamentos.create).</div>
   <div class="cards">
     <div class="card-kpi"><div class="v">${estado.usuarios.length}</div><div class="r">Usuários</div></div>
@@ -868,6 +1019,302 @@ function pagAuditoria(){
     <tr><th>Usuário</th><th>Ação</th><th>Tabela</th><th>Registro</th><th>Quando</th><th>IP</th></tr>
     ${estado.auditoria.map(a=>`<tr><td>${a.quem}</td><td><b>${a.acao}</b></td><td>${a.tabela}</td><td>${a.id}</td><td>${a.quando}</td><td>${a.ip}</td></tr>`).join('')}
   </table></div>`;
+}
+
+/* ===== MÓDULOS CLÍNICOS DO DIA A DIA ===== */
+function abas(mod, itens){
+  return `<div class="abas">${itens.map(([k,t])=>`<button class="btn ${mod===k?'teal':'gray'} fino" onclick="mostrar('${k}')">${t}</button>`).join('')}</div>`;
+}
+const FIN_ABAS=[['financeiro','🏦 Contas a receber'],['pagamentos','💵 Pagamentos'],['contas_pagar','📤 Contas a pagar'],['fornecedores','🏭 Fornecedores'],['fluxo_caixa','🌊 Fluxo de caixa'],['duplicatas','🔁 Nomes parecidos']];
+const REL_ABAS=[['relatorios','📊 Visão geral'],['rel_receitas','📈 Receitas'],['rel_presenca','✅ Presença e faltas'],['rel_pacotes','🎟️ Pacotes e sessões'],['rel_aniversariantes','🎂 Aniversariantes']];
+const ADM_ABAS=[['admin','👤 Usuários'],['perfis','🔐 Perfis e permissões'],['clinica','🏥 Clínica']];
+
+function pagAtendimentos(){
+  const lista=estado.atendimentos;
+  const presentes=lista.filter(a=>a.st==='Presente').length;
+  const faltas=lista.filter(a=>a.st==='Falta').length;
+  const aguardando=lista.filter(a=>a.st==='Aguardando').length;
+  return cabecalho('atendimentos','Atendimentos do dia') + `
+  <div class="dica-treino">✅ <b>Recepção do dia:</b> marque <b>Presença</b> ou <b>Falta</b>. Ao confirmar presença de um paciente com pacote, o sistema consome <b>1 sessão</b> — e nunca deixa o saldo negativo.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${presentes}</div><div class="r">✅ Presenças</div></div>
+    <div class="card-kpi"><div class="v">${faltas}</div><div class="r">❌ Faltas</div></div>
+    <div class="card-kpi"><div class="v">${aguardando}</div><div class="r">⏳ Aguardando</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacotes.reduce((s,p)=>s+p.usadas,0)}</div><div class="r">🎟️ Sessões consumidas</div></div>
+  </div>
+  <div class="toolbar"><select class="campo" onchange="fez('atend_filtro');flash('Filtro aplicado: '+this.value)"><option>Todos os profissionais</option><option>Dra. Daiane Teixeira</option><option>Fga. Carla Nunes</option></select>
+    <input class="campo" type="date" value="2026-09-24" onchange="fez('atend_filtro')"></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Horário</th><th>Paciente</th><th>Profissional</th><th>Procedimento</th><th>Pacote</th><th>Status</th><th>Ações</th></tr>
+    ${lista.map((a,i)=>`<tr>
+      <td><b>${a.h}</b></td>
+      <td><button class="btn-link" onclick="abrirFichaDoPaciente('${a.pac}')">${a.pac}</button></td>
+      <td>${a.prof}</td><td>${a.proc}</td>
+      <td>${a.pacote||'<span style="color:#5a6a72">Avulso</span>'}</td>
+      <td>${a.st==='Presente'?'<span class="badge" style="background:#198754">Presente</span>':a.st==='Falta'?'<span class="badge" style="background:#e03131">Falta</span>':'<span class="badge" style="background:#f59f00">Aguardando</span>'}${a.reposicao?' <span class="badge" style="background:#7048e8">Reposição</span>':''}</td>
+      <td>${a.st==='Aguardando'?`<button class="btn verde fino" onclick="abrirModal(presencaForm(${i}))">Presença</button> <button class="btn vermelho fino" onclick="marcarFalta(${i})">Falta</button>`:'—'}</td></tr>`).join('')}
+  </table></div>`;
+}
+function abrirFichaDoPaciente(nome){ const i=estado.pacientes.findIndex(p=>p.n===nome); if(i>=0){ pastaPac=i; mostrar('pacientes_ficha'); } }
+function presencaForm(i){
+  const a=estado.atendimentos[i];
+  const pacotes=estado.pacotes.filter(p=>p.pac===a.pac);
+  return `<h3>✅ Registrar presença — ${a.pac}</h3>
+  <div class="form-grid">
+    <div class="full"><label>Procedimento</label><input value="${a.proc}" readonly></div>
+    <div><label>Pacote do paciente</label><select id="at_pacote"><option value="">Sem pacote</option>${pacotes.map(p=>`<option value="${p.id}">${p.nome} (${p.sessoes-p.usadas} restantes)</option>`).join('')}</select></div>
+    <div><label>Consumir sessão?</label><select id="at_consome"><option value="1">Sim, consumir 1 sessão</option><option value="0">Não consumir</option></select></div>
+    <div class="full"><label><input type="checkbox" id="at_reposicao"> Marcar como <b>reposição de falta</b></label></div>
+  </div>
+  <div class="dica-treino" style="margin-top:12px">A baixa é <b>transacional</b>: se o pacote não tiver saldo, o sistema recusa o consumo em vez de deixar o saldo negativo.</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn verde" onclick="salvarPresenca(${i})">Confirmar presença</button></div>`;
+}
+function salvarPresenca(i){
+  const a=estado.atendimentos[i];
+  const pacoteId=parseInt($('#at_pacote').value)||null;
+  const consome=$('#at_consome').value==='1';
+  if(pacoteId && consome){
+    const p=estado.pacotes.find(x=>x.id===pacoteId);
+    if(!p || p.usadas>=p.sessoes){ alert('Este pacote não tem saldo para consumir. A baixa foi recusada.'); return; }
+    p.usadas++; if(p.usadas>=p.sessoes) p.st='esgotado';
+  }
+  a.st='Presente'; a.reposicao=$('#at_reposicao').checked;
+  fez('atend_presenca'); fecharModal(); mostrar('atendimentos');
+  flash(`Presença confirmada${pacoteId&&consome?' — 1 sessão consumida do pacote ✓':' ✓'}`);
+}
+function marcarFalta(i){ estado.atendimentos[i].st='Falta'; fez('atend_falta'); mostrar('atendimentos'); flash('Falta registrada — o horário fica livre para reposição ✓'); }
+
+function pagTurmas(){
+  const ativas=estado.turmas.filter(t=>t.st==='ativa').length;
+  const alunos=new Set(estado.turmas.flatMap(t=>t.alunos)).size;
+  const vagas=estado.turmas.reduce((s,t)=>s+Math.max(t.cap-t.alunos.length,0),0);
+  return cabecalho('turmas','Turmas de Pilates') + `
+  <div class="planejado" style="background:#eef6ff;border-color:#c5dcf7;border-left-color:#4dabf7;color:#1d4e8b">🧘 <b>Turmas</b> é o módulo disponível para o Pilates: grade semanal, calendário e lista de presença. O item “Turmas de Pilates” do menu é um módulo <b>planejado</b> e apenas repete esta função — use esta tela.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${ativas}</div><div class="r">🧘 Turmas ativas</div></div>
+    <div class="card-kpi"><div class="v">${alunos}</div><div class="r">👥 Alunos matriculados</div></div>
+    <div class="card-kpi"><div class="v">${vagas}</div><div class="r">🪑 Vagas disponíveis</div></div>
+    <div class="card-kpi"><div class="v">${estado.turmas.reduce((s,t)=>s+t.alunos.length,0)}</div><div class="r">📋 Matrículas</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(turmaForm())">+ Nova turma</button>
+    <span style="color:#5a6a72;font-size:.85rem">A capacidade controla as vagas; a chamada registra presença por aluno.</span></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Turma</th><th>Professor</th><th>Dias</th><th>Horário</th><th>Duração</th><th>Alunos / capacidade</th><th>Sala</th><th>Ações</th></tr>
+    ${estado.turmas.map((t,i)=>{ const ocup=t.alunos.length, pct=Math.round(ocup/t.cap*100); return `<tr>
+      <td><b>${t.nome}</b></td><td>${t.prof}</td><td>${t.dias}</td><td>${t.hora}</td><td>${t.dur} min</td>
+      <td><b>${ocup}/${t.cap}</b> <span style="color:#5a6a72;font-size:.75rem">(${pct}%)</span></td>
+      <td>${t.sala}</td>
+      <td><button class="btn gray fino" onclick="abrirModal(chamadaForm(${i}))">Chamada</button>
+          <button class="btn teal fino" onclick="abrirModal(turmaAlunoForm(${i}))">+ Aluno</button></td></tr>`; }).join('')}
+  </table></div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Grade semanal</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th></tr>
+    <tr><td><b>Manhã</b></td>${['Seg','Ter','Qua','Qui','Sex','Sáb'].map(d=>`<td>${estado.turmas.filter(t=>t.dias.includes(d)&&parseInt(t.hora)<12).map(t=>t.nome.split(' ')[1]||t.nome).join(', ')||'—'}</td>`).join('')}</tr>
+    <tr><td><b>Tarde/Noite</b></td>${['Seg','Ter','Qua','Qui','Sex','Sáb'].map(d=>`<td>${estado.turmas.filter(t=>t.dias.includes(d)&&parseInt(t.hora)>=12).map(t=>t.nome.split(' ')[1]||t.nome).join(', ')||'—'}</td>`).join('')}</tr>
+  </table></div>`;
+}
+function turmaForm(){
+  return `<h3>🧘 Nova turma</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome da turma *</label><input id="tu_nome" placeholder="Ex.: Pilates Iniciante"></div>
+    <div><label>Professor</label><select id="tu_prof"><option>Dra. Daiane Teixeira</option><option>Fga. Carla Nunes</option></select></div>
+    <div><label>Sala</label><input id="tu_sala" value="Studio 1"></div>
+    <div class="full"><label>Dias da semana</label><input id="tu_dias" placeholder="Ex.: Seg, Qua, Sex" value="Seg, Qua"></div>
+    <div><label>Horário</label><input id="tu_hora" type="time" value="07:00"></div>
+    <div><label>Duração (min)</label><input id="tu_dur" type="number" value="50" min="15" max="120"></div>
+    <div><label>Capacidade</label><input id="tu_cap" type="number" value="8" min="1" max="30"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarTurma()">Salvar turma</button></div>`;
+}
+function salvarTurma(){
+  const nome=$('#tu_nome').value.trim();
+  if(!nome){ alert('Informe o nome da turma.'); return; }
+  estado.turmas.push({id:estado.turmas.reduce((m,t)=>Math.max(m,t.id),0)+1,nome,prof:$('#tu_prof').value,dias:$('#tu_dias').value||'Seg',hora:$('#tu_hora').value||'07:00',dur:parseInt($('#tu_dur').value)||50,cap:parseInt($('#tu_cap').value)||8,alunos:[],sala:$('#tu_sala').value||'Studio 1',st:'ativa'});
+  fez('turma_criada'); fecharModal(); mostrar('turmas'); flash(`Turma "${nome}" criada ✓`);
+}
+function chamadaForm(i){
+  const t=estado.turmas[i];
+  return `<h3>✅ Chamada — ${t.nome}</h3>
+  <div class="form-grid"><div class="full">${t.alunos.map((a,j)=>`<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" checked> ${a}</label>`).join('')||'<div class="aviso">Nenhum aluno matriculado nesta turma.</div>'}</div></div>
+  <div class="dica-treino" style="margin-top:12px">Desmarque quem faltou. A chamada alimenta o relatório de <b>Presença e faltas</b>.</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn verde" onclick="salvarChamada(${i})">Salvar chamada</button></div>`;
+}
+function salvarChamada(i){ fez('turma_presenca'); fecharModal(); flash('Chamada da turma salva — presenças e faltas registradas ✓'); }
+function turmaAlunoForm(i){
+  const t=estado.turmas[i];
+  return `<h3>👥 Matricular aluno — ${t.nome}</h3>
+  <div class="form-grid"><div class="full"><label>Paciente *</label><select id="ta_pac">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div></div>
+  <div class="dica-treino" style="margin-top:12px">Vagas: <b>${t.cap-t.alunos.length}</b> de ${t.cap}. Turma lotada recusa nova matrícula.</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarTurmaAluno(${i})">Matricular</button></div>`;
+}
+function salvarTurmaAluno(i){
+  const t=estado.turmas[i], p=$('#ta_pac').value;
+  if(t.alunos.length>=t.cap){ alert('Turma lotada — aumente a capacidade ou escolha outra turma.'); return; }
+  if(t.alunos.includes(p)){ alert('Este paciente já está matriculado nesta turma.'); return; }
+  t.alunos.push(p); fecharModal(); mostrar('turmas'); flash(`${p} matriculado(a) em ${t.nome} ✓`);
+}
+
+function pagAvaliacao(){
+  const finalizadas=estado.avaliacoes.filter(a=>a.st==='finalizada').length;
+  return cabecalho('avaliacao','Avaliação') + `
+  <div class="dica-treino">🧾 <b>Avaliação inicial:</b> o profissional registra o que encontrou — o sistema <b>não sugere diagnóstico</b>. Depois de <b>Finalizar</b>, a ficha fica imutável e preserva a auditoria.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.avaliacoes.length}</div><div class="r">🧾 Fichas de avaliação</div></div>
+    <div class="card-kpi"><div class="v">${finalizadas}</div><div class="r">🔒 Finalizadas</div></div>
+    <div class="card-kpi"><div class="v">${estado.avaliacoes.length-finalizadas}</div><div class="r">✏️ Em rascunho</div></div>
+    <div class="card-kpi"><div class="v">${estado.avaliacoes.length?Math.round(estado.avaliacoes.reduce((s,a)=>s+a.dor,0)/estado.avaliacoes.length):0}/10</div><div class="r">📉 Dor média inicial</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(avaliacaoForm())">+ Nova ficha de avaliação</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Data</th><th>Profissional</th><th>Queixa principal</th><th>Dor (0–10)</th><th>Status</th><th>Ações</th></tr>
+    ${estado.avaliacoes.map((a,i)=>`<tr>
+      <td><button class="btn-link" onclick="abrirFichaDoPaciente('${a.pac}')">${a.pac}</button></td>
+      <td>${dataBR(a.data)}</td><td>${a.prof}</td><td>${a.queixa}</td><td><b>${a.dor}</b></td>
+      <td>${a.st==='finalizada'?'<span class="badge" style="background:#198754">Finalizada</span>':'<span class="badge" style="background:#f59f00">Rascunho</span>'}</td>
+      <td>${a.st==='finalizada'?'<span style="color:#5a6a72;font-size:.8rem">🔒 imutável</span>':`<button class="btn verde fino" onclick="finalizarAvaliacao(${i})">Finalizar</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function avaliacaoForm(){
+  return `<h3>🧾 Nova ficha de avaliação</h3>
+  <div class="form-grid">
+    <div><label>Paciente *</label><select id="av_pac">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Data</label><input id="av_data" type="date" value="2026-09-24"></div>
+    <div class="full"><label>Queixa principal *</label><input id="av_queixa" placeholder="Ex.: Dor lombar ao levantar peso"></div>
+    <div><label>Dor (0 a 10)</label><input id="av_dor" type="number" min="0" max="10" value="5"></div>
+    <div><label>Profissional</label><select id="av_prof"><option>Dra. Daiane Teixeira</option><option>Fga. Carla Nunes</option></select></div>
+    <div class="full"><label>Achados / observações</label><textarea id="av_obs" rows="3" placeholder="Testes, amplitude, força, palpação..."></textarea></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarAvaliacao()">Salvar rascunho</button></div>`;
+}
+function salvarAvaliacao(){
+  const queixa=$('#av_queixa').value.trim();
+  if(!queixa){ alert('Informe a queixa principal.'); return; }
+  estado.avaliacoes.unshift({id:estado.avaliacoes.reduce((m,a)=>Math.max(m,a.id),0)+1,pac:$('#av_pac').value,data:$('#av_data').value||'2026-09-24',prof:$('#av_prof').value,st:'rascunho',queixa,dor:parseInt($('#av_dor').value)||0,obs:$('#av_obs').value.trim()});
+  fez('avaliacao_criada'); fecharModal(); mostrar('avaliacao'); flash('Ficha de avaliação salva como rascunho ✓');
+}
+function finalizarAvaliacao(i){
+  const a=estado.avaliacoes[i];
+  if(a.st==='finalizada'){ flash('Esta ficha já está finalizada e não pode ser alterada.'); return; }
+  if(!confirm('Finalizar esta ficha? Depois de finalizada ela não poderá mais ser editada.')) return;
+  a.st='finalizada'; fez('avaliacao_finalizada'); mostrar('avaliacao');
+  flash('Ficha finalizada — registro imutável para preservar a auditoria ✓');
+}
+
+function pagEvolucao(){
+  const fin=estado.evolucoesSessao.filter(e=>e.st==='finalizada').length;
+  const assinadas=estado.evolucoesSessao.filter(e=>e.assinatura).length;
+  const dorMedia=estado.evolucoesSessao.length?Math.round(estado.evolucoesSessao.reduce((s,e)=>s+(e.dorAntes-e.dorDepois),0)/estado.evolucoesSessao.length*10)/10:0;
+  return cabecalho('evolucao','Evolução por sessão') + `
+  <div class="dica-treino">📈 <b>Evolução por sessão:</b> registre dor antes/depois e conduta. Ao <b>Finalizar</b>, o registro fica imutável; a <b>assinatura de presença</b> pode ser colhida depois.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.evolucoesSessao.length}</div><div class="r">📈 Evoluções</div></div>
+    <div class="card-kpi"><div class="v">${fin}</div><div class="r">🔒 Finalizadas</div></div>
+    <div class="card-kpi"><div class="v">${assinadas}</div><div class="r">✍️ Assinaturas</div></div>
+    <div class="card-kpi"><div class="v">${dorMedia}</div><div class="r">📉 Redução média de dor</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(evolucaoSessaoForm())">+ Nova evolução</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Data</th><th>Sessão</th><th>Procedimento</th><th>Dor antes → depois</th><th>Conduta</th><th>Status</th><th>Ações</th></tr>
+    ${estado.evolucoesSessao.map((e,i)=>`<tr>
+      <td><button class="btn-link" onclick="abrirFichaDoPaciente('${e.pac}')">${e.pac}</button></td>
+      <td>${dataBR(e.data)}</td><td><span class="badge" style="background:#e7f5ff;color:#0b7285;border:1px solid #b6e3ff">nº ${e.sessao}</span></td>
+      <td>${e.proc}</td><td><b>${e.dorAntes} → ${e.dorDepois}</b></td><td>${e.conduta||'—'}</td>
+      <td>${e.st==='finalizada'?'<span class="badge" style="background:#198754">Finalizada</span>':'<span class="badge" style="background:#f59f00">Rascunho</span>'}${e.assinatura?' <span class="badge" style="background:#7048e8">Assinada</span>':''}</td>
+      <td>${e.st!=='finalizada'?`<button class="btn verde fino" onclick="finalizarEvolucao(${i})">Finalizar</button>`:e.assinatura?'<span style="color:#5a6a72;font-size:.8rem">🔒</span>':`<button class="btn fino" onclick="assinarEvolucao(${i})">✍️ Assinar</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function proximaSessaoEvolucao(pac){
+  const nums=estado.evolucoesSessao.filter(e=>e.pac===pac).map(e=>e.sessao);
+  return (nums.length?Math.max.apply(null,nums):0)+1;
+}
+function evolucaoSessaoForm(){
+  const pac=estado.pacientes[0].n;
+  return `<h3>📈 Nova evolução de sessão</h3>
+  <div class="form-grid">
+    <div><label>Paciente *</label><select id="es_pac" onchange="const n=proximaSessaoEvolucao(this.value);const el=document.getElementById('es_sessao');if(el)el.value=n">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Data *</label><input id="es_data" type="date" value="2026-09-24"></div>
+    <div><label>Sessão nº</label><input id="es_sessao" value="${proximaSessaoEvolucao(pac)}" readonly></div>
+    <div><label>Procedimento</label><select id="es_proc">${estado.procedimentos.map(p=>`<option>${p.nome}</option>`).join('')}</select></div>
+    <div><label>Dor antes (0–10)</label><input id="es_antes" type="number" min="0" max="10" value="5"></div>
+    <div><label>Dor depois (0–10)</label><input id="es_depois" type="number" min="0" max="10" value="3"></div>
+    <div class="full"><label>Conduta / evolução *</label><textarea id="es_conduta" rows="3" placeholder="Técnicas aplicadas, resposta do paciente, orientações..."></textarea></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarEvolucaoSessao()">Salvar rascunho</button></div>`;
+}
+function salvarEvolucaoSessao(){
+  const conduta=$('#es_conduta').value.trim();
+  if(!conduta){ alert('Descreva a conduta da sessão.'); return; }
+  estado.evolucoesSessao.unshift({id:estado.evolucoesSessao.reduce((m,e)=>Math.max(m,e.id),0)+1,pac:$('#es_pac').value,data:$('#es_data').value||'2026-09-24',sessao:parseInt($('#es_sessao').value)||1,proc:$('#es_proc').value,prof:'Dra. Daiane Teixeira',dorAntes:parseInt($('#es_antes').value)||0,dorDepois:parseInt($('#es_depois').value)||0,conduta,st:'rascunho',assinatura:false});
+  fez('evolucao_sessao'); fecharModal(); mostrar('evolucao'); flash('Evolução salva como rascunho ✓');
+}
+function finalizarEvolucao(i){
+  const e=estado.evolucoesSessao[i];
+  if(!confirm('Finalizar esta evolução? O conteúdo ficará imutável.')) return;
+  e.st='finalizada'; fez('evolucao_finalizada'); mostrar('evolucao'); flash('Evolução finalizada — registro imutável ✓');
+}
+function assinarEvolucao(i){
+  const e=estado.evolucoesSessao[i];
+  if(e.st!=='finalizada'){ flash('Finalize a evolução antes de colher a assinatura.'); return; }
+  e.assinatura=true; fez('evolucao_assinatura'); mostrar('evolucao'); flash('Assinatura de presença registrada na evolução ✓');
+}
+
+function pagPacotes(){
+  const ativos=estado.pacotes.filter(p=>p.st==='ativo').length;
+  const restantes=estado.pacotes.reduce((s,p)=>s+Math.max(p.sessoes-p.usadas,0),0);
+  const esgotados=estado.pacotes.filter(p=>p.usadas>=p.sessoes).length;
+  return cabecalho('pacotes','Pacotes de sessões') + `
+  <div class="dica-treino">🎟️ <b>Pacotes de sessões:</b> cada pacote pertence a um paciente e a um procedimento. O consumo é <b>transacional</b> — a sessão é debitada uma vez e o saldo <b>nunca fica negativo</b>.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${ativos}</div><div class="r">🎟️ Pacotes ativos</div></div>
+    <div class="card-kpi"><div class="v">${restantes}</div><div class="r">✅ Sessões restantes</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacotes.reduce((s,p)=>s+p.usadas,0)}</div><div class="r">📉 Sessões consumidas</div></div>
+    <div class="card-kpi"><div class="v">${esgotados}</div><div class="r">⛔ Esgotados</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(pacoteForm())">+ Novo pacote</button>
+    <span style="color:#5a6a72;font-size:.85rem">A validade é de referência; o consumo é controlado pelo saldo.</span></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Pacote</th><th>Procedimento</th><th>Sessões</th><th>Saldo</th><th>Valor</th><th>Validade</th><th>Status</th><th>Ações</th></tr>
+    ${estado.pacotes.map((p,i)=>{ const saldo=Math.max(p.sessoes-p.usadas,0); const pct=Math.round(p.usadas/p.sessoes*100); return `<tr>
+      <td><button class="btn-link" onclick="abrirFichaDoPaciente('${p.pac}')">${p.pac}</button></td>
+      <td><b>${p.nome}</b></td><td>${p.proc}</td>
+      <td><b>${p.usadas}/${p.sessoes}</b> <span style="color:#5a6a72;font-size:.75rem">(${pct}%)</span></td>
+      <td><b style="color:${saldo?'#198754':'#e03131'}">${saldo}</b></td>
+      <td>${mReais(p.valor)}</td><td>${dataBR(p.validade)}</td>
+      <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#6c757d">Esgotado</span>'}</td>
+      <td><button class="btn ${saldo?'verde':'gray'} fino" onclick="consumirPacote(${i})">Consumir 1</button></td></tr>`; }).join('')}
+  </table></div>`;
+}
+function pacoteForm(){
+  return `<h3>🎟️ Novo pacote de sessões</h3>
+  <div class="form-grid">
+    <div><label>Paciente *</label><select id="pc_pac">${estado.pacientes.filter(p=>p.st==='ativo').map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Procedimento *</label><select id="pc_proc">${estado.procedimentos.map(p=>`<option>${p.nome}</option>`).join('')}</select></div>
+    <div class="full"><label>Nome do pacote *</label><input id="pc_nome" placeholder="Ex.: Fisioterapia — 10 sessões"></div>
+    <div><label>Sessões</label><input id="pc_sessoes" type="number" min="1" max="100" value="10"></div>
+    <div><label>Valor (R$)</label><input id="pc_valor" type="number" step="0.01" min="0" value="0"></div>
+    <div><label>Validade</label><input id="pc_validade" type="date" value="2026-12-31"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarPacote()">Salvar pacote</button></div>`;
+}
+function salvarPacote(){
+  const nome=$('#pc_nome').value.trim();
+  if(!nome){ alert('Informe o nome do pacote.'); return; }
+  estado.pacotes.push({id:estado.pacotes.reduce((m,p)=>Math.max(m,p.id),0)+1,pac:$('#pc_pac').value,nome,proc:$('#pc_proc').value,sessoes:parseInt($('#pc_sessoes').value)||1,usadas:0,valor:parseFloat($('#pc_valor').value)||0,validade:$('#pc_validade').value||'2026-12-31',st:'ativo'});
+  fez('pacote_criado'); fecharModal(); mostrar('pacotes'); flash(`Pacote "${nome}" criado com ${parseInt($('#pc_sessoes').value)||1} sessões ✓`);
+}
+function consumirPacote(i){
+  const p=estado.pacotes[i], saldo=p.sessoes-p.usadas;
+  if(saldo<=0){ flash('Pacote sem saldo — o consumo foi recusado (nunca fica negativo).'); return; }
+  if(!confirm(`Consumir 1 sessão do pacote "${p.nome}"? Restarão ${saldo-1}.`)) return;
+  p.usadas++; if(p.usadas>=p.sessoes) p.st='esgotado';
+  fez('pacote_consumido'); mostrar('pacotes'); flash(`1 sessão consumida — saldo agora: ${p.sessoes-p.usadas} ✓`);
 }
 
 /* ===== REGIÕES A LASER (exclusivo da vertical laser) ===== */
@@ -1069,6 +1516,548 @@ function abrirFichaLaser(nome){
   if(idx>=0){ pastaPac=idx; mostrar('pacientes_ficha'); }
 }
 
+/* ===== FINANCEIRO — SUBPÁGINAS ===== */
+function pagPagamentos(){
+  const total=estado.pagamentos.filter(p=>p.st==='confirmado').reduce((s,p)=>s+p.valor,0);
+  const pendentes=estado.pagamentos.filter(p=>p.st==='pendente').length;
+  return cabecalho('pagamentos','Financeiro — Pagamentos') + abas('pagamentos',FIN_ABAS) + `
+  <div class="dica-treino">💵 <b>Pagamentos</b> é o livro de entradas: cada recebimento mostra paciente, serviço, forma e situação. É daqui que sai o total recebido do fluxo de caixa.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${mReais(total)}</div><div class="r">✅ Recebido (confirmado)</div></div>
+    <div class="card-kpi"><div class="v">${estado.pagamentos.length}</div><div class="r">💵 Lançamentos</div></div>
+    <div class="card-kpi"><div class="v">${pendentes}</div><div class="r">⏳ Pendentes</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--borda);border-radius:12px;padding:14px;margin-bottom:16px">
+    <div style="font-weight:700;margin-bottom:10px">➕ Lançar pagamento manual</div>
+    <div class="form-grid">
+      <div><label>Paciente *</label><select id="pm_pac">${estado.pacientes.map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+      <div><label>Serviço / observação</label><input id="pm_desc" placeholder="Ex.: Sessão de fisioterapia"></div>
+      <div><label>Forma</label><select id="pm_forma"><option>PIX</option><option>Dinheiro</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Boleto</option><option>Convênio</option></select></div>
+      <div><label>Valor (R$) *</label><input id="pm_valor" type="number" step="0.01" min="0" placeholder="0,00"></div>
+    </div>
+    <div class="acoes" style="justify-content:flex-start"><button class="btn verde" onclick="lancarPagamentoManual()">Confirmar pagamento</button></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Data</th><th>Paciente</th><th>Serviço / observação</th><th>Forma</th><th>Valor</th><th>Situação</th></tr>
+    ${estado.pagamentos.map(p=>`<tr>
+      <td>${dataBR(p.data)}</td><td><b>${p.pac}</b></td><td>${p.desc||'—'}</td><td>${p.forma}</td>
+      <td><b>${mReais(p.valor)}</b></td>
+      <td>${p.st==='confirmado'?'<span class="badge" style="background:#198754">Confirmado</span>':'<span class="badge" style="background:#f59f00">Pendente</span>'}</td></tr>`).join('')}
+  </table></div>`;
+}
+function lancarPagamentoManual(){
+  const valor=parseFloat($('#pm_valor').value);
+  if(!valor||valor<=0){ alert('Informe um valor maior que zero.'); return; }
+  estado.pagamentos.unshift({data:'2026-09-24',pac:$('#pm_pac').value,desc:$('#pm_desc').value.trim()||'Pagamento manual',forma:$('#pm_forma').value,valor,st:'confirmado'});
+  fez('pagamento_manual'); mostrar('pagamentos'); flash(`Pagamento de ${mReais(valor)} lançado como confirmado ✓`);
+}
+
+function pagContasPagar(){
+  const abertas=estado.contasPagar.filter(c=>c.st==='aberta');
+  const total=abertas.reduce((s,c)=>s+c.valor,0);
+  return cabecalho('contas_pagar','Financeiro — Contas a pagar') + abas('contas_pagar',FIN_ABAS) + `
+  <div class="dica-treino">📤 <b>Contas a pagar</b> são as despesas da clínica (aluguel, insumos, energia). Não se confundem com as contas a receber dos pacientes: é a saída de caixa.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${mReais(total)}</div><div class="r">📤 Em aberto</div></div>
+    <div class="card-kpi"><div class="v">${abertas.length}</div><div class="r">⏳ Contas abertas</div></div>
+    <div class="card-kpi"><div class="v">${estado.contasPagar.filter(c=>c.st==='paga').length}</div><div class="r">✅ Pagas</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(contaPagarForm())">+ Nova conta a pagar</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Fornecedor</th><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+    ${estado.contasPagar.map((c,i)=>`<tr>
+      <td><b>${c.forn}</b></td><td>${c.desc}</td><td>${dataBR(c.venc)}</td><td><b>${mReais(c.valor)}</b></td>
+      <td>${c.st==='paga'?'<span class="badge" style="background:#198754">Paga</span>':'<span class="badge" style="background:#e03131">Em aberto</span>'}</td>
+      <td>${c.st==='paga'?'—':`<button class="btn verde fino" onclick="pagarConta(${i})">Pagar</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function contaPagarForm(){
+  return `<h3>📤 Nova conta a pagar</h3>
+  <div class="form-grid">
+    <div class="full"><label>Fornecedor *</label><select id="cp_forn">${estado.fornecedores.map(f=>`<option>${f.nome}</option>`).join('')}</select></div>
+    <div class="full"><label>Descrição *</label><input id="cp_desc" placeholder="Ex.: Aluguel da sala"></div>
+    <div><label>Vencimento</label><input id="cp_venc" type="date" value="2026-10-05"></div>
+    <div><label>Valor (R$)</label><input id="cp_valor" type="number" step="0.01" min="0" value="0"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarContaPagar()">Salvar conta</button></div>`;
+}
+function salvarContaPagar(){
+  const desc=$('#cp_desc').value.trim();
+  if(!desc){ alert('Informe a descrição da conta.'); return; }
+  estado.contasPagar.push({id:estado.contasPagar.reduce((m,c)=>Math.max(m,c.id),0)+1,forn:$('#cp_forn').value,desc,venc:$('#cp_venc').value||'2026-10-05',valor:parseFloat($('#cp_valor').value)||0,st:'aberta'});
+  fez('conta_criada'); fecharModal(); mostrar('contas_pagar'); flash('Conta a pagar cadastrada ✓');
+}
+function pagarConta(i){
+  const c=estado.contasPagar[i];
+  if(!confirm(`Registrar o pagamento de ${mReais(c.valor)} para ${c.forn}?`)) return;
+  c.st='paga'; fez('conta_paga'); mostrar('contas_pagar'); flash('Conta marcada como paga — saída registrada no fluxo de caixa ✓');
+}
+
+function pagFornecedores(){
+  const ativos=estado.fornecedores.filter(f=>f.st==='ativo').length;
+  return cabecalho('fornecedores','Financeiro — Fornecedores') + abas('fornecedores',FIN_ABAS) + `
+  <div class="dica-treino">🏭 <b>Fornecedores</b> alimentam as contas a pagar e as entradas de estoque. Documento e contato ficam no mesmo cadastro para facilitar a cobrança e a compra.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.fornecedores.length}</div><div class="r">🏭 Fornecedores</div></div>
+    <div class="card-kpi"><div class="v">${ativos}</div><div class="r">✅ Ativos</div></div>
+    <div class="card-kpi"><div class="v">${estado.contasPagar.filter(c=>c.st==='aberta').length}</div><div class="r">📤 Contas em aberto</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(fornecedorForm())">+ Novo fornecedor</button>
+    <input class="campo" placeholder="Buscar por nome ou documento..."></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Nome</th><th>Documento</th><th>Contato</th><th>Categoria</th><th>Status</th></tr>
+    ${estado.fornecedores.map(f=>`<tr>
+      <td><b>${f.nome}</b></td><td>${f.doc}</td><td>${f.contato}</td><td>${f.cat}</td>
+      <td>${f.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#6c757d">Inativo</span>'}</td></tr>`).join('')}
+  </table></div>`;
+}
+function fornecedorForm(){
+  return `<h3>🏭 Novo fornecedor</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome *</label><input id="fo_nome" placeholder="Razão social ou nome"></div>
+    <div><label>CNPJ / CPF</label><input id="fo_doc" placeholder="00.000.000/0000-00"></div>
+    <div><label>Contato</label><input id="fo_contato" placeholder="(11) 90000-0000"></div>
+    <div><label>Categoria</label><select id="fo_cat"><option>Insumos</option><option>Equipamentos</option><option>Aluguel</option><option>Serviços</option><option>Outros</option></select></div>
+    <div><label>Status</label><select id="fo_st"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarFornecedor()">Salvar fornecedor</button></div>`;
+}
+function salvarFornecedor(){
+  const nome=$('#fo_nome').value.trim();
+  if(!nome){ alert('Informe o nome do fornecedor.'); return; }
+  estado.fornecedores.push({id:estado.fornecedores.reduce((m,f)=>Math.max(m,f.id),0)+1,nome,doc:$('#fo_doc').value.trim()||'—',contato:$('#fo_contato').value.trim()||'—',cat:$('#fo_cat').value,st:$('#fo_st').value});
+  fez('fornecedor_criado'); fecharModal(); mostrar('fornecedores'); flash(`Fornecedor "${nome}" cadastrado ✓`);
+}
+
+function pagFluxoCaixa(){
+  const f=estado.fluxo, saldo=f.saldoInicial+f.entradas-f.saidas;
+  return cabecalho('fluxo_caixa','Financeiro — Fluxo de caixa') + abas('fluxo_caixa',FIN_ABAS) + `
+  <div class="dica-treino">🌊 <b>Fluxo de caixa</b> = entradas recebidas − saídas pagas no período. Contas em aberto aparecem separadas, porque ainda não passaram pelo caixa.</div>
+  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01" onchange="fez('fluxo_periodo')">
+    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-30" onchange="fez('fluxo_periodo')">
+    <button class="btn" onclick="fez('fluxo_periodo');flash('Fluxo recalculado para o período ✓')">Filtrar</button></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v" style="color:#198754">+ ${mReais(f.entradas)}</div><div class="r">📥 Entradas recebidas</div></div>
+    <div class="card-kpi"><div class="v" style="color:#e03131">− ${mReais(f.saidas)}</div><div class="r">📤 Saídas pagas</div></div>
+    <div class="card-kpi"><div class="v">${mReais(saldo)}</div><div class="r">💰 Saldo do período</div></div>
+    <div class="card-kpi"><div class="v">${mReais(f.saldoInicial)}</div><div class="r">🏦 Saldo inicial</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Data</th><th>Movimento</th><th>Tipo</th><th>Valor</th><th>Saldo acumulado</th></tr>
+    <tr><td>20/09</td><td>Conta de luz</td><td><span class="badge" style="background:#e03131">Saída</span></td><td>− ${mReais(420)}</td><td>${mReais(f.saldoInicial-420)}</td></tr>
+    <tr><td>22/09</td><td>Pilates — Carlos Lima</td><td><span class="badge" style="background:#198754">Entrada</span></td><td>+ ${mReais(600)}</td><td>${mReais(f.saldoInicial-420+600)}</td></tr>
+    <tr><td>23/09</td><td>RPG — Ana Costa</td><td><span class="badge" style="background:#198754">Entrada</span></td><td>+ ${mReais(720)}</td><td>${mReais(f.saldoInicial-420+600+720)}</td></tr>
+    <tr><td>24/09</td><td>Sessão — Maria Souza</td><td><span class="badge" style="background:#198754">Entrada</span></td><td>+ ${mReais(120)}</td><td>${mReais(f.saldoInicial-420+600+720+120)}</td></tr>
+    <tr><td>30/09</td><td>Gel para ultrassom</td><td><span class="badge" style="background:#e03131">Saída</span></td><td>− ${mReais(180)}</td><td>${mReais(f.saldoInicial-420+600+720+120-180)}</td></tr>
+    <tr><td>05/10</td><td>Aluguel da sala</td><td><span class="badge" style="background:#e03131">Saída</span></td><td>− ${mReais(2500)}</td><td>${mReais(f.saldoInicial-420+600+720+120-180-2500)}</td></tr>
+  </table></div>`;
+}
+
+function pagDuplicatas(){
+  const exatos=estado.duplicatas.filter(d=>d.motivo.includes('CPF')).length;
+  const semelhantes=estado.duplicatas.length-exatos;
+  return cabecalho('duplicatas','Financeiro — Nomes parecidos') + abas('duplicatas',FIN_ABAS) + `
+  <div class="dica-treino">🔁 <b>Nomes parecidos</b> é um relatório de conferência: ele aponta cadastros com nomes iguais ou semelhantes para evitar cobrança em duplicidade. <b>Nada é mesclado automaticamente</b> — a decisão é humana.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${exatos}</div><div class="r">👥 Grupos com nome exato</div></div>
+    <div class="card-kpi"><div class="v">${semelhantes}</div><div class="r">🔀 Pares semelhantes</div></div>
+    <div class="card-kpi"><div class="v">${estado.duplicatas.reduce((s,d)=>s+d.qtd,0)}</div><div class="r">📄 Cadastros envolvidos</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Grupo</th><th>Cadastros</th><th>Documentos</th><th>Motivo</th><th>Ação</th></tr>
+    ${estado.duplicatas.map((d,i)=>`<tr>
+      <td><b>${d.grupo}</b></td><td>${d.qtd}</td><td>${d.docs}</td><td>${d.motivo}</td>
+      <td><button class="btn gray fino" onclick="revisarDuplicata(${i})">Revisar</button></td></tr>`).join('')}
+  </table></div>
+  <div class="dica-treino" style="margin-top:16px">⚠️ Antes de excluir um cadastro, confira o histórico clínico e financeiro. O sistema faz <b>soft delete</b>: o registro fica inativo, não é apagado.</div>`;
+}
+function revisarDuplicata(i){
+  const d=estado.duplicatas[i];
+  fez('duplicata_revisada');
+  abrirModal(`<h3>🔁 Revisar — ${d.grupo}</h3>
+    <p style="font-size:.92rem">Foram encontrados <b>${d.qtd} cadastros</b> (${d.docs}) com o motivo: <b>${d.motivo}</b>.</p>
+    <div class="dica-treino">Compare CPF, telefone e histórico. Se forem a mesma pessoa, inative o cadastro duplicado em <b>Pacientes</b>; não apague o histórico.</div>
+    <div class="acoes"><button class="btn gray" onclick="fecharModal()">Fechar</button>
+    <button class="btn teal" onclick="fecharModal();mostrar('pacientes')">Abrir Pacientes</button></div>`);
+}
+
+/* ===== NOTAS FISCAIS ===== */
+function pagNotasFiscais(){
+  const aut=estado.notasFiscais.filter(n=>n.status==='autorizada').length;
+  const rasc=estado.notasFiscais.filter(n=>n.status==='rascunho').length;
+  const rej=estado.notasFiscais.filter(n=>n.status==='rejeitada').length;
+  return cabecalho('notas_fiscais','Notas fiscais') + `
+  <div class="dica-treino">🧾 <b>Notas fiscais:</b> o rascunho vira NFS-e autorizada depois de <b>Emitir</b>. Uma nota autorizada pode ser cancelada; rejeitada pode ser corrigida e reenviada. O ambiente atual é de <b>homologação</b>.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${aut}</div><div class="r">✅ Autorizadas</div></div>
+    <div class="card-kpi"><div class="v">${rasc}</div><div class="r">📝 Rascunhos</div></div>
+    <div class="card-kpi"><div class="v">${rej}</div><div class="r">⚠️ Rejeitadas</div></div>
+    <div class="card-kpi"><div class="v">homologação</div><div class="r">🧪 Ambiente fiscal</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(notaForm())">+ Nova nota</button>
+    <select class="campo" onchange="fez('nota_filtro')"><option>Todos os status</option><option>Rascunho</option><option>Autorizada</option><option>Rejeitada</option><option>Cancelada</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>#</th><th>Paciente / tomador</th><th>Tipo</th><th>Número</th><th>Valor</th><th>Status</th><th>Emissão</th><th>Ações</th></tr>
+    ${estado.notasFiscais.map((n,i)=>`<tr>
+      <td>${n.id}</td><td><b>${n.pac}</b></td><td>${n.tipo}</td><td>${n.num}</td><td>${mReais(n.valor)}</td>
+      <td>${n.status==='autorizada'?'<span class="badge" style="background:#198754">Autorizada</span>':n.status==='rascunho'?'<span class="badge" style="background:#6c757d">Rascunho</span>':n.status==='rejeitada'?'<span class="badge" style="background:#e03131">Rejeitada</span>':'<span class="badge" style="background:#f59f00">Cancelada</span>'}</td>
+      <td>${n.emissao==='—'?'—':dataBR(n.emissao)}</td>
+      <td>${n.status==='rascunho'?`<button class="btn verde fino" onclick="emitirNota(${i})">Emitir</button>`:n.status==='autorizada'?`<button class="btn gray fino" onclick="flash('PDF da nota gerado ✓')">PDF</button> <button class="btn gray fino" onclick="flash('XML da NFS-e baixado ✓')">XML</button> <button class="btn vermelho fino" onclick="cancelarNota(${i})">Cancelar</button>`:n.status==='rejeitada'?`<button class="btn fino" onclick="emitirNota(${i})">Reenviar</button>`:'—'}</td></tr>`).join('')}
+  </table></div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Configuração fiscal</th><th>Valor</th></tr>
+    <tr><td><b>Emissor</b></td><td>Clínica Daiane Teixeira Fisioterapia LTDA</td></tr>
+    <tr><td><b>CNPJ</b></td><td>${estado.clinica.cnpj}</td></tr>
+    <tr><td><b>Ambiente</b></td><td>Homologação (testes) · produção exige certificado e autorização</td></tr>
+    <tr><td><b>Série / próximo número</b></td><td>1 · 000125</td></tr>
+    <tr><td><b>Serviço</b></td><td>NFS-e — serviços de fisioterapia e Pilates</td></tr>
+  </table></div>`;
+}
+function notaForm(){
+  return `<h3>🧾 Nova nota fiscal</h3>
+  <div class="form-grid">
+    <div><label>Paciente / tomador *</label><select id="nf_pac">${estado.pacientes.map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Tipo</label><select id="nf_tipo"><option>NFS-e</option></select></div>
+    <div><label>Valor (R$)</label><input id="nf_valor" type="number" step="0.01" min="0" value="0"></div>
+    <div><label>Competência</label><input id="nf_comp" type="date" value="2026-09-24"></div>
+    <div class="full"><label>Descrição do serviço</label><input id="nf_desc" placeholder="Ex.: Sessões de fisioterapia — setembro/2026"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarNota()">Salvar rascunho</button></div>`;
+}
+function salvarNota(){
+  const valor=parseFloat($('#nf_valor').value)||0;
+  estado.notasFiscais.unshift({id:estado.notasFiscais.reduce((m,n)=>Math.max(m,n.id),0)+1,num:'—',pac:$('#nf_pac').value,tipo:$('#nf_tipo').value,valor,status:'rascunho',emissao:'—'});
+  fez('nota_criada'); fecharModal(); mostrar('notas_fiscais'); flash('Nota salva como rascunho — confira os dados antes de emitir ✓');
+}
+function emitirNota(i){
+  const n=estado.notasFiscais[i];
+  if(!confirm('Emitir a nota fiscal agora?')) return;
+  n.status='autorizada'; n.num='000'+(125+estado.notasFiscais.filter(x=>x.status==='autorizada').length); n.emissao='2026-09-24';
+  fez('nota_emitida'); mostrar('notas_fiscais'); flash('NFS-e autorizada — PDF e XML liberados ✓');
+}
+function cancelarNota(i){
+  const n=estado.notasFiscais[i];
+  if(!confirm('Cancelar esta nota autorizada? A operação fica registrada na auditoria.')) return;
+  n.status='cancelada'; fez('nota_cancelada'); mostrar('notas_fiscais'); flash('Nota cancelada — evento registrado ✓');
+}
+
+/* ===== RELATÓRIOS — SUBPÁGINAS ===== */
+function pagRelReceitas(){
+  return cabecalho('rel_receitas','Relatórios — Receitas') + abas('rel_receitas',REL_ABAS) + `
+  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01" onchange="fez('rel_receitas_periodo')">
+    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-30" onchange="fez('rel_receitas_periodo')">
+    <button class="btn" onclick="fez('rel_receitas_periodo');flash('Receitas recalculadas ✓')">Filtrar</button>
+    <button class="btn verde" onclick="exportarCSV('receitas')">⬇ Exportar CSV</button></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${mReais(3770)}</div><div class="r">📈 Recebido no período</div></div>
+    <div class="card-kpi"><div class="v">${mReais(700)}</div><div class="r">⏳ Em aberto</div></div>
+    <div class="card-kpi"><div class="v">${mReais(145)}</div><div class="r">🧾 Ticket médio</div></div>
+    <div class="card-kpi"><div class="v">26</div><div class="r">✅ Atendimentos pagos</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Serviço</th><th>Atendimentos</th><th>Receita</th><th>% do total</th></tr>
+    <tr><td><b>Sessão de fisioterapia</b></td><td>12</td><td>${mReais(1440)}</td><td>38%</td></tr>
+    <tr><td><b>RPG — Reeducação postural global</b></td><td>6</td><td>${mReais(1080)}</td><td>29%</td></tr>
+    <tr><td><b>Pilates terapêutico</b></td><td>8</td><td>${mReais(800)}</td><td>21%</td></tr>
+    <tr><td><b>Avaliação fisioterapêutica</b></td><td>3</td><td>${mReais(450)}</td><td>12%</td></tr>
+  </table></div>
+  <div class="dica-treino" style="margin-top:16px">O CSV usa os mesmos filtros da tela. Ideal para levar o faturamento para a contabilidade.</div>`;
+}
+function exportarCSV(tipo){ fez('rel_export'); flash(`CSV de ${tipo} gerado com o período selecionado ✓`); }
+
+function pagRelPresenca(){
+  return cabecalho('rel_presenca','Relatórios — Presença e faltas') + abas('rel_presenca',REL_ABAS) + `
+  <div class="toolbar"><label class="usuario">De</label><input class="campo" type="date" value="2026-09-01" onchange="fez('rel_presenca_filtro')">
+    <label class="usuario">Até</label><input class="campo" type="date" value="2026-09-30" onchange="fez('rel_presenca_filtro')">
+    <button class="btn" onclick="fez('rel_presenca_filtro');flash('Presenças recalculadas ✓')">Filtrar</button></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">31</div><div class="r">✅ Atendidas</div></div>
+    <div class="card-kpi"><div class="v">2</div><div class="r">❌ Faltas</div></div>
+    <div class="card-kpi"><div class="v">4</div><div class="r">🚫 Canceladas</div></div>
+    <div class="card-kpi"><div class="v">83%</div><div class="r">📊 Taxa de presença</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Profissional</th><th>Atendidas</th><th>Faltas</th><th>Canceladas</th><th>Taxa</th></tr>
+    <tr><td><b>Dra. Daiane Teixeira</b></td><td>24</td><td>1</td><td>2</td><td><b>89%</b></td></tr>
+    <tr><td><b>Fga. Carla Nunes</b></td><td>7</td><td>1</td><td>2</td><td><b>70%</b></td></tr>
+  </table></div>
+  <div class="dica-treino" style="margin-top:16px">A falta não consome sessão do pacote. Quando o paciente repõe, marque <b>Reposição de falta</b> no atendimento.</div>`;
+}
+
+function pagRelPacotes(){
+  return cabecalho('rel_pacotes','Relatórios — Pacotes e sessões') + abas('rel_pacotes',REL_ABAS) + `
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.pacotes.filter(p=>p.st==='ativo').length}</div><div class="r">🎟️ Pacotes ativos</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacotes.reduce((s,p)=>s+p.usadas,0)}</div><div class="r">📉 Sessões consumidas</div></div>
+    <div class="card-kpi"><div class="v">${estado.pacotes.reduce((s,p)=>s+Math.max(p.sessoes-p.usadas,0),0)}</div><div class="r">✅ Sessões restantes</div></div>
+    <div class="card-kpi"><div class="v">1</div><div class="r">⏰ Vencendo em 30 dias</div></div>
+  </div>
+  <div class="toolbar"><select class="campo" onchange="fez('rel_pacotes_filtro');flash('Filtro de pacotes aplicado ✓')"><option>Todos os pacotes</option><option>Somente ativos</option><option>Somente esgotados</option><option>Vencendo em 30 dias</option></select>
+    <button class="btn verde" onclick="exportarCSV('pacotes')">⬇ Exportar CSV</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Pacote</th><th>Consumidas</th><th>Restantes</th><th>Validade</th><th>Situação</th></tr>
+    ${estado.pacotes.map(p=>`<tr>
+      <td><b>${p.pac}</b></td><td>${p.nome}</td><td>${p.usadas}/${p.sessoes}</td>
+      <td><b>${Math.max(p.sessoes-p.usadas,0)}</b></td><td>${dataBR(p.validade)}</td>
+      <td>${p.st==='ativo'?'<span class="badge" style="background:#198754">Ativo</span>':'<span class="badge" style="background:#6c757d">Esgotado</span>'}</td></tr>`).join('')}
+  </table></div>`;
+}
+
+const ANIVERSARIANTES=[
+  {nome:'Maria Souza',mes:3,dia:'12/03',idade:34,contato:'(11) 98765-4321'},
+  {nome:'Carlos Lima',mes:7,dia:'08/07',idade:41,contato:'(11) 97654-3210'},
+  {nome:'Ana Costa',mes:9,dia:'21/09',idade:29,contato:'(11) 96543-2109'},
+  {nome:'Pedro Alves',mes:9,dia:'27/09',idade:52,contato:'(11) 95432-1098'},
+  {nome:'Joana Faria',mes:11,dia:'03/11',idade:38,contato:'(11) 94321-0987'},
+];
+let mesAniversario=9;
+function pagRelAniversariantes(){
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const lista=ANIVERSARIANTES.filter(a=>a.mes===mesAniversario);
+  return cabecalho('rel_aniversariantes','Relatórios — Aniversariantes') + abas('rel_aniversariantes',REL_ABAS) + `
+  <div class="toolbar"><label class="usuario">Mês</label><select class="campo" onchange="mesAniversario=parseInt(this.value);fez('rel_aniversario_mes');mostrar('rel_aniversariantes')">${meses.map((m,i)=>`<option value="${i+1}" ${i+1===mesAniversario?'selected':''}>${m}</option>`).join('')}</select>
+    <span style="color:#5a6a72;font-size:.85rem">Use a lista para contato de aniversário e campanhas de retorno.</span></div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${lista.length}</div><div class="r">🎂 Aniversariantes do mês</div></div>
+    <div class="card-kpi"><div class="v">${ANIVERSARIANTES.length}</div><div class="r">👥 Pacientes com data</div></div>
+    <div class="card-kpi"><div class="v">${meses[mesAniversario-1]}</div><div class="r">📅 Mês selecionado</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Dia</th><th>Idade que faz</th><th>Contato</th><th>Ação</th></tr>
+    ${lista.map(a=>`<tr><td><b>${a.nome}</b></td><td>${a.dia}</td><td>${a.idade}</td><td>${a.contato}</td>
+      <td><button class="btn gray fino" onclick="flash('Mensagem de aniversário preparada para ${a.nome} ✓')">Preparar mensagem</button></td></tr>`).join('')||'<tr><td colspan="5">Nenhum aniversariante neste mês.</td></tr>'}
+  </table></div>`;
+}
+
+/* ===== DOCUMENTOS ===== */
+function pagDocumentos(){
+  return cabecalho('documentos','Documentos') + `
+  <div class="dica-treino">📁 <b>Documentos</b> ficam na ficha do paciente e também alimentam os modelos da clínica. O download exige permissão e cada arquivo pertence à clínica.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.documentos.length}</div><div class="r">📄 Documentos anexados</div></div>
+    <div class="card-kpi"><div class="v">${new Set(estado.documentos.map(d=>d.pac)).size}</div><div class="r">👥 Pacientes com documentos</div></div>
+    <div class="card-kpi"><div class="v">3</div><div class="r">🧾 Modelos da clínica</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(documentoForm())">+ Anexar documento</button>
+    <select class="campo"><option>Todos os tipos</option><option>Laudo</option><option>Termo</option><option>Atestado</option><option>Exame</option><option>Outro</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Paciente</th><th>Título</th><th>Tipo</th><th>Data</th><th>Tamanho</th><th>Ações</th></tr>
+    ${estado.documentos.map((d,i)=>`<tr>
+      <td><button class="btn-link" onclick="abrirFichaDoPaciente('${d.pac}')">${d.pac}</button></td>
+      <td><b>${d.titulo}</b></td><td>${d.tipo}</td><td>${dataBR(d.data)}</td><td>${d.tam}</td>
+      <td><button class="btn gray fino" onclick="flash('Download do documento iniciado ✓')">⬇ Baixar</button>
+          <button class="btn vermelho fino" onclick="excluirDocumento(${i})">Excluir</button></td></tr>`).join('')}
+  </table></div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Modelo da clínica</th><th>Para que serve</th><th>Ação</th></tr>
+    <tr><td><b>Papel timbrado</b></td><td>Documentos com logo, endereço e CNPJ da clínica.</td><td><button class="btn fino" onclick="gerarModelo('papel timbrado')">Gerar</button></td></tr>
+    <tr><td><b>Guia de cuidados</b></td><td>Orientações pós-sessão para entregar ao paciente.</td><td><button class="btn fino" onclick="gerarModelo('guia de cuidados')">Gerar</button></td></tr>
+    <tr><td><b>Atestado de comparecimento</b></td><td>Comprova a presença do paciente no horário.</td><td><button class="btn fino" onclick="gerarModelo('atestado')">Gerar</button></td></tr>
+  </table></div>`;
+}
+function documentoForm(){
+  return `<h3>📎 Anexar documento</h3>
+  <div class="form-grid">
+    <div><label>Paciente *</label><select id="dc_pac">${estado.pacientes.map(p=>`<option>${p.n}</option>`).join('')}</select></div>
+    <div><label>Tipo</label><select id="dc_tipo"><option>Laudo</option><option>Termo</option><option>Atestado</option><option>Exame</option><option>Outro</option></select></div>
+    <div class="full"><label>Título *</label><input id="dc_titulo" placeholder="Ex.: Laudo médico — ressonância"></div>
+    <div class="full"><label>Arquivo</label><input id="dc_arquivo" type="file"></div>
+  </div>
+  <div class="dica-treino" style="margin-top:12px">Nesta demonstração o arquivo não é enviado de verdade — no sistema real ele fica guardado por clínica e o download é controlado por permissão.</div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarDocumento()">Anexar</button></div>`;
+}
+function salvarDocumento(){
+  const titulo=$('#dc_titulo').value.trim();
+  if(!titulo){ alert('Informe o título do documento.'); return; }
+  estado.documentos.unshift({id:estado.documentos.reduce((m,d)=>Math.max(m,d.id),0)+1,pac:$('#dc_pac').value,titulo,tipo:$('#dc_tipo').value,data:'2026-09-24',tam:'—'});
+  fez('documento_anexado'); fecharModal(); mostrar('documentos'); flash('Documento anexado à ficha do paciente ✓');
+}
+function excluirDocumento(i){
+  if(!confirm('Excluir este documento? O download deixará de existir para todos os usuários.')) return;
+  estado.documentos.splice(i,1); mostrar('documentos'); flash('Documento excluído ✓');
+}
+function gerarModelo(tipo){ fez('documento_modelo'); flash(`Modelo de ${tipo} gerado com os dados da clínica ✓`); }
+
+/* ===== PERFIS, CLÍNICA E COMUNICAÇÃO ===== */
+function pagPerfis(){
+  return cabecalho('perfis','Perfis & Permissões') + abas('perfis',ADM_ABAS) + `
+  <div class="dica-treino">🔐 <b>RBAC:</b> o usuário recebe um perfil; o perfil recebe permissões por <b>módulo + ação</b>. Alterar um perfil vale para <b>todos</b> os usuários daquele perfil.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.perfis.length}</div><div class="r">🔐 Perfis</div></div>
+    <div class="card-kpi"><div class="v">${estado.perfis.reduce((s,p)=>s+p.usuarios,0)}</div><div class="r">👤 Usuários</div></div>
+    <div class="card-kpi"><div class="v">66</div><div class="r">✅ Permissões</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(perfilForm())">+ Novo perfil</button></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Perfil</th><th>Usuários</th><th>Permissões</th></tr>
+    ${estado.perfis.map(p=>`<tr><td><b>${p.nome}</b></td><td>${p.usuarios}</td><td style="font-size:.8rem">${p.perms}</td></tr>`).join('')}
+  </table></div>
+  <div class="tabela-wrap" style="margin-top:16px"><table>
+    <tr><th>Módulo</th><th>Fisioterapeuta</th><th>Recepção</th><th>Financeiro</th></tr>
+    <tr><td><b>Pacientes</b></td><td>✅ ver/criar/editar</td><td>✅ ver/criar</td><td>✅ ver</td></tr>
+    <tr><td><b>Agenda / Atendimentos</b></td><td>✅ completo</td><td>✅ completo</td><td>—</td></tr>
+    <tr><td><b>Prontuário / Avaliação / Evolução</b></td><td>✅ completo</td><td>—</td><td>—</td></tr>
+    <tr><td><b>Pacotes de sessões</b></td><td>✅ completo</td><td>✅ ver</td><td>✅ ver</td></tr>
+    <tr><td><b>Financeiro</b></td><td>✅ ver</td><td>✅ ver/receber</td><td>✅ completo</td></tr>
+    <tr><td><b>Notas fiscais</b></td><td>—</td><td>—</td><td>✅ completo</td></tr>
+    <tr><td><b>Relatórios</b></td><td>✅ ver</td><td>—</td><td>✅ completo</td></tr>
+    <tr><td><b>Usuários / Perfis</b></td><td>—</td><td>—</td><td>—</td></tr>
+  </table></div>
+  <div class="dica-treino" style="margin-top:16px">⚠️ O sistema impede excluir o <b>próprio</b> usuário. Toda mudança de permissão gera auditoria.</div>`;
+}
+function perfilForm(){
+  return `<h3>🔐 Novo perfil</h3>
+  <div class="form-grid">
+    <div class="full"><label>Nome do perfil *</label><input id="pe_nome" placeholder="Ex.: Estagiário"></div>
+    <div class="full"><label>Permissões iniciais</label><input id="pe_perms" placeholder="Ex.: pacientes.view, agenda.view"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarPerfil()">Salvar perfil</button></div>`;
+}
+function salvarPerfil(){
+  const nome=$('#pe_nome').value.trim();
+  if(!nome){ alert('Informe o nome do perfil.'); return; }
+  estado.perfis.push({nome,usuarios:0,perms:$('#pe_perms').value.trim()||'Nenhuma permissão'});
+  fez('perfil_criado'); fecharModal(); mostrar('perfis'); flash(`Perfil "${nome}" criado — atribua permissões e usuários ✓`);
+}
+
+function pagClinica(){
+  const c=estado.clinica;
+  return cabecalho('clinica','Clínica') + abas('clinica',ADM_ABAS) + `
+  <div class="dica-treino">🏥 Os dados da clínica aparecem nas telas, nos documentos e na <b>API do WhatsApp</b> (nome, endereço e contato). A cor primária vira o acento visual do sistema.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${c.fantasia}</div><div class="r">🏥 Nome fantasia</div></div>
+    <div class="card-kpi"><div class="v" style="font-size:1rem">${c.cnpj}</div><div class="r">🧾 CNPJ</div></div>
+    <div class="card-kpi"><div class="v" style="font-size:1rem">${c.tel}</div><div class="r">📞 Telefone / WhatsApp</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--borda);border-radius:12px;padding:16px">
+    <div class="form-grid">
+      <div class="full"><label>Razão social</label><input id="cl_razao" value="${c.razao}"></div>
+      <div><label>Nome fantasia</label><input id="cl_fantasia" value="${c.fantasia}"></div>
+      <div><label>CNPJ</label><input id="cl_cnpj" value="${c.cnpj}"></div>
+      <div><label>Telefone</label><input id="cl_tel" value="${c.tel}"></div>
+      <div><label>WhatsApp</label><input id="cl_whats" value="${c.whats}"></div>
+      <div class="full"><label>E-mail</label><input id="cl_email" value="${c.email}"></div>
+      <div class="full"><label>Endereço</label><input id="cl_end" value="${c.end}"></div>
+      <div><label>Cor primária</label><input id="cl_cor" type="color" value="${c.cor}" style="height:40px;padding:2px"></div>
+      <div><label>Logo</label><input id="cl_logo" type="file"></div>
+    </div>
+    <div class="acoes" style="justify-content:flex-start;margin-top:14px"><button class="btn teal" onclick="salvarClinica()">Salvar dados da clínica</button></div>
+  </div>`;
+}
+function salvarClinica(){
+  const c=estado.clinica;
+  c.razao=$('#cl_razao').value.trim()||c.razao; c.fantasia=$('#cl_fantasia').value.trim()||c.fantasia;
+  c.cnpj=$('#cl_cnpj').value.trim()||c.cnpj; c.tel=$('#cl_tel').value.trim()||c.tel;
+  c.whats=$('#cl_whats').value.trim()||c.whats; c.email=$('#cl_email').value.trim()||c.email;
+  c.end=$('#cl_end').value.trim()||c.end; c.cor=$('#cl_cor').value||c.cor;
+  fez('clinica_salva'); mostrar('clinica'); flash('Dados da clínica atualizados — telas, documentos e API do WhatsApp ✓');
+}
+
+function pagSocial(){
+  const pend=estado.social.filter(p=>p.status==='pendente').length;
+  const apr=estado.social.filter(p=>p.status==='aprovado').length;
+  return cabecalho('social','Social') + `
+  <div class="dica-treino">📣 <b>Social</b> organiza as publicações da clínica para Instagram e Facebook. O fluxo é <b>Pendente → Aprovado → Publicado</b>; nada é publicado sem aprovação.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${estado.social.length}</div><div class="r">📣 Publicações</div></div>
+    <div class="card-kpi"><div class="v">${pend}</div><div class="r">⏳ Pendentes</div></div>
+    <div class="card-kpi"><div class="v">${apr}</div><div class="r">✅ Aprovadas</div></div>
+    <div class="card-kpi"><div class="v">${estado.social.filter(p=>p.status==='rejeitado').length}</div><div class="r">🚫 Rejeitadas</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="abrirModal(socialForm())">+ Novo post</button>
+    <button class="btn gray" onclick="flash('Configuração das contas do Instagram/Facebook aberta ✓')">⚙ Configurar contas</button>
+    <select class="campo" onchange="fez('social_filtro')"><option>Todos os status</option><option>Pendente</option><option>Aprovado</option><option>Rejeitado</option></select></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+    ${estado.social.map((p,i)=>`<div style="background:#fff;border:1px solid var(--borda);border-radius:14px;overflow:hidden;box-shadow:var(--sombra)">
+      <div style="height:90px;background:linear-gradient(135deg,#0ca678,#4dabf7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem">📸</div>
+      <div style="padding:12px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><b style="font-size:.9rem">${p.titulo}</b>
+          <span class="badge" style="background:${p.status==='aprovado'?'#198754':p.status==='pendente'?'#f59f00':'#e03131'}">${p.status}</span></div>
+        <div style="font-size:.76rem;color:#5a6a72;margin:6px 0 10px">${p.rede} · ${dataBR(p.data)} · por ${p.autor}</div>
+        ${p.status==='pendente'?`<button class="btn verde fino" onclick="aprovarPost(${i})">Aprovar</button> <button class="btn vermelho fino" onclick="rejeitarPost(${i})">Rejeitar</button>`:p.status==='aprovado'?`<button class="btn fino" onclick="flash('Publicação enviada para ${p.rede} ✓')">Publicar</button>`:'<span style="color:#5a6a72;font-size:.8rem">Revisar conteúdo antes de reenviar.</span>'}
+      </div></div>`).join('')}
+  </div>`;
+}
+function socialForm(){
+  return `<h3>📣 Novo post</h3>
+  <div class="form-grid">
+    <div class="full"><label>Título / legenda *</label><input id="so_titulo" placeholder="Ex.: Dica de alongamento"></div>
+    <div><label>Rede</label><select id="so_rede"><option>Instagram</option><option>Facebook</option></select></div>
+    <div><label>Data prevista</label><input id="so_data" type="date" value="2026-09-25"></div>
+    <div class="full"><label>Imagem</label><input type="file"></div>
+  </div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarSocial()">Salvar como pendente</button></div>`;
+}
+function salvarSocial(){
+  const titulo=$('#so_titulo').value.trim();
+  if(!titulo){ alert('Informe o título do post.'); return; }
+  estado.social.unshift({id:estado.social.reduce((m,p)=>Math.max(m,p.id),0)+1,titulo,rede:$('#so_rede').value,data:$('#so_data').value||'2026-09-25',status:'pendente',autor:'Você'});
+  fez('social_criado'); fecharModal(); mostrar('social'); flash('Post criado como pendente — aguardando aprovação ✓');
+}
+function aprovarPost(i){ estado.social[i].status='aprovado'; fez('social_aprovado'); mostrar('social'); flash('Post aprovado — pronto para publicar ✓'); }
+function rejeitarPost(i){ estado.social[i].status='rejeitado'; fez('social_rejeitado'); mostrar('social'); flash('Post rejeitado — ajuste o conteúdo e reenvie.'); }
+
+function pagNotificacoes(){
+  const naoLidas=estado.notificacoes.filter(n=>!n.lida).length;
+  return cabecalho('notificacoes','Notificações') + `
+  <div class="dica-treino">🔔 A central de notificações reúne avisos de <b>pacotes acabando</b>, <b>contas a vencer</b> e <b>evoluções pendentes</b>. O sino no topo mostra quantas não foram lidas.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">${naoLidas}</div><div class="r">🔔 Não lidas</div></div>
+    <div class="card-kpi"><div class="v">${estado.notificacoes.length}</div><div class="r">📥 Total</div></div>
+    <div class="card-kpi"><div class="v">${estado.notificacoes.filter(n=>n.lida).length}</div><div class="r">✅ Lidas</div></div>
+  </div>
+  <div class="toolbar"><button class="btn teal" onclick="marcarTodasNotificacoes()">✔ Marcar todas como lidas</button>
+    <button class="btn gray" onclick="abrirModal(preferenciasNotificacoes())">⚙ Preferências</button>
+    <select class="campo" onchange="fez('notificacao_filtro')"><option>Todos os tipos</option><option>Pacote</option><option>Financeiro</option><option>Clínico</option></select></div>
+  <div class="tabela-wrap"><table>
+    <tr><th>Status</th><th>Tipo</th><th>Notificação</th><th>Quando</th><th>Ação</th></tr>
+    ${estado.notificacoes.map((n,i)=>`<tr style="${n.lida?'opacity:.62':''}">
+      <td>${n.lida?'<span class="badge" style="background:#6c757d">Lida</span>':'<span class="badge" style="background:#e03131">Nova</span>'}</td>
+      <td>${n.tipo}</td><td><b>${n.t}</b><br><span style="font-size:.8rem;color:#5a6a72">${n.d}</span></td>
+      <td>${n.quando}</td>
+      <td>${n.lida?'—':`<button class="btn gray fino" onclick="marcarNotificacao(${i})">Marcar lida</button>`}</td></tr>`).join('')}
+  </table></div>`;
+}
+function marcarNotificacao(i){ estado.notificacoes[i].lida=true; fez('notificacao_lida'); mostrar('notificacoes'); flash('Notificação marcada como lida ✓'); }
+function marcarTodasNotificacoes(){ estado.notificacoes.forEach(n=>n.lida=true); fez('notificacao_lida'); mostrar('notificacoes'); flash('Todas as notificações foram marcadas como lidas ✓'); }
+function preferenciasNotificacoes(){
+  return `<h3>⚙ Preferências de notificação</h3>
+  <div class="form-grid"><div class="full">
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" checked> Pacotes com sessões acabando</label>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" checked> Contas a pagar e a receber</label>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" checked> Evoluções pendentes</label>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox"> Novidades do sistema</label>
+  </div></div>
+  <div class="acoes"><button class="btn gray" onclick="fecharModal()">Cancelar</button>
+  <button class="btn teal" onclick="salvarPreferencias()">Salvar preferências</button></div>`;
+}
+function salvarPreferencias(){ fez('notificacao_pref'); fecharModal(); flash('Preferências de notificação salvas ✓'); }
+
+/* ===== MÓDULOS PLANEJADOS ===== */
+function pagTurmasPilates(){
+  return cabecalho('turmas_pilates','Turmas de Pilates (planejado)') + `
+  <div class="planejado">🟸 <b>Funcionalidade planejada — ainda não disponível para uso.</b> <b>Cadastro de turmas de Pilates, horários recorrentes, capacidade e controle de vagas.</b> O módulo é específico da vertical Pilates e ainda não tem tela adaptada; no sistema real, esta URL abre a tela padrão de módulo planejado. Enquanto isso, use o módulo <b>Turmas</b>, que já está disponível e cobre grade semanal, calendário e lista de presença.</div>
+  <div class="cards">
+    <div class="card-kpi"><div class="v">🟸</div><div class="r">Situação do módulo</div></div>
+    <div class="card-kpi"><div class="v">${estado.turmas.length}</div><div class="r">Turmas já atendidas em “Turmas”</div></div>
+    <div class="card-kpi"><div class="v">${estado.turmas.reduce((s,t)=>s+t.alunos.length,0)}</div><div class="r">Alunos matriculados</div></div>
+  </div>
+  <div class="tabela-wrap"><table>
+    <tr><th>O que o módulo planejado fará</th><th>Enquanto isso, use</th></tr>
+    <tr><td>Cadastro de turmas com horários recorrentes</td><td>Turmas → <b>+ Nova turma</b> (dias, horário, duração e capacidade)</td></tr>
+    <tr><td>Capacidade e controle de vagas</td><td>Turmas → coluna <b>Alunos / capacidade</b></td></tr>
+    <tr><td>Lista de presença por encontro</td><td>Turmas → botão <b>Chamada</b></td></tr>
+    <tr><td>Calendário mensal das turmas</td><td>Turmas → <b>Grade semanal</b></td></tr>
+  </table></div>
+  <div class="toolbar" style="margin-top:16px"><button class="btn teal" onclick="mostrar('turmas')">Abrir Turmas disponíveis →</button></div>`;
+}
+
 /* ===== FLASH ===== */
 const flashBox=document.createElement('div');
 flashBox.style.cssText='position:fixed;top:70px;right:22px;background:#0b7285;color:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:99;font-size:.9rem;font-weight:600;max-width:360px;transition:.25s;opacity:0;pointer-events:none;';
@@ -1076,24 +2065,83 @@ document.body.appendChild(flashBox);
 function flash(msg){ flashBox.textContent='✓ '+msg; flashBox.style.opacity=1; setTimeout(()=>flashBox.style.opacity=0,3200); }
 
 /* ===== PROGRESSO, DESAFIOS E QUIZ ===== */
-const CHAVES_MOD = {dashboard:['tour_dashboard'],pacientes:['paciente_criado','abrir_ficha'],prontuario:['evolucao','alerta'],agenda:['agendar'],planos:['plano_item','concluir_plano'],laser:['laser_regiao','laser_pacote','laser_aplicacao'],orcamentos:['orc_item','aprovar_orc'],financeiro:['receber'],convenios:['convenio'],profissionais:['profissional'],procedimentos:['procedimento'],estoque:['entrada','saida'],contratos:['contrato'],relatorios:['relatorio_periodo'],admin:['admin_visitado'],auditoria:['aud_filtro']};
+const CHAVES_MOD = {
+  dashboard:['tour_dashboard'],
+  pacientes:['paciente_criado','abrir_ficha'],
+  agenda:['agendar'],
+  atendimentos:['atend_presenca','atend_falta'],
+  turmas:['turma_criada','turma_presenca'],
+  prontuario:['evolucao','alerta'],
+  avaliacao:['avaliacao_criada','avaliacao_finalizada'],
+  evolucao:['evolucao_sessao','evolucao_finalizada'],
+  pacotes:['pacote_criado','pacote_consumido'],
+  planos:['plano_item','concluir_plano'],
+  laser:['laser_regiao','laser_pacote','laser_aplicacao'],
+  turmas_pilates:['turmas_pilates_visto'],
+  orcamentos:['orc_item','aprovar_orc'],
+  financeiro:['receber'],
+  pagamentos:['pagamento_manual'],
+  contas_pagar:['conta_criada','conta_paga'],
+  fornecedores:['fornecedor_criado'],
+  fluxo_caixa:['fluxo_periodo'],
+  duplicatas:['duplicata_revisada'],
+  notas_fiscais:['nota_criada','nota_emitida'],
+  convenios:['convenio'],
+  profissionais:['profissional'],
+  procedimentos:['procedimento'],
+  estoque:['entrada','saida'],
+  contratos:['contrato'],
+  relatorios:['relatorio_periodo'],
+  rel_receitas:['rel_receitas_periodo','rel_export'],
+  rel_presenca:['rel_presenca_filtro'],
+  rel_pacotes:['rel_pacotes_filtro'],
+  rel_aniversariantes:['rel_aniversario_mes'],
+  documentos:['documento_anexado','documento_modelo'],
+  admin:['admin_visitado'],
+  perfis:['perfil_criado'],
+  clinica:['clinica_salva'],
+  auditoria:['aud_filtro'],
+  social:['social_criado','social_aprovado'],
+  notificacoes:['notificacao_lida','notificacao_pref'],
+};
 const DESAFIOS = {
   dashboard:[{k:'tour_dashboard',t:'Assista à Visita guiada até o fim (no último passo, clique em Encerrar)'}],
   pacientes:[{k:'paciente_criado',t:'Cadastre um novo paciente (botão "+ Novo paciente")'},{k:'abrir_ficha',t:'Abra a ficha/prontuário de um paciente'}],
-  prontuario:[{k:'evolucao',t:'Registre uma evolução clínica'},{k:'alerta',t:'Adicione um alerta clínico'}],
   agenda:[{k:'agendar',t:'Agende uma sessão'}],
+  atendimentos:[{k:'atend_presenca',t:'Registre a presença de um paciente'},{k:'atend_falta',t:'Registre uma falta'}],
+  turmas:[{k:'turma_criada',t:'Crie uma turma'},{k:'turma_presenca',t:'Faça a chamada de uma turma'}],
+  prontuario:[{k:'evolucao',t:'Registre uma evolução clínica'},{k:'alerta',t:'Adicione um alerta clínico'}],
+  avaliacao:[{k:'avaliacao_criada',t:'Crie uma ficha de avaliação'},{k:'avaliacao_finalizada',t:'Finalize uma ficha (ela fica imutável)'}],
+  evolucao:[{k:'evolucao_sessao',t:'Registre uma evolução por sessão'},{k:'evolucao_finalizada',t:'Finalize a evolução'}],
+  pacotes:[{k:'pacote_criado',t:'Crie um pacote de sessões'},{k:'pacote_consumido',t:'Consuma 1 sessão do pacote'}],
   planos:[{k:'plano_item',t:'Adicione um procedimento ao plano'},{k:'concluir_plano',t:'Conclua o plano de tratamento'}],
   laser:[{k:'laser_regiao',t:'Cadastre uma região corporal'},{k:'laser_pacote',t:'Crie um pacote-modelo para uma região'},{k:'laser_aplicacao',t:'Registre uma aplicação e veja o nº da sessão calculado'}],
+  turmas_pilates:[{k:'turmas_pilates_visto',t:'Leia a página do módulo planejado'}],
   orcamentos:[{k:'orc_item',t:'Adicione um item ao orçamento'},{k:'aprovar_orc',t:'Aprove o orçamento (botão verde)'}],
   financeiro:[{k:'receber',t:'Registre um recebimento (parcial ou total)'}],
+  pagamentos:[{k:'pagamento_manual',t:'Lance um pagamento manual'}],
+  contas_pagar:[{k:'conta_criada',t:'Cadastre uma conta a pagar'},{k:'conta_paga',t:'Marque uma conta como paga'}],
+  fornecedores:[{k:'fornecedor_criado',t:'Cadastre um fornecedor'}],
+  fluxo_caixa:[{k:'fluxo_periodo',t:'Filtre o fluxo de caixa por período'}],
+  duplicatas:[{k:'duplicata_revisada',t:'Abra a revisão de um grupo de nomes parecidos'}],
+  notas_fiscais:[{k:'nota_criada',t:'Crie uma nota fiscal em rascunho'},{k:'nota_emitida',t:'Emita (autorize) a nota fiscal'}],
   convenios:[{k:'convenio',t:'Cadastre uma operadora'}],
   profissionais:[{k:'profissional',t:'Cadastre um profissional'}],
   procedimentos:[{k:'procedimento',t:'Cadastre um procedimento'}],
   estoque:[{k:'entrada',t:'Registre uma entrada de material'},{k:'saida',t:'Registre uma saída de material'}],
   contratos:[{k:'contrato',t:'Cadastre um contrato'}],
   relatorios:[{k:'relatorio_periodo',t:'Use o período De/Até e clique em Filtrar'}],
+  rel_receitas:[{k:'rel_receitas_periodo',t:'Filtre as receitas por período'},{k:'rel_export',t:'Exporte o CSV das receitas'}],
+  rel_presenca:[{k:'rel_presenca_filtro',t:'Filtre o relatório de presença e faltas'}],
+  rel_pacotes:[{k:'rel_pacotes_filtro',t:'Use o filtro de pacotes'}],
+  rel_aniversariantes:[{k:'rel_aniversario_mes',t:'Troque o mês dos aniversariantes'}],
+  documentos:[{k:'documento_anexado',t:'Anexe um documento a um paciente'},{k:'documento_modelo',t:'Gere um modelo (papel timbrado, guia ou atestado)'}],
   admin:[{k:'admin_visitado',t:'Explore a Administração (usuários, perfis, clínica)'}],
+  perfis:[{k:'perfil_criado',t:'Crie um perfil de acesso'}],
+  clinica:[{k:'clinica_salva',t:'Salve uma alteração nos dados da clínica'}],
   auditoria:[{k:'aud_filtro',t:'Use os filtros de ação e de tabela'}],
+  social:[{k:'social_criado',t:'Crie um post (nasce pendente)'},{k:'social_aprovado',t:'Aprove um post'}],
+  notificacoes:[{k:'notificacao_lida',t:'Marque uma notificação como lida'},{k:'notificacao_pref',t:'Abra e salve as preferências'}],
 };
 const QUIZ = {
   dashboard:[
@@ -1192,6 +2240,126 @@ const QUIZ = {
     {q:'Qual tabela NÃO costuma aparecer na auditoria?',o:['pacientes','payments','evolucoes','comissões'],c:3},
     {q:'O IP registrado serve para:',o:['Fazer login','Rastrear de onde a ação veio','Acelerar o sistema','Fazer backup'],c:1},
     {q:'Qual ação pode estar no log?',o:['registrar_evolucao','limpar_cache','trocar_skin','apagar_logs'],c:0},
+  ],
+  atendimentos:[
+    {q:'Ao confirmar presença de um paciente com pacote, o sistema:',o:['Não mexe no pacote','Consome 1 sessão do pacote','Cobra no cartão','Cria um novo pacote'],c:1},
+    {q:'Uma falta registrada no atendimento:',o:['Consome sessão do pacote','Não consome sessão e libera o horário','Cancela o pacote','Gera nota fiscal'],c:1},
+    {q:'Se o pacote não tiver saldo, o consumo da sessão:',o:['Deixa o saldo negativo','É recusado pelo sistema','Dobra a validade','Vira desconto'],c:1},
+    {q:'A marcação "Reposição de falta" serve para:',o:['Cobrar mais caro','Indicar que a sessão repõe uma falta anterior','Cancelar o pacote','Trocar o profissional'],c:1},
+  ],
+  turmas:[
+    {q:'A capacidade da turma serve para:',o:['Definir o preço','Controlar as vagas disponíveis','Definir o CREFITO','Calcular a comissão'],c:1},
+    {q:'A chamada da turma registra:',o:['Só o horário','Presença e falta por aluno','O pagamento','A nota fiscal'],c:1},
+    {q:'Ao matricular em uma turma lotada, o sistema:',o:['Aceita e passa do limite','Recusa a matrícula','Cria outra turma','Apaga a turma'],c:1},
+    {q:'O módulo Turmas atende:',o:['Só fisioterapia individual','Pilates em grupo (grade semanal e presença)','Somente odontologia','Apenas estoque'],c:1},
+  ],
+  avaliacao:[
+    {q:'Depois de finalizada, a avaliação:',o:['Pode ser editada por qualquer um','Fica imutável para preservar a auditoria','É apagada','Vira orçamento'],c:1},
+    {q:'O sistema sugere diagnóstico automaticamente?',o:['Sim, por IA','Não — o profissional registra o que encontrou','Só para laser','Só para Pilates'],c:1},
+    {q:'A nota de dor usada na avaliação vai de:',o:['0 a 5','0 a 10','0 a 100','1 a 3'],c:1},
+    {q:'Enquanto não é finalizada, a ficha fica em:',o:['Rascunho','Concluída','Cancelada','Auditoria'],c:0},
+  ],
+  evolucao:[
+    {q:'O número da sessão na evolução é:',o:['Digitado pelo usuário','Calculado pelo sistema','Sorteado','Definido pelo paciente'],c:1},
+    {q:'A assinatura de presença:',o:['Substitui a evolução','Pode ser colhida após finalizar','Impede finalizar','É obrigatória no rascunho'],c:1},
+    {q:'Finalizar a evolução:',o:['Apaga o conteúdo','Torna o registro imutável','Cria um pacote','Envia WhatsApp'],c:1},
+    {q:'A evolução registra:',o:['Apenas texto livre','Dor antes/depois, conduta e procedimento','Só o valor','Só a presença'],c:1},
+  ],
+  pacotes:[
+    {q:'O consumo de sessão do pacote:',o:['É transacional e nunca deixa saldo negativo','Pode deixar saldo negativo','É manual e sem controle','Só existe em orçamentos'],c:0},
+    {q:'Pacote com todas as sessões usadas fica:',o:['Ativo','Esgotado','Cancelado','Pendente'],c:1},
+    {q:'A validade do pacote serve como:',o:['Referência de venda e controle','Bloqueio automático do paciente','Forma de pagamento','Nota fiscal'],c:0},
+    {q:'Cada pacote pertence a:',o:['Um profissional','Um paciente e um procedimento','Uma turma','Um convênio'],c:1},
+  ],
+  pagamentos:[
+    {q:'Um pagamento confirmado entra no:',o:['Fluxo de caixa como entrada','Estoque','Prontuário','Contrato'],c:0},
+    {q:'As formas de pagamento incluem:',o:['PIX, dinheiro, cartão, boleto e convênio','Somente PIX','Somente dinheiro','Bitcoin'],c:0},
+    {q:'Um lançamento pendente:',o:['Já conta como recebido','Ainda não entrou no caixa','É excluído','Vira nota fiscal'],c:1},
+    {q:'O total "recebido" do topo soma:',o:['Todos os lançamentos, inclusive pendentes','Somente os confirmados','Somente os pendentes','Somente convênios'],c:1},
+  ],
+  contas_pagar:[
+    {q:'Contas a pagar representam:',o:['Entradas de caixa','Saídas de caixa da clínica','Sessões do paciente','Comissões'],c:1},
+    {q:'Ao marcar uma conta como paga:',o:['A saída é registrada no fluxo de caixa','Nada acontece','Ela vira receita','O fornecedor é excluído'],c:0},
+    {q:'O vencimento serve para:',o:['Controlar o prazo da despesa','Definir o preço','Calcular comissão','Agendar sessão'],c:0},
+    {q:'Contas em aberto aparecem:',o:['Somente nos relatórios','Separadas das pagas, com status próprio','Como receita','Como estoque'],c:1},
+  ],
+  fornecedores:[
+    {q:'O fornecedor alimenta:',o:['Contas a pagar e entradas de estoque','A agenda','O prontuário','Os convênios'],c:0},
+    {q:'Um fornecedor inativo:',o:['Continua disponível como ativo','Permanece no histórico, mas não é usado em novas compras','É apagado','Vira paciente'],c:1},
+    {q:'Documento e contato ficam:',o:['Em telas separadas','No mesmo cadastro do fornecedor','Só na nota fiscal','Só no contrato'],c:1},
+    {q:'Categorias de fornecedor incluem:',o:['Insumos, equipamentos, aluguel e serviços','Só insumos','Só aluguel','Só serviços'],c:0},
+  ],
+  fluxo_caixa:[
+    {q:'Fluxo de caixa do período é:',o:['Entradas recebidas − saídas pagas','Total de pacientes','Soma dos pacotes','Estoque final'],c:0},
+    {q:'Contas em aberto no fluxo de caixa:',o:['Já entram no saldo','Aparecem separadas, pois ainda não passaram pelo caixa','São ignoradas','Viram despesa'],c:1},
+    {q:'O saldo acumulado é calculado:',o:['Linha a linha, a partir do saldo inicial','Só no fim do ano','Pelo paciente','Pelo estoque'],c:0},
+    {q:'Alterar o período:',o:['Não muda nada','Recalcula entradas, saídas e saldo','Apaga lançamentos','Cria nota fiscal'],c:1},
+  ],
+  duplicatas:[
+    {q:'"Nomes parecidos" serve para:',o:['Mesclar cadastros automaticamente','Apontar possíveis duplicidades para revisão humana','Excluir pacientes','Gerar cobrança'],c:1},
+    {q:'A mesclagem de cadastros:',o:['É automática','Não acontece sem decisão humana','Ocorre à noite','É feita pelo paciente'],c:1},
+    {q:'Antes de excluir um cadastro duplicado, confira:',o:['Só o nome','Histórico clínico e financeiro','A cor do sistema','O CREFITO'],c:1},
+    {q:'A exclusão de paciente no sistema é:',o:['Definitiva','Soft delete (inativa e preserva o histórico)','Feita pelo WhatsApp','Impossível'],c:1},
+  ],
+  notas_fiscais:[
+    {q:'O status inicial de uma nota é:',o:['Autorizada','Rascunho','Cancelada','Rejeitada'],c:1},
+    {q:'Emitir a nota faz o status ir para:',o:['Rascunho','Autorizada','Cancelada','Rejeitada'],c:1},
+    {q:'Depois de autorizada, a nota pode:',o:['Ser editada livremente','Gerar PDF/XML ou ser cancelada','Virar paciente','Sumir do sistema'],c:1},
+    {q:'O ambiente fiscal atual é de:',o:['Produção','Homologação (testes)','Backup','Auditoria'],c:1},
+  ],
+  rel_receitas:[
+    {q:'O relatório de receitas mostra:',o:['Receita por serviço e % do total','Só o estoque','Só faltas','Só convênios'],c:0},
+    {q:'O CSV exportado usa:',o:['Os mesmos filtros da tela','Sempre o ano todo','Nenhum filtro','Dados aleatórios'],c:0},
+    {q:'Ticket médio é:',o:['Receita dividida pelos atendimentos pagos','O maior valor','O valor do pacote','A comissão'],c:0},
+    {q:'A receita é contada:',o:['Por profissional apenas','No período selecionado','Só em dezembro','Só para PIX'],c:1},
+  ],
+  rel_presenca:[
+    {q:'A taxa de presença considera:',o:['Atendidas, faltas e canceladas','Só atendidas','Só faltas','Só canceladas'],c:0},
+    {q:'Uma falta no relatório:',o:['Consome sessão','Não consome sessão do pacote','Gera nota fiscal','Cancela o contrato'],c:1},
+    {q:'É possível comparar:',o:['Profissionais','Convênios','Fornecedores','Produtos'],c:0},
+    {q:'O relatório respeita:',o:['O período escolhido','Apenas o dia atual','Só o mês de janeiro','Nada'],c:0},
+  ],
+  rel_pacotes:[
+    {q:'O relatório de pacotes mostra:',o:['Consumidas, restantes e validade','Só o valor','Só o paciente','Só o profissional'],c:0},
+    {q:'O filtro "vencendo em 30 dias" serve para:',o:['Antecipar renovações','Excluir pacotes','Gerar nota','Calcular comissão'],c:0},
+    {q:'Sessões restantes nunca ficam:',o:['Positivas','Negativas','Zeradas','Contadas'],c:1},
+    {q:'Pacote sem saldo aparece como:',o:['Ativo','Esgotado','Pendente','Cancelado'],c:1},
+  ],
+  rel_aniversariantes:[
+    {q:'O relatório de aniversariantes agrupa por:',o:['Mês','Profissional','Procedimento','Convênio'],c:0},
+    {q:'Ele é útil para:',o:['Campanhas de relacionamento e retorno','Calcular imposto','Controlar estoque','Emitir nota'],c:0},
+    {q:'Os dados mostrados incluem:',o:['Dia, idade e contato','CPF e endereço completo','Senha do paciente','Cartão de crédito'],c:0},
+    {q:'A lista depende de:',o:['Data de nascimento cadastrada','E-mail','Pacote ativo','Contrato assinado'],c:0},
+  ],
+  documentos:[
+    {q:'Os documentos ficam:',o:['Na ficha do paciente','Só no financeiro','Só na agenda','No estoque'],c:0},
+    {q:'O download de um documento:',o:['É livre para qualquer visitante','Exige permissão e pertence à clínica','É público na internet','Só funciona por e-mail'],c:1},
+    {q:'Os modelos da clínica incluem:',o:['Papel timbrado, guia de cuidados e atestado','Nota fiscal e boleto','Contrato e convênio','Pacote e orçamento'],c:0},
+    {q:'Excluir um documento:',o:['Remove o download para todos os usuários','Só esconde do paciente','Duplica o arquivo','Envia por WhatsApp'],c:0},
+  ],
+  perfis:[
+    {q:'No RBAC, as permissões ficam:',o:['No usuário, uma por uma','No perfil, por módulo + ação','No paciente','No convênio'],c:1},
+    {q:'Alterar um perfil:',o:['Vale só para um usuário','Vale para todos os usuários daquele perfil','Apaga o perfil','Não tem efeito'],c:1},
+    {q:'O sistema impede:',o:['Criar perfis','Excluir o próprio usuário','Trocar senha','Ver auditoria'],c:1},
+    {q:'Toda mudança de permissão:',o:['Gera registro de auditoria','É ignorada','Vira nota fiscal','Exclui usuários'],c:0},
+  ],
+  clinica:[
+    {q:'Os dados da clínica alimentam:',o:['Telas, documentos e a API WhatsApp','Só o estoque','Só os relatórios','Só a agenda'],c:0},
+    {q:'A cor primária define:',o:['O acento visual do sistema','O preço','O CREFITO','O estoque mínimo'],c:0},
+    {q:'O CNPJ da clínica aparece:',o:['Nos documentos e na configuração fiscal','Só no prontuário','Só na agenda','Em lugar nenhum'],c:0},
+    {q:'Quem pode alterar os dados da clínica:',o:['Qualquer paciente','Usuário com permissão administrativa','A recepção sempre','Ninguém'],c:1},
+  ],
+  social:[
+    {q:'Um post novo nasce com status:',o:['Aprovado','Pendente','Publicado','Rejeitado'],c:1},
+    {q:'Nada é publicado sem:',o:['Aprovação','Pagamento','Nota fiscal','Contrato'],c:0},
+    {q:'O fluxo do Social é:',o:['Pendente → Aprovado → Publicado','Publicado → Pendente','Aprovado → Rascunho','Rejeitado → Excluído'],c:0},
+    {q:'As redes configuradas incluem:',o:['Instagram e Facebook','TikTok e X','LinkedIn e YouTube','Somente Instagram'],c:0},
+  ],
+  notificacoes:[
+    {q:'A central de notificações avisa sobre:',o:['Pacotes acabando, contas a vencer e evoluções pendentes','Somente aniversários','Somente estoque','Nada'],c:0},
+    {q:'O sino no topo mostra:',o:['Quantas notificações não foram lidas','O total de pacientes','O saldo do caixa','O estoque mínimo'],c:0},
+    {q:'Marcar como lida:',o:['Apaga a notificação','Reduz o contador de não lidas','Exclui o paciente','Cancela a conta'],c:1},
+    {q:'As preferências permitem:',o:['Escolher quais avisos receber','Trocar a senha','Excluir usuários','Emitir nota'],c:0},
   ],
 };
 const LS='daianeTreinoV1';
@@ -1330,8 +2498,9 @@ document.addEventListener('keydown',e=>{
 const EXP_MSG = {
   dashboard:'O <b>Dashboard</b> é a porta de entrada do sistema. Ele consulta dados REAIS da clínica e mostra: (1) sessões de hoje em tabela, (2) total de pacientes, (3) planos de tratamento em andamento e (4) produtos com estoque baixo — além das contas a receber em aberto. <br><br>Destaque: cada indicador só aparece se o seu usuário tiver permissão do módulo (Gate). Se a Recepção não vê financeiro, por exemplo, o cartão nem é desenhado.',
   pacientes:'O módulo <b>Pacientes</b> centraliza o cadastro e a busca. A busca filtra por nome, CPF, e-mail, telefone fixo e celular — o MESMO critério usado pela API do WhatsApp. <br><br>Regras reais: somente o <b>nome</b> é obrigatório; o CPF é <b>único</b> (duplicidade bloqueada); ao excluir, o sistema <b>não apaga</b> — faz soft delete e marca como inativo, preservando o histórico clínico. Todo cadastro/alteração gera registro de <b>auditoria</b> com antes/depois.',
+  agenda:'A <b>Agenda</b> é a grade semanal (7h às 21h, blocos de 30 min) com filtro por profissional. A <b>duração do procedimento</b> define automaticamente o fim da sessão — não é digitado. Clicar num espaço vazio agenda naquele horário. A <b>lista de espera</b> fica ao lado, ordenada por prioridade, para encaixar pacientes que aguardam vaga.',
   prontuario:'A <b>ficha do paciente</b> reúne os dados e o histórico. O prontuário clínico (evoluções) registra o relato de cada atendimento: o <b>profissional logado vira o autor automaticamente</b>. A anamnese trabalha no formato <b>"pergunta: resposta"</b> (você pode colar várias linhas de uma vez). Os <b>alertas</b> ficam visíveis na ficha para situações críticas (alergias, medicações) — desativar não apaga, só esconde. Prescrições aceitam vários medicamentos com dose, frequência e duração.',
-  planos:'O <b>Plano de tratamento</b> organiza os procedimentos (sessões) do paciente. Regras reais do sistema: o <b>total é recalculado automaticamente</b> a cada mudança (soma dos itens − desconto, nunca negativo); o <b>valor unitário</b> vem sugerido do valor padrão do procedimento; ao marcar o plano como <b>Concluído</b>, o sistema executa todos os itens pendentes. Itens podem ser marcados executado/planejado individualmente.',
+  planos:'O módulo <b>Tratamentos</b> está <b>planejado</b> para esta clínica: no sistema real, a URL abre a tela padrão "Funcionalidade planejada — ainda não disponível para uso", com a descrição oficial <i>"Plano de tratamento do paciente, com itens, valores e evolução do status"</i>. A tela de plano existente é odontológica (liga procedimento a dente) e ainda não foi adaptada. A simulação aqui serve para você conhecer a lógica prevista: total recalculado (soma dos itens − desconto, nunca negativo) e itens marcados executado/planejado. No dia a dia, use <b>Pacotes de sessões</b> + <b>Evolução por sessão</b>.',
   laser:'O módulo <b>Regiões a Laser</b> é exclusivo da vertical <b>laser</b> (a clínica odontológica não abre nem digitando a URL) e tem três abas: <b>Regiões</b>, <b>Pacotes</b> e <b>Histórico</b>. <br><br><b>Regiões</b> é o catálogo corporal (axilas, buço, pernas...). O nome é <b>único</b>, e a exclusão é <b>recusada</b> quando há pacotes ou aplicações vinculadas — nesse caso, desative. <b>Pacotes</b> são modelos de venda por região (sessões, valor e validade de referência) e <b>não geram cobrança automática</b>. No <b>Histórico</b>, cada aplicação registra paciente, região, pacote (opcional), data, profissional e observações: o <b>número da sessão é calculado pelo sistema</b>, por paciente e região, dentro de uma transação — nunca vem do formulário. O mesmo histórico aparece no <b>prontuário</b> do paciente.',
   orcamentos:'O <b>Orçamento</b> é a proposta financeira apresentada ao paciente e o passo anterior ao financeiro. A montagem é idêntica ao plano: procedimentos + quantidade + valor + desconto. O sistema apresenta <b>subtotal</b> (soma dos itens) e <b>total</b> (subtotal − desconto). Fluxo real de status: <b>Rascunho → Emitido → Aprovado</b> (a base para gerar contas a receber) → Recusado/Cancelado.',
   financeiro:'O <b>Financeiro</b> controla as contas a receber. A listagem ordena por prioridade: abertas primeiro, depois parciais e por fim pagas (todas por vencimento); há filtros por paciente e status. <br><br>Ao receber: o valor <b>não pode ultrapassar o saldo devedor</b> (bloqueio com mensagem); pagamento parcial muda a conta para <b>Parcial</b>; pagamento total muda para <b>Paga</b>. Cada recebimento grava a <b>forma de pagamento</b> (Dinheiro, PIX, cartão, boleto, convênio), o usuário responsável e gera <b>auditoria</b>.',
@@ -1343,6 +2512,27 @@ const EXP_MSG = {
   relatorios:'O <b>Relatórios</b> é a central de indicadores por período (padrão: mês vigente). Reúne (1) resumo financeiro — a receber, em aberto, pago e <b>recebido no período</b>; (2) resumo da agenda — atendidas, canceladas e <b>faltas</b>; e (3) resumo do estoque — produtos, baixos e entradas/saídas. Ideal para acompanhar caixa e reposição.',
   admin:'A <b>Administração</b> é o RBAC (controle de acesso). Usuários têm um <b>perfil</b>; cada perfil recebe permissões por <b>módulo + ação</b> (ex.: estoque.update, orcamentos.create). Mudou uma permissão, vale para todos os usuários do perfil. <b>Segurança:</b> não dá para excluir a si mesmo, e toda operação gera auditoria. O cadastro da <b>Clínica</b> alimenta telas e a API WhatsApp.',
   auditoria:'A <b>Auditoria</b> é a trilha completa do sistema: cada ação importante registra <b>usuário, ação (criar, atualizar, excluir, registrar_evolucao, registrar_pagamento...), tabela, registro, quando e IP</b>, além dos valores <b>antes/depois</b>. Serve para rastrear quem fez o quê e auditar o uso do sistema. Filtros por ação e tabela.',
+  atendimentos:'O módulo <b>Atendimentos</b> é a recepção do dia: lista os pacientes por horário, profissional, procedimento e pacote. Ao marcar <b>Presença</b>, o sistema pode <b>consumir 1 sessão</b> do pacote escolhido — a baixa é transacional e <b>nunca deixa saldo negativo</b>. A <b>Falta</b> não consome sessão e libera o horário para reposição; nesse caso use a marcação <b>Reposição de falta</b>.',
+  turmas:'O módulo <b>Turmas</b> é o Pilates em grupo: cadastro com dias, horário, duração, sala e <b>capacidade</b>. A capacidade controla as vagas (turma lotada recusa matrícula), a <b>grade semanal</b> mostra a distribuição dos horários e a <b>Chamada</b> registra presença por aluno — alimentando o relatório de Presença e faltas.',
+  avaliacao:'A <b>Avaliação</b> registra a avaliação inicial do paciente: queixa principal, nota de dor (0–10), achados e profissional. O sistema <b>não sugere diagnóstico</b> — ele guarda o que o profissional descreveu. Enquanto está em <b>Rascunho</b> pode ser editada; depois de <b>Finalizar</b> fica <b>imutável</b>, preservando a auditoria do registro clínico.',
+  evolucao:'A <b>Evolução por sessão</b> documenta cada atendimento: procedimento, dor <b>antes → depois</b> e conduta. O <b>número da sessão é calculado pelo sistema</b> por paciente, nunca digitado. Ao <b>Finalizar</b>, o conteúdo fica imutável; a <b>assinatura de presença</b> pode ser colhida depois da finalização.',
+  pacotes:'<b>Pacotes de sessões</b> registram o que foi contratado: paciente, procedimento, quantidade de sessões, valor e validade. O consumo é <b>transacional</b> — cada sessão é debitada uma única vez e o saldo <b>nunca fica negativo</b>; ao esgotar, o pacote passa a <b>Esgotado</b>. A validade é referência de venda e controle, não bloqueio automático.',
+  pagamentos:'<b>Pagamentos</b> é o livro de entradas do financeiro: paciente, serviço, forma (PIX, dinheiro, cartão, boleto, convênio) e situação. Só os <b>confirmados</b> entram no total recebido e no fluxo de caixa; os <b>pendentes</b> ficam visíveis, mas fora do caixa. Também é possível lançar um recebimento manual.',
+  contas_pagar:'<b>Contas a pagar</b> são as despesas da clínica — aluguel, insumos, energia, serviços. Cada conta tem fornecedor, descrição, vencimento, valor e status. Ao clicar em <b>Pagar</b>, a saída é registrada e refletida no <b>fluxo de caixa</b>. Não confunda com as contas a receber dos pacientes: aqui é saída de dinheiro.',
+  fornecedores:'<b>Fornecedores</b> centraliza quem abastece a clínica: razão social, CNPJ/CPF, contato, categoria e status. O cadastro alimenta as <b>contas a pagar</b> e as entradas de estoque. Fornecedor <b>inativo</b> permanece no histórico, mas não deve ser usado em novas compras.',
+  fluxo_caixa:'O <b>Fluxo de caixa</b> mostra o dinheiro que efetivamente passou pelo caixa no período: <b>entradas recebidas − saídas pagas</b>, partindo do saldo inicial, com <b>saldo acumulado linha a linha</b>. Contas em aberto aparecem separadas, porque ainda não foram recebidas nem pagas. Use De/Até para recalcular o período.',
+  duplicatas:'<b>Nomes parecidos</b> é um relatório de conferência: aponta cadastros com nomes iguais ou semelhantes, mostrando documentos e o motivo do agrupamento. <b>Nada é mesclado automaticamente</b> — a decisão é humana. Antes de excluir, confira o histórico clínico e financeiro: a exclusão é <b>soft delete</b> e preserva o histórico.',
+  notas_fiscais:'<b>Notas fiscais</b> controla a emissão de NFS-e: a nota nasce em <b>Rascunho</b>, é <b>Emitida</b> (autorizada), pode gerar <b>PDF e XML</b> e ser <b>Cancelada</b>; uma nota <b>Rejeitada</b> pode ser corrigida e reenviada. O ambiente atual é de <b>homologação</b> (testes) — produção exige certificado e configuração do emissor.',
+  rel_receitas:'<b>Receitas</b> mostra o faturamento do período por serviço, com quantidade de atendimentos pagos, receita, <b>% do total</b> e ticket médio. O botão <b>Exportar CSV</b> gera o arquivo com os mesmos filtros da tela — ideal para levar à contabilidade.',
+  rel_presenca:'<b>Presença e faltas</b> compara atendidas, faltas e canceladas no período, por profissional, e calcula a <b>taxa de presença</b>. Lembre: a falta <b>não consome</b> sessão do pacote; quando o paciente repõe, marque <b>Reposição de falta</b> no atendimento.',
+  rel_pacotes:'<b>Pacotes e sessões</b> acompanha os pacotes contratados: sessões consumidas, restantes, validade e situação. O filtro <b>vencendo em 30 dias</b> ajuda a antecipar renovações, e o CSV apoia a cobrança.',
+  rel_aniversariantes:'<b>Aniversariantes</b> lista os pacientes do mês escolhido, com dia, idade que faz e contato — útil para campanhas de relacionamento e retorno. A lista depende da <b>data de nascimento</b> cadastrada na ficha do paciente.',
+  documentos:'<b>Documentos</b> reúne os arquivos anexados à ficha do paciente (laudos, termos, atestados, exames) e os <b>modelos da clínica</b>: papel timbrado, guia de cuidados e atestado de comparecimento. O download exige permissão e cada arquivo pertence à clínica.',
+  perfis:'<b>Perfis & Permissões</b> é o RBAC: o usuário recebe um perfil e o perfil recebe permissões por <b>módulo + ação</b>. Alterar um perfil vale para <b>todos</b> os usuários daquele perfil. O sistema impede excluir o próprio usuário e toda mudança de permissão gera auditoria.',
+  clinica:'<b>Clínica</b> guarda os dados institucionais: razão social, nome fantasia, CNPJ, telefones, WhatsApp, e-mail, endereço, logo e <b>cor primária</b>. Esses dados aparecem nas telas, nos documentos e na <b>API do WhatsApp</b>. Alterações exigem permissão administrativa e ficam na auditoria.',
+  social:'<b>Social</b> organiza as publicações da clínica para Instagram e Facebook com fluxo de aprovação: <b>Pendente → Aprovado → Publicado</b>; um post rejeitado volta para revisão. Nada é publicado sem aprovação. As contas das redes são configuradas em um único lugar.',
+  notificacoes:'A central de <b>Notificações</b> reúne avisos de <b>pacotes acabando</b>, <b>contas a vencer</b> e <b>evoluções pendentes</b>. O sino no topo mostra quantas não foram lidas; você pode marcar uma ou todas como lidas e ajustar as <b>preferências</b> do que deseja receber.',
+  turmas_pilates:'<b>Turmas de Pilates</b> é um módulo <b>planejado</b> para a vertical Pilates: ainda não tem tela adaptada. Enquanto isso, o módulo <b>Turmas</b> já cobre grade semanal, capacidade, matrícula e lista de presença — use-o no dia a dia.',
 };
 const ANOTACOES = {
   dashboard:[
@@ -1430,8 +2620,149 @@ const ANOTACOES = {
     ['.toolbar','Filtros de pesquisa por ação e por tabela.'],
     ['table','Trilha completa: usuário, ação, tabela, registro, quando e IP — com valores antes/depois.'],
   ],
+  atendimentos:[
+    ['.cards .card-kpi','Resumo do dia: presenças, faltas, pacientes aguardando e sessões já consumidas dos pacotes.'],
+    ['.toolbar','Filtre por profissional e por data para trabalhar a recepção de um dia específico.'],
+    ['table','Cada linha é um horário. Em "Aguardando" aparecem os botões Presença e Falta. O selo Reposição indica que a sessão repõe uma falta anterior.'],
+  ],
+  turmas:[
+    ['.cards .card-kpi','Turmas ativas, alunos matriculados, vagas disponíveis e total de matrículas.'],
+    ['.toolbar .btn.teal','Nova turma: nome, professor, sala, dias da semana, horário, duração e capacidade.'],
+    ['table','A capacidade limita as vagas. "Chamada" registra presença por aluno; "+ Aluno" matricula um paciente (turma lotada recusa).'],
+  ],
+  avaliacao:[
+    ['.cards .card-kpi','Fichas totais, finalizadas, em rascunho e a dor média inicial.'],
+    ['.toolbar .btn.teal','Nova ficha: paciente, data, queixa principal, nota de dor, profissional e achados.'],
+    ['table','Ficha finalizada fica com cadeado (imutável). Só o rascunho pode ser finalizado.'],
+  ],
+  evolucao:[
+    ['.cards .card-kpi','Evoluções registradas, finalizadas, assinaturas colhidas e a redução média de dor.'],
+    ['.toolbar .btn.teal','Nova evolução: o nº da sessão já vem calculado por paciente.'],
+    ['table','Dor antes → depois e conduta. Finalize para tornar imutável; depois disso é possível colher a assinatura de presença.'],
+  ],
+  pacotes:[
+    ['.cards .card-kpi','Pacotes ativos, sessões restantes, sessões consumidas e pacotes esgotados.'],
+    ['.toolbar .btn.teal','Novo pacote: paciente, procedimento, nome, sessões, valor e validade.'],
+    ['table','A coluna Saldo mostra o que resta. "Consumir 1" debita uma sessão; com saldo zero o consumo é recusado.'],
+  ],
+  pagamentos:[
+    ['.cards .card-kpi','Total recebido (somente confirmados), número de lançamentos e pendentes.'],
+    ['.form-grid','Lançamento manual: paciente, serviço, forma de pagamento e valor.'],
+    ['table','Livro de entradas do financeiro. Só os confirmados entram no fluxo de caixa.'],
+  ],
+  contas_pagar:[
+    ['.cards .card-kpi','Total em aberto, contas abertas e contas já pagas.'],
+    ['.toolbar .btn.teal','Nova despesa: fornecedor, descrição, vencimento e valor.'],
+    ['table','"Pagar" registra a saída de caixa. Contas pagas ficam sem ação.'],
+  ],
+  fornecedores:[
+    ['.cards .card-kpi','Fornecedores cadastrados, ativos e contas em aberto relacionadas.'],
+    ['.toolbar .btn.teal','Novo fornecedor: nome, CNPJ/CPF, contato, categoria e status.'],
+    ['table','Fornecedores inativos permanecem no histórico, mas não devem ser usados em novas compras.'],
+  ],
+  fluxo_caixa:[
+    ['.toolbar','Período De/Até. O fluxo recalcula entradas, saídas e saldo do intervalo.'],
+    ['.cards .card-kpi','Entradas recebidas, saídas pagas, saldo do período e saldo inicial.'],
+    ['table','Movimentos com saldo acumulado linha a linha. Contas em aberto não entram aqui.'],
+  ],
+  duplicatas:[
+    ['.cards .card-kpi','Grupos com nome exato, pares semelhantes e cadastros envolvidos.'],
+    ['table','Cada grupo mostra os documentos e o motivo. "Revisar" abre a comparação — nada é mesclado automaticamente.'],
+    ['.dica-treino','A exclusão de cadastro é soft delete: inativa e preserva o histórico clínico e financeiro.'],
+  ],
+  notas_fiscais:[
+    ['.cards .card-kpi','Autorizadas, rascunhos, rejeitadas e o ambiente fiscal atual (homologação).'],
+    ['.toolbar .btn.teal','Nova nota: tomador, tipo, valor, competência e descrição do serviço.'],
+    ['table','Rascunho → Emitir → Autorizada (PDF/XML/Cancelar). Rejeitada pode ser reenviada. A configuração do emissor fica logo abaixo.'],
+  ],
+  rel_receitas:[
+    ['.toolbar','Período De/Até e Exportar CSV (mesmos filtros da tela).'],
+    ['.cards .card-kpi','Recebido, em aberto, ticket médio e atendimentos pagos no período.'],
+    ['table','Receita por serviço com % do total — base para a contabilidade.'],
+  ],
+  rel_presenca:[
+    ['.cards .card-kpi','Atendidas, faltas, canceladas e a taxa de presença do período.'],
+    ['table','Comparação por profissional. Falta não consome sessão do pacote.'],
+  ],
+  rel_pacotes:[
+    ['.cards .card-kpi','Pacotes ativos, sessões consumidas, restantes e vencendo em 30 dias.'],
+    ['.toolbar','Filtro por situação e exportação CSV para cobrança.'],
+    ['table','Consumidas, restantes, validade e situação de cada pacote.'],
+  ],
+  rel_aniversariantes:[
+    ['.toolbar','Escolha o mês para montar a lista de aniversariantes.'],
+    ['.cards .card-kpi','Aniversariantes do mês, pacientes com data e mês selecionado.'],
+    ['table','Dia, idade e contato — use "Preparar mensagem" para a campanha de retorno.'],
+  ],
+  documentos:[
+    ['.cards .card-kpi','Documentos anexados, pacientes com documentos e modelos da clínica.'],
+    ['.toolbar .btn.teal','Anexar documento à ficha do paciente (tipo, título e arquivo).'],
+    ['table','Download e exclusão por documento. Abaixo ficam os modelos: papel timbrado, guia de cuidados e atestado.'],
+  ],
+  perfis:[
+    ['.cards .card-kpi','Perfis cadastrados, usuários e total de permissões.'],
+    ['.toolbar .btn.teal','Novo perfil com permissões iniciais por módulo + ação.'],
+    ['table','A segunda tabela é a matriz módulo × perfil. Alterar um perfil vale para todos os usuários dele.'],
+  ],
+  clinica:[
+    ['.cards .card-kpi','Nome fantasia, CNPJ e telefone/WhatsApp usados nas telas e na API.'],
+    ['.form-grid','Razão social, contatos, endereço, cor primária e logo da clínica.'],
+    ['.btn.teal','Salvar aplica os dados em telas, documentos e API do WhatsApp.'],
+  ],
+  social:[
+    ['.cards .card-kpi','Publicações, pendentes, aprovadas e rejeitadas.'],
+    ['.toolbar .btn.teal','Novo post: legenda, rede, data e imagem — nasce como Pendente.'],
+    ['.toolbar .btn.gray','Configuração das contas do Instagram e Facebook.'],
+  ],
+  notificacoes:[
+    ['.cards .card-kpi','Não lidas, total e lidas. O sino no topo acompanha esse contador.'],
+    ['.toolbar .btn.teal','Marca todas como lidas.'],
+    ['table','Avisos de pacote, financeiro e clínico, com ação para marcar como lida.'],
+  ],
+  turmas_pilates:[
+    ['.planejado','Módulo planejado: ainda não tem tela adaptada para a vertical Pilates.'],
+    ['table','O que o módulo fará × o que usar enquanto isso (módulo Turmas).'],
+  ],
 };
-const expNav = {dashboard:'Visão geral: sessões de hoje, indicadores e contas em aberto.',pacientes:'Cadastro, busca e ficha dos pacientes.',prontuario:'Evoluções, anamneses, alertas e prescrições do paciente.',agenda:'Grade semanal de sessões + lista de espera.',planos:'Planos de tratamento com procedimentos e totais automaticos.',laser:'Regiões corporais, pacotes-modelo e histórico de sessões de laser.',orcamentos:'Propostas financeiras apresentadas ao paciente.',financeiro:'Contas a receber e recebimentos.',convenios:'Operadoras e planos de convênio.',profissionais:'Equipe da clínica com CREFITO, especialidades e comissão.',procedimentos:'Catálogo de serviços da clínica.',estoque:'Produtos, estoque mínimo e movimentações.',contratos:'Termos e consentimentos por paciente.',relatorios:'Indicadores por período: financeiro, agenda e estoque.',admin:'Usuários, perfis, permissões e dados da clínica.',auditoria:'Trilha de quem fez o quê, quando e como.'};
+const expNav = {
+  dashboard:'Visão geral: sessões de hoje, indicadores e contas em aberto.',
+  pacientes:'Cadastro, busca e ficha dos pacientes.',
+  agenda:'Grade semanal de sessões + lista de espera.',
+  atendimentos:'Recepção do dia: presença, falta e consumo de sessão do pacote.',
+  turmas:'Pilates em grupo: grade semanal, capacidade e chamada.',
+  prontuario:'Evoluções, anamneses, alertas e prescrições do paciente.',
+  avaliacao:'Avaliação inicial com queixa, dor e achados — imutável após finalizar.',
+  evolucao:'Evolução por sessão com dor antes/depois, conduta e assinatura.',
+  pacotes:'Pacotes de sessões com consumo transacional e saldo nunca negativo.',
+  planos:'Tratamentos: módulo planejado para esta vertical.',
+  laser:'Regiões corporais, pacotes-modelo e histórico de sessões de laser.',
+  turmas_pilates:'Módulo planejado; use Turmas enquanto isso.',
+  orcamentos:'Propostas financeiras apresentadas ao paciente.',
+  financeiro:'Contas a receber e recebimentos.',
+  pagamentos:'Livro de entradas: o que foi efetivamente recebido.',
+  contas_pagar:'Despesas da clínica, com vencimento e baixa.',
+  fornecedores:'Quem abastece a clínica: insumos, aluguel e serviços.',
+  fluxo_caixa:'Entradas recebidas − saídas pagas no período, com saldo acumulado.',
+  duplicatas:'Nomes parecidos para revisão humana de cadastros.',
+  notas_fiscais:'Emissão de NFS-e: rascunho, autorizada, PDF/XML e cancelamento.',
+  convenios:'Operadoras e planos de convênio.',
+  profissionais:'Equipe da clínica com CREFITO, especialidades e comissão.',
+  procedimentos:'Catálogo de serviços da clínica.',
+  estoque:'Produtos, estoque mínimo e movimentações.',
+  contratos:'Termos e consentimentos por paciente.',
+  relatorios:'Indicadores por período: financeiro, agenda e estoque.',
+  rel_receitas:'Faturamento por serviço, com % do total e CSV.',
+  rel_presenca:'Atendidas, faltas, canceladas e taxa de presença.',
+  rel_pacotes:'Consumo, saldo e validade dos pacotes.',
+  rel_aniversariantes:'Pacientes do mês para campanhas de relacionamento.',
+  documentos:'Arquivos do paciente e modelos da clínica.',
+  admin:'Usuários do sistema e seus perfis.',
+  perfis:'RBAC: perfis e permissões por módulo + ação.',
+  clinica:'Dados institucionais usados nas telas, documentos e API WhatsApp.',
+  auditoria:'Trilha de quem fez o quê, quando e como.',
+  social:'Publicações da clínica com fluxo de aprovação.',
+  notificacoes:'Avisos de pacotes, financeiro e evoluções pendentes.',
+};
 
 const divDica = document.createElement('div');
 divDica.id='dicaExpli';
@@ -1557,8 +2888,8 @@ function fecharTour(credito){
 }
 
 /* ===== MODO APRESENTAÇÃO ===== */
-const ordemModulos=['dashboard','pacientes','prontuario','agenda','planos','laser','orcamentos','financeiro','convenios','profissionais','procedimentos','estoque','contratos','relatorios','admin','auditoria'];
-const iconesMod={dashboard:'🏠',pacientes:'🧑‍⚕️',prontuario:'📋',agenda:'📅',planos:'🧩',laser:'✨',orcamentos:'💼',financeiro:'💰',convenios:'🤝',profissionais:'👩‍⚕️',procedimentos:'🧰',estoque:'📦',contratos:'📜',relatorios:'📊',admin:'🧰',auditoria:'🔍'};
+const ordemModulos=['dashboard','pacientes','agenda','atendimentos','turmas','prontuario','avaliacao','evolucao','pacotes','laser','orcamentos','financeiro','pagamentos','contas_pagar','fornecedores','fluxo_caixa','duplicatas','notas_fiscais','convenios','profissionais','procedimentos','estoque','contratos','relatorios','rel_receitas','rel_presenca','rel_pacotes','rel_aniversariantes','documentos','admin','perfis','clinica','auditoria','social','notificacoes'];
+const iconesMod={dashboard:'🏠',pacientes:'🧑‍⚕️',agenda:'📅',atendimentos:'✅',turmas:'🧘',prontuario:'📋',avaliacao:'🧾',evolucao:'📈',pacotes:'🎟️',laser:'✨',orcamentos:'💼',financeiro:'💰',pagamentos:'💵',contas_pagar:'📤',fornecedores:'🏭',fluxo_caixa:'🌊',duplicatas:'🔁',notas_fiscais:'🧾',convenios:'🤝',profissionais:'👩‍⚕️',procedimentos:'🧰',estoque:'📦',contratos:'📜',relatorios:'📊',rel_receitas:'📈',rel_presenca:'✅',rel_pacotes:'🎟️',rel_aniversariantes:'🎂',documentos:'📁',admin:'👤',perfis:'🔐',clinica:'🏥',auditoria:'🔍',social:'📣',notificacoes:'🔔'};
 function passosLista(mod){
   return Array.from((treinoInfo[mod]||'').matchAll(/<li>(.*?)<\/li>/g)).map(m=>m[1]);
 }
@@ -1615,14 +2946,28 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ===== ROTEAMENTO ===== */
+const paginas={
+  dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,
+  agenda:pagAgenda,atendimentos:pagAtendimentos,turmas:pagTurmas,avaliacao:pagAvaliacao,
+  evolucao:pagEvolucao,pacotes:pagPacotes,planos:pagPlanos,laser:pagLaser,
+  turmas_pilates:pagTurmasPilates,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,
+  pagamentos:pagPagamentos,contas_pagar:pagContasPagar,fornecedores:pagFornecedores,
+  fluxo_caixa:pagFluxoCaixa,duplicatas:pagDuplicatas,notas_fiscais:pagNotasFiscais,
+  convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,
+  estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,
+  rel_receitas:pagRelReceitas,rel_presenca:pagRelPresenca,rel_pacotes:pagRelPacotes,
+  rel_aniversariantes:pagRelAniversariantes,documentos:pagDocumentos,admin:pagAdmin,
+  perfis:pagPerfis,clinica:pagClinica,auditoria:pagAuditoria,social:pagSocial,
+  notificacoes:pagNotificacoes,
+};
 function mostrar(mod){
   if(tourState) fecharTour();
   $('#tituloPagina').textContent = titulos[mod]||mod;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('ativo', b.dataset.mod===mod));
-  const paginas={dashboard:pagDashboard,pacientes:pagPacientes,prontuario:pagFicha,pacientes_ficha:pagFicha,agenda:pagAgenda,planos:pagPlanos,laser:pagLaser,orcamentos:pagOrcamentos,financeiro:pagFinanceiro,convenios:pagConvenios,profissionais:pagProfissionais,procedimentos:pagProcedimentos,estoque:pagEstoque,contratos:pagContratos,relatorios:pagRelatorios,admin:pagAdmin,auditoria:pagAuditoria};
   $('#page').innerHTML = (paginas[mod]||pagDashboard).call();
   anotar(mod);
   if(mod==='admin' && !prog.feito.admin_visitado) fez('admin_visitado');
+  if(mod==='turmas_pilates' && !prog.feito.turmas_pilates_visto) fez('turmas_pilates_visto');
   atualizarProgresso();
   if(mod==='pacientes'){
     const input=$('#buscaPac'); if(input) input.oninput=()=>{ $('#corpoPac').innerHTML=pacientesRows(estado.pacientes,input.value); };
@@ -1631,7 +2976,7 @@ function mostrar(mod){
 }
 function modReplace(m){ return m; }
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>mostrar(b.dataset.mod)));
-function inicio(){ const h=location.hash.replace('#',''); document.querySelectorAll('.nav-item').forEach(b=>{ const t=expNav[b.dataset.mod]; if(t) b.dataset.explicacao=t; }); mostrar(modulos[h]!==undefined?h:'dashboard'); }
+function inicio(){ const h=location.hash.replace('#',''); document.querySelectorAll('.nav-item').forEach(b=>{ const t=expNav[b.dataset.mod]; if(t) b.dataset.explicacao=t; }); mostrar(paginas[h]?h:'dashboard'); }
 inicio();
 </script>
 </body>

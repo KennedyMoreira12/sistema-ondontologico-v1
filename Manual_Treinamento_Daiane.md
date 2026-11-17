@@ -1,271 +1,483 @@
-# Manual de Treinamento - LJ SmartClinic
+# Manual de Treinamento — LJ SmartClinic
 
-## Clínica Daiane - Fisioterapia
+## Clínica Daiane — Fisioterapia e Pilates
 
-**Versão:** 1.1.0  
-**Data:** 17/11/2026  
-**Sistema:** LJ SmartClinic (Versão 13.33.0)  
-**Ambiente:** Produção (APP_ENV=production, APP_DEBUG=OFF)  
-**Acesso:** https://ljaltomao.com.br
-
----
-
-## 📊 Dashboard Principal
-
-### Indicadores Gerais
-
-| Indicador | Valor | Observação |
-|-----------|-------|------------|
-| Consultas Hoje | *[número]* | Agendamentos do dia |
-| Pacientes Ativos | *[número]* | Total de pacientes cadastrados |
-| Planos em Andamento | *[número]* | Tratamentos em curso |
-| Produtos Estoque Baixo | *[número]* | Itens críticos |
-
-### Agenda de Hoje
-
-Próximos atendimentos programados com horários e profissionais responsáveis.
+**Versão:** 1.2.0
+**Data:** 17/11/2026
+**Sistema:** LJ SmartClinic (Versão 13.33.0)
+**Ambiente:** Produção (`APP_ENV=production`, `APP_DEBUG=OFF`)
+**Acesso ao sistema:** https://ljaltomao.com.br
+**Treinamento interativo:** https://kennedyMoreira12.github.io/sco-apresentacao/treinamento-daiane.html
 
 ---
 
-## 🧭 Menu de Navegação
+## 🎓 Como usar o treinamento interativo
 
-### Seção "Principal"
+O treinamento é uma página única, sem instalação e sem login. Ele simula a clínica com dados de exemplo para você praticar antes de mexer no sistema real.
 
-| Módulo | Ícone | Acesso | Perfil (Fisioterapia) |
-|--------|-------|--------|----------------------|
-| **Turmas** | 👥 | `/turmas` | ✅ Acesso Liberado |
-| **Atendimentos** | 📅 | `/atendimentos` | ✅ Acesso Liberado |
-| **Pacientes** | 👨‍⚕️ | `/pacientes` | ✅ Acesso Liberado |
-| **Prontuário** | 📄 | `/pacientes/prescricoes` | ✅ Acesso Liberado |
-| **Regiões a Laser** | ✨ | `/laser/regioes` | ✅ Acesso Liberado (vertical laser) |
+| Recurso | Como funciona |
+|---------|---------------|
+| **Menu lateral** | 37 itens, agrupados em Principal, Gestão, Administração e Comunicação |
+| **Busca de módulo** | Pressione `/` ou `Ctrl K`, digite o nome e use `↑ ↓` + `Enter` |
+| **Meu progresso** | Contador `0/35` — somente os módulos **disponíveis** entram na conta |
+| **Desafios** | Cada módulo tem tarefas práticas (ex.: cadastrar paciente, consumir sessão) |
+| **Quiz** | 4 perguntas por módulo; é preciso acertar **70%** (3 de 4) |
+| **Visita guiada** | Botão que destaca cada elemento da tela, passo a passo |
+| **Como funciona** | Explicação em texto do que o módulo faz e das regras de negócio |
+| **Apresentação** | Slides com a visão geral da clínica e dos módulos |
+| **Abrir no sistema real** | Leva à tela equivalente em produção (quando o módulo já está publicado) |
 
-### Seção "Gestão"
+> **Regra do progresso:** um módulo só é concluído quando **todos os desafios** foram feitos **e** o quiz atingiu 70%. O progresso fica salvo no próprio navegador (`localStorage`, chave `daianeTreinoV1`) — no botão **zerar** você recomeça.
 
-| Módulo | Ícone | Acesso | Perfil |
-|--------|-------|--------|--------|
-| **Financeiro** | 💰 | `/financeiro` | ✅ Acesso Liberado |
-| **Convênios** | 🤝 | `/convenios` | ✅ Acesso Liberado |
-| **Profissionais** | 👨‍🏫 | `/profissionais` | ✅ Acesso Liberado |
-| **Relatórios** | 📊 | `/relatorios` | ✅ Acesso Liberado |
-| **Estoque** | 📦 | `/estoque` | ✅ Acesso Liberado |
+> **Módulos planejados:** aparecem com a etiqueta `planejado` no menu. Eles **não entram** no total de 35 e não têm quiz; a página existe para explicar com honestidade o que ainda não está disponível e o que usar no lugar.
 
 ---
 
-## 👥 Módulo 1: Turmas de Pilates
+## 🧭 Visão geral do menu
 
-### 🎯 Objetivo
-Controle de grades semanais, presença de alunos e consumo de sessões de pacote.
+**37 itens = 35 disponíveis + 2 planejados.**
 
-### 🚀 Como Acessar
+### Principal (12 itens)
 
-1. Logar no sistema LJ SmartClinic com credenciais da clínica Daiane
-2. Clicar no menu **Turmas** no dashboard (lateral esquerdo)
-3. Ou acessar diretamente: `/turmas`
-4. Selecionar o mês/período no selector superior
+| Módulo | Ícone | Acesso real | Situação |
+|--------|-------|-------------|----------|
+| Dashboard | 📊 | `/` | ✅ Disponível |
+| Pacientes | 👥 | `/pacientes` | ✅ Disponível |
+| Agenda | 🗓️ | `/agenda` | ✅ Disponível |
+| Atendimentos | ✅ | `/atendimentos` | ✅ Disponível |
+| Turmas | 🧘 | `/turmas` | ✅ Disponível |
+| Prontuário | 📋 | `/pacientes` | ✅ Disponível |
+| Avaliação | 🧾 | `/pacientes` | ✅ Disponível |
+| Evolução por sessão | 📈 | `/pacientes` | ✅ Disponível |
+| Pacotes de sessões | 🎟️ | `/pacientes` | ✅ Disponível |
+| Regiões a Laser | ✨ | `/laser/regioes` | ✅ Disponível (vertical laser) |
+| Tratamentos | 🎯 | `/modulos/tratamentos` | 🟸 **Planejado** |
+| Turmas de Pilates | 👥 | `/modulos/turmas_pilates` | 🟸 **Planejado** |
 
-### 📋 Passo a Passo: Primeiro Acesso
+### Gestão (19 itens)
 
-| Passo | Ação | Descrição |
-|------|------|-----------|
-| 1 | Entrar no módulo | Clicar no ícone de pessoas no menu |
-| 2 | Selecionar período | Usar o selector de data no topo |
-| 3 | Visualizar grade | Conferir turmas por dia da semana |
-| 4 | Marcar presença | Clicar em "Presença" ao lado de cada turma |
-| 5 | Ver pacientes inscritos | Contador ao lado de cada turma |
-| 6 | Relatórios | Usar botão "Relatórios" no topo |
+| Módulo | Ícone | Acesso real | Situação |
+|--------|-------|-------------|----------|
+| Orçamentos | 💰 | `/pacientes` | ✅ Disponível |
+| Financeiro (Contas a receber) | 🏦 | `/financeiro` | ✅ Disponível |
+| ↳ Pagamentos | 💵 | `/financeiro/pagamentos` | ✅ Disponível |
+| ↳ Contas a pagar | 📤 | `/financeiro/contas-pagar` | ✅ Disponível |
+| ↳ Fornecedores | 🏭 | `/financeiro/fornecedores` | ✅ Disponível |
+| ↳ Fluxo de caixa | 🌊 | `/financeiro/fluxo-caixa` | ✅ Disponível |
+| ↳ Nomes parecidos | 🔁 | `/financeiro/duplicatas` | ✅ Disponível |
+| Notas fiscais | 🧾 | `/fiscal` | ✅ Disponível |
+| Convênios | 🛡️ | `/convenios` | ✅ Disponível |
+| Profissionais | 🧑‍⚕️ | `/profissionais` | ✅ Disponível |
+| Procedimentos | 🩺 | `/procedimentos` | ✅ Disponível |
+| Estoque | 📦 | `/estoque` | ✅ Disponível |
+| Contratos | 📜 | `/contratos` | ✅ Disponível |
+| Relatórios (Visão geral) | 📊 | `/relatorios` | ✅ Disponível |
+| ↳ Receitas | 📈 | `/relatorios/receitas` | ✅ Disponível |
+| ↳ Presença e faltas | ✅ | `/relatorios/presenca-faltas` | ✅ Disponível |
+| ↳ Pacotes e sessões | 🎟️ | `/relatorios/pacotes` | ✅ Disponível |
+| ↳ Aniversariantes | 🎂 | `/relatorios/aniversariantes` | ✅ Disponível |
+| Documentos | 📁 | `/pacientes` | ✅ Disponível |
 
-### 📊 Grade de Turmas - Visual
+### Administração (4 itens)
 
-```
-┌─────────────────────────────────────────────────┐
-│  📅 SEMANA DE 14/11 A 20/11                     │
-├─────────────────────────────────────────────────┤
-│  🪐 Segunda-feira 14/11                         │
-│  ┌──────────────────────────────────────────┐    │
-│  │ 08:00 - 09:00 | Turma Iniciantes A | 5/10 │    │
-│  │                                             │    │
-│  │ 10:00 - 11:00 | Turma Intermediária  │ 8/10 │    │
-│  │                                             │    │
-│  │ 14:00 - 15:00 | Turma Avançada    │ 3/10 │    │
-│  └──────────────────────────────────────────┘    │
-├─────────────────────────────────────────────────┤
-│  Terça-feira 15/11                              │
-│  (repetir padrão para os demais dias)           │
-├─────────────────────────────────────────────────┤
-│  📊 Total de turmas: 12  |  Alunos total: 89      │
-│  🟢 Turmas com vagas: 8  |  🔴 Turmas cheias: 4     │
-└─────────────────────────────────────────────────┘
-```
+| Módulo | Ícone | Acesso real | Situação |
+|--------|-------|-------------|----------|
+| Usuários | ⚙️ | `/admin/usuarios` | ✅ Disponível |
+| Perfis & Permissões | 🔐 | `/admin/perfis` | ✅ Disponível |
+| Clínica | 🏥 | `/admin/clinica` | ✅ Disponível |
+| Auditoria | 🔍 | `/admin/auditoria` | ✅ Disponível |
 
-### 👤 Permissões Necessárias
+### Comunicação (2 itens)
 
-| Ação | Permissão | Concedido para |
-|------|-----------|----------------|
-| Ver turmas | `turmas.view` | Fisioterapia, Admin |
-| Marcar presença | `turmas.presenca` | Recepção, Fisioterapia |
-| Criar turma | `turmas.create` | Admin, Instrutor |
-| Editar turma | `turmas.update` | Admin |
-| Remover turma | `turmas.delete` | Admin |
-
-### ⚠️ Problemas Comuns
-
-| Problema | Causa | Solução |
-|----------|-------|---------|
-| Tela vazia | Sem turmas cadastradas para o período | Cadastrar turmas no sistema |
-| Botão "Presença" disabled | Sem permissão `turmas.presenca` | Solicitar permissão ao admin |
-| Contador errado | Dados inconsistentes | Verificar cadastro de pacientes na turma |
+| Módulo | Ícone | Acesso real | Situação |
+|--------|-------|-------------|----------|
+| Social | 📣 | `/social` | ✅ Disponível |
+| Notificações | 🔔 | `/notificacoes` | ✅ Disponível |
 
 ---
 
-## 📅 Módulo 2: Atendimentos
+## 📊 Dashboard
 
-### 🎯 Objetivo
-Controle do dia a dia: presença, falta e consumo de sessão do pacote.
+### Indicadores gerais
 
-### 🚀 Como Acessar
+| Indicador | O que mostra |
+|-----------|--------------|
+| Sessões de hoje | Agendamentos do dia |
+| Pacientes | Total de pacientes cadastrados |
+| Tratamentos em andamento | Planos em curso (quando o módulo estiver liberado) |
+| Estoque baixo | Produtos com saldo igual ou abaixo do mínimo |
 
-1. Logar no sistema LJ SmartClinic
-2. Clicar no menu **Atendimentos** no dashboard
-3. Ou acesse diretamente: `/atendimentos`
-4. A data padrão é "hoje"
+### Agenda de hoje
 
-### 📋 Passo a Passo: Registrar Atendimento
+Lista dos próximos atendimentos com horário, paciente, profissional, procedimento e status.
 
-| Passo | Ação | Descrição |
-|------|------|-----------|
-| 1 | Entrar no módulo | Menu lateral ou URL `/atendimentos` |
-| 2 | Confirmar data | Topo da página (padrão: hoje) |
-| 3 | Conferir lista | Grade central - consultas do dia |
-| 4 | Clicar em "Presença" | Ao lado de cada consulta |
-| 5 | Selecionar status | Presente / Falta / Em atendimento |
-| 5 | Confirmar operação | Botão de confirmação |
+### Contas a receber
 
-### 💊 Consumir Sessão do Pacote
+Saldos em aberto que precisam de cobrança, com atalho para o Financeiro.
 
-Após marcar presença:
+> **No treinamento:** o desafio do Dashboard é concluir a **Visita guiada** até o último passo.
 
-1. Verificar se paciente tem pacote ativo ✅
-2. Clicar em "Consumir sessão" 📦
-3. Selecionar pacote disponível 📋
-3. Confirmar operação ✅
-4. Saldo do pacote atualizado automaticamente 🔄
+---
 
-### 📊 Tipos de Status e Cores
+## 👥 Pacientes
+
+### Objetivo
+
+Cadastro e localização dos pacientes da clínica, com acesso à ficha completa.
+
+### O que fazer
+
+1. Use o campo de busca — o filtro funciona em tempo real.
+2. Clique em um paciente para abrir a **ficha**.
+3. Use **+ Novo paciente** para cadastrar.
+
+### Regras
+
+| Regra | Comportamento |
+|-------|---------------|
+| CPF duplicado | Cadastro bloqueado |
+| Exclusão | **Soft delete** — inativa o cadastro e preserva o histórico |
+| Nomes parecidos | Conferência em **Financeiro → Nomes parecidos**, sem mesclagem automática |
+
+### Abas da ficha do paciente
+
+| Aba | Conteúdo |
+|-----|----------|
+| Dados | Identificação, contato, convênio e endereço |
+| Prontuário | Anamnese, evoluções, alertas e prescrições |
+| Avaliação | Fichas de avaliação inicial |
+| Evolução | Evoluções por sessão |
+| Pacotes | Pacotes de sessões contratados |
+| Laser | Histórico de laser (vertical laser) |
+| Documentos | Arquivos e modelos da clínica |
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver pacientes | `pacientes.view` |
+| Cadastrar | `pacientes.create` |
+| Editar | `pacientes.update` |
+| Excluir (soft delete) | `pacientes.delete` |
+
+---
+
+## 🗓️ Agenda
+
+### Objetivo
+
+Grade semanal de sessões com controle de horários, profissionais e lista de espera.
+
+### Como funciona
+
+- Grade de **7h às 21h**, em blocos de **30 minutos**.
+- Filtro por profissional.
+- Clicar em um espaço vazio agenda naquele horário.
+- A **duração do procedimento** define automaticamente o fim da sessão — não é digitada.
+- A **lista de espera** fica ao lado, ordenada por prioridade, para encaixar pacientes.
+
+### Status e cores
 
 | Status | Cor | Quando usar |
 |--------|-----|-------------|
-| **Agendado** | 🔵 Azul | Consulta marcada, ainda não aconteceu |
-| **Confirmado** | 🟢 Verde | Paciente confirmou comparecimento |
-| **Em Atendimento** | 🟧 Laranja | Profissional já com o paciente |
-| **Atendido** | 🟩 Verde escuro | Consulta finalizada com sucesso |
-| **Faltou** | 🟥 Vermelho | Paciente não compareceu |
+| Agendado | 🔵 Azul | Sessão marcada, ainda não aconteceu |
+| Confirmado | 🟢 Verde | Paciente confirmou presença |
+| Em atendimento | 🟧 Laranja | Profissional já com o paciente |
+| Atendido | 🟪 Roxo | Sessão realizada |
+| Faltou | 🟥 Vermelho | Paciente não compareceu |
+| Cancelado | ⬜ Cinza | Sessão cancelada |
 
-### 🔔 Alertas Automáticos
+### Permissões
 
-- Pacotes com sessões acabando ✅
-- Consulta sem pacote ativo ⚠️
-- Pacote expirado 🚨
+| Ação | Permissão |
+|------|-----------|
+| Ver agenda | `agenda.view` |
+| Agendar / editar | `agenda.create`, `agenda.update` |
+| Registrar presença | `agenda.presenca` |
+| Cancelar | `agenda.delete` |
 
 ---
 
-## 📝 Módulo 3: Tratamentos
+## ✅ Atendimentos
 
-### 🟸 Status Atual
+### Objetivo
+
+Recepção do dia: confirmar presença, registrar falta e consumir sessão do pacote.
+
+### Passo a passo
+
+| Passo | Ação |
+|-------|------|
+| 1 | Abra **Atendimentos** (a data padrão é hoje) |
+| 2 | Filtre por profissional ou data, se necessário |
+| 3 | Localize o paciente na lista |
+| 4 | Clique em **Presença** ou **Falta** |
+| 5 | Se houver pacote, escolha qual pacote consumir |
+| 6 | Confirme a operação |
+
+### Consumo de sessão do pacote
+
+- O consumo é **transacional**: cada sessão é debitada **uma única vez**.
+- O saldo **nunca fica negativo** — sem saldo, o consumo é **recusado**.
+- A **falta** não consome sessão e libera o horário para reposição.
+- Ao repor uma falta, marque **Reposição de falta** no atendimento.
+
+### Alertas automáticos
+
+- Pacote com poucas sessões restantes.
+- Paciente sem pacote ativo.
+- Pacote vencido ou perto do vencimento.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver atendimentos | `atendimentos.view` |
+| Registrar presença/falta | `agenda.presenca` |
+| Consumir sessão do pacote | `consumir.sessao` |
+
+---
+
+## 🧘 Turmas (Pilates em grupo)
+
+### Objetivo
+
+Este é o módulo **disponível** para o Pilates em grupo: grade semanal, capacidade, matrícula e chamada.
+
+### Como funciona
+
+| Recurso | Regra |
+|---------|-------|
+| Cadastro da turma | Nome, professor, sala, dias da semana, horário, duração e **capacidade** |
+| Capacidade | Controla as vagas — turma lotada **recusa** matrícula |
+| Grade semanal | Mostra a distribuição dos horários |
+| + Aluno | Matricula um paciente na turma |
+| Chamada | Registra presença e falta por aluno |
+| Relatórios | Alimentam **Relatórios → Presença e faltas** |
+
+### Passo a passo
+
+1. Abra **Turmas** no menu Principal.
+2. Clique em **+ Nova turma** e informe dias, horário, duração e capacidade.
+3. Use **+ Aluno** para matricular os pacientes.
+4. Abra **Chamada** e desmarque quem faltou.
+5. Confira o total de alunos e as vagas no topo da tela.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver turmas | `turmas.view` |
+| Criar / editar turma | `turmas.create`, `turmas.update` |
+| Matricular aluno | `turmas.alunos` |
+| Marcar presença | `turmas.presenca` |
+| Excluir turma | `turmas.delete` |
+
+> **Atenção:** o módulo **Turmas de Pilates** (`/pilates/turmas`) é **planejado** e ainda não tem tela adaptada. Use o módulo **Turmas** para o dia a dia.
+
+---
+
+## 📋 Prontuário clínico
+
+### Objetivo
+
+Registro clínico do paciente: anamnese, evoluções, alertas e prescrições.
+
+### O que contém
+
+| Bloco | Conteúdo |
+|-------|----------|
+| Anamnese | Perguntas e respostas do histórico clínico |
+| Evoluções | Registros por sessão (texto, tipo e data) |
+| Alertas | Informações críticas (ex.: alergia a medicamento) |
+| Prescrições | Orientações e prescrições do profissional |
+| Histórico de laser | Aplicações de laser do paciente (vertical laser) |
+
+### Regras
+
+- Alertas ficam visíveis no topo da ficha.
+- Evolução finalizada fica **imutável**.
+- O histórico de laser aparece também no prontuário, com atalho **Ver tudo**.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver prontuário | `prontuario.view` |
+| Registrar evolução | `prontuario.create` |
+| Editar (enquanto rascunho) | `prontuario.update` |
+| Gerenciar alertas | `prontuario.alertas` |
+
+---
+
+## 🧾 Avaliação
+
+### Objetivo
+
+Registrar a avaliação inicial do paciente com queixa principal, nota de dor e achados.
+
+### Campos
+
+| Campo | Regra |
+|-------|-------|
+| Paciente | Obrigatório |
+| Data | Obrigatória |
+| Queixa principal | Texto livre |
+| Nota de dor | 0 a 10 |
+| Profissional | Obrigatório |
+| Achados | Texto livre |
+
+### Regras
+
+- O sistema **não sugere diagnóstico** — registra o que o profissional descreveu.
+- Enquanto está em **Rascunho**, a ficha pode ser editada.
+- Depois de **Finalizar**, a ficha fica **imutável** (preserva a auditoria).
+- Só um rascunho pode ser finalizado.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver avaliações | `avaliacoes.view` |
+| Criar | `avaliacoes.create` |
+| Editar rascunho | `avaliacoes.update` |
+| Finalizar | `avaliacoes.finalizar` |
+
+---
+
+## 📈 Evolução por sessão
+
+### Objetivo
+
+Documentar cada atendimento com dor antes/depois, conduta e assinatura de presença.
+
+### Campos
+
+| Campo | Regra |
+|-------|-------|
+| Paciente | Obrigatório |
+| Procedimento | Obrigatório |
+| Número da sessão | **Calculado pelo sistema** por paciente — nunca digitado |
+| Dor antes | 0 a 10 |
+| Dor depois | 0 a 10 |
+| Conduta | Texto livre |
+| Data | Obrigatória |
+
+### Regras
+
+- Ao **Finalizar**, o conteúdo fica **imutável**.
+- A **assinatura de presença** pode ser colhida **depois** da finalização.
+- A evolução alimenta o relatório de presença e o histórico do paciente.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver evoluções | `evolucoes.view` |
+| Criar | `evolucoes.create` |
+| Editar (rascunho) | `evolucoes.update` |
+| Finalizar | `evolucoes.finalizar` |
+| Colher assinatura | `evolucoes.assinatura` |
+
+---
+
+## 🎟️ Pacotes de sessões
+
+### Objetivo
+
+Controlar o que foi contratado: quantidade de sessões, valor, validade e consumo.
+
+### Campos
+
+| Campo | Regra |
+|-------|-------|
+| Paciente | Obrigatório |
+| Procedimento | Obrigatório |
+| Nome do pacote | Obrigatório |
+| Sessões | Quantidade contratada |
+| Valor | Referência de venda |
+| Validade | Referência de controle (não bloqueia automaticamente) |
+
+### Regras de consumo
+
+- O consumo é **transacional** e **nunca deixa saldo negativo**.
+- Cada sessão é debitada uma única vez.
+- Sem saldo, o consumo é **recusado**.
+- Pacote sem saldo passa a **Esgotado**.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver pacotes | `pacotes.view` |
+| Criar | `pacotes.create` |
+| Editar | `pacotes.update` |
+| Consumir sessão | `consumir.sessao` |
+
+---
+
+## 🎯 Tratamentos — 🟸 planejado
 
 > **Funcionalidade planejada — ainda não disponível para uso.**
 
-> *O módulo de tratamentos está configurado para a vertical fisioterapia. A estrutura existe no sistema, mas a tela de interface ainda não foi adaptada para esta vertical.*
+**Descrição oficial no sistema:** *"Plano de tratamento do paciente, com itens, valores e evolução do status."*
 
-### 📋 Estrutura do Módulo (Disponível no Sistema)
+O módulo **Tratamentos** (`planos`) existe na estrutura do sistema, mas a tela de plano atual é **odontológica** (liga o procedimento a um dente) e ainda **não foi adaptada** para esta clínica. No sistema real, a URL `/modulos/tratamentos` abre a tela padrão de módulo planejado — o mesmo comportamento para qualquer usuário da clínica. Por isso ele aparece com a etiqueta `planejado` e **não entra** no total de 35 módulos.
 
-Apesar de aparecer como "planejado", o módulo contém:
+### O que usar enquanto isso
 
-| Funcionalidade | Status | Descrição |
-|---------------|--------|-----------|
-| **Cadastro de Planos** | ✅ Implementado | Criar planos de tratamento por paciente |
-| **Itens/Procedimentos** | ✅ Implementado | Adicionar procedimentos ao plano |
-| **Status do Tratamento** | ✅ Implementado | Rascunho → Em andamento → Concluído |
-| **Histórico de Evolução** | ✅ Implementado | Registro de evolução clínica |
-| **Visão Fisioterapia** | 🟸 Planejado | Tela ainda não adaptada |
+| Necessidade | Use |
+|-------------|-----|
+| Controlar o que foi contratado | **Pacotes de sessões** |
+| Registrar cada atendimento | **Evolução por sessão** |
+| Registrar o histórico clínico | **Prontuário** |
+| Cobrar e receber | **Orçamentos** + **Financeiro** |
 
-### 📱 Telas Disponíveis
+### Estrutura já existente no sistema
 
-1. **Lista de Planos do Paciente**
-   - Visualizar planos existentes
-   - Filtrar por status (rascunho, em andamento, concluído)
-   - Editar título e descrição
+| Funcionalidade | Situação |
+|----------------|----------|
+| Cadastro de planos | Implementado (estrutura) |
+| Itens/procedimentos do plano | Implementado (estrutura) |
+| Status (rascunho → em andamento → concluído) | Implementado (estrutura) |
+| Tela adaptada para fisioterapia | 🟸 Planejado |
 
-2. **Detalhe do Plano**
-   - Ver itens/procedimentos adicionados
-   - Ver valores totais e breakdown
-   - Mudar status do tratamento
+### Permissões previstas
 
-3. **Adicionar Procedimento**
-   - Selecionar procedimento da base de dados
-   - Informar dente/área (cirurgia, dentição)
-   - Definir quantidade e valor unitário
-   - Adicionar observação clínica
-
-### 👤 Permissões
-
-| Ação | Permissão | Perfil |
-|------|-----------|--------|
-| Ver planos | `tratamentos.view` | Fisioterapia, Admin |
-| Criar plano | `tratamentos.create` | Admin, Fisioterapia (planejado) |
-| Editar plano | `tratamentos.update` | Admin |
-| Mudar status | `tratamentos.status` | Admin, Fisioterapia |
+| Ação | Permissão |
+|------|-----------|
+| Ver planos | `tratamentos.view` |
+| Criar plano | `tratamentos.create` |
+| Editar plano | `tratamentos.update` |
+| Mudar status | `tratamentos.status` |
 
 ---
 
-## 👑 Módulo 4: Permissões e Perfis
+## 👥 Turmas de Pilates — 🟸 planejado
 
-### 👥 Perfis de Usuário
+> **Funcionalidade planejada — ainda não disponível para uso.**
 
-#### 🩺 Perfil: Fisioterapia (Clínica Daiane)
+**Descrição oficial no sistema:** *"Cadastro de turmas de Pilates, horários recorrentes, capacidade e controle de vagas."*
 
-| Módulo | View | Create | Update | Delete |
-|--------|------|--------|--------|--------|
-| **Turmas** | ✅ | ❌ | ❌ | ❌ |
-| **Atendimentos** | ✅ | ❌ | ❌ | ❌ |
-| **Tratamentos** | 🟸 | 🟸 | 🟸 | 🟸 |
-| **Pacientes** | ✅ | ✅ | ✅ | ✅ |
-| **Financeiro** | ✅ | ❌ | ❌ | ❌ |
+O módulo **Turmas de Pilates** (`/modulos/turmas_pilates`) é exclusivo da vertical **Pilates** e ainda não tem tela adaptada. No sistema real, a URL abre a tela padrão de módulo planejado.
 
-#### 👨‍⚕️ Perfil: Dentista (Clínicas 1 e 6)
+### O que o módulo fará
 
-| Módulo | View | Create | Update | Delete |
-|--------|------|--------|--------|--------|
-| **Turmas** | ✅ | ✅ | ✅ | ✅ |
-| **Atendimentos** | ✅ | ✅ | ✅ | ✅ |
-| **Tratamentos** | ✅ | ✅ | ✅ | ✅ |
-| **Odontograma** | ✅ | ✅ | ✅ | ✅ |
+| Recurso previsto | Descrição |
+|------------------|-----------|
+| Grade própria de Pilates | Visão específica da vertical, além do módulo Turmas |
+| Planos de aula | Progressão por nível dentro da turma |
+| Relatórios da vertical | Indicadores próprios de Pilates |
 
-#### 💼 Perfil: Administrador
+### O que usar enquanto isso
 
-| Módulo | View | Create | Update | Delete |
-|--------|------|--------|--------|--------|
-| **Todos os módulos** | ✅ | ✅ | ✅ | ✅ |
-
-### 🔐 Permissões Específicas
-
-| Permissão | Módulo | Descrição |
-|-----------|--------|-----------|
-| `turmas.view` | Turmas | Visualizar grade e pacientes |
-| `turmas.presenca` | Turmas | Marcar presença/falta |
-| `atendimentos.view` | Atendimentos | Ver agenda do dia |
-| `agenda.presenca` | Atendimentos | Registrar presença |
-| `consumir.sessao` | Atendimentos | Debitar sessão do pacote |
-| `tratamentos.view` | Tratamentos | Ver planos do paciente |
-| `regioes_laser.view` | Regiões a Laser | Ver regiões, pacotes e histórico |
-| `regioes_laser.create` | Regiões a Laser | Cadastrar região, pacote e aplicação |
-| `regioes_laser.update` | Regiões a Laser | Editar região e pacote |
-| `regioes_laser.delete` | Regiões a Laser | Excluir (quando não há vínculos) |
+Use o módulo **Turmas** — ele já cobre grade semanal, capacidade, matrícula, chamada e relatório de presença.
 
 ---
 
-## ✨ Módulo 5: Regiões a Laser
+## ✨ Regiões a Laser
 
-### 🎯 Objetivo
+### Objetivo
 
 Controlar as **regiões corporais** da depilação a laser, os **pacotes-modelo** por região e o **histórico de aplicações** de cada paciente.
 
@@ -273,7 +485,7 @@ Controlar as **regiões corporais** da depilação a laser, os **pacotes-modelo*
 
 > **Importante:** nenhuma cobrança é gerada automaticamente. O pacote é referência de venda; o histórico mostra o que já foi aplicado.
 
-### 🚀 Como Acessar
+### Como acessar
 
 1. Entre no sistema com o usuário da clínica.
 2. No menu **Principal**, clique em **Regiões a Laser**.
@@ -325,9 +537,9 @@ Registro do que foi feito em cada paciente.
 
 **Pacote x sessão:** se a sessão passar do total do pacote, aparece o selo **"além do pacote"** — não é erro: a clínica pode vender sessões avulsas ou um novo bloco.
 
-**Onde mais aparece:** o histórico de laser também é exibido no **prontuário do paciente** (bloco "Histórico de laser"), com atalho "Ver tudo".
+**Onde mais aparece:** o histórico de laser também é exibido no **prontuário do paciente** (bloco "Histórico de laser"), com atalho **Ver tudo**.
 
-### 👤 Permissões
+### Permissões
 
 | Ação | Permissão |
 |------|-----------|
@@ -338,7 +550,7 @@ Registro do que foi feito em cada paciente.
 
 Perfil sugerido: **laser_operador**.
 
-### ✅ Checklist do dia (laser)
+### Checklist do dia (laser)
 
 - [ ] Conferir a agenda e separar os pacientes do dia
 - [ ] Registrar cada aplicação no **Histórico** (região + data)
@@ -348,377 +560,708 @@ Perfil sugerido: **laser_operador**.
 
 ---
 
-## 📅 Módulo 6: Checklist Operacional Diário
+## 💰 Orçamentos
 
-### 🌅 Ao Iniciar o Turno
+### Objetivo
 
-- [ ] Logar no sistema com credenciais
-- [ ] Verificar dashboard principal
-- [ ] Confirmar agenda de hoje
-- [ ] Conferir pacientes novos/atualizados
-- [ ] Verificar estoque de materiais
+Montar propostas financeiras para o paciente antes do fechamento.
 
-### ⏱️ Durante o Expediente
+### Como funciona
 
-- [ ] Registrar presença de pacientes ao final de cada consulta
-- [ ] Controlar consumo de sessões de pacote
-- [ ] Marcar faltos quando paciente não comparecer
-- [ ] Atualizar status dos tratamentos (se houver)
-- [ ] Conferir pendências no financeiro
+| Recurso | Regra |
+|---------|-------|
+| Itens | Procedimento, quantidade, valor unitário e desconto |
+| Total | Recalculado a cada item adicionado |
+| Validade | Data-limite da proposta |
+| Status | Emitido → Aprovado (base para o financeiro) |
 
-### 🏁 Ao Final do Turno
+### Passo a passo
 
-- [ ] Conferir relatório do dia (consultas, faltas, receitas)
-- [ ] Atualizar estoque de materiais/produtos
-- [ ] Verificar contas a pagar/receber
-- [ ] Fechar sessão do sistema com segurança
-- [ ] Anotar observações no plantão
+1. Abra **Orçamentos**.
+2. Adicione os itens e confira o total.
+3. Emita a proposta.
+4. Clique em **Aprovar** quando o paciente aceitar.
 
-### 📊 Relatórios Semanais
+### Permissões
 
-- [ ] Total de consultas/atendimentos
-- [ ] Taxa de faltas (percentage)
-- [ ] Pacotes de sessão consumidos
-- [ ] Planos de tratamento em andamento
-- [ ] Estoque de produtos utilizados
-- [ ] Comparação com semana anterior
+| Ação | Permissão |
+|------|-----------|
+| Ver orçamentos | `orcamentos.view` |
+| Criar / editar | `orcamentos.create`, `orcamentos.update` |
+| Aprovar | `orcamentos.aprovar` |
+| Excluir | `orcamentos.delete` |
 
 ---
 
-## ⚠️ Solução de Problemas
+## 🏦 Financeiro
 
-### Problema 1: Tela vazia em "Atendimentos"
+O Financeiro é uma área com **6 abas**. O item **Financeiro** do menu abre em **Contas a receber**.
 
-**Causa:** Não há consultas agendadas para a data selecionada  
-**Solução:** Verificar se há agendamentos no sistema ou selecionar data diferente
+| Aba | URL | O que faz |
+|-----|-----|-----------|
+| Contas a receber | `/financeiro` | Saldos em aberto dos pacientes |
+| Pagamentos | `/financeiro/pagamentos` | Livro de entradas efetivamente recebidas |
+| Contas a pagar | `/financeiro/contas-pagar` | Despesas da clínica |
+| Fornecedores | `/financeiro/fornecedores` | Quem abastece a clínica |
+| Fluxo de caixa | `/financeiro/fluxo-caixa` | Entradas − saídas no período |
+| Nomes parecidos | `/financeiro/duplicatas` | Revisão de cadastros duplicados |
 
-### Problema 2: Botão "Presença" está disable
+### Contas a receber
 
-**Causa:** Usuário não tem permissão necessária  
-**Solução:** Solicitar permissão ao administrador do sistema
+| Recurso | Regra |
+|---------|-------|
+| Receber | Total ou parcial |
+| Valor acima do saldo | **Bloqueado** pelo sistema |
+| Recebimento parcial | Conta vira **Parcial** |
+| Recebimento total | Conta vira **Paga** |
 
-### Problema 3: Módulo "Tratamentos" aparece como "planejado"
+### Pagamentos
 
-**Causa:** Configuração do catálogo para vertical fisioterapia  
-**Solução:** Comportamento esperado - tela será liberada em futura atualização
+| Recurso | Regra |
+|---------|-------|
+| Lançamento manual | Paciente, serviço, forma de pagamento e valor |
+| Formas | PIX, dinheiro, cartão, boleto e convênio |
+| Confirmado | Entra no total recebido e no fluxo de caixa |
+| Pendente | Fica visível, mas **fora** do caixa |
 
-### Problema 3: Erro ao salvar dados
+### Contas a pagar
 
-**Causa:** Conexão com banco instável ou dados inválidos  
-**Solução:** Recarregar página, limpar cache do navegador, contatar suporte
+| Recurso | Regra |
+|---------|-------|
+| Cadastro | Fornecedor, descrição, vencimento e valor |
+| Pagar | Registra a saída e reflete no fluxo de caixa |
+| Contas pagas | Ficam sem ação, separadas das abertas |
 
-### Problema 5: Pacote não aparece para consumir
+### Fornecedores
 
-**Causa:** Paciente não tem pacote ativo ou pacote expirado  
-**Solução:** Verificar cadastro do paciente e validade do pacote
+| Recurso | Regra |
+|---------|-------|
+| Cadastro | Razão social, CNPJ/CPF, contato, categoria e status |
+| Categorias | Insumos, equipamentos, aluguel e serviços |
+| Inativo | Permanece no histórico, mas não deve ser usado em novas compras |
 
----
+### Fluxo de caixa
 
-## 🆘 Suporte e Contatos
+| Recurso | Regra |
+|---------|-------|
+| Cálculo | Entradas recebidas − saídas pagas |
+| Saldo acumulado | Calculado linha a linha, a partir do saldo inicial |
+| Contas em aberto | Aparecem separadas — ainda não passaram pelo caixa |
+| Período | De/Até recalcula entradas, saídas e saldo |
 
-### 🆘 Necessidades Comuns
+### Nomes parecidos
 
-| Necessidade | Canal de Contato |
-|------------|------------------|
-| Acesso negado a módulo | Solicitar permissão ao administrador do sistema |
-| Sistema lento ou erro técnico | Abrir chamado no suporte técnico |
-| Sugestão de novo módulo/feature | Registrar no painel administrativo / Feature Request |
-| Dúvida sobre funcionalidade | Consultar este manual de treinamento |
-| Atualização do sistema | Verificar changelog no painel administrativo |
+| Recurso | Regra |
+|---------|-------|
+| Objetivo | Apontar possíveis duplicidades para revisão **humana** |
+| Mesclagem | **Nada é mesclado automaticamente** |
+| Antes de excluir | Confira o histórico clínico e financeiro |
+| Exclusão | **Soft delete** — inativa e preserva o histórico |
 
-### 🕐 Horário de Atendimento
+### Permissões do Financeiro
 
-- **Segunda a Sexta:** 08:00 às 18:00
-- **Sábado:** Plantão parcial (08:00 às 12:00)
-- **Domingo:** Plantão remoto (via ticket de suporte)
-
-### 📧 Canais de Comunicação
-
-- **Sistema:** LJ SmartClinic (versão 13.33.0)
-- **Ambiente:** Produção (APP_ENV=production)
-- **Último Deploy:** 09/11/2026
-- **Base de Dados:** MySQL 11.8.6-MariaDB
-- **Backend:** Laravel 13
-- **Frontend:** Blade + Tailwind CSS
-
----
-
-## 🎓 Conclusão
-
-Parabéns por completar este treinamento! Agora você tem:
-
-- ✅ Acesso completo aos módulos Turmas e Atendimentos
-- ✅ Compreensão do status do módulo Tratamentos (planejado para fisioterapia)
-- ✅ Conhecimento das permissões do seu perfil de usuário
-- ✅ Checklist operacional para o dia a dia da clínica
-- ✅ Guia de solução de problemas 5 problemas comuns
-- ✅ Noção de relatórios semanais e métricas
-
-### Próximos Passos Recomendados
-
-1. **Praticar** no sistema ao menos 2 horas esta semana
-2. **Familiarizar** com atalhos e menus do sistema
-3. **Testar** diferentes cenários (presença, consumo de pacote, etc.)
-4. **Participar** de sessão de dúvidas com o suporte
-5. **Sugerir** melhorias ou novos módulos para a equipe de desenvolvimento
-
----
-
-## 📚 Referências Rápidas
-
-| Tema | Atalho/URL |
-|------|------------|
-| Dashboard principal | `/` ou home |
-| Módulo Turmas | `/turmas` |
-| Módulo Atendimentos | `/atendimentos` |
-| Módulo Pacientes | `/pacientes` |
-| Módulo Financeiro | `/financeiro` |
-| Módulo Regiões a Laser | `/laser/regioes` |
-| Perfil do usuário | Configurações > Meu perfil |
+| Ação | Permissão |
+|------|-----------|
+| Ver financeiro | `financeiro.view` |
+| Receber / lançar pagamento | `financeiro.receber` |
+| Contas a pagar | `financeiro.pagar` |
+| Fornecedores | `financeiro.fornecedores` |
+| Fluxo de caixa | `financeiro.fluxo` |
+| Exportar relatórios | `relatorios.exportar` |
 
 ---
 
-**Fim do Manual de Treinamento - LJ SmartClinic** 🎓✅
+## 🧾 Notas fiscais
+
+### Objetivo
+
+Emitir e controlar as NFS-e da clínica.
+
+### Status
+
+| Status | Significado |
+|--------|-------------|
+| Rascunho | Nota criada, ainda não enviada |
+| Autorizada | Nota emitida com sucesso |
+| Rejeitada | Emissão recusada — pode ser corrigida e reenviada |
+| Cancelada | Nota autorizada e depois cancelada |
+
+### Ações
+
+- **Emitir** → rascunho vira **Autorizada**.
+- **PDF** e **XML** → download dos arquivos fiscais.
+- **Cancelar** → cancela uma nota autorizada.
+- **Rejeitada** → corrija os dados e reenvie.
+
+> **Ambiente atual:** **homologação** (testes). Produção exige certificado digital e configuração do emissor.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver notas | `fiscal.view` |
+| Criar / emitir | `fiscal.create` |
+| Cancelar | `fiscal.cancelar` |
+| Configurar emissor | `fiscal.configurar` |
 
 ---
 
-*Documento gerado em 09/11/2026 · Atualizado em 17/11/2026 | Versão 1.1.0 | Sistema LJ SmartClinic*
+## 🛡️ Convênios
+
+### Objetivo
+
+Cadastrar as operadoras e seus planos.
+
+| Campo | Regra |
+|-------|-------|
+| Nome | Obrigatório |
+| CNPJ | Opcional, validado quando informado |
+| Contato | Telefone/e-mail |
+| Planos | Um convênio pode ter vários planos |
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver convênios | `convenios.view` |
+| Criar / editar | `convenios.create`, `convenios.update` |
+| Excluir | `convenios.delete` |
 
 ---
 
-## 📋 Manual Operacional - Administradores
+## 🧑‍⚕️ Profissionais
 
-*(Arquivo a ser criado: Manual_Administrador_Daiane.md)*
+### Objetivo
 
-Este manual destina-se aos administradores do sistema LJ SmartClinic na Clínica Daiane.
+Cadastrar a equipe da clínica e suas regras de atendimento.
 
-### Funcionalidades Administrativas
+| Campo | Regra |
+|-------|-------|
+| Nome | Obrigatório |
+| CREFITO | Registro profissional |
+| Tipo | Fisioterapeuta, instrutor, etc. |
+| Especialidades | Múltipla escolha |
+| Comissão (%) | Percentual usado no financeiro |
+| Status | Ativo/inativo |
 
-- Gestão de usuários e perfis
-- Configuração de permissões por módulo
-- Manutenção de cadastros (profissionais, pacientes, planos)
-- Configuração de parâmetros do sistema
-- Geração de relatórios gerenciais
-- Manutenção de permissões de banco de dados
+### Permissões
 
-### Operações de Manutenção
-
-- Backup de bancos de dados das clínicas
-- Atualização de permissões role_permission
-- Correção de catalogos de módulos
-- Migração de dados entre clínicas
-- Validar integridade das tabelas do sistema
-
-### Contato de Suporte
-
-- Horário: Segunda a Sexta, 08:00-18:00
-- Canal: Ticket no sistema ou email da equipe de TI
+| Ação | Permissão |
+|------|-----------|
+| Ver profissionais | `profissionais.view` |
+| Criar / editar | `profissionais.create`, `profissionais.update` |
+| Excluir | `profissionais.delete` |
 
 ---
 
-## 📋 Manual para Auxiliares
+## 🩺 Procedimentos
 
-*(Arquivo a ser criado: Manual_Auxiliar_Daiane.md)*
+### Objetivo
 
-### Instruções para Auxiliares de Fisioterapia
+Catálogo de serviços da clínica.
 
-- Como registrar presença nas turmas
-- Como controlar consumo de sessões de pacote
-- Como marcar faltos
-- Como acessar o histórico de atendimentos
-- Como consultar planos de tratamento (mesmo em modo "planejado")
-- Como usar o dashboard para ver indicadores
+| Campo | Regra |
+|-------|-------|
+| Código | **Único** — duplicar é bloqueado |
+| Nome | Obrigatório |
+| Categoria | Avaliação, sessão, terapia manual, etc. |
+| Duração | Define o fim da sessão na agenda |
+| Valor padrão | Sugestão para planos e orçamentos |
+| Status | Ativo/inativo |
 
-### Atalhos Úteis
+### Permissões
 
-- Atalho para agenda do dia
-- Atalho para turmas da semana
-- Atalho para pacientes cadastrados
-
----
-
-## 📋 Guia de Turmas
-
-### Instruções Rápidas
-
-1. Acesse o módulo Turmas pelo menu lateral
-2. Selecione o período desejado
-3. Confere a grade semanal de turmas
-4. Clique em "Presença" para cada aluno
-5. Verifique o contador de pacientes inscritos
-6. Use o relatório para ver o total de turmas e alunos
-
-### Dicas de Utilização
-
-- Verifique a consistência dos dados semanalmente
-- Utilize o filtro por profissional para relatórios específicos
-- Mantenha o cadastro de pacientes atualizado
-- Use os relatórios para planejar novas turmas
+| Ação | Permissão |
+|------|-----------|
+| Ver procedimentos | `procedimentos.view` |
+| Criar / editar | `procedimentos.create`, `procedimentos.update` |
+| Excluir | `procedimentos.delete` |
 
 ---
 
-## 📋 Guia de Atendimentos
+## 📦 Estoque
 
-### Instruções Rápidas
+### Objetivo
 
-1. Acesse o módulo Atendimentos pelo menu lateral
-2. Confirme a data do atendimento (padrão: hoje)
-3. Visualize a grade de consultas do dia
-4. Clique em "Presença" para registrar a presença do paciente
-5. Se houver pacote ativo, clique em "Consumir sessão"
-6. Selecione o pacote disponível e confirme
+Controlar produtos, saldo mínimo e movimentações.
 
-### Dicas de Utilização
+### Regras
 
-- Confirme o status de cada consulta (Agendado/Confirmado/Em Atendimento/Atendido/Faltou)
-- Acompanhe o consumo de sessões dos pacotes
-- Atente-se aos alertas de pacotes com sessões acabando
-- Utilize o relatório diário para fechar o expediente
+| Recurso | Regra |
+|---------|-------|
+| Estoque baixo | Saldo ≤ estoque mínimo |
+| Entrada | Compra ao fornecedor |
+| Saída | Uso clínico |
+| Saída maior que o saldo | **Bloqueada** |
+| Movimentação | Grava saldo anterior/posterior, usuário e custo |
 
----
+### Permissões
 
-## 📋 Guia de Tratamentos
-
-### Instruções Rápidas
-
-1. Acesse o módulo Tratamentos pelo menu lateral
-2. Note que para fisioterapia, o módulo aparece como "Funcionalidade planejada"
-3. Mesmo em modo planejado, a estrutura existe no sistema
-4. Para odontologia: acesso completo aos planos e itens
-5. Para fisioterapia: cadastro de planos disponível, tela de interface em adaptação
-
-### O Que Está Disponível
-
-- ✅ Cadastro de planos de tratamento
-- ✅ Adicionar itens/procedimentos ao plano
-- ✅ Definir status (rascunho/em andamento/concluído)
-- ✅ Registrar histórico de evolução
-- ✅ Visualizar planos do paciente
-
-### O Que Está Planejado
-
-- 🟸 Tela de interface adaptada para fisioterapia
-- 🟸 Novos procedimentos específicos de fisioterapia
-- 🟸 Relatórios específicos de evolução
-
-### Como Acessar (ainda em modo planejado)
-
-1. Clique no menu **Tratamentos** no dashboard
-2. Mesmo aparecendo como "planejado", você pode:
-   - Ver planos existentes do paciente
-   - Criar novos planos (admin)
-   - Editar planos existentes
-   - Mudar status dos tratamentos
+| Ação | Permissão |
+|------|-----------|
+| Ver estoque | `estoque.view` |
+| Criar / editar produto | `estoque.create`, `estoque.update` |
+| Movimentar | `estoque.movimentar` |
+| Excluir | `estoque.delete` |
 
 ---
 
-## 📋 Relatório Técnico das Alterações
+## 📜 Contratos
 
-### 📋 Relatório Técnico - LJ SmartClinic - Clínica Daiane
+### Objetivo
 
-**Data:** 09/11/2026  
-**Versão:** 1.0.0  
-**Responsável:** Desenvolvimento daiane-planilha-substituicao  
+Registrar termos e consentimentos por paciente.
 
----
+| Campo | Regra |
+|-------|-------|
+| Paciente | Obrigatório |
+| Tipo | Texto livre (termo, consentimento, etc.) |
+| Conteúdo | Texto do contrato |
+| Status | Pendente → Assinado (com data) ou Cancelado |
 
-#### 1. Executivo
+### Permissões
 
-Este relatório resume todas as alterações técnicas e de configuração realizadas para a Clínica Daiane (fisioterapia) no sistema LJ SmartClinic. O objetivo foi adequar o sistema às necessidades da clínica, preservando a estabilidade e a segurança do sistema.
-
----
-
-#### 2. Alterações de Banco de Dados
-
-| Tabela | Operação | Detalhes |
-|--------|----------|----------|
-| `clinic_000005.role_permission` | INSERT | Adicionada permissão `pacotes.view` (id=71) para roles 1 (admin) e 6 (auxiliar) |
-| `clinic_000005.` | - | Nenhuma outra alteração de estrutura |
-
----
-
-#### 3. Alterações de Código Fonte
-
-| Arquivo | Tipo | Descrição |
-|---------|------|-----------|
-| `app/Support/Modulos/CatalogoModulos.php` | Modificação | Catálogo de módulos ajustado para 4 verticais (odontologia, fisioterapia, pilates, laser). Tratamentos definida como `PLANEJADO` para fisioterapia. |
-| `app/Http/Controllers/TurmaController.php` | Consumado | Já utilizava `pacotes.view` como autorização (sem alterações necessárias). |
-| `app/Support/Modulos/CatalogoModulos.php` | Consumado | Layout e estrutura do catálogo já existentes. |
+| Ação | Permissão |
+|------|-----------|
+| Ver contratos | `contratos.view` |
+| Criar / editar | `contratos.create`, `contratos.update` |
+| Assinar / cancelar | `contratos.status` |
+| Excluir | `contratos.delete` |
 
 ---
 
-#### 4. Permissões Concedidas
+## 📊 Relatórios
 
-| Role ID | Role Name | Permission ID | Permissão | Contexto |
-|---------|-----------|---------------|-----------|----------|
-| 1 | admin | 71 | `pacotes.view` | Clínica Daiane (acesso total) |
-| 6 | auxiliar | 71 | `pacotes.view` | Clínica Daiane (operacional) |
+O módulo abre em **Visão geral** e tem **5 abas**. Todos respeitam o período **De/Até** (padrão: mês vigente) e os relatórios detalhados exportam **CSV** com os mesmos filtros da tela (`relatorios.exportar`).
 
----
+| Aba | URL | O que mostra |
+|-----|-----|--------------|
+| Visão geral | `/relatorios` | Resumo financeiro, de agenda e de estoque |
+| Receitas | `/relatorios/receitas` | Faturamento por serviço, % do total e ticket médio |
+| Presença e faltas | `/relatorios/presenca-faltas` | Atendidas, faltas, canceladas e taxa de presença |
+| Pacotes e sessões | `/relatorios/pacotes` | Consumidas, restantes e validade |
+| Aniversariantes | `/relatorios/aniversariantes` | Pacientes do mês para campanhas de relacionamento |
 
-#### 5. Testes Automatizados
+### Visão geral
 
-| Suite de Testes | Status | Observação |
-|----------------|--------|------------|
-| `EquivalenciaPlanilhasDaianeTest` | ✅ 53 testes | 271 asserções |
-| `CatalogoModulosTest` | ✅ 11 testes | 282 asserções |
-| `TenantIsolationModulosTest` | ✅ 3 testes | 25 asserções |
-| `PreviewContasCommandTest` | ✅ 2 testes | 9 asserções |
-| **Total** | **✅ 764 testes** | **3106 asserções, 0 falhas** |
+| Bloco | Indicadores |
+|-------|-------------|
+| Financeiro | A receber, em aberto, pago e **recebido no período** |
+| Agenda | Atendidas, canceladas e **faltas** |
+| Estoque | Produtos, produtos baixos e entradas/saídas |
 
----
+### Receitas
 
-#### 6. Validação de Permissões
+- Receita por serviço e **% do total**.
+- **Ticket médio** = receita ÷ atendimentos pagos.
+- Exportação CSV para a contabilidade.
 
-| Clínica | ID | Perfil | Permissões Concedidas |
-|---------|------|----------|----------------------|
-| **Clínica Daiane** | 5 | Fisioterapia | `turmas.view`, `turmas.presenca`, `atendimentos.view`, `consumir.sessao`, `tratamentos.view` (planejado) |
-| **Clínica Malheiros** | 1 | Odontologia | Acesso completo a todos os módulos |
+### Presença e faltas
 
----
+- Comparação por profissional.
+- **Falta não consome** sessão do pacote.
+- Reposição deve ser marcada como **Reposição de falta** no atendimento.
 
-#### 6. Status do Deploy
+### Pacotes e sessões
 
-| Item | Status | Observação |
-|------|--------|------------|
-| **VPS** | ✅ Concluído | `179.236.238.61`, branch `release/daiane-vps-20261107`, commit `a537c1b` |
-| **Backup** | ✅ Concluído | `20261109-142351`, 69 MB |
-| **Migrations** | ✅ Aplicadas | 2 clínicas (000001 e 000005) |
-| **Caches** | ✅ Aquecidos | config, rotas, views |
-| **URL** | ✅ Ativa | `https://ljaltomao.com.br` |
-| **Ambiente** | ✅ Produção | `APP_ENV=production`, `APP_DEBUG=OFF` |
+- Sessões consumidas, restantes e validade.
+- Filtro **vencendo em 30 dias** para antecipar renovações.
+- Exportação CSV para cobrança.
 
----
+### Aniversariantes
 
-#### 7. Pendências e Funcionalidades Futuras
+- Lista do **mês** escolhido, com dia, idade e contato.
+- Depende da **data de nascimento** cadastrada na ficha.
+- Botão **Preparar mensagem** para a campanha de retorno.
 
-| ID | Funcionalidade | Status | Prioridade |
-|----|---------------|--------|------------|
-| TRAT-01 | Adaptar tela de tratamentos para fisioterapia | 🟸 Planejado | Média |
-| TRAT-02 | Relatório de evolução de tratamentos | ⏳ Pendente | Baixa |
-| TURM-01 | Relatório avançado de turmas | ⏳ Pendente | Baixa |
-| ATEND-01 | Integração com sistema de lembrete | ⏳ Pendente | Média |
+### Permissões
 
----
-
-#### 8. Checklist de Validação
-
-- [x] Sistema em produção e acessível
-- [x] Turmas liberadas para fisioterapia (permissão `pacotes.view`)
-- [x] Atendimentos funcionando (200 OK)
-- [x] Tratamentos com comportamento por catálogo (FISIOTERAPIA => PLANEJADO)
-- [x] Permissões validadas para clinic_id=5 e clinic_id=1
-- [x] Testes automatizados passando (764/764)
-- [x] Backup recente disponível
-- [x] Manual de treinamento gerado
-- [ ] Tela de treinamento HTML publicada (pendente de configuração)
+| Ação | Permissão |
+|------|-----------|
+| Ver relatórios | `relatorios.view` |
+| Exportar CSV | `relatorios.exportar` |
 
 ---
 
-## 📦 ETAPA 6: ORGANIZAR ENTREGA
+## 📁 Documentos
 
-Vou criar a pasta de entrega com todos os arquivos necessários.
-<tool_call>
-<function=shell>
-<parameter=command>
-md "Entrega_Clinica_Daiane"
+### Objetivo
+
+Reunir os arquivos do paciente e os modelos da clínica.
+
+| Recurso | Regra |
+|---------|-------|
+| Anexos | Laudos, termos, atestados e exames, vinculados à ficha |
+| Download | Exige permissão; cada arquivo pertence à clínica |
+| Exclusão | Remove o download para todos os usuários |
+| Modelos | Papel timbrado, guia de cuidados e atestado de comparecimento |
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver documentos | `documentos.view` |
+| Anexar | `documentos.create` |
+| Baixar | `documentos.download` |
+| Excluir | `documentos.delete` |
+| Gerar modelo | `documentos.modelos` |
+
+---
+
+## ⚙️ Administração
+
+A área de Administração tem **4 telas** e concentra o controle de acesso (RBAC).
+
+| Tela | URL | O que faz |
+|------|-----|-----------|
+| Usuários | `/admin/usuarios` | Cadastro de usuários e vínculo com perfil |
+| Perfis & Permissões | `/admin/perfis` | Permissões por **módulo + ação** |
+| Clínica | `/admin/clinica` | Dados institucionais e cor primária |
+| Auditoria | `/admin/auditoria` | Trilha de quem fez o quê, quando e como |
+
+### Usuários
+
+| Recurso | Regra |
+|---------|-------|
+| Perfil | Todo usuário tem um perfil |
+| Exclusão | O sistema **impede excluir a si mesmo** |
+| Auditoria | Toda operação gera registro |
+
+### Perfis & Permissões
+
+| Recurso | Regra |
+|---------|-------|
+| Permissões | Ficam no **perfil**, por módulo + ação (ex.: `estoque.update`, `orcamentos.create`) |
+| Alteração | Vale para **todos** os usuários daquele perfil |
+| Matriz | A tela mostra a matriz **módulo × perfil** |
+| Auditoria | Toda mudança de permissão é registrada |
+
+### Clínica
+
+| Campo | Uso |
+|-------|-----|
+| Razão social / nome fantasia | Telas e documentos |
+| CNPJ | Documentos e configuração fiscal |
+| Telefones / WhatsApp | Contato e **API do WhatsApp** |
+| Endereço | Documentos |
+| Logo e cor primária | Identidade visual do sistema |
+
+### Auditoria
+
+| Recurso | Regra |
+|---------|-------|
+| O que registra | Usuário, ação, tabela, registro, data/hora e IP |
+| Detalhe | Valores **antes/depois** |
+| Filtros | Por ação e por tabela |
+| Exemplos de ação | `criar`, `atualizar`, `excluir`, `registrar_evolucao`, `registrar_pagamento` |
+
+### Permissões administrativas
+
+| Ação | Permissão |
+|------|-----------|
+| Gerenciar usuários | `admin.usuarios` |
+| Gerenciar perfis | `admin.perfis` |
+| Editar clínica | `admin.clinica` |
+| Ver auditoria | `admin.auditoria` |
+
+---
+
+## 📣 Social
+
+### Objetivo
+
+Organizar as publicações da clínica para Instagram e Facebook.
+
+### Fluxo
+
+`Pendente → Aprovado → Publicado`
+
+| Recurso | Regra |
+|---------|-------|
+| Novo post | Nasce **Pendente** |
+| Aprovar | Libera para publicação |
+| Publicar | Só depois de aprovado |
+| Rejeitar | Volta para revisão |
+| Contas | Instagram e Facebook configurados em um único lugar |
+
+> Nada é publicado sem aprovação.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver posts | `social.view` |
+| Criar | `social.create` |
+| Aprovar | `social.aprovar` |
+| Publicar | `social.publicar` |
+| Configurar contas | `social.configurar` |
+
+---
+
+## 🔔 Notificações
+
+### Objetivo
+
+Central de avisos da operação.
+
+| Tipo de aviso | Exemplo |
+|---------------|---------|
+| Pacote | "Maria tem 4 sessões restantes" |
+| Financeiro | "Conta a pagar vence hoje" |
+| Clínico | "Evolução pendente de finalização" |
+
+### Recursos
+
+- O **sino no topo** mostra quantas notificações não foram lidas.
+- **Marcar como lida** reduz o contador.
+- **Marcar todas como lidas** limpa o contador.
+- **Preferências** definem quais avisos você quer receber.
+
+### Permissões
+
+| Ação | Permissão |
+|------|-----------|
+| Ver notificações | `notificacoes.view` |
+| Marcar como lida | `notificacoes.marcar` |
+| Editar preferências | `notificacoes.preferencias` |
+
+---
+
+## 👑 Perfis e permissões (visão geral)
+
+### Perfil: Fisioterapia (Clínica Daiane)
+
+| Área | Ver | Criar | Editar | Excluir |
+|------|-----|-------|--------|---------|
+| Pacientes | ✅ | ✅ | ✅ | ✅ |
+| Agenda | ✅ | ✅ | ✅ | ❌ |
+| Atendimentos | ✅ | ✅ | ✅ | ❌ |
+| Turmas | ✅ | ❌ | ❌ | ❌ |
+| Prontuário / Avaliação / Evolução | ✅ | ✅ | ✅ | ❌ |
+| Pacotes de sessões | ✅ | ✅ | ✅ | ❌ |
+| Financeiro | ✅ | ❌ | ❌ | ❌ |
+| Relatórios | ✅ | — | — | — |
+| Tratamentos | 🟸 | 🟸 | 🟸 | 🟸 |
+
+### Perfil: Administrador
+
+Acesso total a todos os módulos disponíveis, incluindo Administração e Auditoria.
+
+### Perfil: laser_operador (vertical laser)
+
+| Ação | Permissão |
+|------|-----------|
+| Ver regiões, pacotes e histórico | `regioes_laser.view` |
+| Cadastrar | `regioes_laser.create` |
+| Editar | `regioes_laser.update` |
+| Excluir (sem vínculos) | `regioes_laser.delete` |
+
+### Permissões específicas mais usadas
+
+| Permissão | Área | Descrição |
+|-----------|------|-----------|
+| `turmas.view` | Turmas | Ver grade e alunos |
+| `turmas.presenca` | Turmas | Marcar presença/falta |
+| `atendimentos.view` | Atendimentos | Ver a recepção do dia |
+| `agenda.presenca` | Atendimentos | Registrar presença |
+| `consumir.sessao` | Atendimentos / Pacotes | Debitar sessão do pacote |
+| `pacotes.view` | Pacotes | Ver pacotes e saldo |
+| `tratamentos.view` | Tratamentos | Ver planos (planejado) |
+| `financeiro.receber` | Financeiro | Registrar recebimento |
+| `financeiro.pagar` | Financeiro | Baixar conta a pagar |
+| `fiscal.create` | Notas fiscais | Criar e emitir NFS-e |
+| `relatorios.exportar` | Relatórios | Exportar CSV |
+| `admin.perfis` | Administração | Gerenciar perfis e permissões |
+| `admin.auditoria` | Administração | Consultar a auditoria |
+| `regioes_laser.*` | Laser | Regiões, pacotes e aplicações |
+
+---
+
+## 📅 Checklist operacional diário
+
+### 🌅 Ao iniciar o turno
+
+- [ ] Logar no sistema com as credenciais da clínica
+- [ ] Conferir o **Dashboard** (sessões de hoje, contas em aberto)
+- [ ] Confirmar a **Agenda** do dia
+- [ ] Verificar **Notificações** (pacotes, contas, evoluções pendentes)
+- [ ] Conferir **Estoque** de materiais
+
+### ⏱️ Durante o expediente
+
+- [ ] Registrar **Presença** ou **Falta** em **Atendimentos**
+- [ ] Consumir a sessão do **pacote** quando houver
+- [ ] Fazer a **Chamada** das turmas de Pilates
+- [ ] Registrar a **Evolução por sessão**
+- [ ] Finalizar **Avaliações** e **Evoluções** do dia
+- [ ] Anexar **Documentos** entregues pelo paciente
+- [ ] Lançar **Pagamentos** e baixar **Contas a pagar**
+
+### 🏁 Ao final do turno
+
+- [ ] Conferir **Relatórios → Presença e faltas**
+- [ ] Conferir **Financeiro → Fluxo de caixa**
+- [ ] Verificar **Relatórios → Pacotes e sessões** (vencendo em 30 dias)
+- [ ] Atualizar o **Estoque** de materiais/produtos
+- [ ] Fechar a sessão do sistema com segurança
+
+### 📊 Revisão semanal
+
+- [ ] Total de atendimentos e taxa de faltas
+- [ ] Pacotes consumidos e a vencer
+- [ ] Receitas por serviço (CSV para a contabilidade)
+- [ ] Produtos em estoque baixo
+- [ ] Comparação com a semana anterior
+
+---
+
+## ⚠️ Solução de problemas
+
+| Problema | Causa provável | Solução |
+|----------|----------------|---------|
+| Tela vazia em **Atendimentos** | Sem consultas na data selecionada | Trocar a data ou verificar a agenda |
+| Botão **Presença** desabilitado | Falta de permissão | Solicitar `agenda.presenca` ao administrador |
+| Pacote não aparece para consumir | Sem pacote ativo ou saldo zerado | Verificar o cadastro do paciente e o saldo |
+| Consumo de sessão recusado | Pacote esgotado | Vender novo pacote ou lançar sessão avulsa |
+| **Tratamentos** aparece como planejado | Catálogo da vertical (tela odontológica) | Comportamento esperado — `/modulos/tratamentos` mostra a tela padrão; use Pacotes + Evolução |
+| **Turmas de Pilates** aparece como planejado | Módulo da vertical Pilates | Comportamento esperado — `/modulos/turmas_pilates` mostra a tela padrão; use **Turmas** |
+| Erro ao salvar dados | Conexão instável ou dado inválido | Recarregar, limpar o cache e tentar novamente |
+| Nota fiscal **Rejeitada** | Dados fiscais incorretos | Corrigir os dados e reenviar |
+| Não consigo excluir região/pacote de laser | Existem vínculos | **Desativar** em vez de excluir |
+| Link **Abrir no sistema real** dá 404 (laser) | Módulo ainda não publicado em produção | Usar o treinamento até a publicação |
+
+---
+
+## 🆘 Suporte e contatos
+
+| Necessidade | Canal |
+|-------------|-------|
+| Acesso negado a um módulo | Administrador do sistema |
+| Sistema lento ou erro técnico | Suporte técnico |
+| Sugestão de melhoria | Registro no painel administrativo |
+| Dúvida de funcionalidade | Este manual ou o treinamento interativo |
+| Atualização do sistema | Changelog no painel administrativo |
+
+### Horário de atendimento
+
+- **Segunda a sexta:** 08:00 às 18:00
+- **Sábado:** 08:00 às 12:00
+- **Domingo:** plantão remoto (via ticket)
+
+### Ambiente
+
+| Item | Valor |
+|------|-------|
+| Sistema | LJ SmartClinic 13.33.0 |
+| Ambiente | Produção (`APP_ENV=production`, `APP_DEBUG=OFF`) |
+| Backend | Laravel (PHP 8.3) |
+| Frontend | Blade + Tailwind CSS |
+| Banco | MariaDB |
+| URL | https://ljaltomao.com.br |
+
+---
+
+## 📚 Referências rápidas
+
+| Tema | Atalho / URL |
+|------|--------------|
+| Treinamento interativo | `https://kennedyMoreira12.github.io/sco-apresentacao/treinamento-daiane.html` |
+| Dashboard | `/` |
+| Pacientes | `/pacientes` |
+| Agenda | `/agenda` |
+| Atendimentos | `/atendimentos` |
+| Turmas | `/turmas` |
+| Regiões a Laser | `/laser/regioes` |
+| Tratamentos (planejado) | `/modulos/tratamentos` |
+| Turmas de Pilates (planejado) | `/modulos/turmas_pilates` |
+| Financeiro | `/financeiro` |
+| Pagamentos | `/financeiro/pagamentos` |
+| Contas a pagar | `/financeiro/contas-pagar` |
+| Fornecedores | `/financeiro/fornecedores` |
+| Fluxo de caixa | `/financeiro/fluxo-caixa` |
+| Nomes parecidos | `/financeiro/duplicatas` |
+| Notas fiscais | `/fiscal` |
+| Relatórios | `/relatorios` |
+| Receitas | `/relatorios/receitas` |
+| Presença e faltas | `/relatorios/presenca-faltas` |
+| Pacotes e sessões | `/relatorios/pacotes` |
+| Aniversariantes | `/relatorios/aniversariantes` |
+| Usuários | `/admin/usuarios` |
+| Perfis & Permissões | `/admin/perfis` |
+| Clínica | `/admin/clinica` |
+| Auditoria | `/admin/auditoria` |
+| Social | `/social` |
+| Notificações | `/notificacoes` |
+
+---
+
+## ✅ Conclusão do treinamento
+
+Ao concluir os **35 módulos disponíveis**, você terá praticado:
+
+- ✅ Cadastro e ficha de pacientes
+- ✅ Agenda, atendimentos, presença e falta
+- ✅ Turmas de Pilates (grade, capacidade, chamada)
+- ✅ Prontuário, avaliação e evolução por sessão
+- ✅ Pacotes de sessões e consumo transacional
+- ✅ Regiões a Laser (regiões, pacotes-modelo e histórico)
+- ✅ Orçamentos e todo o Financeiro (6 abas)
+- ✅ Notas fiscais, convênios, profissionais, procedimentos, estoque e contratos
+- ✅ Relatórios (5 abas) e exportação CSV
+- ✅ Documentos e modelos da clínica
+- ✅ Administração (usuários, perfis, clínica e auditoria)
+- ✅ Social e notificações
+- ✅ Entendimento honesto dos módulos **planejados**: Tratamentos e Turmas de Pilates
+
+### Próximos passos recomendados
+
+1. Praticar no treinamento até fechar `35/35` e acertar os quizzes (≥ 70%).
+2. Repetir as tarefas no sistema real com um paciente de teste.
+3. Revisar o checklist operacional diário.
+4. Tirar dúvidas com o suporte antes de mudar permissões.
+5. Enviar sugestões de melhoria pelo painel administrativo.
+
+---
+
+## 📋 Relatório técnico (histórico)
+
+### Versão 1.1.0 — 09/11/2026
+
+| Item | Detalhe |
+|------|---------|
+| Objetivo | Adequar o sistema à Clínica Daiane (fisioterapia), preservando estabilidade e segurança |
+| Catálogo | 4 verticais: odontologia, fisioterapia, pilates e laser |
+| Tratamentos | `PLANEJADO` para fisioterapia/pilates/laser |
+| Turmas de Pilates | `PLANEJADO` |
+| Permissão adicionada | `pacotes.view` (id=71) para os perfis admin (1) e auxiliar (6), clínica 5 |
+| Testes | 764 testes, 3106 asserções, 0 falhas |
+| Deploy | VPS `179.236.238.61`, branch `release/daiane-vps-20261107`, commit `a537c1b` |
+| Backup | `20261109-142351` (69 MB) |
+| URL | https://ljaltomao.com.br |
+
+### Versão 1.2.0 — 17/11/2026
+
+| Item | Detalhe |
+|------|---------|
+| Treinamento | Expandido de 16 para **37 itens** de menu (**35 disponíveis + 2 planejados**) |
+| Novos módulos | Atendimentos, Turmas, Avaliação, Evolução, Pacotes, Financeiro completo (6 abas), Notas fiscais, Relatórios (5 abas), Documentos, Administração (4 telas), Social, Notificações |
+| Módulo laser | Regiões, pacotes-modelo e histórico, com `regioes_laser.*` |
+| Progresso | `0/35`, com desafios e quiz (4 perguntas, 70% para aprovação) |
+| Planejados | Tratamentos (`planos`) e Turmas de Pilates (`turmas_pilates`) — fora do total e sem quiz |
+| Publicação | GitHub Pages: `treinamento-daiane.html` |
+
+### Pendências
+
+| ID | Item | Situação |
+|----|------|----------|
+| TRAT-01 | Adaptar a tela de Tratamentos para fisioterapia | 🟸 Planejado |
+| PILAT-01 | Tela própria de Turmas de Pilates | 🟸 Planejado |
+| FISC-01 | Notas fiscais em produção (certificado + emissor) | ⏳ Pendente |
+| LASER-01 | Publicar o módulo laser em produção | ⏳ Aguardando autorização |
+| ATEND-01 | Lembretes automáticos de sessão | ⏳ Pendente |
+
+---
+
+**Fim do Manual de Treinamento — LJ SmartClinic** 🎓
+
+*Documento atualizado em 17/11/2026 · Versão 1.2.0 · Sistema LJ SmartClinic*

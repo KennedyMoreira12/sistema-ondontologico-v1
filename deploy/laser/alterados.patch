@@ -1,0 +1,252 @@
+diff --git a/app/Http/Controllers/PacienteController.php b/app/Http/Controllers/PacienteController.php
+index c78ecc56..a907b3c7 100644
+--- a/app/Http/Controllers/PacienteController.php
++++ b/app/Http/Controllers/PacienteController.php
+@@ -136,7 +136,25 @@ public function prontuario(Paciente $paciente): View
+             ->latest('id')
+             ->first();
+ 
+-        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas', 'termo'));
++        /**
++         * Histórico de laser no prontuário: só aparece quando a clínica tem a
++         * vertical e o usuário pode ver o módulo. É leitura — registrar
++         * aplicação continua sendo na tela do módulo.
++         */
++        $aplicacoesLaser = collect();
++
++        if (vertical_permite('regioes_laser') && auth()->user()?->hasPermission('regioes_laser.view')) {
++            $aplicacoesLaser = $paciente->aplicacoesLaser()
++                ->with(['regiao', 'pacote', 'profissional'])
++                ->latest('data')
++                ->latest('id')
++                ->limit(10)
++                ->get();
++        }
++
++        return view('pacientes.prontuario', compact(
++            'paciente', 'evolucoes', 'alertas', 'dentistas', 'termo', 'aplicacoesLaser',
++        ));
+     }
+ 
+     /**
+diff --git a/app/Models/Paciente.php b/app/Models/Paciente.php
+index fb039317..c6c4c31b 100644
+--- a/app/Models/Paciente.php
++++ b/app/Models/Paciente.php
+@@ -92,6 +92,14 @@ public function pacotesSessao(): HasMany
+         return $this->hasMany(PacoteSessao::class);
+     }
+ 
++    /**
++     * Histórico de aplicações de laser do paciente.
++     */
++    public function aplicacoesLaser(): HasMany
++    {
++        return $this->hasMany(AplicacaoLaser::class);
++    }
++
+     /**
+      * Turmas de Pilates das quais o paciente é aluno.
+      */
+diff --git a/app/Services/Tenant/InventarioTabelas.php b/app/Services/Tenant/InventarioTabelas.php
+index 6a5a04cd..ed069733 100644
+--- a/app/Services/Tenant/InventarioTabelas.php
++++ b/app/Services/Tenant/InventarioTabelas.php
+@@ -27,6 +27,8 @@ class InventarioTabelas
+ 
+     public const FISIOTERAPIA = 'fisioterapia';
+ 
++    public const LASER = 'laser';
++
+     /**
+      * Tabelas que só a clínica odontológica usa.
+      *
+@@ -54,6 +56,17 @@ class InventarioTabelas
+         'turma_presencas',
+     ];
+ 
++    /**
++     * Tabelas que só a clínica de depilação a laser usa.
++     *
++     * @var list<string>
++     */
++    public const TABELAS_LASER = [
++        'laser_aplicacoes',
++        'laser_pacotes',
++        'laser_regioes',
++    ];
++
+     /**
+      * Tabelas usadas pelas duas verticais.
+      *
+@@ -157,6 +170,10 @@ public function classificacao(): array
+             $tabelas[$tabela] = self::FISIOTERAPIA;
+         }
+ 
++        foreach (self::TABELAS_LASER as $tabela) {
++            $tabelas[$tabela] = self::LASER;
++        }
++
+         foreach (self::TABELAS_COMUNS as $tabela) {
+             $tabelas[$tabela] = self::COMUM;
+         }
+@@ -271,6 +288,7 @@ public function tabelasDaVertical(string $vertical): array
+         $lista = match ($vertical) {
+             VerticalManager::ODONTOLOGIA => self::TABELAS_ODONTOLOGIA,
+             VerticalManager::FISIOTERAPIA => self::TABELAS_FISIOTERAPIA,
++            VerticalManager::LASER => self::TABELAS_LASER,
+             default => [],
+         };
+ 
+diff --git a/app/Support/Modulos/CatalogoModulos.php b/app/Support/Modulos/CatalogoModulos.php
+index 03fc32c5..5ea6672e 100644
+--- a/app/Support/Modulos/CatalogoModulos.php
++++ b/app/Support/Modulos/CatalogoModulos.php
+@@ -443,14 +443,14 @@ class CatalogoModulos
+             'icone' => 'bi-body',
+             'grupo' => self::GRUPO_PRINCIPAL,
+             'tipo' => 'lista',
+-            'rota' => 'modulos.planejado',
+-            'padrao' => 'modulos.planejado',
++            'rota' => 'regioes_laser.index',
++            'padrao' => 'regioes_laser.*',
+             'vertical' => self::LASER,
+             'situacao' => [
+                 self::ODONTOLOGIA => self::PLANEJADO,
+                 self::FISIOTERAPIA => self::PLANEJADO,
+                 self::PILATES => self::PLANEJADO,
+-                self::LASER => self::PLANEJADO,
++                self::LASER => self::DISPONIVEL,
+             ],
+             'descricao' => 'Cadastro de regiões corporais, pacotes por região e histórico de aplicações a laser.',
+         ],
+diff --git a/resources/views/pacientes/prontuario.blade.php b/resources/views/pacientes/prontuario.blade.php
+index bb156fa4..743ca906 100644
+--- a/resources/views/pacientes/prontuario.blade.php
++++ b/resources/views/pacientes/prontuario.blade.php
+@@ -40,6 +40,13 @@
+                     </a>
+                 @endcan
+             @endif
++            @if (vertical_permite('regioes_laser'))
++                @can('regioes_laser.view')
++                    <a href="{{ route('regioes_laser.aplicacoes.index', ['paciente' => $paciente->id]) }}" class="btn btn-outline-primary">
++                        <i class="bi bi-body me-1"></i>Laser
++                    </a>
++                @endcan
++            @endif
+             @can('prontuario.view')
+                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">
+                     <i class="bi bi-capsule me-1"></i>Prescrições
+@@ -194,6 +201,50 @@
+                     </div>
+                 </div>
+             </div>
++
++            @if (vertical_permite('regioes_laser'))
++                @can('regioes_laser.view')
++                    <div class="card shadow-sm mt-4">
++                        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
++                            <span><i class="bi bi-body me-2"></i>Histórico de laser</span>
++                            <a href="{{ route('regioes_laser.aplicacoes.index', ['paciente' => $paciente->id]) }}" class="btn btn-link btn-sm px-0">
++                                Ver tudo
++                            </a>
++                        </div>
++                        <div class="card-body">
++                            @forelse ($aplicacoesLaser as $aplicacao)
++                                <div class="d-flex gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
++                                    <div class="flex-shrink-0">
++                                        <div class="rounded-circle bg-info-subtle text-info-emphasis d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
++                                            <i class="bi bi-body"></i>
++                                        </div>
++                                    </div>
++                                    <div class="flex-grow-1">
++                                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
++                                            <span class="fw-semibold">{{ $aplicacao->regiao?->nome ?? 'Região removida' }}</span>
++                                            <span class="text-muted small">{{ $aplicacao->data?->format('d/m/Y') }}</span>
++                                        </div>
++                                        <div class="text-muted small">
++                                            Sessão nº {{ $aplicacao->numero_sessao }}
++                                            @if ($aplicacao->pacote)
++                                                de {{ $aplicacao->pacote->total_sessoes }} — {{ $aplicacao->pacote->nome }}
++                                            @endif
++                                            @if ($aplicacao->profissional)
++                                                • {{ $aplicacao->profissional->nome }}
++                                            @endif
++                                        </div>
++                                        @if ($aplicacao->observacoes)
++                                            <div class="small text-break mt-1">{{ $aplicacao->observacoes }}</div>
++                                        @endif
++                                    </div>
++                                </div>
++                            @empty
++                                <p class="text-muted text-center py-3 mb-0">Nenhuma aplicação de laser registrada.</p>
++                            @endforelse
++                        </div>
++                    </div>
++                @endcan
++            @endif
+         </div>
+     </div>
+ @endsection
+\ No newline at end of file
+diff --git a/routes/web.php b/routes/web.php
+index f8248b43..0100c257 100644
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -8,6 +8,7 @@
+ use App\Http\Controllers\Admin\UserController;
+ use App\Http\Controllers\AgendaController;
+ use App\Http\Controllers\Api\EvolutionQrController;
++use App\Http\Controllers\AplicacaoLaserController;
+ use App\Http\Controllers\AssinaturaController;
+ use App\Http\Controllers\AtendimentoController;
+ use App\Http\Controllers\AvaliacaoController;
+@@ -27,12 +28,14 @@
+ use App\Http\Controllers\PacienteController;
+ use App\Http\Controllers\PacienteDuplicataController;
+ use App\Http\Controllers\PacienteImportacaoController;
++use App\Http\Controllers\PacoteLaserController;
+ use App\Http\Controllers\PacoteSessaoController;
+ use App\Http\Controllers\PagamentoController;
+ use App\Http\Controllers\PrescricaoController;
+ use App\Http\Controllers\ProcedimentoController;
+ use App\Http\Controllers\ProfileController;
+ use App\Http\Controllers\ProfissionalController;
++use App\Http\Controllers\RegiaoLaserController;
+ use App\Http\Controllers\RelatorioController;
+ use App\Http\Controllers\SocialPostController;
+ use App\Http\Controllers\SocialSettingController;
+@@ -64,11 +67,28 @@
+     });
+ 
+     /**
+-     * Depilação a laser: regiões corporais, pacotes e sessões.
+-     * A tela real entra na Etapa 6.
++     * Depilação a laser: regiões corporais, pacotes-modelo por região e
++     * histórico de aplicações.
++     *
++     * O módulo inteiro é exclusivo da vertical `laser` — a clínica
++     * odontológica não abre nem digitando a URL. As três telas compartilham o
++     * mesmo nome de módulo (`regioes_laser.*`) para que o menu marque o item
++     * como ativo em qualquer uma delas.
+      */
+-    Route::prefix('laser/regioes')->name('regioes_laser.')->middleware('vertical:laser')->group(function () {
+-        Route::get('/', [ModuloPlanejadoController::class, '__invoke'])->name('index');
++    Route::prefix('laser')->name('regioes_laser.')->middleware('vertical:laser')->group(function () {
++        Route::get('/regioes', [RegiaoLaserController::class, 'index'])->name('index');
++        Route::post('/regioes', [RegiaoLaserController::class, 'store'])->name('store');
++        Route::put('/regioes/{regiao}', [RegiaoLaserController::class, 'update'])->name('update');
++        Route::delete('/regioes/{regiao}', [RegiaoLaserController::class, 'destroy'])->name('destroy');
++
++        Route::get('/pacotes', [PacoteLaserController::class, 'index'])->name('pacotes.index');
++        Route::post('/pacotes', [PacoteLaserController::class, 'store'])->name('pacotes.store');
++        Route::put('/pacotes/{pacote}', [PacoteLaserController::class, 'update'])->name('pacotes.update');
++        Route::delete('/pacotes/{pacote}', [PacoteLaserController::class, 'destroy'])->name('pacotes.destroy');
++
++        Route::get('/aplicacoes', [AplicacaoLaserController::class, 'index'])->name('aplicacoes.index');
++        Route::post('/aplicacoes', [AplicacaoLaserController::class, 'store'])->name('aplicacoes.store');
++        Route::delete('/aplicacoes/{aplicacao}', [AplicacaoLaserController::class, 'destroy'])->name('aplicacoes.destroy');
+     });
+ 
+     Route::prefix('agenda')->name('agenda.')->group(function () {
