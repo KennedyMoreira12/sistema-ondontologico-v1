@@ -93,6 +93,14 @@ class Paciente extends TenantModel
     }
 
     /**
+     * Histórico de aplicações de laser do paciente.
+     */
+    public function aplicacoesLaser(): HasMany
+    {
+        return $this->hasMany(AplicacaoLaser::class);
+    }
+
+    /**
      * Turmas de Pilates das quais o paciente é aluno.
      */
     public function turmas(): BelongsToMany

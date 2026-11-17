@@ -27,6 +27,8 @@ class InventarioTabelas
 
     public const FISIOTERAPIA = 'fisioterapia';
 
+    public const LASER = 'laser';
+
     /**
      * Tabelas que só a clínica odontológica usa.
      *
@@ -52,6 +54,17 @@ class InventarioTabelas
         'turmas',
         'turma_pacientes',
         'turma_presencas',
+    ];
+
+    /**
+     * Tabelas que só a clínica de depilação a laser usa.
+     *
+     * @var list<string>
+     */
+    public const TABELAS_LASER = [
+        'laser_aplicacoes',
+        'laser_pacotes',
+        'laser_regioes',
     ];
 
     /**
@@ -155,6 +168,10 @@ class InventarioTabelas
 
         foreach (self::TABELAS_FISIOTERAPIA as $tabela) {
             $tabelas[$tabela] = self::FISIOTERAPIA;
+        }
+
+        foreach (self::TABELAS_LASER as $tabela) {
+            $tabelas[$tabela] = self::LASER;
         }
 
         foreach (self::TABELAS_COMUNS as $tabela) {
@@ -271,6 +288,7 @@ class InventarioTabelas
         $lista = match ($vertical) {
             VerticalManager::ODONTOLOGIA => self::TABELAS_ODONTOLOGIA,
             VerticalManager::FISIOTERAPIA => self::TABELAS_FISIOTERAPIA,
+            VerticalManager::LASER => self::TABELAS_LASER,
             default => [],
         };
 

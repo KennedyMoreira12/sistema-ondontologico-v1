@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\Api\EvolutionQrController;
+use App\Http\Controllers\AplicacaoLaserController;
 use App\Http\Controllers\AssinaturaController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\AvaliacaoController;
@@ -27,12 +28,14 @@ use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\PacienteDuplicataController;
 use App\Http\Controllers\PacienteImportacaoController;
+use App\Http\Controllers\PacoteLaserController;
 use App\Http\Controllers\PacoteSessaoController;
 use App\Http\Controllers\PagamentoController;
 use App\Http\Controllers\PrescricaoController;
 use App\Http\Controllers\ProcedimentoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfissionalController;
+use App\Http\Controllers\RegiaoLaserController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialSettingController;
@@ -64,11 +67,28 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     });
 
     /**
-     * Depilação a laser: regiões corporais, pacotes e sessões.
-     * A tela real entra na Etapa 6.
+     * Depilação a laser: regiões corporais, pacotes-modelo por região e
+     * histórico de aplicações.
+     *
+     * O módulo inteiro é exclusivo da vertical `laser` — a clínica
+     * odontológica não abre nem digitando a URL. As três telas compartilham o
+     * mesmo nome de módulo (`regioes_laser.*`) para que o menu marque o item
+     * como ativo em qualquer uma delas.
      */
-    Route::prefix('laser/regioes')->name('regioes_laser.')->middleware('vertical:laser')->group(function () {
-        Route::get('/', [ModuloPlanejadoController::class, '__invoke'])->name('index');
+    Route::prefix('laser')->name('regioes_laser.')->middleware('vertical:laser')->group(function () {
+        Route::get('/regioes', [RegiaoLaserController::class, 'index'])->name('index');
+        Route::post('/regioes', [RegiaoLaserController::class, 'store'])->name('store');
+        Route::put('/regioes/{regiao}', [RegiaoLaserController::class, 'update'])->name('update');
+        Route::delete('/regioes/{regiao}', [RegiaoLaserController::class, 'destroy'])->name('destroy');
+
+        Route::get('/pacotes', [PacoteLaserController::class, 'index'])->name('pacotes.index');
+        Route::post('/pacotes', [PacoteLaserController::class, 'store'])->name('pacotes.store');
+        Route::put('/pacotes/{pacote}', [PacoteLaserController::class, 'update'])->name('pacotes.update');
+        Route::delete('/pacotes/{pacote}', [PacoteLaserController::class, 'destroy'])->name('pacotes.destroy');
+
+        Route::get('/aplicacoes', [AplicacaoLaserController::class, 'index'])->name('aplicacoes.index');
+        Route::post('/aplicacoes', [AplicacaoLaserController::class, 'store'])->name('aplicacoes.store');
+        Route::delete('/aplicacoes/{aplicacao}', [AplicacaoLaserController::class, 'destroy'])->name('aplicacoes.destroy');
     });
 
     Route::prefix('agenda')->name('agenda.')->group(function () {

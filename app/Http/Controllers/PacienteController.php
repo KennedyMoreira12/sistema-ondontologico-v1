@@ -136,7 +136,25 @@ class PacienteController extends Controller
             ->latest('id')
             ->first();
 
-        return view('pacientes.prontuario', compact('paciente', 'evolucoes', 'alertas', 'dentistas', 'termo'));
+        /**
+         * Histórico de laser no prontuário: só aparece quando a clínica tem a
+         * vertical e o usuário pode ver o módulo. É leitura — registrar
+         * aplicação continua sendo na tela do módulo.
+         */
+        $aplicacoesLaser = collect();
+
+        if (vertical_permite('regioes_laser') && auth()->user()?->hasPermission('regioes_laser.view')) {
+            $aplicacoesLaser = $paciente->aplicacoesLaser()
+                ->with(['regiao', 'pacote', 'profissional'])
+                ->latest('data')
+                ->latest('id')
+                ->limit(10)
+                ->get();
+        }
+
+        return view('pacientes.prontuario', compact(
+            'paciente', 'evolucoes', 'alertas', 'dentistas', 'termo', 'aplicacoesLaser',
+        ));
     }
 
     /**

@@ -163,16 +163,14 @@ class MultiVerticalTest extends TestCase
             ->assertSee('Funcionalidade planejada');
     }
 
-    public function test_modulo_planejado_de_laser_abre_para_a_daiane(): void
+    public function test_modulo_de_laser_redireciona_para_a_tela_real_na_daiane(): void
     {
         $clinica = $this->clinicaDaiane();
-        $user = $this->usuarioComPermissao($clinica, 'dashboard.view');
+        $user = $this->usuarioComPermissao($clinica, 'regioes_laser.view');
 
         $this->actingAs($user)
             ->get(route('modulos.planejado', 'regioes_laser'))
-            ->assertOk()
-            ->assertSee('Regiões a Laser')
-            ->assertSee('Funcionalidade planejada');
+            ->assertRedirect(route('regioes_laser.index'));
     }
 
     public function test_modulo_planejado_de_pilates_e_recusado_para_a_malheiro(): void
@@ -251,8 +249,8 @@ class MultiVerticalTest extends TestCase
         // Módulo de fisioterapia: disponível porque a fisioterapia está habilitada.
         $this->assertSame(CatalogoModulos::DISPONIVEL, $catalogo->situacaoParaClinica('pacotes', $clinica['clinic']));
 
-        // Pilates e laser ainda não têm tela: planejado para a Daiane.
+        // Pilates ainda não tem tela: planejado para a Daiane. Laser já tem.
         $this->assertSame(CatalogoModulos::PLANEJADO, $catalogo->situacaoParaClinica('turmas_pilates', $clinica['clinic']));
-        $this->assertSame(CatalogoModulos::PLANEJADO, $catalogo->situacaoParaClinica('regioes_laser', $clinica['clinic']));
+        $this->assertSame(CatalogoModulos::DISPONIVEL, $catalogo->situacaoParaClinica('regioes_laser', $clinica['clinic']));
     }
 }

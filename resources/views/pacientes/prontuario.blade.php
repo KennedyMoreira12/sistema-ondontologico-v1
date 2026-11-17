@@ -40,6 +40,13 @@
                     </a>
                 @endcan
             @endif
+            @if (vertical_permite('regioes_laser'))
+                @can('regioes_laser.view')
+                    <a href="{{ route('regioes_laser.aplicacoes.index', ['paciente' => $paciente->id]) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-body me-1"></i>Laser
+                    </a>
+                @endcan
+            @endif
             @can('prontuario.view')
                 <a href="{{ route('pacientes.prescricoes.index', $paciente) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-capsule me-1"></i>Prescrições
@@ -194,6 +201,50 @@
                     </div>
                 </div>
             </div>
+
+            @if (vertical_permite('regioes_laser'))
+                @can('regioes_laser.view')
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-body me-2"></i>Histórico de laser</span>
+                            <a href="{{ route('regioes_laser.aplicacoes.index', ['paciente' => $paciente->id]) }}" class="btn btn-link btn-sm px-0">
+                                Ver tudo
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            @forelse ($aplicacoesLaser as $aplicacao)
+                                <div class="d-flex gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
+                                    <div class="flex-shrink-0">
+                                        <div class="rounded-circle bg-info-subtle text-info-emphasis d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                            <i class="bi bi-body"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                                            <span class="fw-semibold">{{ $aplicacao->regiao?->nome ?? 'Região removida' }}</span>
+                                            <span class="text-muted small">{{ $aplicacao->data?->format('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="text-muted small">
+                                            Sessão nº {{ $aplicacao->numero_sessao }}
+                                            @if ($aplicacao->pacote)
+                                                de {{ $aplicacao->pacote->total_sessoes }} — {{ $aplicacao->pacote->nome }}
+                                            @endif
+                                            @if ($aplicacao->profissional)
+                                                • {{ $aplicacao->profissional->nome }}
+                                            @endif
+                                        </div>
+                                        @if ($aplicacao->observacoes)
+                                            <div class="small text-break mt-1">{{ $aplicacao->observacoes }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-muted text-center py-3 mb-0">Nenhuma aplicação de laser registrada.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @endcan
+            @endif
         </div>
     </div>
 @endsection
