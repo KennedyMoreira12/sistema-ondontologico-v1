@@ -7,7 +7,6 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\Api\EvolutionQrController;
 use App\Http\Controllers\AplicacaoLaserController;
 use App\Http\Controllers\AssinaturaController;
 use App\Http\Controllers\AtendimentoController;
@@ -390,8 +389,6 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('/{nfse}/xml', [FiscalController::class, 'nfseXml'])->name('xml');
         });
 
-        Route::get('evolution/qr', [EvolutionQrController::class, 'show'])->name('evolution.qr');
-        Route::get('test/evolution/qr', [EvolutionQrController::class, 'show'])->name('test.evolution.qr');
         Route::get('auditoria', [AuditLogController::class, 'index'])->name('auditoria.index');
     });
 });

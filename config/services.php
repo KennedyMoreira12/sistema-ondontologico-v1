@@ -83,13 +83,6 @@ return [
          */
         'admin_key' => env('EVOLUTION_API_KEY'),
 
-        /**
-         * Legado: consumido por `Api\EvolutionQrController`, que existe apenas
-         * no servidor. Mantido apontando para a mesma chave administrativa para
-         * não quebrar aquele fluxo; código novo deve usar `admin_key`.
-         */
-        'api_key' => env('EVOLUTION_API_KEY'),
-
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
         'timeout' => (int) env('EVOLUTION_API_TIMEOUT', 30),
     ],
