@@ -61,9 +61,16 @@ return new class extends Migration
             return;
         }
 
+        $padrao = $coluna->column_default;
+
+        // MariaDB devolve a string "NULL" (não null) para uma coluna
+        // `timestamp NULL DEFAULT NULL`; interpolar isso geraria
+        // `DEFAULT 'NULL'`, que o servidor recusa com erro 1067.
+        $padraoNulo = $padrao === null || strtoupper((string) $padrao) === 'NULL';
+
         $definicao = $coluna->column_type
             .($coluna->is_nullable === 'YES' ? ' NULL' : ' NOT NULL')
-            .($coluna->column_default === null ? ' DEFAULT NULL' : " DEFAULT '{$coluna->column_default}'");
+            .($padraoNulo ? ' DEFAULT NULL' : " DEFAULT '{$padrao}'");
 
         if ($comOnUpdate) {
             $definicao .= ' ON UPDATE CURRENT_TIMESTAMP';
