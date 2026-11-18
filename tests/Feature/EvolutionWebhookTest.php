@@ -177,6 +177,38 @@ class EvolutionWebhookTest extends TestCase
         Http::assertSent(fn (Request $request) => $request->hasHeader('X-N8n-Token', 'segredo-do-n8n'));
     }
 
+    /**
+     * Duas clínicas não podem compartilhar o mesmo workflow: a credencial de
+     * integração mora nele, e `/api/whatsapp/*` resolve a clínica PELO token.
+     * Se a mensagem da segunda caísse no workflow da primeira, a resposta
+     * sairia no banco e no WhatsApp da clínica errada.
+     */
+    public function test_clinica_com_webhook_proprio_nao_cai_no_workflow_global(): void
+    {
+        Http::fake([
+            'https://n8n.test/*' => Http::response(['ok' => true], 200),
+        ]);
+
+        $clinica = $this->clinicaComEvolucao();
+        $clinica->update([
+            // Barra final de propósito: a URL gravada é normalizada antes do envio.
+            'n8n_webhook_url' => 'https://n8n.test/webhook/LJAtendimento05/hook/atendimento-clinica/',
+        ]);
+
+        $this->postJson(route('api.evolution.webhook.handle'), $this->payloadDeMensagem([
+            'instance' => $clinica->evolution_instance,
+            'apikey' => self::TOKEN_INSTANCIA,
+        ]), $this->comSegredo())
+            ->assertOk()
+            ->assertJsonPath('status', 'dispatched');
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://n8n.test/webhook/LJAtendimento05/hook/atendimento-clinica');
+
+        // O workflow global carrega a credencial de OUTRA clínica: a mensagem
+        // desta não pode chegar lá em hipótese alguma.
+        Http::assertNotSent(fn (Request $request) => $request->url() === 'https://n8n.test/webhook/evolucao');
+    }
+
     public function test_converte_segundos_do_whatsapp_sem_cair_em_1970(): void
     {
         Http::fake(['https://n8n.test/*' => Http::response([], 200)]);

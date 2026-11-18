@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable([
     'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
-    'evolution_instance', 'evolution_token',
+    'evolution_instance', 'evolution_token', 'n8n_webhook_url',
     'logo_path', 'primary_color', 'secondary_color',
     'frase_institucional', 'profissional_principal_id',
     'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',

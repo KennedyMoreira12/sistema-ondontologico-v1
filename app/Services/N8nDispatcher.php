@@ -45,7 +45,7 @@ class N8nDispatcher
      */
     public function dispatch(Clinic $clinic, WhatsAppMessage $mensagem, array $evento): void
     {
-        $url = rtrim((string) config('services.n8n.webhook_url'), '/');
+        $url = $this->webhookUrl($clinic);
 
         if ($url === '') {
             $this->marcarComoFalha($mensagem, N8nIndisponivel::semUrl());
@@ -88,6 +88,26 @@ class N8nDispatcher
         $this->marcarComoFalha($mensagem, $falha);
 
         throw $falha;
+    }
+
+    /**
+     * Webhook do workflow que atende ESTA clínica.
+     *
+     * `clinics.n8n_webhook_url` existe porque a credencial de integração mora
+     * no workflow, e o workflow é único por URL: duas clínicas apontando para o
+     * mesmo webhook usariam o token de uma delas, e a resposta da segunda
+     * sairia pelo banco e pelo WhatsApp da primeira. Sem coluna preenchida, o
+     * global do .env continua valendo — é o estado de quem tem um workflow só.
+     */
+    protected function webhookUrl(Clinic $clinic): string
+    {
+        $url = trim((string) $clinic->n8n_webhook_url);
+
+        if ($url === '') {
+            $url = (string) config('services.n8n.webhook_url');
+        }
+
+        return rtrim(trim($url), '/');
     }
 
     /**
