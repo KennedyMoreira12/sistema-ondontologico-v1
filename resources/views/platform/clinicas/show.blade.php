@@ -71,6 +71,11 @@
                     <dl class="row mb-3 small">
                         <dt class="col-4 text-muted">Número</dt>
                         <dd class="col-8 text-end mb-0" id="wa-numero">{{ $clinica->whatsapp ?: '—' }}</dd>
+
+                        <dt class="col-4 text-muted">Provisionamento</dt>
+                        <dd class="col-8 text-end mb-0" id="wa-provisionamento">
+                            {{ $clinica->whatsappProvisionado() ? 'Provisionado' : 'Ainda não provisionado' }}
+                        </dd>
                     </dl>
 
                     @if (auth()->user()->isSuperAdmin())
@@ -92,6 +97,11 @@
                         <button type="button" id="wa-atualizar" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-arrow-clockwise me-1"></i>Atualizar estado
                         </button>
+                        @if (auth()->user()->isSuperAdmin())
+                            <button type="button" id="wa-provisionar" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plug me-1"></i>Provisionar instância
+                            </button>
+                        @endif
                         <span id="wa-loading" class="text-muted small d-none">
                             <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Consultando…
                         </span>
@@ -403,6 +413,7 @@
         $whatsappConfig = [
             'statusUrl' => route('painel.clinicas.whatsapp.show', $clinica),
             'qrcodeUrl' => route('painel.clinicas.whatsapp.qrcode', $clinica),
+            'provisionarUrl' => route('painel.clinicas.whatsapp.provisionar', $clinica),
             'podeGerar' => auth()->user()->isSuperAdmin(),
         ];
     @endphp
@@ -423,6 +434,8 @@
             const input = document.getElementById('wa-numero-input');
             const btnGerar = document.getElementById('wa-gerar');
             const btnAtualizar = document.getElementById('wa-atualizar');
+            const btnProvisionar = document.getElementById('wa-provisionar');
+            const provisionamentoEl = document.getElementById('wa-provisionamento');
             const loading = document.getElementById('wa-loading');
             const erro = document.getElementById('wa-erro');
             const info = document.getElementById('wa-info');
@@ -456,6 +469,28 @@
                 loading?.classList.toggle('d-none', ! ativo);
                 if (btnGerar) { btnGerar.disabled = ativo; }
                 if (btnAtualizar) { btnAtualizar.disabled = ativo; }
+                if (btnProvisionar) { btnProvisionar.disabled = ativo; }
+            }
+
+            const rotulosPendencia = {
+                instancia: 'instância',
+                webhook: 'webhook',
+                roteamento_n8n: 'destino do n8n',
+                conexao: 'conexão do número',
+            };
+
+            function descreverProvisionamento(data) {
+                if (! data.provisionado) {
+                    return 'Ainda não provisionado';
+                }
+
+                if (data.pronto) {
+                    return 'Pronto para atender';
+                }
+
+                const pendencias = (data.pendencias || []).map((item) => rotulosPendencia[item] || item);
+
+                return pendencias.length ? 'Falta: ' + pendencias.join(', ') : 'Provisionado';
             }
 
             function aplicarEstado(data) {
@@ -469,6 +504,10 @@
 
                 if (numeroEl) {
                     numeroEl.textContent = data.numero || '—';
+                }
+
+                if (provisionamentoEl && (data.provisionado !== undefined || data.pendencias)) {
+                    provisionamentoEl.textContent = descreverProvisionamento(data);
                 }
 
                 if (data.qrcode && qrImg && qrArea) {
@@ -547,7 +586,25 @@
                 }
             }
 
+            async function provisionar() {
+                carregando(true);
+                limpar();
+                qrArea?.classList.add('d-none');
+
+                try {
+                    const data = await pedir(config.provisionarUrl, { method: 'POST' });
+
+                    await atualizar();
+                    mostrarInfo(data.mensagem || 'Instância provisionada.');
+                } catch (e) {
+                    mostrarErro(e.message);
+                } finally {
+                    carregando(false);
+                }
+            }
+
             btnAtualizar?.addEventListener('click', atualizar);
+            btnProvisionar?.addEventListener('click', provisionar);
             form?.addEventListener('submit', gerar);
 
             atualizar();

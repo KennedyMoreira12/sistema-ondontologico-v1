@@ -21,10 +21,8 @@ use Illuminate\Support\Facades\Log;
  * sem abrir o banco de ninguém.
  *
  * O plano é lido pela ASSINATURA (`latestSubscription`), como faz o
- * `CheckPlanFeature`, e não por `Clinic::hasFeature()` — aquele método lê
- * `$this->currentPlan` como atributo e o Eloquent o resolve como relação,
- * estourando `LogicException`. A assinatura é a mesma fonte que já libera a
- * rota; usá-la aqui mantém a cota e o acesso decidindo pelo mesmo estado.
+ * `CheckPlanFeature`. A assinatura é a mesma fonte que já libera a rota;
+ * usá-la aqui mantém a cota e o acesso decidindo pelo mesmo estado.
  *
  * `reservar()` é o ponto delicado. Checar e depois incrementar em dois passos
  * deixaria duas requisições concorrentes passarem pelo mesmo "ainda há cota".

@@ -9,8 +9,10 @@ use App\Models\Central\TenantConnection;
 use App\Models\Central\User;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Services\WhatsApp\ClinicWhatsAppProvisioner;
 use App\Support\EvolutionToken;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -25,6 +27,7 @@ class TenantProvisioner
     public function __construct(
         protected TenantDatabaseProvisioner $databases,
         protected TenantDatabaseManager $connections,
+        protected ClinicWhatsAppProvisioner $whatsapp,
     ) {}
 
     /**
@@ -38,7 +41,7 @@ class TenantProvisioner
         $connection = null;
 
         try {
-            return DB::transaction(function () use ($attributes, $plan, &$connection): array {
+            $resultado = DB::transaction(function () use ($attributes, $plan, &$connection): array {
                 $clinic = Clinic::create([
                     'name' => $attributes['name'],
                     'legal_name' => $attributes['legal_name'] ?? null,
@@ -115,6 +118,37 @@ class TenantProvisioner
             $this->descartarBanco($connection);
 
             throw $exception;
+        }
+
+        /**
+         * O WhatsApp entra DEPOIS do commit, e não dentro da transação: são
+         * chamadas HTTP à Evolution, e segurar a transação do banco central
+         * aberta enquanto um terceiro responde trava o cadastro inteiro. Se a
+         * Evolution falhar, a clínica continua criada e o erro fica no cadastro
+         * para o painel mostrar e permitir repetir — derrubar o onboarding por
+         * causa de um serviço externo seria pior para quem está sendo cadastrado.
+         */
+        $this->provisionarWhatsApp($resultado['clinic']);
+
+        return $resultado;
+    }
+
+    /**
+     * Provisionamento best-effort do WhatsApp da clínica recém-criada.
+     *
+     * O serviço já registra a falha em `whatsapp_last_error`; o `catch` aqui é
+     * a última barreira para que nenhuma exceção inesperada derrube o cadastro
+     * que já foi gravado.
+     */
+    protected function provisionarWhatsApp(Clinic $clinic): void
+    {
+        try {
+            $this->whatsapp->provision($clinic);
+        } catch (Throwable $exception) {
+            Log::error('Falha inesperada ao provisionar o WhatsApp da clínica.', [
+                'clinic_id' => $clinic->id,
+                'erro' => $exception::class,
+            ]);
         }
     }
 

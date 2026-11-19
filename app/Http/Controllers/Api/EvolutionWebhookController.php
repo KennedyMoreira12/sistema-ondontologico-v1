@@ -9,6 +9,7 @@ use App\Http\Middleware\AuthenticateEvolutionWebhook;
 use App\Models\Central\Clinic;
 use App\Models\WhatsAppMessage;
 use App\Services\N8nDispatcher;
+use App\Services\WhatsApp\ClinicWhatsAppProvisioner;
 use App\Support\EvolutionPayload;
 use App\Support\WhatsAppDeliveryStatus;
 use App\Support\WhatsAppJid;
@@ -45,7 +46,10 @@ use Illuminate\Support\Facades\Log;
  */
 class EvolutionWebhookController extends Controller
 {
-    public function __construct(protected N8nDispatcher $n8n) {}
+    public function __construct(
+        protected N8nDispatcher $n8n,
+        protected ClinicWhatsAppProvisioner $whatsapp,
+    ) {}
 
     public function handle(Request $request): JsonResponse
     {
@@ -97,6 +101,26 @@ class EvolutionWebhookController extends Controller
             return response()->json(['status' => 'ignored'], 200);
         }
 
+        /**
+         * Atendimento automático só depois de o provisionamento estar completo:
+         * webhook configurado, conexão aberta e destino de n8n resolvido. Uma
+         * clínica provisionada mas ainda sem QR escaneado (ou sem roteamento)
+         * recebe a mensagem no WhatsApp e ela fica registrada só no aparelho —
+         * melhor do que o n8n responder por uma clínica que não está pronta e
+         * gravar paciente no banco errado.
+         *
+         * Clínicas anteriores a este fluxo (`whatsapp_provisioned_at` nulo)
+         * continuam como antes: nada aqui as bloqueia retroativamente.
+         */
+        if ($clinica->whatsappProvisionado() && ! $clinica->whatsappPronto()) {
+            Log::warning('Mensagem recebida antes de o WhatsApp da clínica estar ativado.', [
+                'clinic_id' => $clinica->id,
+                'pendencias' => $this->whatsapp->pendencias($clinica),
+            ]);
+
+            return response()->json(['status' => 'ignored', 'motivo' => 'whatsapp_nao_ativado'], 200);
+        }
+
         $chave = EvolutionPayload::chave($payload);
 
         if ($chave === null) {
@@ -132,8 +156,17 @@ class EvolutionWebhookController extends Controller
         try {
             $this->n8n->dispatch($clinica, $mensagem, ['nome' => $evento]);
         } catch (N8nIndisponivel $falha) {
+            /**
+             * O roteamento faz parte da ativação: uma falha aqui é o que o
+             * painel precisa mostrar em `whatsapp_last_error`, senão o operador
+             * só descobre quando o paciente reclama que ninguém respondeu.
+             */
+            $this->whatsapp->registrarErro($clinica, 'Falha ao entregar a mensagem ao n8n.');
+
             return response()->json(['status' => 'stored'], $falha->recuperavel ? 503 : 200);
         }
+
+        $this->whatsapp->limparErro($clinica);
 
         return response()->json(['status' => 'dispatched'], 200);
     }
@@ -271,12 +304,12 @@ class EvolutionWebhookController extends Controller
     }
 
     /**
-     * Eventos que não são mensagem ficam no log, e é só isso.
+     * Eventos que não são mensagem ficam no log e, no caso da conexão, no
+     * cadastro da clínica.
      *
      * `CONNECTION_UPDATE` é o que responde "por que a clínica parou de receber
-     * mensagem", e essa resposta hoje é o log: o painel ainda não mostra o estado
-     * do WhatsApp. Quando mostrar, o lugar de ler é daqui, não de um segundo
-     * webhook.
+     * mensagem": o estado vai para `clinics.whatsapp_status`, que o painel e o
+     * comando de monitoramento leem. Sem isso a resposta ficaria só no log.
      */
     protected function registrarEventoSemMensagem(Clinic $clinica, string $evento, array $payload): void
     {
@@ -295,5 +328,16 @@ class EvolutionWebhookController extends Controller
             'instance' => $clinica->evolution_instance,
             'connection' => $payload['data']['connection'] ?? null,
         ]);
+
+        /**
+         * `CONNECTION_UPDATE` é a fonte em tempo real do estado: sem gravar
+         * aqui, a clínica que cai fica marcada como conectada até alguém abrir o
+         * painel. `state` é o campo da 2.x e `connection` o das anteriores.
+         */
+        if ($evento === 'CONNECTION_UPDATE') {
+            $estado = $payload['data']['state'] ?? $payload['data']['connection'] ?? null;
+
+            $this->whatsapp->registrarConexao($clinica, is_string($estado) && $estado !== '' ? $estado : null);
+        }
     }
 }

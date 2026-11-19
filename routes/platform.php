@@ -56,6 +56,9 @@ Route::prefix('painel')->name('painel.')->group(function (): void {
              * repetível.
              */
             Route::get('{clinic}/whatsapp', [ClinicWhatsAppController::class, 'show'])->name('whatsapp.show');
+            Route::post('{clinic}/whatsapp/provisionar', [ClinicWhatsAppController::class, 'provisionar'])
+                ->middleware('throttle:10,1')
+                ->name('whatsapp.provisionar');
             Route::post('{clinic}/whatsapp/qrcode', [ClinicWhatsAppController::class, 'qrcode'])
                 ->middleware('throttle:10,1')
                 ->name('whatsapp.qrcode');

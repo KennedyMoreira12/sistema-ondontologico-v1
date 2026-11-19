@@ -23,7 +23,10 @@ use Throwable;
  */
 class WhatsAppHealth
 {
-    public function __construct(protected EvolutionService $evolution) {}
+    public function __construct(
+        protected EvolutionService $evolution,
+        protected ClinicWhatsAppProvisioner $whatsapp,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -39,6 +42,7 @@ class WhatsAppHealth
             'checked_at' => now()->toIso8601String(),
             'outbox' => $this->outboxResumo(),
             'messages' => $this->mensagensResumo(),
+            'provisioning' => $this->provisionamento($clinic),
             'connection' => null,
         ];
 
@@ -47,6 +51,30 @@ class WhatsAppHealth
         }
 
         return $snapshot;
+    }
+
+    /**
+     * Estado do provisionamento, lido só do banco central.
+     *
+     * Não chama a Evolution: é o que a tela e o `whatsapp:health` mostram mesmo
+     * com o terceiro fora do ar. `pendencias` diz exatamente o que falta para o
+     * atendimento poder ser ativado.
+     *
+     * @return array<string, mixed>
+     */
+    protected function provisionamento(Clinic $clinic): array
+    {
+        return [
+            'contratado' => $clinic->contrataWhatsApp(),
+            'provisionado' => $clinic->whatsappProvisionado(),
+            'pronto' => $clinic->whatsappPronto(),
+            'status' => $clinic->whatsapp_status,
+            'status_at' => $clinic->whatsapp_status_at?->toIso8601String(),
+            'webhook_configured_at' => $clinic->whatsapp_webhook_configured_at?->toIso8601String(),
+            'connected_at' => $clinic->whatsapp_connected_at?->toIso8601String(),
+            'last_error' => $clinic->whatsapp_last_error,
+            'pendencias' => $this->whatsapp->pendencias($clinic),
+        ];
     }
 
     /**

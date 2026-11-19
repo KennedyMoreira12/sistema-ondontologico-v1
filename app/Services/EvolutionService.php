@@ -176,6 +176,96 @@ class EvolutionService
     }
 
     /**
+     * Cria uma instância na Evolution. Requer a chave administrativa.
+     *
+     * `qrcode: false` de propósito: o QR é gerado só quando o responsável pedir,
+     * na tela da clínica. Criar já com QR produz um código que expira antes de
+     * alguém escanear e enche o log da Evolution sem necessidade.
+     *
+     * @return array<string, mixed>
+     */
+    public function createInstance(string $name): array
+    {
+        $response = $this->adminRequest()
+            ->post($this->url('/instance/create'), [
+                'instanceName' => $name,
+                'integration' => 'WHATSAPP-BAILEYS',
+                'qrcode' => false,
+            ]);
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
+     * Instâncias conhecidas pela Evolution. Requer a chave administrativa.
+     *
+     * É como o provisionador descobre se a instância já existe — adotar em vez
+     * de recriar evita perder o token de uma instância que já está pareada.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function fetchInstances(): array
+    {
+        $response = $this->adminRequest()->get($this->url('/instance/fetchInstances'));
+
+        $response->throw();
+
+        $data = $this->json($response);
+
+        return array_is_list($data) ? $data : [];
+    }
+
+    /**
+     * Configura o webhook de UMA instância.
+     *
+     * Usa a chave administrativa porque é operação de provisionamento, não de
+     * atendimento: o token da instância ainda pode não estar disponível quando a
+     * configuração é reaplicada.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function setWebhook(Clinic $clinic, array $payload): array
+    {
+        if (! $clinic->hasEvolutionIntegration()) {
+            throw EvolutionIndisponivel::semIntegracao($clinic->name);
+        }
+
+        $response = $this->adminRequest()
+            ->post($this->url("/webhook/set/{$clinic->evolution_instance}"), $payload);
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
+     * Base da requisição ADMINISTRATIVA (chave global).
+     *
+     * A chave global só é usada para criar, listar e configurar webhook — nunca
+     * para enviar mensagem. Um erro de digitação aqui não pode virar "mandar
+     * mensagem em nome de outra clínica".
+     */
+    protected function adminRequest(): PendingRequest
+    {
+        if (rtrim((string) config('services.evolution.url'), '/') === '') {
+            throw EvolutionIndisponivel::semUrl();
+        }
+
+        $chave = (string) config('services.evolution.admin_key');
+
+        if (trim($chave) === '') {
+            throw EvolutionIndisponivel::semChaveAdministrativa();
+        }
+
+        return Http::timeout((int) config('services.evolution.timeout', 30))
+            ->acceptJson()
+            ->withHeaders(['apikey' => $chave]);
+    }
+
+    /**
      * Base da requisição já com o `apikey` da clínica e o timeout da config.
      */
     protected function request(Clinic $clinic): PendingRequest

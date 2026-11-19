@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'name', 'legal_name', 'document', 'email', 'phone', 'whatsapp',
     'evolution_instance', 'evolution_token', 'n8n_webhook_url',
+    'whatsapp_status', 'whatsapp_status_at', 'whatsapp_last_error',
+    'whatsapp_provisioned_at', 'whatsapp_webhook_configured_at', 'whatsapp_connected_at',
     'logo_path', 'primary_color', 'secondary_color',
     'frase_institucional', 'profissional_principal_id',
     'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',
@@ -57,6 +59,18 @@ class Clinic extends CentralModel
              * que mantém o dump do banco central inútil sozinho.
              */
             'evolution_token' => 'encrypted',
+
+            /**
+             * Estado do provisionamento do WhatsApp. As datas são a prova de
+             * cada etapa: o webhook configurado, a conexão aberta e o momento em
+             * que a instância foi criada/adotada. `whatsapp_connected_at` é
+             * zerada quando a conexão cai, para `whatsappPronto()` não liberar
+             * atendimento de uma clínica desconectada.
+             */
+            'whatsapp_status_at' => 'datetime',
+            'whatsapp_provisioned_at' => 'datetime',
+            'whatsapp_webhook_configured_at' => 'datetime',
+            'whatsapp_connected_at' => 'datetime',
         ];
     }
 
@@ -143,12 +157,12 @@ class Clinic extends CentralModel
 
     public function hasFeature(string $feature): bool
     {
-        return $this->currentPlan?->hasFeature($feature) ?? false;
+        return $this->currentPlan()?->hasFeature($feature) ?? false;
     }
 
     public function featureLimit(string $feature, ?string $key = null): mixed
     {
-        $limits = $this->currentPlan?->featureLimits($feature) ?? [];
+        $limits = $this->currentPlan()?->featureLimits($feature) ?? [];
 
         return $key === null ? $limits : ($limits[$key] ?? null);
     }
@@ -193,6 +207,47 @@ class Clinic extends CentralModel
             && $this->evolution_token !== null
             && $this->evolution_instance !== ''
             && $this->evolution_token !== '';
+    }
+
+    /**
+     * O plano em vigor vende o recurso WhatsApp?
+     *
+     * É a porta do provisionamento automático: clínica sem o recurso não ganha
+     * instância na Evolution, porque uma instância sem plano seria um número
+     * pareado que o sistema não pode atender.
+     */
+    public function contrataWhatsApp(): bool
+    {
+        return $this->hasFeature('whatsapp');
+    }
+
+    /**
+     * Esta clínica passou pelo provisionamento automático?
+     *
+     * Clínicas anteriores a ele têm a data nula e seguem o comportamento
+     * antigo — nada as bloqueia retroativamente. Só quem foi provisionado pelo
+     * fluxo novo precisa cumprir as etapas abaixo antes de atender.
+     */
+    public function whatsappProvisionado(): bool
+    {
+        return $this->whatsapp_provisioned_at !== null;
+    }
+
+    /**
+     * O atendimento automático desta clínica pode receber mensagem?
+     *
+     * Exige TODAS as etapas, e não uma bandeira gravada no fim: instância e
+     * token, webhook apontando para esta aplicação, conexão aberta e destino de
+     * n8n. Se o número cair, `whatsapp_connected_at` é zerada pelo monitoramento
+     * e esta resposta volta a ser `false` sozinha.
+     */
+    public function whatsappPronto(): bool
+    {
+        return $this->whatsappProvisionado()
+            && $this->whatsapp_webhook_configured_at !== null
+            && $this->whatsapp_connected_at !== null
+            && trim((string) $this->n8n_webhook_url) !== ''
+            && $this->hasEvolutionIntegration();
     }
 
     /**

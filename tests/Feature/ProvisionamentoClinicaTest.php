@@ -11,8 +11,10 @@ use App\Services\Tenant\TenantDatabaseManager;
 use App\Services\Tenant\TenantManager;
 use App\Services\Tenant\TenantProvisioner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -308,6 +310,78 @@ class ProvisionamentoClinicaTest extends TestCase
         ['clinic' => $clinica] = $this->provisionar();
 
         $this->assertNull($clinica->fresh()->evolution_instance);
+    }
+
+    public function test_provisiona_o_whatsapp_automaticamente_quando_o_plano_inclui(): void
+    {
+        /**
+         * O cadastro é a única entrada: com o plano incluindo WhatsApp, o
+         * provisionador precisa criar a instância, gravar o token, configurar o
+         * webhook com o token DESTA clínica e resolver o destino do n8n — sem
+         * ninguém abrir o painel depois.
+         */
+        Config::set('services.evolution.url', 'http://evolution.test');
+        Config::set('services.evolution.admin_key', 'chave-administrativa');
+        Config::set('services.evolution.webhook_secret', 'segredo-do-webhook');
+        Config::set('services.evolution.webhook_url', 'https://app.test/api/evolution/webhook');
+        Config::set('services.n8n.clinic_webhook_template', 'https://n8n.test/webhook/{instance}/hook/atendimento');
+
+        Http::fake([
+            'evolution.test/instance/fetchInstances' => Http::response([], 200),
+            'evolution.test/instance/create' => Http::response([
+                'instance' => ['instanceName' => 'criada', 'instanceId' => 'uuid-1', 'status' => 'close'],
+                'hash' => ['apikey' => 'token-da-aurora'],
+            ], 201),
+            'evolution.test/webhook/set/*' => Http::response(['webhook' => ['enabled' => true]], 200),
+            'evolution.test/instance/connectionState/*' => Http::response(['instance' => ['state' => 'close']], 200),
+        ]);
+
+        $plano = Plan::query()->create([
+            'name' => 'Premium',
+            'slug' => 'premium-'.uniqid(),
+            'monthly_price' => 450,
+            'trial_days' => 14,
+            'is_active' => true,
+        ]);
+
+        $plano->features()->create(['feature' => 'whatsapp', 'limits' => []]);
+
+        ['clinic' => $clinica] = $this->provisionar(plano: $plano);
+
+        $clinica->refresh();
+
+        $this->assertNotNull($clinica->evolution_instance);
+        $this->assertSame('token-da-aurora', $clinica->evolution_token);
+        $this->assertNotNull($clinica->whatsapp_provisioned_at);
+        $this->assertNotNull($clinica->whatsapp_webhook_configured_at);
+        $this->assertSame(
+            'https://n8n.test/webhook/'.$clinica->evolution_instance.'/hook/atendimento',
+            $clinica->n8n_webhook_url,
+        );
+
+        Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/set/'.$clinica->evolution_instance)
+            && ($request->data()['webhook']['headers']['apikey'] ?? null) === 'token-da-aurora'
+            && ($request->data()['webhook']['headers']['X-Evolution-Secret'] ?? null) === 'segredo-do-webhook');
+    }
+
+    public function test_plano_sem_whatsapp_nao_chama_a_evolution(): void
+    {
+        /**
+         * Provisionar é efeito colateral externo. Uma clínica cujo plano não
+         * vende WhatsApp não pode criar instância nem disparar HTTP: o cadastro
+         * tem de continuar funcionando com a Evolution fora do ar.
+         */
+        Http::preventStrayRequests();
+
+        ['clinic' => $clinica] = $this->provisionar();
+
+        $clinica->refresh();
+
+        $this->assertNull($clinica->evolution_instance);
+        $this->assertNull($clinica->whatsapp_provisioned_at);
+        $this->assertSame('nao_contratado', $clinica->whatsapp_status);
+
+        Http::assertNothingSent();
     }
 
     /**

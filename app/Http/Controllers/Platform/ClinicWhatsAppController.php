@@ -6,6 +6,7 @@ use App\Exceptions\EvolutionIndisponivel;
 use App\Http\Controllers\Controller;
 use App\Models\Central\Clinic;
 use App\Services\EvolutionService;
+use App\Services\WhatsApp\ClinicWhatsAppProvisioner;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,10 @@ use Throwable;
  */
 class ClinicWhatsAppController extends Controller
 {
-    public function __construct(protected EvolutionService $evolution) {}
+    public function __construct(
+        protected EvolutionService $evolution,
+        protected ClinicWhatsAppProvisioner $provisioner,
+    ) {}
 
     /**
      * Estado atual da conexão. Somente leitura: não dispara pareamento nem gera
@@ -49,11 +53,26 @@ class ClinicWhatsAppController extends Controller
             return $this->respostaDeFalha($clinic, $exception);
         }
 
+        /**
+         * O estado observado é gravado: é a mesma informação que o webhook
+         * `CONNECTION_UPDATE` e o comando de monitoramento persistem, e deixar
+         * o banco desatualizado faria `whatsappPronto()` liberar atendimento de
+         * uma instância que a tela acabou de ver fechada.
+         */
+        $this->provisioner->registrarConexao($clinic, $estado);
+
         return response()->json([
             'configurado' => true,
             'estado' => $estado,
             'conectado' => $estado === 'open',
             'numero' => $clinic->whatsapp,
+            'provisionado' => $clinic->whatsappProvisionado(),
+            'pronto' => $clinic->whatsappPronto(),
+            'status' => $clinic->whatsapp_status,
+            'pendencias' => $this->provisioner->pendencias($clinic),
+            'webhook_configurado' => $clinic->whatsapp_webhook_configured_at !== null,
+            'roteamento' => trim((string) $clinic->n8n_webhook_url) !== '',
+            'ultimo_erro' => $clinic->whatsapp_last_error,
         ]);
     }
 
@@ -88,6 +107,8 @@ class ClinicWhatsAppController extends Controller
 
         try {
             if ($this->estadoDaResposta($this->evolution->connectionState($clinic)) === 'open') {
+                $this->provisioner->registrarConexao($clinic, 'open');
+
                 return response()->json([
                     'estado' => 'open',
                     'conectado' => true,
@@ -106,6 +127,8 @@ class ClinicWhatsAppController extends Controller
                 'clinic_id' => $clinic->id,
             ]);
 
+            $this->provisioner->registrarErro($clinic, 'A Evolution API recusou a geração do QR Code.');
+
             return response()->json([
                 'estado' => null,
                 'mensagem' => 'A Evolution API recusou a solicitação. Tente novamente em instantes.',
@@ -115,6 +138,8 @@ class ClinicWhatsAppController extends Controller
         $base64 = $this->qrBase64($resposta);
 
         if ($base64 !== null) {
+            $this->provisioner->registrarConexao($clinic, 'connecting');
+
             return response()->json([
                 'estado' => 'connecting',
                 'conectado' => false,
@@ -124,6 +149,8 @@ class ClinicWhatsAppController extends Controller
         }
 
         if ($this->estadoDaResposta($resposta) === 'open') {
+            $this->provisioner->registrarConexao($clinic, 'open');
+
             return response()->json([
                 'estado' => 'open',
                 'conectado' => true,
@@ -132,10 +159,49 @@ class ClinicWhatsAppController extends Controller
             ]);
         }
 
+        $this->provisioner->registrarErro($clinic, 'A Evolution não devolveu um QR Code para a instância.');
+
         return response()->json([
             'estado' => null,
             'mensagem' => 'A Evolution não devolveu um QR Code. A instância pode precisar ser provisionada pelo procedimento administrativo.',
         ], 409);
+    }
+
+    /**
+     * Cria (ou reaplica) a instância, o token, o webhook e o roteamento n8n.
+     *
+     * Existe para dois casos: a clínica que foi cadastrada com a Evolution fora
+     * do ar — o provisionamento automático falhou e o operador repete sem
+     * recadastrar — e a que precisa reaplicar a configuração depois de uma
+     * mudança de domínio ou de segredo. É idempotente e nunca renomeia uma
+     * instância existente.
+     */
+    public function provisionar(Clinic $clinic): JsonResponse
+    {
+        $this->authorizePlatformAction();
+
+        $resultado = $this->provisioner->provision($clinic);
+        $clinic->refresh();
+
+        $http = match (true) {
+            $resultado['ok'] => 200,
+            in_array('plano_sem_whatsapp', $resultado['pendencias'], true) => 409,
+            default => 502,
+        };
+
+        return response()->json([
+            'ok' => $resultado['ok'],
+            'status' => $clinic->whatsapp_status,
+            'estado' => $resultado['estado'],
+            'conectado' => $clinic->whatsapp_connected_at !== null,
+            'provisionado' => $clinic->whatsappProvisionado(),
+            'pronto' => $clinic->whatsappPronto(),
+            'pendencias' => $resultado['pendencias'],
+            'numero' => $clinic->whatsapp,
+            'mensagem' => $resultado['ok']
+                ? 'Instância provisionada. Gere o QR Code para conectar o número.'
+                : ($resultado['erro'] ?? 'O plano desta clínica não inclui o WhatsApp.'),
+        ], $http);
     }
 
     /**
@@ -167,17 +233,33 @@ class ClinicWhatsAppController extends Controller
 
     /**
      * Traduz a falha sem devolver corpo de erro da Evolution nem segredo algum.
+     *
+     * A mensagem traduzida também é gravada em `whatsapp_last_error`: o painel
+     * precisa dizer "a Evolution recusou" na próxima vez que abrir, mesmo que
+     * ninguém esteja olhando o log na hora.
      */
     protected function respostaDeFalha(Clinic $clinic, Throwable $exception): JsonResponse
     {
+        [$mensagem, $http] = $this->traduzirFalha($clinic, $exception);
+
+        $this->provisioner->registrarErro($clinic, $mensagem);
+
+        return response()->json(['estado' => null, 'mensagem' => $mensagem], $http);
+    }
+
+    /**
+     * @return array{0: string, 1: int}
+     */
+    protected function traduzirFalha(Clinic $clinic, Throwable $exception): array
+    {
         if ($exception instanceof EvolutionIndisponivel) {
-            return response()->json(['estado' => null, 'mensagem' => $exception->getMessage()], 503);
+            return [$exception->getMessage(), 503];
         }
 
         if ($exception instanceof ConnectionException) {
             Log::error('Falha de rede ao falar com a Evolution API pelo painel.', ['clinic_id' => $clinic->id]);
 
-            return response()->json(['estado' => null, 'mensagem' => 'Não foi possível falar com a Evolution API agora. Tente novamente.'], 502);
+            return ['Não foi possível falar com a Evolution API agora. Tente novamente.', 502];
         }
 
         if ($exception instanceof RequestException) {
@@ -186,7 +268,7 @@ class ClinicWhatsAppController extends Controller
                 'status' => $exception->response?->status(),
             ]);
 
-            return response()->json(['estado' => null, 'mensagem' => 'A Evolution API recusou a solicitação.'], 502);
+            return ['A Evolution API recusou a solicitação.', 502];
         }
 
         Log::error('Erro inesperado ao consultar a Evolution API pelo painel.', [
@@ -194,7 +276,7 @@ class ClinicWhatsAppController extends Controller
             'erro' => $exception::class,
         ]);
 
-        return response()->json(['estado' => null, 'mensagem' => 'Erro ao consultar a Evolution API.'], 500);
+        return ['Erro ao consultar a Evolution API.', 500];
     }
 
     protected function authorizePlatformAction(): void

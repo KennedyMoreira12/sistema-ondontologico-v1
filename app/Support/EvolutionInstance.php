@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -71,5 +72,25 @@ final class EvolutionInstance
         $value = strtolower(trim($value));
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * Nome sugerido para a instância de uma clínica nova.
+     *
+     * O `id` entra porque nome de clínica se repete — duas "Clínica Sorriso" em
+     * cidades diferentes são plausíveis — e a Evolution recusa instância
+     * duplicada. O slug entra para o operador reconhecer a instância no painel
+     * da Evolution sem consultar o banco.
+     *
+     * O resultado respeita `PATTERN`: minúsculas, começa por letra, no máximo 60
+     * caracteres. A unicidade final é conferida pelo provisionador, que conhece
+     * as outras clínicas.
+     */
+    public static function suggest(int $clinicId, string $clinicName): string
+    {
+        $slug = Str::slug($clinicName);
+        $base = 'clinica-'.$clinicId.($slug !== '' ? '-'.$slug : '');
+
+        return rtrim(mb_substr($base, 0, 60), '-._');
     }
 }

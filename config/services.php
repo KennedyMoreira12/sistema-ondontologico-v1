@@ -84,6 +84,15 @@ return [
         'admin_key' => env('EVOLUTION_API_KEY'),
 
         'webhook_secret' => env('EVOLUTION_WEBHOOK_SECRET'),
+
+        /**
+         * URL pública desta aplicação que a Evolution chama. Existe separada do
+         * `APP_URL` porque o provisionamento monta o webhook NA Evolution: atrás
+         * de proxy, `route()` pode devolver um host interno que ela não alcança.
+         * Vazia = usar `route('api.evolution.webhook.handle')`.
+         */
+        'webhook_url' => env('EVOLUTION_WEBHOOK_URL'),
+
         'timeout' => (int) env('EVOLUTION_API_TIMEOUT', 30),
     ],
 
@@ -101,6 +110,20 @@ return [
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL'),
         'webhook_token' => env('N8N_WEBHOOK_TOKEN'),
+
+        /**
+         * Destino do atendimento de uma clínica NOVA, resolvido no
+         * provisionamento sem ninguém preencher a URL à mão.
+         *
+         * Cada clínica precisa do próprio workflow porque a credencial de
+         * integração mora nele; o template recebe `{instance}`, `{clinic_id}` e
+         * `{slug}` e o resultado é gravado em `clinics.n8n_webhook_url`. Vazio
+         * = nenhum destino automático: a clínica fica com o roteamento
+         * pendente e o atendimento não é ativado, em vez de cair no webhook
+         * global — que usaria a credencial de outra clínica.
+         */
+        'clinic_webhook_template' => env('N8N_CLINIC_WEBHOOK_TEMPLATE'),
+
         'timeout' => (int) env('N8N_WEBHOOK_TIMEOUT', 45),
     ],
 

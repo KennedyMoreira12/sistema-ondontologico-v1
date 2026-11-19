@@ -44,6 +44,19 @@ Schedule::command('whatsapp:lembretes')
     ->withoutOverlapping();
 
 /**
+ * Monitoramento da conexão do WhatsApp por clínica.
+ *
+ * O webhook `CONNECTION_UPDATE` mantém o estado em tempo real, mas ele não chega
+ * quando a Evolution reinicia, quando o webhook é removido ou quando a instância
+ * é recriada. Esta varredura cobre esses casos e é o que faz o painel mostrar
+ * "desconectado" em vez de continuar dizendo "conectado" para uma clínica que
+ * parou de receber mensagem.
+ */
+Schedule::command('whatsapp:clinicas:monitorar')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();
+
+/**
  * Central de notificações.
  *
  * A varredura lê o estado atual de cada clínica (contas, estoque, agenda,
