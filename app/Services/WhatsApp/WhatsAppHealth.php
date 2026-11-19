@@ -72,6 +72,12 @@ class WhatsAppHealth
             'status_at' => $clinic->whatsapp_status_at?->toIso8601String(),
             'webhook_configured_at' => $clinic->whatsapp_webhook_configured_at?->toIso8601String(),
             'connected_at' => $clinic->whatsapp_connected_at?->toIso8601String(),
+            'last_connected_at' => $clinic->whatsapp_last_connected_at?->toIso8601String(),
+            'current_state' => $clinic->whatsapp_current_state,
+            'current_state_at' => $clinic->whatsapp_current_state_at?->toIso8601String(),
+            'natureza' => $clinic->whatsappNatureza(),
+            'legacy' => $clinic->whatsappLegado() || $clinic->whatsappLegadoAdotado(),
+            'legacy_adotado' => $clinic->whatsappLegadoAdotado(),
             'last_error' => $clinic->whatsapp_last_error,
             'pendencias' => $this->whatsapp->pendencias($clinic),
         ];

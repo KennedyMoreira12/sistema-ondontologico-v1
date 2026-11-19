@@ -55,6 +55,28 @@ class ClinicWhatsAppProvisioner
 
     public const STATUS_ERRO = 'erro';
 
+    public const STATUS_DESCONHECIDO = 'desconhecido';
+
+    public const STATUS_ERRO_COMUNICACAO = 'erro_comunicacao';
+
+    public const STATUS_INSTANCIA_INEXISTENTE = 'instancia_inexistente';
+
+    public const STATUS_SEM_INTEGRACAO = 'sem_integracao';
+
+    public const ESTADO_OPEN = 'open';
+
+    public const ESTADO_CONNECTING = 'connecting';
+
+    public const ESTADO_CLOSE = 'close';
+
+    public const ESTADO_DESCONHECIDO = 'desconhecido';
+
+    public const ESTADO_ERRO_COMUNICACAO = 'erro_comunicacao';
+
+    public const ESTADO_INSTANCIA_INEXISTENTE = 'instancia_inexistente';
+
+    public const ESTADO_SEM_INTEGRACAO = 'sem_integracao';
+
     /**
      * Eventos que o webhook da instância recebe.
      *
@@ -203,9 +225,14 @@ class ClinicWhatsAppProvisioner
     public function refresh(Clinic $clinic): array
     {
         if (! $clinic->hasEvolutionIntegration()) {
-            $this->marcar($clinic, self::STATUS_AGUARDANDO_CONEXAO);
+            $this->registrarEstadoSemIntegracao($clinic);
 
-            return ['estado' => null, 'conectado' => false, 'erro' => null];
+            return [
+                'estado' => self::ESTADO_SEM_INTEGRACAO,
+                'conectado' => false,
+                'erro' => null,
+                'estado_atual' => self::ESTADO_SEM_INTEGRACAO,
+            ];
         }
 
         try {
@@ -213,16 +240,37 @@ class ClinicWhatsAppProvisioner
         } catch (Throwable $exception) {
             $mensagem = $this->mensagemSegura($exception);
 
-            $this->registrarErro($clinic, $mensagem);
+            if ($this->ehInstanciaInexistente($exception)) {
+                $this->registrarInstanciaInexistente($clinic, $mensagem);
 
-            return ['estado' => null, 'conectado' => false, 'erro' => $mensagem];
+                return [
+                    'estado' => self::ESTADO_INSTANCIA_INEXISTENTE,
+                    'conectado' => false,
+                    'erro' => $mensagem,
+                    'estado_atual' => self::ESTADO_INSTANCIA_INEXISTENTE,
+                ];
+            }
+
+            $this->registrarErroMonitoramento($clinic, $mensagem);
+
+            return [
+                'estado' => self::ESTADO_ERRO_COMUNICACAO,
+                'conectado' => false,
+                'erro' => $mensagem,
+                'estado_atual' => self::ESTADO_ERRO_COMUNICACAO,
+            ];
         }
 
         $estado = $this->estadoDaResposta($resposta);
 
         $this->registrarConexao($clinic, $estado);
 
-        return ['estado' => $estado, 'conectado' => $estado === 'open', 'erro' => null];
+        return [
+            'estado' => $estado ?? self::ESTADO_DESCONHECIDO,
+            'conectado' => $estado === self::ESTADO_OPEN,
+            'erro' => null,
+            'estado_atual' => $estado ?? self::ESTADO_DESCONHECIDO,
+        ];
     }
 
     /**
@@ -235,20 +283,36 @@ class ClinicWhatsAppProvisioner
      */
     public function registrarConexao(Clinic $clinic, ?string $estado): void
     {
-        $status = match ($estado) {
-            'open' => self::STATUS_CONECTADO,
-            'connecting' => self::STATUS_AGUARDANDO_CONEXAO,
-            'close' => self::STATUS_DESCONECTADO,
-            default => $clinic->whatsappProvisionado() ? self::STATUS_ERRO : self::STATUS_AGUARDANDO_CONEXAO,
+        $estado = is_string($estado) && $estado !== '' ? $estado : self::ESTADO_DESCONHECIDO;
+
+        [$status, $estadoAtual, $conectado] = match ($estado) {
+            self::ESTADO_OPEN => [self::STATUS_CONECTADO, self::ESTADO_OPEN, true],
+            self::ESTADO_CONNECTING => [self::STATUS_AGUARDANDO_CONEXAO, self::ESTADO_CONNECTING, false],
+            self::ESTADO_CLOSE => [self::STATUS_DESCONECTADO, self::ESTADO_CLOSE, false],
+            default => [self::STATUS_DESCONHECIDO, self::ESTADO_DESCONHECIDO, false],
         };
 
-        $clinic->forceFill([
+        $agora = now();
+
+        $dados = [
             'whatsapp_status' => $status,
-            'whatsapp_status_at' => now(),
-            'whatsapp_connected_at' => $estado === 'open'
-                ? ($clinic->whatsapp_connected_at ?? now())
+            'whatsapp_status_at' => $agora,
+            'whatsapp_current_state' => $estadoAtual,
+            'whatsapp_current_state_at' => $agora,
+            'whatsapp_connected_at' => $conectado
+                ? ($clinic->whatsapp_connected_at ?? $agora)
                 : null,
-        ])->save();
+        ];
+
+        if ($conectado) {
+            $dados['whatsapp_last_connected_at'] = $agora;
+            $dados['whatsapp_last_error'] = null;
+        } elseif ($clinic->whatsapp_last_connected_at === null
+            && $clinic->whatsapp_connected_at !== null) {
+            $dados['whatsapp_last_connected_at'] = $clinic->whatsapp_connected_at;
+        }
+
+        $clinic->forceFill($dados)->save();
     }
 
     /**
@@ -276,16 +340,97 @@ class ClinicWhatsAppProvisioner
      */
     public function limparErro(Clinic $clinic): void
     {
-        if ($clinic->whatsapp_last_error === null) {
+        if ($clinic->whatsapp_last_error === null
+            && $clinic->whatsapp_status !== self::STATUS_ERRO) {
             return;
         }
 
         $clinic->forceFill([
             'whatsapp_last_error' => null,
-            'whatsapp_status' => $clinic->whatsapp_connected_at !== null
+            'whatsapp_status' => $clinic->whatsapp_current_state === self::ESTADO_OPEN
                 ? self::STATUS_CONECTADO
                 : $clinic->whatsapp_status,
         ])->save();
+    }
+
+    /**
+     * Um webhook autenticado com mensagem é confirmação de conexão: a Evolution
+     * só entrega quando o número está aberto. Isso recupera o estado de uma
+     * clínica marcada como `erro_comunicacao` por falha transitória e permite
+     * que clínicas legadas voltem a atender na primeira mensagem real, sem
+     * exigir que o monitoramento tenha rodado antes.
+     */
+    public function confirmarConexaoPorMensagem(Clinic $clinic): void
+    {
+        if ($clinic->whatsapp_current_state === self::ESTADO_OPEN
+            && $clinic->whatsapp_connected_at !== null) {
+            return;
+        }
+
+        $this->registrarConexao($clinic, self::ESTADO_OPEN);
+    }
+
+    /**
+     * Falha de comunicação com a Evolution NÃO é desconexão.
+     *
+     * `whatsapp_connected_at` permanece como último horário conhecido e a data
+     * vai para `whatsapp_last_connected_at`; o que muda é o estado atual, que
+     * deixa de ser `open`. Assim o painel não mente e o histórico não some.
+     */
+    protected function registrarErroMonitoramento(Clinic $clinic, string $mensagem): void
+    {
+        $clinic->forceFill(array_merge($this->historicoAntesDaFalha($clinic), [
+            'whatsapp_status' => self::STATUS_ERRO_COMUNICACAO,
+            'whatsapp_status_at' => now(),
+            'whatsapp_current_state' => self::ESTADO_ERRO_COMUNICACAO,
+            'whatsapp_current_state_at' => now(),
+            'whatsapp_last_error' => mb_substr($mensagem, 0, 1000),
+        ]))->save();
+    }
+
+    protected function registrarInstanciaInexistente(Clinic $clinic, string $mensagem): void
+    {
+        $clinic->forceFill(array_merge($this->historicoAntesDaFalha($clinic), [
+            'whatsapp_status' => self::STATUS_INSTANCIA_INEXISTENTE,
+            'whatsapp_status_at' => now(),
+            'whatsapp_current_state' => self::ESTADO_INSTANCIA_INEXISTENTE,
+            'whatsapp_current_state_at' => now(),
+            'whatsapp_last_error' => mb_substr($mensagem, 0, 1000),
+        ]))->save();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function historicoAntesDaFalha(Clinic $clinic): array
+    {
+        if ($clinic->whatsapp_last_connected_at !== null
+            || $clinic->whatsapp_connected_at === null) {
+            return [];
+        }
+
+        return ['whatsapp_last_connected_at' => $clinic->whatsapp_connected_at];
+    }
+
+    protected function registrarEstadoSemIntegracao(Clinic $clinic): void
+    {
+        if ($clinic->whatsapp_current_state === self::ESTADO_SEM_INTEGRACAO
+            && $clinic->whatsapp_status === self::STATUS_SEM_INTEGRACAO) {
+            return;
+        }
+
+        $clinic->forceFill([
+            'whatsapp_status' => self::STATUS_SEM_INTEGRACAO,
+            'whatsapp_status_at' => now(),
+            'whatsapp_current_state' => self::ESTADO_SEM_INTEGRACAO,
+            'whatsapp_current_state_at' => now(),
+        ])->save();
+    }
+
+    protected function ehInstanciaInexistente(Throwable $exception): bool
+    {
+        return $exception instanceof RequestException
+            && $exception->response?->status() === 404;
     }
 
     /**
@@ -313,7 +458,8 @@ class ClinicWhatsAppProvisioner
             $pendencias[] = 'roteamento_n8n';
         }
 
-        if ($clinic->whatsapp_connected_at === null) {
+        if ($clinic->whatsapp_connected_at === null
+            || $clinic->whatsapp_current_state !== self::ESTADO_OPEN) {
             $pendencias[] = 'conexao';
         }
 
@@ -534,6 +680,144 @@ class ClinicWhatsAppProvisioner
             self::STATUS_DESCONECTADO => 'close',
             default => null,
         };
+    }
+
+    /**
+     * Prévia segura da migração de uma clínica legada.
+     *
+     * Só lê: não grava no banco, não cria instância, não troca token, não
+     * reaplica webhook e não toca no workflow do n8n. O relatório devolve ao
+     * operador exatamente o que será alterado e o que ficará intacto.
+     *
+     * @return array<string, mixed>
+     */
+    public function resumoLegado(Clinic $clinic, bool $verificarEvolution = true): array
+    {
+        $estadoEvolution = null;
+        $webhook = null;
+        $erroVerificacao = null;
+
+        if ($verificarEvolution) {
+            try {
+                $estadoEvolution = $this->estadoDaResposta($this->evolution->connectionState($clinic));
+            } catch (Throwable $exception) {
+                $erroVerificacao = $this->mensagemSegura($exception);
+            }
+
+            try {
+                $webhookBruto = $this->evolution->webhookConfig($clinic);
+                $webhookDados = is_array($webhookBruto['webhook'] ?? null) ? $webhookBruto['webhook'] : $webhookBruto;
+                $eventos = $webhookDados['events'] ?? [];
+
+                $webhook = [
+                    'enabled' => $webhookDados['enabled'] ?? null,
+                    'url' => is_string($webhookDados['url'] ?? null) ? $webhookDados['url'] : null,
+                    'eventos' => is_array($eventos) ? count($eventos) : 0,
+                ];
+            } catch (Throwable $exception) {
+                $erroVerificacao ??= $this->mensagemSegura($exception);
+            }
+        }
+
+        return [
+            'clinic_id' => $clinic->id,
+            'clinic' => $clinic->name,
+            'natureza' => $clinic->whatsappNatureza(),
+            'instance' => $clinic->evolution_instance,
+            'token_presente' => $clinic->hasEvolutionIntegration(),
+            'n8n_webhook_url' => $clinic->n8n_webhook_url,
+            'numero' => $clinic->whatsapp,
+            'estado_atual' => $clinic->whatsapp_current_state,
+            'estado_evolution' => $estadoEvolution,
+            'webhook' => $webhook,
+            'erro_verificacao' => $erroVerificacao,
+            'alteracoes_previstas' => [
+                'whatsapp_legacy_adotado_at',
+                'whatsapp_provisioned_at',
+                'whatsapp_current_state',
+                'whatsapp_webhook_configured_at se o webhook estiver ativo e apontando para esta aplicação',
+            ],
+            'preservados' => [
+                'evolution_instance',
+                'evolution_token',
+                'n8n_webhook_url',
+                'whatsapp',
+                'workflow do n8n',
+                'conexão da Evolution',
+            ],
+        ];
+    }
+
+    /**
+     * Adota uma clínica legada sem recriar nada.
+     *
+     * A marcacao so e gravada quando ha dados suficientes. O token, a instancia,
+     * o webhook e o workflow existentes nunca sao substituidos — a operacao
+     * apenas registra que a clínica passou a seguir o contrato novo.
+     *
+     * @return array{ok: bool, alterado: bool, motivo: ?string, resumo: array<string, mixed>}
+     */
+    public function adotarLegado(Clinic $clinic): array
+    {
+        $resumo = $this->resumoLegado($clinic);
+
+        if (! $clinic->whatsappLegado()) {
+            return ['ok' => true, 'alterado' => false, 'motivo' => 'nao_e_legada', 'resumo' => $resumo];
+        }
+
+        if (! $clinic->hasEvolutionIntegration()) {
+            return ['ok' => false, 'alterado' => false, 'motivo' => 'dados_incompletos', 'resumo' => $resumo];
+        }
+
+        if ($this->resolverDestinoN8n($clinic) === null) {
+            return ['ok' => false, 'alterado' => false, 'motivo' => 'roteamento_n8n', 'resumo' => $resumo];
+        }
+
+        $webhookAtivo = false;
+
+        if (is_array($resumo['webhook']) && ($resumo['webhook']['enabled'] ?? false) === true) {
+            $urlWebhook = $resumo['webhook']['url'] ?? null;
+
+            $webhookAtivo = is_string($urlWebhook)
+                && rtrim($urlWebhook, '/') === rtrim($this->urlDoWebhook(), '/');
+        }
+
+        $dados = [
+            'whatsapp_legacy_adotado_at' => now(),
+            'whatsapp_provisioned_at' => $clinic->whatsapp_provisioned_at ?? now(),
+        ];
+
+        if ($webhookAtivo && $clinic->whatsapp_webhook_configured_at === null) {
+            $dados['whatsapp_webhook_configured_at'] = now();
+        }
+
+        $clinic->forceFill($dados)->save();
+
+        $this->refresh($clinic);
+        $clinic->refresh();
+
+        return ['ok' => true, 'alterado' => true, 'motivo' => null, 'resumo' => $this->resumoLegado($clinic, false)];
+    }
+
+    /**
+     * Reverte apenas os marcadores internos da adocao.
+     *
+     * Nao apaga instancia, token, webhook, workflow nem historico de conexao.
+     *
+     * @return array{ok: bool, alterado: bool}
+     */
+    public function reverterAdocaoLegado(Clinic $clinic): array
+    {
+        if (! $clinic->whatsappLegadoAdotado()) {
+            return ['ok' => true, 'alterado' => false];
+        }
+
+        $clinic->forceFill([
+            'whatsapp_legacy_adotado_at' => null,
+            'whatsapp_provisioned_at' => null,
+        ])->save();
+
+        return ['ok' => true, 'alterado' => true];
     }
 
     /**

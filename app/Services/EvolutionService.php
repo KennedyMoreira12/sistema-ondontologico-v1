@@ -155,6 +155,29 @@ class EvolutionService
     }
 
     /**
+     * Configuração atual do webhook de UMA instância. Somente leitura.
+     *
+     * Usada na adoção de clínicas legadas para confirmar que o webhook já existe
+     * e aponta para esta aplicação, sem reaplicá-lo — reaplicar poderia trocar
+     * um segredo ou derrubar uma entrega em andamento.
+     *
+     * @return array<string, mixed>
+     */
+    public function webhookConfig(Clinic $clinic): array
+    {
+        if (! $clinic->hasEvolutionIntegration()) {
+            throw EvolutionIndisponivel::semIntegracao($clinic->name);
+        }
+
+        $response = $this->adminRequest()
+            ->get($this->url('/webhook/find/'.rawurlencode((string) $clinic->evolution_instance)));
+
+        $response->throw();
+
+        return $this->json($response);
+    }
+
+    /**
      * Inicia ou retoma o pareamento do WhatsApp da clínica e devolve o QR.
      *
      * `GET /instance/connect/{instance}` na Evolution 2.x responde conforme o

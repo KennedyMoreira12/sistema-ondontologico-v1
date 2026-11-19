@@ -74,7 +74,23 @@
 
                         <dt class="col-4 text-muted">Provisionamento</dt>
                         <dd class="col-8 text-end mb-0" id="wa-provisionamento">
-                            {{ $clinica->whatsappProvisionado() ? 'Provisionado' : 'Ainda não provisionado' }}
+                            @if ($clinica->whatsappLegadoAdotado())
+                                Legada migrada
+                            @elseif ($clinica->whatsappLegado())
+                                Legada (não migrada)
+                            @else
+                                {{ $clinica->whatsappProvisionado() ? 'Provisionado' : 'Ainda não provisionado' }}
+                            @endif
+                        </dd>
+
+                        <dt class="col-4 text-muted">Estado atual</dt>
+                        <dd class="col-8 text-end mb-0" id="wa-estado-atual">
+                            {{ $clinica->whatsapp_current_state ?: 'Não confirmado' }}
+                        </dd>
+
+                        <dt class="col-4 text-muted">Última conexão conhecida</dt>
+                        <dd class="col-8 text-end mb-0" id="wa-ultima-conexao">
+                            {{ $clinica->whatsapp_last_connected_at?->format('d/m/Y H:i') ?? '—' }}
                         </dd>
                     </dl>
 
@@ -436,13 +452,23 @@
             const btnAtualizar = document.getElementById('wa-atualizar');
             const btnProvisionar = document.getElementById('wa-provisionar');
             const provisionamentoEl = document.getElementById('wa-provisionamento');
+            const estadoAtualEl = document.getElementById('wa-estado-atual');
+            const ultimaConexaoEl = document.getElementById('wa-ultima-conexao');
             const loading = document.getElementById('wa-loading');
             const erro = document.getElementById('wa-erro');
             const info = document.getElementById('wa-info');
             const qrArea = document.getElementById('wa-qr');
             const qrImg = document.getElementById('wa-qr-img');
 
-            const rotulos = { open: 'Conectado', connecting: 'Aguardando leitura', close: 'Desconectado' };
+            const rotulos = {
+                open: 'Conectado',
+                connecting: 'Aguardando leitura',
+                close: 'Desconectado',
+                desconhecido: 'Sem confirmação',
+                erro_comunicacao: 'Erro ao consultar a Evolution',
+                instancia_inexistente: 'Instância inexistente',
+                sem_integracao: 'Sem instância configurada',
+            };
 
             function limpar() {
                 erro?.classList.add('d-none');
@@ -480,6 +506,14 @@
             };
 
             function descreverProvisionamento(data) {
+                if (data.legado && ! data.legado_adotado) {
+                    return 'Legada (não migrada)';
+                }
+
+                if (data.legado_adotado) {
+                    return 'Legada migrada';
+                }
+
                 if (! data.provisionado) {
                     return 'Ainda não provisionado';
                 }
@@ -498,8 +532,26 @@
                 const conectado = data.conectado === true || estado === 'open';
 
                 if (badge) {
-                    badge.textContent = estado ? (rotulos[estado] || 'Desconhecido') : 'Não configurado';
-                    badge.className = 'badge bg-' + (conectado ? 'success' : (estado === 'connecting' ? 'warning text-dark' : 'secondary'));
+                    const rotuloEstado = data.status || estado;
+                    badge.textContent = rotuloEstado
+                        ? (rotulos[rotuloEstado] || rotulos[estado] || 'Sem confirmação')
+                        : 'Não configurado';
+
+                    const classe = conectado
+                        ? 'success'
+                        : (estado === 'connecting' ? 'warning text-dark'
+                            : (['erro_comunicacao', 'instancia_inexistente', 'close'].includes(estado) ? 'danger' : 'secondary'));
+                    badge.className = 'badge bg-' + classe;
+                }
+
+                if (estadoAtualEl) {
+                    estadoAtualEl.textContent = rotulos[estado] || (estado ? estado : 'Não confirmado');
+                }
+
+                if (ultimaConexaoEl) {
+                    ultimaConexaoEl.textContent = data.ultima_conexao
+                        ? new Date(data.ultima_conexao).toLocaleString('pt-BR')
+                        : '—';
                 }
 
                 if (numeroEl) {

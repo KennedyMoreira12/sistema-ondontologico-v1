@@ -21,7 +21,7 @@ use Illuminate\Console\Command;
 class MonitorarWhatsAppClinicasCommand extends Command
 {
     protected $signature = 'whatsapp:clinicas:monitorar
-        {--clinic= : ID de uma clínica específica (padrão: todas com instância)}
+        {--clinic= : ID de uma clínica específica (padrão: todas as ativas)}
         {--json : Imprimir o resultado em JSON}';
 
     protected $description = 'Consulta a conexão do WhatsApp de cada clínica e registra queda e erros';
@@ -30,14 +30,12 @@ class MonitorarWhatsAppClinicasCommand extends Command
     {
         $clinicas = Clinic::query()
             ->where('is_active', true)
-            ->whereNotNull('evolution_instance')
-            ->whereNotNull('evolution_token')
             ->when($this->option('clinic'), fn ($query, $id) => $query->whereKey($id))
             ->orderBy('id')
             ->get();
 
         if ($clinicas->isEmpty()) {
-            $this->components->warn('Nenhuma clínica ativa com instância da Evolution configurada.');
+            $this->components->warn('Nenhuma clínica ativa para monitorar.');
 
             return self::SUCCESS;
         }
@@ -53,8 +51,11 @@ class MonitorarWhatsAppClinicasCommand extends Command
                 'clinic_id' => $clinica->id,
                 'instance' => $clinica->evolution_instance,
                 'estado' => $estado['estado'],
+                'estado_atual' => $clinica->whatsapp_current_state,
                 'status' => $clinica->whatsapp_status,
                 'pronto' => $clinica->whatsappPronto(),
+                'ultima_conexao' => $clinica->whatsapp_last_connected_at?->toIso8601String(),
+                'confirmado_em' => $clinica->whatsapp_current_state_at?->toIso8601String(),
                 'pendencias' => $provisioner->pendencias($clinica),
                 'erro' => $estado['erro'],
             ];
@@ -71,12 +72,13 @@ class MonitorarWhatsAppClinicasCommand extends Command
         }
 
         $this->table(
-            ['Clínica', 'Instância', 'Conexão', 'Status', 'Atende', 'Pendências', 'Erro'],
+            ['Clínica', 'Instância', 'Estado atual', 'Status', 'Última conexão', 'Atende', 'Pendências', 'Erro'],
             array_map(fn (array $linha): array => [
                 $linha['clinic_id'],
                 $linha['instance'] ?? '—',
-                $linha['estado'] ?? '—',
+                $linha['estado_atual'] ?? '—',
                 $linha['status'] ?? '—',
+                $linha['ultima_conexao'] ?? '—',
                 $linha['pronto'] ? 'sim' : 'não',
                 $linha['pendencias'] === [] ? '—' : implode(', ', $linha['pendencias']),
                 $linha['erro'] ?? '—',

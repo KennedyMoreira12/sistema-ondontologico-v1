@@ -90,6 +90,9 @@ class EvolutionWebhookController extends Controller
          * paciente receber resposta repetida.
          */
         if ($evento === EvolutionPayload::EVENTO_STATUS) {
+            $this->whatsapp->confirmarConexaoPorMensagem($clinica);
+            $clinica->refresh();
+
             $atualizadas = $this->atualizarStatus($payload, is_string($correlationId) ? $correlationId : null);
 
             return response()->json(['status' => 'status_updated', 'updated' => $atualizadas], 200);
@@ -112,6 +115,9 @@ class EvolutionWebhookController extends Controller
          * Clínicas anteriores a este fluxo (`whatsapp_provisioned_at` nulo)
          * continuam como antes: nada aqui as bloqueia retroativamente.
          */
+        $this->whatsapp->confirmarConexaoPorMensagem($clinica);
+        $clinica->refresh();
+
         if ($clinica->whatsappProvisionado() && ! $clinica->whatsappPronto()) {
             Log::warning('Mensagem recebida antes de o WhatsApp da clínica estar ativado.', [
                 'clinic_id' => $clinica->id,

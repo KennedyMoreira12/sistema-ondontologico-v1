@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'evolution_instance', 'evolution_token', 'n8n_webhook_url',
     'whatsapp_status', 'whatsapp_status_at', 'whatsapp_last_error',
     'whatsapp_provisioned_at', 'whatsapp_webhook_configured_at', 'whatsapp_connected_at',
+    'whatsapp_last_connected_at', 'whatsapp_current_state', 'whatsapp_current_state_at',
+    'whatsapp_legacy_adotado_at',
     'logo_path', 'primary_color', 'secondary_color',
     'frase_institucional', 'profissional_principal_id',
     'status', 'vertical', 'verticals', 'timezone', 'is_active', 'trial_ends_at',
@@ -71,6 +73,9 @@ class Clinic extends CentralModel
             'whatsapp_provisioned_at' => 'datetime',
             'whatsapp_webhook_configured_at' => 'datetime',
             'whatsapp_connected_at' => 'datetime',
+            'whatsapp_last_connected_at' => 'datetime',
+            'whatsapp_current_state_at' => 'datetime',
+            'whatsapp_legacy_adotado_at' => 'datetime',
         ];
     }
 
@@ -246,8 +251,48 @@ class Clinic extends CentralModel
         return $this->whatsappProvisionado()
             && $this->whatsapp_webhook_configured_at !== null
             && $this->whatsapp_connected_at !== null
+            /**
+             * A data antiga é histórico, não confirmação. Sem o estado atual
+             * confirmado, uma falha transitória da Evolution poderia manter
+             * `pronto=true` e fazer o atendimento acreditar numa conexão que
+             * ninguém confirmou.
+             */
+            && $this->whatsapp_current_state === 'open'
             && trim((string) $this->n8n_webhook_url) !== ''
             && $this->hasEvolutionIntegration();
+    }
+
+    /**
+     * Clínica anterior ao provisionamento automático.
+     *
+     * `whatsapp_legacy_adotado_at` distingue a legada já adotada da que nunca
+     * passou pelo comando de migração individual.
+     */
+    public function whatsappLegado(): bool
+    {
+        return $this->whatsapp_provisioned_at === null
+            && ($this->evolution_instance !== null || $this->evolution_token !== null);
+    }
+
+    public function whatsappLegadoAdotado(): bool
+    {
+        return $this->whatsapp_legacy_adotado_at !== null;
+    }
+
+    /**
+     * Classificação exibida no painel: legada, legada adotada ou provisionada.
+     */
+    public function whatsappNatureza(): string
+    {
+        if ($this->whatsappLegadoAdotado()) {
+            return 'legada_adotada';
+        }
+
+        if ($this->whatsappLegado()) {
+            return 'legada';
+        }
+
+        return $this->whatsappProvisionado() ? 'provisionada' : 'sem_integracao';
     }
 
     /**
