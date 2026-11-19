@@ -34,6 +34,7 @@ use App\Services\WhatsApp\RespostasRapidas;
 use App\Services\WhatsApp\Triagem;
 use App\Services\WhatsApp\WhatsAppHealth;
 use App\Support\WhatsAppDeliveryStatus;
+use App\Support\WhatsAppJid;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Client\ConnectionException;
@@ -112,7 +113,7 @@ class WhatsAppController extends Controller
     public function enviarMensagem(Request $request): JsonResponse
     {
         $validated = Validator::make($request->all(), [
-            'telefone' => ['required', 'string', 'max:20'],
+            'telefone' => ['required', 'string', 'max:64'],
             'texto' => ['required', 'string', 'max:4096'],
             // Opcional: um reenvio do n8n com a mesma chave não gera segunda
             // mensagem. Sem ela, cada chamada é uma mensagem nova, como antes.
@@ -120,6 +121,13 @@ class WhatsAppController extends Controller
         ])->validate();
 
         $clinica = $this->tenants->require();
+
+        // O n8n manda o telefone que veio do JID. Um grupo chega aqui como id de
+        // 18–19 dígitos; sem esta barreira ele entraria na outbox como se fosse
+        // um número e a Evolution recusaria (ou pior, entregaria no lugar errado).
+        if (! WhatsAppJid::ehTelefone($validated['telefone'])) {
+            return $this->destinoInvalido();
+        }
 
         $correlationId = $request->attributes->get(AssignCorrelationId::ATTRIBUTE);
 
@@ -619,6 +627,12 @@ class WhatsAppController extends Controller
         $clinica = $this->tenants->require();
         $texto = $validated['texto'] ?? '';
 
+        // Antes de abrir conversa: grupo não tem paciente, não tem etapa e não
+        // deve entrar na máquina de estados.
+        if (WhatsAppJid::ehGrupo($validated['remote_jid'])) {
+            return response()->json($this->grupoIgnorado());
+        }
+
         $conversa = WhatsAppConversation::abrirPara($validated['remote_jid'], FluxoAtendimento::VALIDADE_HORAS);
 
         /**
@@ -698,7 +712,7 @@ class WhatsAppController extends Controller
     public function enviarMensagemInterativa(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'telefone' => ['required', 'string', 'max:20'],
+            'telefone' => ['required', 'string', 'max:64'],
             'idempotency_key' => ['nullable', 'string', 'max:64'],
             'interativo' => ['required', 'array'],
             'interativo.tipo' => ['required', 'string', 'in:'.MenuInterativo::TIPO_BOTOES.','.MenuInterativo::TIPO_LISTA],
@@ -729,6 +743,10 @@ class WhatsAppController extends Controller
 
         $validated = $validator->validate();
         $clinica = $this->tenants->require();
+
+        if (! WhatsAppJid::ehTelefone($validated['telefone'])) {
+            return $this->destinoInvalido();
+        }
 
         try {
             $menu = $this->menus->normalizar($validated['interativo']);
@@ -873,11 +891,47 @@ class WhatsAppController extends Controller
 
         $clinica = $this->tenants->require();
 
+        if (WhatsAppJid::ehGrupo($validated['remote_jid'])) {
+            return response()->json($this->grupoIgnorado());
+        }
+
         return response()->json($this->ia->processar(
             $validated['remote_jid'],
             $validated['texto'] ?? '',
             $clinica?->name ?? '',
         ));
+    }
+
+    /**
+     * Resposta a uma mensagem de grupo.
+     *
+     * `resposta` vazia é o contrato: o nó "Pode enviar resposta" do n8n só
+     * envia quando `resposta` é string não vazia. Um 4xx aqui faria o n8n
+     * marcar a execução como falha e a Evolution reentregar o evento.
+     *
+     * @return array<string, mixed>
+     */
+    protected function grupoIgnorado(): array
+    {
+        return [
+            'ok' => false,
+            'auto_resposta' => false,
+            'etapa_de' => '',
+            'etapa_para' => '',
+            'resposta' => '',
+            'handled_by' => 'grupo',
+            'intencao' => null,
+        ];
+    }
+
+    /**
+     * Destino que não é telefone individual não chega à Evolution.
+     */
+    protected function destinoInvalido(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'O destino não é um telefone individual do WhatsApp.',
+        ], 422);
     }
 
     /**

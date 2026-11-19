@@ -10,6 +10,7 @@ use App\Models\WhatsAppMessage;
 use App\Services\Agenda\DisponibilidadeService;
 use App\Services\AuditLogger;
 use App\Services\Tenant\TenantManager;
+use App\Support\WhatsAppJid;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -63,6 +64,20 @@ class AtendimentoIA
      */
     public function processar(string $remoteJid, string $texto, string $nomeClinica = ''): array
     {
+        // Defesa em profundidade: o controller já barra, mas este serviço é
+        // chamado por outros caminhos e não pode abrir conversa de grupo.
+        if (WhatsAppJid::ehGrupo($remoteJid)) {
+            return [
+                'ok' => false,
+                'auto_resposta' => false,
+                'etapa_de' => '',
+                'etapa_para' => '',
+                'resposta' => '',
+                'handled_by' => 'grupo',
+                'intencao' => null,
+            ];
+        }
+
         $texto = trim($texto);
         $conversa = $this->abrirConversa($remoteJid);
         $etapa = $conversa->etapa ?? 'consentimento';

@@ -516,18 +516,20 @@ class WhatsAppFluxoTest extends TestCase
         $this->assertStringContainsString('LGPD', $r['resposta']);
     }
 
-    public function test_rotulo_do_jid_no_telefone_e_ignorado(): void
+    public function test_mensagem_de_grupo_nao_abre_conversa(): void
     {
         $this->criarContexto();
 
         $p = $this->dizer('oi');
         $g = $this->dizer('oi', '5599999999999@g.us');
 
-        // São conversas diferentes: o `g.us` é grupo, e o número não deve ser
-        // confundido com o contato do `@s.whatsapp.net`.
+        // Grupo não é paciente: o fluxo devolve resposta vazia e não cria
+        // conversa, para o n8n não enviar nada ao grupo. O `@g.us` também não
+        // pode ser confundido com o contato do `@s.whatsapp.net`.
         $this->assertSame('consentimento', $p['etapa_para']);
-        $this->assertSame('consentimento', $g['etapa_para']);
-        $this->assertTenantDatabaseCount('whatsapp_conversations', 2);
+        $this->assertSame('', $g['etapa_para']);
+        $this->assertSame('', $g['resposta']);
+        $this->assertTenantDatabaseCount('whatsapp_conversations', 1);
     }
 
     public function test_especialidade_lista_e_filtra_profissionais(): void

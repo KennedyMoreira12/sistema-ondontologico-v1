@@ -37,6 +37,16 @@ use Illuminate\Support\Facades\Log;
 class N8nDispatcher
 {
     /**
+     * Piso do timeout de entrega ao n8n.
+     *
+     * O workflow responde só depois de chamar `/api/whatsapp/ia` e, quando é o
+     * caso, `/api/whatsapp/mensagem`; com 15s a resposta chegava depois do
+     * timeout e o n8n repetia um turno que já tinha acontecido. 45s cobre o
+     * turno completo sem transformar uma indisponibilidade em espera infinita.
+     */
+    public const TIMEOUT_PADRAO = 45;
+
+    /**
      * Entrega o evento e marca a mensagem como entregue.
      *
      * @param  array<string, mixed>  $evento
@@ -54,7 +64,7 @@ class N8nDispatcher
         }
 
         try {
-            $response = Http::timeout((int) config('services.n8n.timeout', 15))
+            $response = Http::timeout($this->timeout())
                 ->acceptJson()
                 ->withHeaders($this->headers())
                 ->post($url, $this->payload($clinic, $mensagem, $evento));
@@ -88,6 +98,20 @@ class N8nDispatcher
         $this->marcarComoFalha($mensagem, $falha);
 
         throw $falha;
+    }
+
+    /**
+     * Timeout efetivo da chamada ao n8n.
+     *
+     * `N8N_WEBHOOK_TIMEOUT` pode subir o limite, mas não descer abaixo do piso:
+     * um `.env` antigo com 15 não pode reintroduzir o problema que o piso
+     * corrige.
+     */
+    protected function timeout(): int
+    {
+        $configurado = (int) config('services.n8n.timeout', self::TIMEOUT_PADRAO);
+
+        return max(self::TIMEOUT_PADRAO, $configurado);
     }
 
     /**

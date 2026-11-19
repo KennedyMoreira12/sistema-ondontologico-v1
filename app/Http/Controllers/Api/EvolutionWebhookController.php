@@ -11,6 +11,7 @@ use App\Models\WhatsAppMessage;
 use App\Services\N8nDispatcher;
 use App\Support\EvolutionPayload;
 use App\Support\WhatsAppDeliveryStatus;
+use App\Support\WhatsAppJid;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,6 +62,22 @@ class EvolutionWebhookController extends Controller
             ]);
 
             return response()->json(['status' => 'ignored'], 200);
+        }
+
+        /**
+         * Grupo não é paciente. O JID `@g.us` identifica uma conversa coletiva,
+         * e extrair dígitos dele produzia um "telefone" de 18–19 dígitos: o bot
+         * respondia no grupo e ainda contaminava o histórico da clínica. O
+         * bloqueio é aqui, antes de gravar e antes do n8n, porque tudo o que vem
+         * depois trata a mensagem como atendimento individual.
+         */
+        if (WhatsAppJid::ehGrupo(EvolutionPayload::remoteJid($payload))) {
+            Log::info('Mensagem de grupo ignorada.', [
+                'instance' => $payload['instance'] ?? null,
+                'event' => $evento,
+            ]);
+
+            return response()->json(['status' => 'ignored', 'motivo' => 'grupo'], 200);
         }
 
         /**

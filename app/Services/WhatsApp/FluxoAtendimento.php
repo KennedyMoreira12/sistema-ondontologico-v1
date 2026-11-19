@@ -14,6 +14,7 @@ use App\Services\Agenda\AgendamentoService;
 use App\Services\Agenda\DisponibilidadeService;
 use App\Services\AuditLogger;
 use App\Services\Tenant\TenantManager;
+use App\Support\WhatsAppJid;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
@@ -124,6 +125,12 @@ class FluxoAtendimento
      */
     public function processar(string $remoteJid, string $texto, string $nomeClinica = ''): array
     {
+        // Defesa em profundidade: `telefone()` reduz o JID a dígitos e um grupo
+        // viraria um número inexistente. O bloqueio tem de acontecer antes.
+        if (WhatsAppJid::ehGrupo($remoteJid)) {
+            return ['ok' => false, 'etapa_de' => '', 'etapa_para' => '', 'resposta' => ''];
+        }
+
         $telefone = $this->telefone($remoteJid);
         $texto = trim($texto);
         $conversa = $this->abrirConversa($remoteJid);
