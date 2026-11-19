@@ -227,24 +227,138 @@
 
         <div class="tab-pane fade" id="aba-anamnese" role="tabpanel">
             @can('anamnese.create')
+                @php
+                    $doencasMarcadas = old('respostas.doencas', []);
+                    $doencasMarcadas = is_array($doencasMarcadas) ? $doencasMarcadas : [];
+                @endphp
+
                 <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-white fw-semibold">Nova anamnese</div>
+                    <div class="card-header bg-white fw-semibold">Anamnese — pré-atendimento odontológico</div>
                     <div class="card-body">
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Essas informações serão avaliadas pelo profissional responsável durante a consulta, para que o tratamento odontológico seja realizado de maneira adequada e segura.
+                        </div>
+
                         <form method="POST" action="{{ route('pacientes.anamneses.store', $paciente) }}">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="titulo" class="form-label">Título</label>
-                                    <input type="text" id="titulo" name="titulo" class="form-control" placeholder="Ex.: Anamnese inicial" value="{{ old('titulo') }}">
+                                    <input type="text" id="titulo" name="titulo" class="form-control @error('titulo') is-invalid @enderror" placeholder="Ex.: Anamnese inicial" value="{{ old('titulo') }}">
+                                    @error('titulo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label for="responsavel" class="form-label">Responsável pelas respostas</label>
-                                    <input type="text" id="responsavel" name="responsavel" class="form-control" value="{{ old('responsavel') }}">
+                                    <input type="text" id="responsavel" name="responsavel" class="form-control @error('responsavel') is-invalid @enderror" value="{{ old('responsavel') }}">
+                                    @error('responsavel')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
+
                                 <div class="col-12">
-                                    <label class="form-label">Respostas (uma por linha, formato <code>pergunta: resposta</code>)</label>
-                                    <textarea rows="5" name="respostas" class="form-control" placeholder="Já fez cirurgia: não&#10;Fuma: não&#10;Usa medicamento contínuo: sim (losartana)">{{ old('respostas') }}</textarea>
+                                    <label class="form-label fw-semibold">1. Você possui alguma doença sistêmica?</label>
+                                    <div class="row g-1">
+                                        @foreach (\App\Support\AnamnesePreAtendimento::DOENCAS as $valor => $rotulo)
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input @error('respostas.doencas') is-invalid @enderror" type="checkbox" name="respostas[doencas][]" value="{{ $valor }}" id="doenca_{{ $valor }}" @checked(in_array($valor, $doencasMarcadas, true))>
+                                                    <label class="form-check-label" for="doenca_{{ $valor }}">{{ $rotulo }}</label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @error('respostas.doencas')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    @error('respostas.doencas.*')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <label for="outras_doencas" class="form-label mt-2 small text-muted">Se marcou “Outras doenças”, especifique quais</label>
+                                    <input type="text" id="outras_doencas" name="respostas[outras_doencas]" class="form-control form-control-sm @error('respostas.outras_doencas') is-invalid @enderror" value="{{ old('respostas.outras_doencas') }}" placeholder="Ex.: asma, tireoidite">
+                                    @error('respostas.outras_doencas')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">2. Faz uso de algum medicamento atualmente?</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.usa_medicamentos') is-invalid @enderror" type="radio" name="respostas[usa_medicamentos]" id="medicamentos_sim" value="{{ \App\Support\AnamnesePreAtendimento::SIM }}" @checked(old('respostas.usa_medicamentos') === \App\Support\AnamnesePreAtendimento::SIM)>
+                                        <label class="form-check-label" for="medicamentos_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.usa_medicamentos') is-invalid @enderror" type="radio" name="respostas[usa_medicamentos]" id="medicamentos_nao" value="{{ \App\Support\AnamnesePreAtendimento::NAO }}" @checked(old('respostas.usa_medicamentos') === \App\Support\AnamnesePreAtendimento::NAO)>
+                                        <label class="form-check-label" for="medicamentos_nao">Não</label>
+                                    </div>
+                                    @error('respostas.usa_medicamentos')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <input type="text" name="respostas[medicamentos]" class="form-control form-control-sm mt-2 @error('respostas.medicamentos') is-invalid @enderror" value="{{ old('respostas.medicamentos') }}" placeholder="Quais medicamentos?">
+                                    @error('respostas.medicamentos')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">3. Costuma sentir dores de cabeça ou tonturas?</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.dores_tonturas') is-invalid @enderror" type="radio" name="respostas[dores_tonturas]" id="dores_sim" value="{{ \App\Support\AnamnesePreAtendimento::SIM }}" @checked(old('respostas.dores_tonturas') === \App\Support\AnamnesePreAtendimento::SIM)>
+                                        <label class="form-check-label" for="dores_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.dores_tonturas') is-invalid @enderror" type="radio" name="respostas[dores_tonturas]" id="dores_nao" value="{{ \App\Support\AnamnesePreAtendimento::NAO }}" @checked(old('respostas.dores_tonturas') === \App\Support\AnamnesePreAtendimento::NAO)>
+                                        <label class="form-check-label" for="dores_nao">Não</label>
+                                    </div>
+                                    @error('respostas.dores_tonturas')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <input type="text" name="respostas[dores_tonturas_detalhes]" class="form-control form-control-sm mt-2 @error('respostas.dores_tonturas_detalhes') is-invalid @enderror" value="{{ old('respostas.dores_tonturas_detalhes') }}" placeholder="Com que frequência?">
+                                    @error('respostas.dores_tonturas_detalhes')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">4. Possui alguma alergia a medicamentos ou materiais odontológicos?</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.alergias') is-invalid @enderror" type="radio" name="respostas[alergias]" id="alergias_sim" value="{{ \App\Support\AnamnesePreAtendimento::SIM }}" @checked(old('respostas.alergias') === \App\Support\AnamnesePreAtendimento::SIM)>
+                                        <label class="form-check-label" for="alergias_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.alergias') is-invalid @enderror" type="radio" name="respostas[alergias]" id="alergias_nao" value="{{ \App\Support\AnamnesePreAtendimento::NAO }}" @checked(old('respostas.alergias') === \App\Support\AnamnesePreAtendimento::NAO)>
+                                        <label class="form-check-label" for="alergias_nao">Não</label>
+                                    </div>
+                                    @error('respostas.alergias')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <input type="text" name="respostas[alergias_detalhes]" class="form-control form-control-sm mt-2 @error('respostas.alergias_detalhes') is-invalid @enderror" value="{{ old('respostas.alergias_detalhes') }}" placeholder="A que você é alérgico?">
+                                    @error('respostas.alergias_detalhes')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">5. Está realizando algum tratamento médico atualmente?</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.tratamento_medico') is-invalid @enderror" type="radio" name="respostas[tratamento_medico]" id="tratamento_sim" value="{{ \App\Support\AnamnesePreAtendimento::SIM }}" @checked(old('respostas.tratamento_medico') === \App\Support\AnamnesePreAtendimento::SIM)>
+                                        <label class="form-check-label" for="tratamento_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input @error('respostas.tratamento_medico') is-invalid @enderror" type="radio" name="respostas[tratamento_medico]" id="tratamento_nao" value="{{ \App\Support\AnamnesePreAtendimento::NAO }}" @checked(old('respostas.tratamento_medico') === \App\Support\AnamnesePreAtendimento::NAO)>
+                                        <label class="form-check-label" for="tratamento_nao">Não</label>
+                                    </div>
+                                    @error('respostas.tratamento_medico')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <input type="text" name="respostas[tratamento_medico_detalhes]" class="form-control form-control-sm mt-2 @error('respostas.tratamento_medico_detalhes') is-invalid @enderror" value="{{ old('respostas.tratamento_medico_detalhes') }}" placeholder="Qual tratamento?">
+                                    @error('respostas.tratamento_medico_detalhes')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <div class="col-12 d-flex justify-content-end">
                                     <button type="submit" class="btn btn-primary">Salvar anamnese</button>
                                 </div>
@@ -267,7 +381,7 @@
                         @if (is_array($anamnese->respostas) && count($anamnese->respostas))
                             <ul class="mb-0">
                                 @foreach ($anamnese->respostas as $pergunta => $resposta)
-                                    <li><strong>{{ $pergunta }}:</strong> {{ is_array($resposta) ? implode(', ', $resposta) : $resposta }}</li>
+                                    <li class="mb-1"><strong>{{ $pergunta }}:</strong> {{ is_array($resposta) ? implode(', ', $resposta) : ($resposta ?: '—') }}</li>
                                 @endforeach
                             </ul>
                         @else

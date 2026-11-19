@@ -17,6 +17,7 @@ use App\Models\PatientDocument;
 use App\Models\Professional;
 use App\Services\AuditLogger;
 use App\Services\Tenant\TenantManager;
+use App\Support\AnamnesePreAtendimento;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -208,25 +209,21 @@ class PacienteController extends Controller
 
     public function storeAnamnese(AnamneseStoreRequest $request, Paciente $paciente): RedirectResponse
     {
-        $respostas = $request->input('respostas');
+        $dados = $request->validated();
 
-        if (is_string($respostas)) {
-            $respostas = collect(preg_split('/\r\n|\r|\n/', $respostas))
-                ->map(fn ($linha) => trim($linha))
-                ->filter()
-                ->mapWithKeys(function (string $linha) {
-                    $partes = explode(':', $linha, 2);
-
-                    return [trim($partes[0]) => trim($partes[1] ?? '')];
-                })
-                ->all();
-        }
-
-        Anamnese::create([
-            ...$request->validated(),
-            'respostas' => $respostas,
+        $anamnese = Anamnese::create([
+            'titulo' => $dados['titulo'] ?? null,
+            'responsavel' => $dados['responsavel'] ?? null,
+            'respostas' => AnamnesePreAtendimento::normalizar($dados['respostas']),
             'paciente_id' => $paciente->id,
             'profissional_id' => Professional::where('user_id', auth()->id())->first()?->id,
+        ]);
+
+        // O log guarda apenas a existência do registro: respostas de saúde não
+        // devem ser copiadas para a auditoria.
+        AuditLogger::log('registrar_anamnese', 'anamneses', $paciente->id, depois: [
+            'anamnese_id' => $anamnese->id,
+            'titulo' => $anamnese->titulo,
         ]);
 
         return back()->with('success', 'Anamnese registrada.');
