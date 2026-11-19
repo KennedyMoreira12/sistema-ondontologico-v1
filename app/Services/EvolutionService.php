@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\EvolutionIndisponivel;
 use App\Models\Central\Clinic;
+use App\Support\RedatorDeSegredos;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -328,8 +329,8 @@ class EvolutionService
         if (isset($data['error'])) {
             Log::warning('A Evolution API respondeu com erro no corpo.', [
                 'status' => $response->status(),
-                'erro' => $data['error'],
-                'response' => $data,
+                'erro' => RedatorDeSegredos::redigir((string) (is_scalar($data['error']) ? $data['error'] : json_encode($data['error']))),
+                'response' => RedatorDeSegredos::redigir((string) json_encode($data), 2000),
             ]);
         }
 

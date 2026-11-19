@@ -20,6 +20,11 @@ class EvolutionIndisponivel extends RuntimeException
         return new self("A clínica [{$clinicName}] não tem instância ou token da Evolution API configurados.");
     }
 
+    public static function semTokenDaInstancia(string $instance): self
+    {
+        return new self("A instância [{$instance}] não tem token configurado; a chave administrativa não pode ser usada no lugar dele.");
+    }
+
     public static function semUrl(): self
     {
         return new self('EVOLUTION_API_URL não está configurada.');

@@ -20,40 +20,58 @@ return new class extends Migration
      * provisionamento automático. Clínicas antigas ficam com ela nula e seguem
      * o comportamento anterior: nada aqui as bloqueia retroativamente.
      *
-     * IDEMPOTENTE para poder ser reaplicada sem derrubar a fila caso a coluna
-     * já exista.
+     * IDEMPOTENTE COLUNA A COLUNA: uma aplicação interrompida no meio do ALTER
+     * pode deixar parte das colunas criadas. Reaplicar completa as faltantes e o
+     * rollback remove apenas as que existem, sem depender de um estado "todas ou
+     * nenhuma" que o MariaDB não garante.
      */
     public function up(): void
     {
-        if (Schema::hasColumn('clinics', 'whatsapp_status')) {
-            return;
-        }
+        foreach ($this->colunas() as $coluna) {
+            if (Schema::hasColumn('clinics', $coluna)) {
+                continue;
+            }
 
-        Schema::table('clinics', function (Blueprint $table) {
-            $table->string('whatsapp_status', 30)->nullable()->after('evolution_token');
-            $table->timestamp('whatsapp_status_at')->nullable()->after('whatsapp_status');
-            $table->text('whatsapp_last_error')->nullable()->after('whatsapp_status_at');
-            $table->timestamp('whatsapp_provisioned_at')->nullable()->after('whatsapp_last_error');
-            $table->timestamp('whatsapp_webhook_configured_at')->nullable()->after('whatsapp_provisioned_at');
-            $table->timestamp('whatsapp_connected_at')->nullable()->after('whatsapp_webhook_configured_at');
-        });
+            Schema::table('clinics', function (Blueprint $table) use ($coluna): void {
+                match ($coluna) {
+                    'whatsapp_status' => $table->string($coluna, 30)->nullable()->after('evolution_token'),
+                    'whatsapp_status_at' => $table->timestamp($coluna)->nullable()->after('whatsapp_status'),
+                    'whatsapp_last_error' => $table->text($coluna)->nullable()->after('whatsapp_status_at'),
+                    'whatsapp_provisioned_at' => $table->timestamp($coluna)->nullable()->after('whatsapp_last_error'),
+                    'whatsapp_webhook_configured_at' => $table->timestamp($coluna)->nullable()->after('whatsapp_provisioned_at'),
+                    'whatsapp_connected_at' => $table->timestamp($coluna)->nullable()->after('whatsapp_webhook_configured_at'),
+                };
+            });
+        }
     }
 
     public function down(): void
     {
-        if (! Schema::hasColumn('clinics', 'whatsapp_status')) {
-            return;
-        }
+        foreach (array_reverse($this->colunas()) as $coluna) {
+            if (! Schema::hasColumn('clinics', $coluna)) {
+                continue;
+            }
 
-        Schema::table('clinics', function (Blueprint $table) {
-            $table->dropColumn([
-                'whatsapp_status',
-                'whatsapp_status_at',
-                'whatsapp_last_error',
-                'whatsapp_provisioned_at',
-                'whatsapp_webhook_configured_at',
-                'whatsapp_connected_at',
-            ]);
-        });
+            Schema::table('clinics', function (Blueprint $table) use ($coluna): void {
+                $table->dropColumn($coluna);
+            });
+        }
+    }
+
+    /**
+     * Ordem importa: o `after()` de cada coluna aponta para a anterior.
+     *
+     * @return list<string>
+     */
+    private function colunas(): array
+    {
+        return [
+            'whatsapp_status',
+            'whatsapp_status_at',
+            'whatsapp_last_error',
+            'whatsapp_provisioned_at',
+            'whatsapp_webhook_configured_at',
+            'whatsapp_connected_at',
+        ];
     }
 };

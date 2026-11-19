@@ -10,6 +10,7 @@ use App\Models\WhatsAppOutboxMessage;
 use App\Services\EvolutionService;
 use App\Services\Tenant\TenantManager;
 use App\Support\EvolutionPayload;
+use App\Support\RedatorDeSegredos;
 use App\Support\WhatsAppDeliveryStatus;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Client\ConnectionException;
@@ -602,6 +603,6 @@ class Outbox
 
     protected function resumir(string $texto, int $limite = 500): string
     {
-        return mb_strlen($texto) > $limite ? mb_substr($texto, 0, $limite).'…' : $texto;
+        return RedatorDeSegredos::redigir($texto, $limite);
     }
 }

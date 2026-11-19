@@ -197,6 +197,24 @@ class PlatformProspeccaoWhatsAppTest extends TestCase
         $this->assertStringNotContainsString('Unauthorized', $corpo);
     }
 
+    public function test_estado_nao_usa_a_chave_administrativa_quando_o_token_da_instancia_falta(): void
+    {
+        config(['services.evolution.admin_key' => 'chave-admin-secreta']);
+
+        Http::fake([
+            '*instance/connectionState/*' => Http::response(['instance' => ['state' => 'close']], 200),
+        ]);
+
+        $this->setting(['instance_token' => null]);
+
+        $resposta = $this->actingAs($this->admin, 'admin')
+            ->postJson(route('painel.prospeccao.whatsapp.estado'))
+            ->assertStatus(503);
+
+        Http::assertNotSent(fn ($request): bool => $request->hasHeader('apikey', 'chave-admin-secreta'));
+        $this->assertStringNotContainsString('chave-admin-secreta', (string) json_encode($resposta->json()));
+    }
+
     public function test_sem_chave_administrativa_responde_503_sem_quebrar(): void
     {
         config(['services.evolution.admin_key' => '']);

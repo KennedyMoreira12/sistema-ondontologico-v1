@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\N8nIndisponivel;
 use App\Models\Central\Clinic;
 use App\Models\WhatsAppMessage;
+use App\Support\RedatorDeSegredos;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -121,13 +122,15 @@ class N8nDispatcher
      * no workflow, e o workflow é único por URL: duas clínicas apontando para o
      * mesmo webhook usariam o token de uma delas, e a resposta da segunda
      * sairia pelo banco e pelo WhatsApp da primeira. Sem coluna preenchida, o
-     * global do .env continua valendo — é o estado de quem tem um workflow só.
+     * global do .env continua valendo só para clínica anterior ao
+     * provisionamento automático. Quem passou pelo fluxo novo não pode cair no
+     * global: isso entregaria a mensagem ao workflow de outra clínica.
      */
     protected function webhookUrl(Clinic $clinic): string
     {
         $url = trim((string) $clinic->n8n_webhook_url);
 
-        if ($url === '') {
+        if ($url === '' && ! $clinic->whatsappProvisionado()) {
             $url = (string) config('services.n8n.webhook_url');
         }
 
@@ -210,8 +213,6 @@ class N8nDispatcher
      */
     protected function resumir(string $body, int $limite = 500): string
     {
-        return mb_strlen($body) > $limite
-            ? mb_substr($body, 0, $limite).'…'
-            : $body;
+        return RedatorDeSegredos::redigir($body, $limite);
     }
 }

@@ -6,11 +6,13 @@ use App\Models\Central\AdminUser;
 use App\Models\Central\Clinic;
 use App\Models\WhatsAppMessage;
 use App\Services\WhatsApp\ClinicWhatsAppProvisioner;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Tests\Concerns\CreatesTenants;
 use Tests\TestCase;
 
@@ -475,6 +477,85 @@ class ProvisionamentoWhatsAppClinicaTest extends TestCase
             ->assertJson(['ok' => true, 'provisionado' => true]);
 
         $this->assertNotNull($clinica->fresh()->evolution_instance);
+    }
+
+    public function test_template_n8n_com_placeholder_desconhecido_bloqueia_o_provisionamento(): void
+    {
+        Config::set('services.n8n.clinic_webhook_template', 'https://n8n.test/webhook/{instanceId}/hook/atendimento');
+        $this->fakeEvolution(token: 'token-da-aurora');
+
+        $clinica = $this->criarClinica('Clínica Aurora', 'aurora@teste.test')['clinic'];
+
+        $resultado = app(ClinicWhatsAppProvisioner::class)->provision($clinica);
+
+        $this->assertFalse($resultado['ok']);
+        $this->assertSame('erro', $resultado['status']);
+        $this->assertNull($clinica->fresh()->n8n_webhook_url);
+        $this->assertStringContainsString(
+            'placeholder não suportado',
+            (string) $clinica->fresh()->whatsapp_last_error
+        );
+        $this->assertFalse($clinica->fresh()->whatsappPronto());
+    }
+
+    public function test_template_n8n_que_nao_gera_url_http_bloqueia_o_provisionamento(): void
+    {
+        Config::set('services.n8n.clinic_webhook_template', 'ftp://n8n.test/{instance}');
+        $this->fakeEvolution(token: 'token-da-aurora');
+
+        $clinica = $this->criarClinica('Clínica Aurora', 'aurora@teste.test')['clinic'];
+
+        $resultado = app(ClinicWhatsAppProvisioner::class)->provision($clinica);
+
+        $this->assertFalse($resultado['ok']);
+        $this->assertNull($clinica->fresh()->n8n_webhook_url);
+        $this->assertStringContainsString(
+            'URL http(s) válida',
+            (string) $clinica->fresh()->whatsapp_last_error
+        );
+    }
+
+    public function test_reprovisionamento_nao_adota_instancia_vinculada_a_outra_clinica(): void
+    {
+        $aurora = $this->criarClinica('Clínica Aurora', 'aurora@teste.test')['clinic'];
+        $borealis = $this->criarClinica('Clínica Borealis', 'borealis@teste.test')['clinic'];
+
+        // Estado legado corrompido: as duas apontam para a mesma instância. O
+        // índice único é removido só neste banco de teste para montar o cenário.
+        Schema::table('clinics', function (Blueprint $table): void {
+            $table->dropUnique(['evolution_instance']);
+        });
+
+        $aurora->update([
+            'evolution_instance' => 'clinica-compartilhada',
+            'evolution_token' => 'token-da-aurora',
+        ]);
+        $borealis->update([
+            'evolution_instance' => 'clinica-compartilhada',
+            'evolution_token' => 'token-da-borealis',
+        ]);
+
+        Http::fake([
+            'evolution.test/instance/fetchInstances' => Http::response([
+                [
+                    'id' => 'uuid-compartilhado',
+                    'name' => 'clinica-compartilhada',
+                    'connectionStatus' => 'close',
+                    'token' => 'token-da-aurora',
+                ],
+            ], 200),
+        ]);
+
+        $resultado = app(ClinicWhatsAppProvisioner::class)->provision($borealis);
+
+        $this->assertFalse($resultado['ok']);
+        $this->assertSame('erro', $resultado['status']);
+        $this->assertSame('token-da-borealis', $borealis->fresh()->evolution_token);
+        $this->assertStringContainsString(
+            'outra clínica',
+            (string) $borealis->fresh()->whatsapp_last_error
+        );
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/webhook/set/'));
     }
 
     /*

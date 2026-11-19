@@ -112,6 +112,19 @@ class ClinicWhatsAppProvisioner
                 $info = $this->normalizar($this->evolution->createInstance($nome));
                 $info['name'] = $nome;
                 $criada = true;
+            } elseif (Clinic::query()
+                ->withTrashed()
+                ->where('evolution_instance', $nome)
+                ->whereKeyNot($clinic->getKey())
+                ->exists()) {
+                /**
+                 * A listagem da Evolution só devolve nome/estado/token: ela não
+                 * diz quem é a dona do registro. Sem esta checagem, um cadastro
+                 * legado apontando para a instância de outra clínica seria
+                 * "adotado" e teria o token sobrescrito, passando a atender com
+                 * a credencial alheia.
+                 */
+                throw new RuntimeException('A instância '.$nome.' já está vinculada a outra clínica.');
             }
 
             /**
@@ -364,11 +377,29 @@ class ClinicWhatsAppProvisioner
             return null;
         }
 
-        return strtr($template, [
+        $destino = strtr($template, [
             '{instance}' => (string) $clinic->evolution_instance,
             '{clinic_id}' => (string) $clinic->id,
             '{slug}' => (string) Str::slug((string) $clinic->name),
         ]);
+
+        /**
+         * Um placeholder tipado errado, "{instanceId}" por exemplo, sobrevive ao
+         * strtr e vira uma URL que parece válida no cadastro, mas para a qual o
+         * n8n nunca entrega. Fail closed: melhor marcar a clínica como pendente
+         * do que ativar o atendimento com destino inexistente.
+         */
+        if (str_contains($destino, '{') || str_contains($destino, '}')) {
+            throw new RuntimeException('N8N_CLINIC_WEBHOOK_TEMPLATE contém placeholder não suportado.');
+        }
+
+        $esquema = strtolower((string) parse_url($destino, PHP_URL_SCHEME));
+
+        if (! filter_var($destino, FILTER_VALIDATE_URL) || ! in_array($esquema, ['http', 'https'], true)) {
+            throw new RuntimeException('N8N_CLINIC_WEBHOOK_TEMPLATE não resultou em uma URL http(s) válida.');
+        }
+
+        return $destino;
     }
 
     /**

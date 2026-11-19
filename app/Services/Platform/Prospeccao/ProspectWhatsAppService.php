@@ -430,9 +430,19 @@ class ProspectWhatsAppService
     {
         $this->assertConfigured();
 
-        $apikey = $admin
-            ? (string) config('services.evolution.admin_key')
-            : ($instanceToken ?: (string) config('services.evolution.admin_key'));
+        if ($admin) {
+            $apikey = (string) config('services.evolution.admin_key');
+
+            if (trim($apikey) === '') {
+                throw EvolutionIndisponivel::semChaveAdministrativa();
+            }
+        } else {
+            $apikey = (string) $instanceToken;
+
+            if (trim($apikey) === '') {
+                throw EvolutionIndisponivel::semTokenDaInstancia($this->instanceName());
+            }
+        }
 
         return Http::timeout((int) config('services.evolution.timeout', 30))
             ->acceptJson()

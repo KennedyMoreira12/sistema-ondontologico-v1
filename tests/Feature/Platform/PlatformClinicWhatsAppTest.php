@@ -175,6 +175,23 @@ class PlatformClinicWhatsAppTest extends TestCase
             ->assertSee('WhatsApp');
     }
 
+    public function test_painel_exibe_badge_pendencias_e_botao_de_provisionamento(): void
+    {
+        Http::fake();
+
+        ['clinic' => $clinica] = $this->criarClinica('Clínica Nova', 'nova@teste.test');
+
+        $this->actingAs($this->admin, 'admin')
+            ->get(route('painel.clinicas.show', $clinica))
+            ->assertOk()
+            ->assertSee('wa-status-badge', false)
+            ->assertSee('wa-provisionamento', false)
+            ->assertSee('Ainda não provisionado')
+            ->assertSee('wa-erro', false)
+            ->assertSee('wa-provisionar', false)
+            ->assertSee('Provisionar instância');
+    }
+
     public function test_suporte_nao_gera_qr(): void
     {
         Http::fake();

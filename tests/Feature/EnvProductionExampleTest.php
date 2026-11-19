@@ -134,12 +134,24 @@ class EnvProductionExampleTest extends TestCase
             'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT',
             'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS',
             'WHATSAPP_VERIFY_TOKEN',
+            'EVOLUTION_API_URL', 'EVOLUTION_API_TIMEOUT',
+            'EVOLUTION_WEBHOOK_SECRET', 'EVOLUTION_WEBHOOK_URL',
+            'N8N_WEBHOOK_URL', 'N8N_WEBHOOK_TOKEN',
+            'N8N_WEBHOOK_TIMEOUT', 'N8N_CLINIC_WEBHOOK_TEMPLATE',
         ];
 
         return array_combine(
             $chaves,
             array_map(fn (string $chave): array => [$chave], $chaves)
         );
+    }
+
+    #[Test]
+    public function timeout_do_n8n_no_template_respeita_o_piso_de_45_segundos(): void
+    {
+        $env = $this->carregarTemplate();
+
+        $this->assertSame('45', $env['N8N_WEBHOOK_TIMEOUT']);
     }
 
     #[Test]
