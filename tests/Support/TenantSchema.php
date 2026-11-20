@@ -33,7 +33,9 @@ final class TenantSchema
     {
         $path = storage_path('framework/testing/tenant_template.sqlite');
 
-        if (self::$templatePath === $path && self::templateEstaAtualizado($path)) {
+        if (self::templateEstaAtualizado($path)) {
+            self::$templatePath = $path;
+
             return $path;
         }
 
@@ -118,9 +120,26 @@ final class TenantSchema
 
     protected static function templateEstaAtualizado(string $path): bool
     {
-        return is_file($path)
-            && self::$templateBuiltAt > 0
-            && self::$templateBuiltAt >= self::migrationMaisRecente();
+        if (! is_file($path)) {
+            return false;
+        }
+
+        $maisRecente = self::migrationMaisRecente();
+
+        if (self::$templateBuiltAt > 0) {
+            return self::$templateBuiltAt >= $maisRecente;
+        }
+
+        // Em um novo processo o estado estático não persiste; se o template em
+        // disco já é mais novo que as migrations de tenant, reutiliza sem
+        // reconstruir (evita corrida quando suítes rodam em paralelo).
+        if (filemtime($path) >= $maisRecente) {
+            self::$templateBuiltAt = $maisRecente;
+
+            return true;
+        }
+
+        return false;
     }
 
     protected static function migrationMaisRecente(): int

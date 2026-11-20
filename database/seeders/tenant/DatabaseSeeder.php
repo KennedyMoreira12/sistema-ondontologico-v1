@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 DocumentoPermissionSeeder::class,
                 MalheiroProfessionalSeeder::class,
+                MalheiroOdontologiaSeeder::class,
             ]);
         }
     }

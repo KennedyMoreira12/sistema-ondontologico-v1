@@ -26,6 +26,7 @@ class DisponibilidadeService
      */
     public function horariosLivres(int $profissionalId, int $duracao, int $dias = 7): array
     {
+        $duracao = max(15, $duracao);
         $profissionais = Professional::where('is_active', true)
             ->when($profissionalId > 0, fn ($q) => $q->where('id', $profissionalId))
             ->orderBy('nome')
@@ -111,7 +112,7 @@ class DisponibilidadeService
      */
     public function duracaoDoProcedimento(int $procedimentoId): int
     {
-        return (int) Procedure::whereKey($procedimentoId)->value('duracao_minutos');
+        return max(15, (int) Procedure::whereKey($procedimentoId)->value('duracao_minutos'));
     }
 
     /**

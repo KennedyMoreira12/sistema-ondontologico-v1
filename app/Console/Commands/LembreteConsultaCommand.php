@@ -5,9 +5,11 @@ namespace App\Console\Commands;
 use App\Models\Appointment;
 use App\Models\AppointmentStatus;
 use App\Models\Central\Clinic;
+use App\Models\ClinicProfile;
 use App\Models\WhatsAppOutboxMessage;
 use App\Services\Tenant\TenantRunner;
 use App\Services\WhatsApp\ClinicFeatures;
+use App\Services\WhatsApp\ConfiguracaoWhatsApp;
 use App\Services\WhatsApp\Outbox;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -87,6 +89,11 @@ class LembreteConsultaCommand extends Command
 
             try {
                 $quantidade = $runner->run($clinica, function (Clinic $clinic) use ($outbox, $alvo, $simulacao): int {
+                    $configuracao = app(ConfiguracaoWhatsApp::class);
+                    $fluxo = $configuracao->fluxoOdontologico() ?? [];
+                    $template = is_string($fluxo['lembrete_template'] ?? null) ? (string) $fluxo['lembrete_template'] : null;
+                    $endereco = $configuracao->texto(ConfiguracaoWhatsApp::ENDERECO_CONFIRMACAO) ?: $this->enderecoClinica();
+
                     $statusIds = AppointmentStatus::query()
                         ->whereIn('name', [AppointmentStatus::AGENDADO, AppointmentStatus::CONFIRMADO])
                         ->pluck('id');
@@ -120,15 +127,37 @@ class LembreteConsultaCommand extends Command
                         }
 
                         $hora = $consulta->inicio->format('H:i');
-                        $dataFormatada = $consulta->inicio->format('d/m');
+                        $dataFormatada = $consulta->inicio->format('d/m/Y');
                         $profissional = $consulta->profissional?->nome ?? 'profissional';
-                        $assunto = $consulta->titulo ?: ($consulta->observacao ?: 'consulta');
+                        $procedimento = $consulta->servico
+                            ?: $consulta->titulo
+                            ?: $consulta->observacao
+                            ?: 'consulta';
 
-                        $texto = "Olá, {$paciente->nome}! Lembrete da sua consulta na {$clinic->name}:\n\n"
-                            ."📅 {$dataFormatada} às {$hora}\n"
-                            ."📋 {$assunto}\n"
-                            ."👤 {$profissional}\n\n"
-                            .'Responda "confirmar" para confirmar presença ou "menu" para outras opções.';
+                        if ($template !== null && trim($template) !== '') {
+                            $texto = strtr($template, [
+                                '{nome}' => (string) $paciente->nome,
+                                '{data}' => $dataFormatada,
+                                '{horario}' => $hora,
+                                '{hora}' => $hora,
+                                '{procedimento}' => (string) $procedimento,
+                                '{atendimento}' => (string) $procedimento,
+                                '{profissional}' => $profissional,
+                                '{endereco}' => $endereco ?? 'a confirmar com a clínica',
+                                '{clinica}' => (string) $clinic->name,
+                            ]);
+                        } else {
+                            $texto = "Olá, {$paciente->nome}! Lembrete da sua consulta na {$clinic->name}:\n\n"
+                                ."📅 {$dataFormatada} às {$hora}\n"
+                                ."🦷 {$procedimento}\n"
+                                ."👤 {$profissional}";
+
+                            if (is_string($endereco) && $endereco !== '') {
+                                $texto .= "\n📍 {$endereco}";
+                            }
+
+                            $texto .= "\n\nResponda \"confirmar\" para confirmar presença, \"2\" para reagendar ou \"3\" caso não possa comparecer.";
+                        }
 
                         if (! $simulacao) {
                             $outbox->enqueue(
@@ -166,5 +195,26 @@ class LembreteConsultaCommand extends Command
         $this->components->info("{$rotuloTotal}: {$total}.");
 
         return $falhas === [] ? self::SUCCESS : self::FAILURE;
+    }
+
+    private function enderecoClinica(): ?string
+    {
+        $perfil = ClinicProfile::current();
+
+        if (! $perfil) {
+            return null;
+        }
+
+        $partes = array_filter([
+            trim(implode(', ', array_filter([$perfil->address ?? null, $perfil->number ?? null]))),
+            $perfil->complement ?? null,
+            $perfil->district ?? null,
+            trim(implode(' - ', array_filter([$perfil->city ?? null, $perfil->state ?? null]))),
+            isset($perfil->postal_code) && $perfil->postal_code ? 'CEP '.$perfil->postal_code : null,
+        ], fn ($v) => is_string($v) && trim($v) !== '');
+
+        $endereco = implode(' - ', $partes);
+
+        return $endereco !== '' ? $endereco : null;
     }
 }

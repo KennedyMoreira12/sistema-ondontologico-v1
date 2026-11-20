@@ -46,6 +46,7 @@ class AtendimentoIA
         protected DisponibilidadeService $disponibilidade,
         protected Triagem $triagem,
         protected AlertaRecepcao $alertas,
+        protected ConfiguracaoWhatsApp $configuracao,
     ) {}
 
     /**
@@ -158,6 +159,9 @@ class AtendimentoIA
             case 'falar_humano':
                 $conversa->bot_status = 'aguardando_atendente';
                 $conversa->humano_iniciado_em = now();
+                $dadosConversa = is_array($conversa->dados) ? $conversa->dados : [];
+                $dadosConversa['motivo_handoff'] = 'Pedido de atendimento humano via IA';
+                $conversa->dados = $dadosConversa;
                 $conversa->save();
 
                 $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, 'IA: pedido de atendimento humano.');
@@ -168,10 +172,15 @@ class AtendimentoIA
 
                 $this->registrarNoHistorico($remoteJid, $intencao, true, null);
 
+                $fluxoCfg = $this->configuracao->fluxoOdontologico() ?? [];
+                $transferencia = is_string($fluxoCfg['transferencia'] ?? null) && trim((string) $fluxoCfg['transferencia']) !== ''
+                    ? (string) $fluxoCfg['transferencia']
+                    : 'Claro! Já avisei a equipe da clínica — alguém vai te responder em breve. 😊';
+
                 return $this->resultado(
                     $etapa,
                     $etapa,
-                    $textoIA !== '' ? $textoIA : 'Claro! Já avisei a equipe da clínica — alguém vai te responder em breve. 😊',
+                    $textoIA !== '' ? $textoIA : $transferencia,
                     'ia',
                     $intencao,
                 );
@@ -317,7 +326,13 @@ class AtendimentoIA
                 $conversa->save();
             }
 
-            $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, 'Fluxo encaminhou para a recepção.');
+            $dadosConversa = is_array($conversa->dados) ? $conversa->dados : [];
+            $motivo = $dadosConversa['motivo_handoff'] ?? null;
+            $motivo = is_string($motivo) && trim($motivo) !== ''
+                ? 'Fluxo: '.trim($motivo)
+                : 'Fluxo encaminhou para a recepção.';
+
+            $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, $motivo);
         }
 
         $this->registrarNoHistorico($remoteJid, $intencao, $intencao !== null, $erroIa ? 'A IA não devolveu uma proposta válida.' : null);
@@ -392,6 +407,22 @@ class AtendimentoIA
 
     protected function menuPadrao(WhatsAppConversation $conversa): string
     {
+        $fluxo = $this->configuracao->fluxoOdontologico();
+
+        if (is_array($fluxo)) {
+            $nome = is_string($conversa->dados['nome'] ?? null) ? $conversa->dados['nome'] : null;
+
+            if (is_string($fluxo['menu'] ?? null) && trim((string) $fluxo['menu']) !== '') {
+                return (string) $fluxo['menu'];
+            }
+
+            $menu = $this->configuracao->texto(ConfiguracaoWhatsApp::MENSAGEM_MENU);
+
+            if (is_string($menu) && trim($menu) !== '') {
+                return $menu;
+            }
+        }
+
         $nome = $conversa->dados['nome'] ?? null;
         $saudacao = is_string($nome) && $nome !== '' ? ", {$nome}" : '';
 

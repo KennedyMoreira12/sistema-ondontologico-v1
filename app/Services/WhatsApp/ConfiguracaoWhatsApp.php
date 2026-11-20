@@ -26,6 +26,42 @@ class ConfiguracaoWhatsApp
 
     public const OPT_OUT_PALAVRAS = 'opt_out_palavras';
 
+    /**
+     * Texto de boas-vindas/consentimento. Se vazio, o fluxo usa o padrão.
+     */
+    public const MENSAGEM_BOAS_VINDAS = 'mensagem_boas_vindas';
+
+    /**
+     * Menu principal (texto). Se vazio, o fluxo usa o padrão.
+     */
+    public const MENSAGEM_MENU = 'mensagem_menu';
+
+    /**
+     * Prompt de sistema do agente de IA. Se vazio, usa o prompt padrão do código.
+     */
+    public const PROMPT_IA = 'prompt_ia';
+
+    /**
+     * Endereço exibido em confirmações. Se vazio, tenta o perfil da clínica.
+     */
+    public const ENDERECO_CONFIRMACAO = 'endereco_confirmacao';
+
+    /**
+     * Configuração JSON do fluxo odontológico (opções, FAQ, urgência, etc).
+     */
+    public const FLUXO_ODONTOLOGICO = 'fluxo_odontologico';
+
+    /**
+     * Preço exibido em respostas; se vazio/nulo, encaminha para a equipe.
+     */
+    public const PRECO_NAO_INFORMADO = 'preco_nao_informado';
+
+    /**
+     * Valor usado em `whatsapp.fluxo_odontologico.modo` para clínicas com
+     * atendimento odontológico completo configurado.
+     */
+    public const FLUXO_MODO_ODONTOLOGICO = 'odontologico';
+
     public function texto(string $chave, ?string $padrao = null): ?string
     {
         $valor = ClinicSetting::valor($this->prefixo($chave));
@@ -86,6 +122,31 @@ class ConfiguracaoWhatsApp
             array_map(static fn (mixed $p): string => mb_strtolower(trim((string) $p)), (array) $palavras),
             static fn (string $p): bool => $p !== '',
         ));
+    }
+
+    /**
+     * Configuração estruturada do fluxo odontológico da clínica.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function fluxoOdontologico(): ?array
+    {
+        $fluxo = $this->json(self::FLUXO_ODONTOLOGICO);
+
+        return is_array($fluxo) ? $fluxo : null;
+    }
+
+    public function modoOdontologico(): bool
+    {
+        $fluxo = $this->fluxoOdontologico();
+
+        if ($fluxo === null) {
+            return false;
+        }
+
+        $modo = $fluxo['modo'] ?? null;
+
+        return $modo === null || $modo === '' || $modo === self::FLUXO_MODO_ODONTOLOGICO;
     }
 
     protected function prefixo(string $chave): string

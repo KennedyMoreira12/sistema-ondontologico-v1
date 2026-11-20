@@ -42,6 +42,10 @@ class ClienteIA
         'desconhecido',
     ];
 
+    public function __construct(
+        protected ?ConfiguracaoWhatsApp $config = null,
+    ) {}
+
     /**
      * O agente está pronto para ser chamado?
      *
@@ -146,6 +150,10 @@ class ClienteIA
      * não aceitar dado solto do modelo. São para o modelo não prometer o que não
      * pode: preço que não conhece, diagnóstico que não é dele para dar, ou uma
      * "confirmação" de agenda que ninguém validou.
+     *
+     * Clínicas podem definir um prompt próprio em `clinic_settings` (chave
+     * `whatsapp.prompt_ia`). Mesmo com prompt customizado, o contrato JSON e o
+     * catálogo de intenções continuam sendo impostos pelo sistema.
      */
     protected function promptSistema(array $contexto): string
     {
@@ -154,6 +162,23 @@ class ClienteIA
         $clinica = is_string($contexto['clinica'] ?? null) ? $contexto['clinica'] : 'clínica odontológica';
 
         $saudacao = $nome !== '' ? " O paciente já disse que se chama {$nome}." : '';
+        $customizado = $this->config?->texto(ConfiguracaoWhatsApp::PROMPT_IA);
+
+        $contrato = <<<'CONTRATO'
+
+        Responda SOMENTE com um JSON, sem texto fora dele, neste formato:
+        {"intencao": "uma_das_intencoes", "resposta": "texto curto e cordial para o paciente", "dados": {}}
+
+        Intenções válidas: saudacao, agendar, horarios, profissionais, procedimentos, falar_humano, duvida, desconhecido.
+        Em "dados", inclua só o que o paciente mencionou de forma explícita (ex.: {"profissional": "Dra. Ana"}). Não invente chaves.
+        CONTRATO;
+
+        if (is_string($customizado) && trim($customizado) !== '') {
+            return trim($customizado)
+                ."\n\nContexto atual: clínica {$clinica}; etapa {$etapa}.{$saudacao}"
+                ."\nRegras obrigatórias do sistema: nunca confirme agendamento por conta própria; nunca invente preços, endereços ou horários; nunca dê diagnóstico, prescrição ou orientação clínica; se pedir humano use falar_humano; se não entender use desconhecido."
+                .$contrato;
+        }
 
         return <<<PROMPT
         Você é a recepcionista virtual de uma {$clinica} no WhatsApp.{$saudacao}
@@ -167,12 +192,7 @@ class ClienteIA
         - Nunca confirme um agendamento: quem confirma é o sistema.
         - Se o paciente pedir para falar com uma pessoa, use a intenção "falar_humano".
         - Se não entender, use "desconhecido".
-
-        Responda SOMENTE com um JSON, sem texto fora dele, neste formato:
-        {"intencao": "uma_das_intencoes", "resposta": "texto curto e cordial para o paciente", "dados": {}}
-
-        Intenções válidas: saudacao, agendar, horarios, profissionais, procedimentos, falar_humano, duvida, desconhecido.
-        Em "dados", inclua só o que o paciente mencionou de forma explícita (ex.: {"profissional": "Dra. Ana"}). Não invente chaves.
+        {$contrato}
         PROMPT;
     }
 

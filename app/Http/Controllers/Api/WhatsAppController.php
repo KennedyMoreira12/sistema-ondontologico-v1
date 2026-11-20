@@ -665,7 +665,14 @@ class WhatsAppController extends Controller
          * sabendo que existe alguém esperando.
          */
         if ($resultado['etapa_para'] === 'recepcao') {
-            $this->alertas->abrir($conversa->refresh(), WhatsAppAlert::HANDOFF, 'Fluxo encaminhou para a recepção.');
+            $conversa = $conversa->refresh();
+            $dadosConversa = is_array($conversa->dados) ? $conversa->dados : [];
+            $motivo = $dadosConversa['motivo_handoff'] ?? null;
+            $motivo = is_string($motivo) && trim($motivo) !== ''
+                ? 'Fluxo: '.trim($motivo)
+                : 'Fluxo encaminhou para a recepção.';
+
+            $this->alertas->abrir($conversa, WhatsAppAlert::HANDOFF, $motivo);
         }
 
         /**
